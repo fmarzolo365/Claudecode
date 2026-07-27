@@ -516,16 +516,66 @@ function loadVoices() {
 loadVoices();
 speechSynthesis.onvoiceschanged = loadVoices;
 
-function speak(text, slow, done) {
-  if (!text) { if (done) done(); return; }
-  speechSynthesis.cancel();
+/* Neural voice via /api/tts when the server has a TTS key; device voice otherwise.
+   The 501 probe result is remembered for the session so unconfigured servers
+   cost one extra request per page load, not one per line. */
+let neuralOK = true;
+const ttsCache = new Map(); // text -> object URL (mp3)
+let currentAudio = null;
+
+function stopAudio() {
+  if (currentAudio) {
+    try { currentAudio.onended = null; currentAudio.pause(); } catch (e) {}
+    currentAudio = null;
+  }
+}
+
+async function neuralSpeak(text, rate, done) {
+  let url = ttsCache.get(text);
+  if (!url) {
+    const res = await fetch("/api/tts", {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-trainer-pin": localStorage.getItem(PIN_KEY) || "" },
+      body: JSON.stringify({ text }),
+    });
+    if (res.status === 501) { neuralOK = false; throw new Error("unconfigured"); }
+    if (!res.ok) throw new Error("tts " + res.status);
+    url = URL.createObjectURL(await res.blob());
+    ttsCache.set(text, url);
+    if (ttsCache.size > 40) {
+      const k = ttsCache.keys().next().value;
+      URL.revokeObjectURL(ttsCache.get(k));
+      ttsCache.delete(k);
+    }
+  }
+  const a = new Audio(url);
+  a.playbackRate = rate;
+  if ("preservesPitch" in a) a.preservesPitch = true;
+  currentAudio = a;
+  a.onended = () => { if (currentAudio === a) currentAudio = null; done && setTimeout(done, 350); };
+  await a.play();
+}
+
+function deviceSpeak(text, rate, done) {
   const u = new SpeechSynthesisUtterance(text);
   u.lang = "de-DE";
   if (S.voice) u.voice = S.voice;
-  u.rate = slow ? 0.6 : LEVELS[S.level].rate * (SPEEDS[S.speed] || 1);
+  u.rate = rate;
   u.onend = () => done && setTimeout(done, 350);
   u.onerror = () => done && setTimeout(done, 350);
   speechSynthesis.speak(u);
+}
+
+function speak(text, slow, done) {
+  if (!text) { if (done) done(); return; }
+  speechSynthesis.cancel();
+  stopAudio();
+  const rate = slow ? 0.6 : LEVELS[S.level].rate * (SPEEDS[S.speed] || 1);
+  if (neuralOK) {
+    neuralSpeak(text, rate, done).catch(() => deviceSpeak(text, rate, done));
+    return;
+  }
+  deviceSpeak(text, rate, done);
 }
 
 /* ---------- setup screen ---------- */
@@ -693,6 +743,7 @@ async function listen() {
   } catch (e) { alertMsg(t().micBlocked); $("typeRow").classList.remove("hidden"); return; }
 
   speechSynthesis.cancel();
+  stopAudio();
   alertMsg(null);
   const r = new SR();
   r.lang = "de-DE"; r.interimResults = false; r.maxAlternatives = 1;
@@ -823,6 +874,7 @@ $("hangBtn").onclick = () => {
   S.timerId = null;
   releaseWakeLock();
   speechSynthesis.cancel();
+  stopAudio();
   try { S.rec && S.rec.abort(); } catch (e) {}
   const L = t();
   $("doneTitle").textContent = L.ended;

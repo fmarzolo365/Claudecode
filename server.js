@@ -29,6 +29,11 @@ const MODEL = process.env.TRAINER_MODEL || "claude-sonnet-4-6";
 // Optional access PIN. Set TRAINER_PIN when hosting publicly so strangers
 // can't spend your API credits. Unset (local use) = no PIN asked.
 const PIN = process.env.TRAINER_PIN || "";
+// Optional neural voice. Set TTS_API_KEY (an OpenAI API key) to upgrade from
+// the device robot voice to a natural one; unset = device voice fallback.
+const TTS_KEY = process.env.TTS_API_KEY || "";
+const TTS_MODEL = process.env.TTS_MODEL || "gpt-4o-mini-tts";
+const TTS_VOICE = process.env.TTS_VOICE || "coral";
 
 if (!AUTH_TOKEN && !API_KEY) {
   console.error("No credentials found.");
@@ -88,6 +93,50 @@ const server = http.createServer(async (req, res) => {
       res.end(text);
     } catch (err) {
       console.error("Proxy failed:", err.message);
+      res.writeHead(502, { "content-type": "application/json" });
+      res.end(JSON.stringify({ error: err.message }));
+    }
+    return;
+  }
+
+  if (req.method === "POST" && req.url === "/api/tts") {
+    if (PIN && req.headers["x-trainer-pin"] !== PIN) {
+      res.writeHead(401, { "content-type": "application/json" });
+      res.end(JSON.stringify({ error: "pin_required" }));
+      return;
+    }
+    if (!TTS_KEY) {
+      res.writeHead(501, { "content-type": "application/json" });
+      res.end(JSON.stringify({ error: "tts_unconfigured" }));
+      return;
+    }
+    try {
+      const { text } = JSON.parse(await readBody(req));
+      if (!text || typeof text !== "string" || text.length > 1200) {
+        res.writeHead(400, { "content-type": "application/json" });
+        res.end(JSON.stringify({ error: "bad_text" }));
+        return;
+      }
+      const body = { model: TTS_MODEL, voice: TTS_VOICE, input: text, response_format: "mp3" };
+      if (TTS_MODEL.startsWith("gpt-")) {
+        body.instructions = "Speak natural, native German as a friendly, professional employee answering a phone call. Natural pacing and intonation, slightly warm.";
+      }
+      const upstream = await fetch("https://api.openai.com/v1/audio/speech", {
+        method: "POST",
+        headers: { authorization: `Bearer ${TTS_KEY}`, "content-type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (!upstream.ok) {
+        console.error("TTS failed:", upstream.status, (await upstream.text()).slice(0, 200));
+        res.writeHead(502, { "content-type": "application/json" });
+        res.end(JSON.stringify({ error: "tts_failed" }));
+        return;
+      }
+      const buf = Buffer.from(await upstream.arrayBuffer());
+      res.writeHead(200, { "content-type": "audio/mpeg", "content-length": buf.length });
+      res.end(buf);
+    } catch (err) {
+      console.error("TTS proxy failed:", err.message);
       res.writeHead(502, { "content-type": "application/json" });
       res.end(JSON.stringify({ error: err.message }));
     }

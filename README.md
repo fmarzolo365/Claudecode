@@ -75,7 +75,20 @@ browser:
 | `ANTHROPIC_API_KEY` | Sent as `x-api-key`. Use this for a direct Anthropic key. |
 | `ANTHROPIC_BASE_URL` | Optional. Defaults to `https://api.anthropic.com`. |
 | `TRAINER_MODEL` | Optional. Defaults to `claude-sonnet-4-6`. |
+| `TRAINER_PIN` | Optional. When set, callers must enter this PIN (for public hosting). |
+| `TTS_API_KEY` | Optional. An OpenAI API key — enables the natural neural voice. |
+| `TTS_VOICE` | Optional. Neural voice name, default `coral` (try `nova`, `alloy`, `ash`). |
+| `TTS_MODEL` | Optional. Defaults to `gpt-4o-mini-tts`. |
 | `PORT` | Optional. Defaults to `5173`. |
+
+### Natural voice (optional but recommended)
+
+By default the app uses the phone's built-in German TTS, which sounds robotic.
+Set `TTS_API_KEY` to an [OpenAI API key](https://platform.openai.com/api-keys)
+(costs roughly $0.01 per call) and the receptionist gets a natural, human-sounding
+voice — on Render: service → **Environment** → add `TTS_API_KEY` → Save. Locally:
+add a `TTS_API_KEY=...` line to `.env`. No key = automatic fallback to the device
+voice; nothing breaks.
 
 Set exactly one of the first two. Current model IDs:
 https://docs.claude.com/en/docs/about-claude/models
