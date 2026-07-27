@@ -4,6 +4,9 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="theme-color" content="#15130f" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black" />
+<meta name="apple-mobile-web-app-title" content="Telefon" />
 <title>Telefontrainer</title>
 <link rel="manifest" href="/manifest.webmanifest" />
 <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
@@ -119,6 +122,7 @@
   <section id="setup">
     <div class="plate"><svg width="22" height="22" viewBox="0 0 24 24" fill="#15130f"><path d="M6.6 10.8c1.6 3.1 4.1 5.6 7.2 7.2l2.4-2.4c.3-.3.7-.4 1.1-.3 1.2.4 2.5.6 3.8.6.6 0 1 .4 1 1V21c0 .6-.4 1-1 1C11.6 22 2 12.4 2 1c0-.6.4-1 1-1h3.9c.6 0 1 .4 1 1 0 1.3.2 2.6.6 3.8.1.4 0 .8-.3 1.1L6.6 10.8z"/></svg><span>TELEFONTRAINER</span></div>
     <p class="tagline" id="tagline"></p>
+    <p class="note hidden" id="stats" style="margin:-14px 0 20px"></p>
 
     <div class="label" id="lblPick"></div>
     <div class="list" id="scenarios"></div>
@@ -126,6 +130,9 @@
     <div class="label" id="lblLevel"></div>
     <div class="seg" id="levels"></div>
     <p class="note" id="levelNote"></p>
+
+    <div class="label" id="lblSpeed"></div>
+    <div class="seg" id="speeds"></div>
 
     <div class="label" id="lblLang"></div>
     <div class="seg" id="langs"></div>
@@ -264,7 +271,9 @@ const T = {
     mistakes:"Mis errores", mistakesTitle:"MIS ERRORES", noMistakes:"Todavía no hay correcciones guardadas. ¡Haz una llamada!",
     exportAnki:"Exportar para Anki", clearHistory:"Borrar historial", clearConfirm:"¿Borrar todas las correcciones guardadas?",
     back:"VOLVER", evalTitle:"EVALUACIÓN", evalLoading:"Evaluando tu llamada…", evalFail:"(No se pudo generar la evaluación)",
-    saved:"guardadas", pinAsk:"Introduce el PIN de acceso:" },
+    saved:"guardadas", pinAsk:"Introduce el PIN de acceso:",
+    speed:"Velocidad de la voz", speedSlow:"Lenta", speedNormal:"Normal", speedFast:"Rápida",
+    days:"días seguidos", calls:"llamadas", minutes:"min practicados" },
   en:{ tagline:"Practise German phone calls. You speak, the other person answers.",
     pick:"Choose the situation", level:"Level", helpLang:"Language for corrections", call:"CALL",
     hangUp:"HANG UP", speak:"Tap and speak", listening:"Listening…", repeat:"Repeat slowly",
@@ -276,12 +285,58 @@ const T = {
     mistakes:"My mistakes", mistakesTitle:"MY MISTAKES", noMistakes:"No saved corrections yet. Make a call!",
     exportAnki:"Export for Anki", clearHistory:"Clear history", clearConfirm:"Delete all saved corrections?",
     back:"BACK", evalTitle:"EVALUATION", evalLoading:"Evaluating your call…", evalFail:"(Could not generate the evaluation)",
-    saved:"saved", pinAsk:"Enter the access PIN:" },
+    saved:"saved", pinAsk:"Enter the access PIN:",
+    speed:"Voice speed", speedSlow:"Slow", speedNormal:"Normal", speedFast:"Fast",
+    days:"day streak", calls:"calls", minutes:"min practised" },
 };
 
-const S = { scenario:SCENARIOS[0], level:"A1", lang:"es", turns:[], busy:false,
+const SPEEDS = { slow:0.8, normal:1, fast:1.2 };
+
+const S = { scenario:SCENARIOS[0], level:"A1", lang:"es", speed:"normal", turns:[], busy:false,
             listening:false, handsFree:true, seconds:0, timerId:null, hint:null, voice:null, rec:null,
             currentGoal:null, wakeLock:null };
+
+/* ---------- settings persistence ---------- */
+const SET_KEY = "telefontrainer.settings";
+function saveSettings() {
+  try {
+    localStorage.setItem(SET_KEY, JSON.stringify({ scenario:S.scenario.id, level:S.level, lang:S.lang, speed:S.speed }));
+  } catch (e) {}
+}
+(function loadSettings() {
+  try {
+    const s = JSON.parse(localStorage.getItem(SET_KEY)) || {};
+    const sc = SCENARIOS.find((x) => x.id === s.scenario);
+    if (sc) S.scenario = sc;
+    if (LEVELS[s.level]) S.level = s.level;
+    if (T[s.lang]) S.lang = s.lang;
+    if (SPEEDS[s.speed]) S.speed = s.speed;
+  } catch (e) {}
+})();
+
+/* ---------- practice stats (streak, totals) ---------- */
+const STAT_KEY = "telefontrainer.stats";
+function loadStats() {
+  try { return JSON.parse(localStorage.getItem(STAT_KEY)) || { days:{}, calls:0, seconds:0 }; }
+  catch (e) { return { days:{}, calls:0, seconds:0 }; }
+}
+function recordCall() {
+  if (!S.turns.some((x) => x.me)) return;
+  const st = loadStats();
+  const d = new Date().toISOString().slice(0, 10);
+  st.days[d] = (st.days[d] || 0) + 1;
+  st.calls = (st.calls || 0) + 1;
+  st.seconds = (st.seconds || 0) + S.seconds;
+  try { localStorage.setItem(STAT_KEY, JSON.stringify(st)); } catch (e) {}
+}
+function currentStreak(st) {
+  let n = 0;
+  const day = new Date();
+  const key = () => day.toISOString().slice(0, 10);
+  if (!st.days[key()]) day.setDate(day.getDate() - 1); // streak may end yesterday
+  while (st.days[key()]) { n++; day.setDate(day.getDate() - 1); }
+  return n;
+}
 
 const $ = (id) => document.getElementById(id);
 const t = () => T[S.lang];
@@ -346,7 +401,7 @@ function speak(text, slow, done) {
   const u = new SpeechSynthesisUtterance(text);
   u.lang = "de-DE";
   if (S.voice) u.voice = S.voice;
-  u.rate = slow ? 0.6 : LEVELS[S.level].rate;
+  u.rate = slow ? 0.6 : LEVELS[S.level].rate * (SPEEDS[S.speed] || 1);
   u.onend = () => done && setTimeout(done, 350);
   u.onerror = () => done && setTimeout(done, 350);
   speechSynthesis.speak(u);
@@ -358,25 +413,39 @@ function renderSetup() {
   $("tagline").textContent = L.tagline;
   $("lblPick").textContent = L.pick;
   $("lblLevel").textContent = L.level;
+  $("lblSpeed").textContent = L.speed;
   $("lblLang").textContent = L.helpLang;
+
+  const st = loadStats();
+  const strk = currentStreak(st);
+  $("stats").classList.toggle("hidden", !st.calls);
+  if (st.calls) {
+    $("stats").textContent =
+      `🔥 ${strk} ${L.days} · 📞 ${st.calls} ${L.calls} · ⏱ ${Math.round((st.seconds || 0) / 60)} ${L.minutes}`;
+  }
   $("callBtn").innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="#f0c000"><path d="M6.6 10.8c1.6 3.1 4.1 5.6 7.2 7.2l2.4-2.4c.3-.3.7-.4 1.1-.3 1.2.4 2.5.6 3.8.6.6 0 1 .4 1 1V21c0 .6-.4 1-1 1C11.6 22 2 12.4 2 1c0-.6.4-1 1-1h3.9c.6 0 1 .4 1 1 0 1.3.2 2.6.6 3.8.1.4 0 .8-.3 1.1L6.6 10.8z"/></svg>' + L.call;
 
   $("scenarios").innerHTML = SCENARIOS.map((s) =>
     `<button class="item ${s.id === S.scenario.id ? "on" : ""}" data-id="${s.id}">
        <b>${esc(s.de)}</b><small>${esc(s[S.lang])} · ${esc(s.who)}</small></button>`).join("");
   $("scenarios").querySelectorAll(".item").forEach((b) =>
-    b.onclick = () => { S.scenario = SCENARIOS.find((x) => x.id === b.dataset.id); renderSetup(); });
+    b.onclick = () => { S.scenario = SCENARIOS.find((x) => x.id === b.dataset.id); saveSettings(); renderSetup(); });
 
   $("levels").innerHTML = Object.keys(LEVELS).map((k) =>
     `<button class="${k === S.level ? "on" : ""}" data-k="${k}">${k}</button>`).join("");
   $("levels").querySelectorAll("button").forEach((b) =>
-    b.onclick = () => { S.level = b.dataset.k; renderSetup(); });
+    b.onclick = () => { S.level = b.dataset.k; saveSettings(); renderSetup(); });
   $("levelNote").textContent = LEVELS[S.level][S.lang];
+
+  $("speeds").innerHTML = [["slow", L.speedSlow], ["normal", L.speedNormal], ["fast", L.speedFast]].map(([k, n]) =>
+    `<button class="${k === S.speed ? "on" : ""}" data-k="${k}">${n}</button>`).join("");
+  $("speeds").querySelectorAll("button").forEach((b) =>
+    b.onclick = () => { S.speed = b.dataset.k; saveSettings(); renderSetup(); });
 
   $("langs").innerHTML = [["es","Español"],["en","English"]].map(([k, n]) =>
     `<button class="${k === S.lang ? "on" : ""}" data-k="${k}">${n}</button>`).join("");
   $("langs").querySelectorAll("button").forEach((b) =>
-    b.onclick = () => { S.lang = b.dataset.k; renderSetup(); });
+    b.onclick = () => { S.lang = b.dataset.k; saveSettings(); renderSetup(); });
 
   const n = loadFixes().length;
   $("mistakesBtn").textContent = `${L.mistakes}${n ? ` (${n} ${L.saved})` : ""}`;
@@ -614,6 +683,7 @@ $("hangBtn").onclick = () => {
   $("review").innerHTML = `<div class="label" style="margin:0">${esc(L.review)} · ${mmss()}</div>` +
     (fixes.length ? fixes.map((x) => `<div style="margin-top:14px"><div class="said">${esc(x.text)}</div><div class="fix">${esc(x.fix)}</div></div>`).join("")
                   : '<p class="note">—</p>');
+  recordCall();
   show("done");
   evaluateCall();
 };
@@ -635,6 +705,8 @@ $("sendBtn").onclick = () => send($("draft").value);
 $("draft").onkeydown = (e) => { if (e.key === "Enter") send($("draft").value); };
 
 renderSetup();
+
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js").catch(() => {});
 </script>
 </body>
 </html>
