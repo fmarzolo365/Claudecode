@@ -11,6 +11,16 @@ const http = require("http");
 const fs = require("fs");
 const path = require("path");
 
+// Load ./.env (KEY=VALUE per line) so the key survives closing Termux.
+// Real environment variables always win over the file.
+try {
+  const lines = fs.readFileSync(path.join(__dirname, ".env"), "utf8").split("\n");
+  for (const line of lines) {
+    const m = line.match(/^\s*([A-Z_][A-Z0-9_]*)\s*=\s*(.*)\s*$/);
+    if (m && !(m[1] in process.env)) process.env[m[1]] = m[2].replace(/^["']|["']$/g, "");
+  }
+} catch (e) { /* no .env file — fine */ }
+
 const PORT = process.env.PORT || 5173;
 const BASE = (process.env.ANTHROPIC_BASE_URL || "https://api.anthropic.com").replace(/\/$/, "");
 const AUTH_TOKEN = process.env.ANTHROPIC_AUTH_TOKEN || "";
@@ -19,7 +29,8 @@ const MODEL = process.env.TRAINER_MODEL || "claude-sonnet-4-6";
 
 if (!AUTH_TOKEN && !API_KEY) {
   console.error("No credentials found.");
-  console.error("Set ANTHROPIC_AUTH_TOKEN (router / gateway) or ANTHROPIC_API_KEY (direct).");
+  console.error("Set ANTHROPIC_AUTH_TOKEN (router / gateway) or ANTHROPIC_API_KEY (direct),");
+  console.error("or run ./start.sh once to store the key in ./.env");
   process.exit(1);
 }
 
@@ -28,6 +39,9 @@ const MIME = {
   ".js": "text/javascript; charset=utf-8",
   ".css": "text/css; charset=utf-8",
   ".svg": "image/svg+xml",
+  ".png": "image/png",
+  ".json": "application/json; charset=utf-8",
+  ".webmanifest": "application/manifest+json; charset=utf-8",
 };
 
 function authHeaders() {
