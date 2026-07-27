@@ -3,7 +3,11 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="theme-color" content="#15130f" />
 <title>Telefontrainer</title>
+<link rel="manifest" href="/manifest.webmanifest" />
+<link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
+<link rel="apple-touch-icon" href="/icons/icon-192.png" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600&family=Archivo:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
@@ -127,6 +131,7 @@
     <div class="seg" id="langs"></div>
 
     <button class="big" id="callBtn"></button>
+    <button class="toggle" id="mistakesBtn" style="margin-top:14px"></button>
   </section>
 
   <!-- CALL -->
@@ -155,7 +160,19 @@
   <section id="done" class="hidden">
     <div class="plate"><span id="doneTitle"></span></div>
     <div class="list" style="margin-top:22px;padding:16px 14px" id="review"></div>
+    <div class="list" style="margin-top:14px;padding:16px 14px" id="evalBox"></div>
     <button class="big" id="againBtn"></button>
+  </section>
+
+  <!-- MISTAKES HISTORY -->
+  <section id="mistakes" class="hidden">
+    <div class="plate"><span id="mistakesTitle"></span></div>
+    <div class="list" style="margin-top:22px;padding:16px 14px" id="mistakesList"></div>
+    <div class="row">
+      <button class="ghost" id="ankiBtn"></button>
+      <button class="ghost" id="clearBtn"></button>
+    </div>
+    <button class="big" id="backBtn"></button>
   </section>
 </main>
 
@@ -163,19 +180,65 @@
 const SCENARIOS = [
   { id:"arzt", de:"Beim Hausarzt anrufen", es:"Pedir cita en el médico de cabecera", en:"Book a doctor's appointment",
     who:"Praxis Dr. Wagner", tag:"PRAXIS", role:"a receptionist at a family doctor's practice",
-    place:"Hausarztpraxis Dr. Wagner in Odenthal", goal:"book an appointment because of a persistent cough" },
+    place:"Hausarztpraxis Dr. Wagner in Odenthal",
+    goals:["book an appointment because of a persistent cough",
+           "book an appointment because of strong back pain",
+           "ask for a repeat prescription and whether you need to come in",
+           "reschedule an existing appointment because something came up"] },
   { id:"amt", de:"Termin beim Bürgeramt", es:"Cita en la oficina municipal", en:"Appointment at the citizens' office",
     who:"Bürgeramt", tag:"AMT", role:"a clerk at the municipal citizens' office",
-    place:"Bürgeramt Bergisch Gladbach", goal:"get an appointment to re-register an address" },
+    place:"Bürgeramt Bergisch Gladbach",
+    goals:["get an appointment to re-register an address",
+           "ask what documents are needed to renew an ID card and book a slot",
+           "ask about registering a car and where to go"] },
   { id:"werkstatt", de:"Auto zur Inspektion", es:"Llevar el coche al taller", en:"Take the car in for a service",
     who:"KFZ-Werkstatt Reuter", tag:"WERKSTATT", role:"a service adviser at a car workshop",
-    place:"KFZ-Werkstatt Reuter", goal:"book the car in for its service and ask what it costs" },
+    place:"KFZ-Werkstatt Reuter",
+    goals:["book the car in for its service and ask what it costs",
+           "describe a strange noise when braking and get an appointment",
+           "ask if they can check the battery today because the car barely starts"] },
   { id:"friseur", de:"Beim Friseur", es:"Reservar en la peluquería", en:"Book at the hairdresser",
     who:"Salon Bergmann", tag:"SALON", role:"a hairdresser taking bookings",
-    place:"Salon Bergmann", goal:"book a haircut for Saturday morning" },
+    place:"Salon Bergmann",
+    goals:["book a haircut for Saturday morning",
+           "book a haircut after work this week, you can only come after 5 pm",
+           "move your existing appointment to another day"] },
   { id:"restaurant", de:"Tisch reservieren", es:"Reservar mesa", en:"Reserve a table",
     who:"Restaurant Alte Mühle", tag:"RESERVIERUNG", role:"a waiter taking table reservations",
-    place:"Restaurant Alte Mühle", goal:"reserve a table for four people on Friday evening" },
+    place:"Restaurant Alte Mühle",
+    goals:["reserve a table for four people on Friday evening",
+           "reserve a table for two on Saturday and ask about vegetarian options",
+           "cancel a reservation and apologize, ask to rebook next week"] },
+  { id:"apotheke", de:"In der Apotheke anrufen", es:"Llamar a la farmacia", en:"Call the pharmacy",
+    who:"Adler-Apotheke", tag:"APOTHEKE", role:"a pharmacist answering the phone",
+    place:"Adler-Apotheke",
+    goals:["ask if a medicine is in stock and reserve it for pickup",
+           "ask how to take a prescribed medicine and if it can be taken with food",
+           "ask if they can order a medicine that is out of stock and when it arrives"] },
+  { id:"paket", de:"Paket nicht angekommen", es:"Paquete que no llega", en:"Missing parcel",
+    who:"Paketdienst", tag:"KUNDENDIENST", role:"a customer service agent at a parcel delivery company",
+    place:"the customer service line of a parcel delivery company",
+    goals:["report that a parcel marked as delivered never arrived",
+           "arrange a new delivery date because you were not at home",
+           "ask where a parcel is that has been in transit for two weeks"] },
+  { id:"vermieter", de:"Beim Vermieter anrufen", es:"Llamar al casero", en:"Call the landlord",
+    who:"Hausverwaltung Krüger", tag:"VERWALTUNG", role:"a property manager taking tenant calls",
+    place:"Hausverwaltung Krüger",
+    goals:["report that the heating is not working and ask for a repair",
+           "report a dripping tap in the bathroom and arrange a visit",
+           "ask a question about the utility bill you received"] },
+  { id:"bank", de:"Bei der Bank anrufen", es:"Llamar al banco", en:"Call the bank",
+    who:"Volksbank", tag:"BANK", role:"a bank employee on the service hotline",
+    place:"the service hotline of Volksbank",
+    goals:["report a lost bank card and ask to block it",
+           "ask about a charge on your account you do not recognize",
+           "make an appointment to open an account"] },
+  { id:"kita", de:"Kind krankmelden", es:"Avisar que el niño está enfermo", en:"Call in sick for your child",
+    who:"Kita Sonnenschein", tag:"KITA", role:"a kindergarten teacher answering the phone",
+    place:"Kita Sonnenschein",
+    goals:["tell them your child is sick and will stay home today",
+           "ask about the schedule for the summer party and what to bring",
+           "tell them the grandmother will pick up the child today"] },
 ];
 
 const LEVELS = {
@@ -185,6 +248,8 @@ const LEVELS = {
        guide:"Elementary. Simple everyday language, occasional subordinate clause with weil or dass. Normal politeness formulas." },
   B1:{ words:40, rate:1.0, es:"Alemán natural, con imprevistos", en:"Natural German, with complications",
        guide:"Intermediate. Natural office German at normal speed, with fillers, follow-up questions and small complications such as a fully booked day." },
+  B2:{ words:55, rate:1.06, es:"Rápido y con complicaciones reales", en:"Fast, with real complications",
+       guide:"Upper intermediate. Fast natural speech with colloquialisms and fillers. Introduce a real complication the caller must solve (fully booked, wrong department, missing information, a counter-offer). Occasionally transfer the caller to a colleague with a different voice of the same kind. Do not simplify unless asked." },
 };
 
 const T = {
@@ -195,7 +260,11 @@ const T = {
     ended:"LLAMADA TERMINADA", review:"Tus correcciones", again:"OTRA LLAMADA", you:"TÚ",
     handsFree:"Manos libres", err:"No hay respuesta del servidor. ¿Está corriendo node server.js?",
     noMic:"Este navegador no reconoce voz. Usa Chrome.", micBlocked:"Micrófono bloqueado. Permite el acceso en el candado de la barra de direcciones.",
-    noSpeech:"No se oyó nada. Habla más cerca del micrófono.", noDevice:"No se encuentra ningún micrófono.", micErr:"Error de micrófono" },
+    noSpeech:"No se oyó nada. Habla más cerca del micrófono.", noDevice:"No se encuentra ningún micrófono.", micErr:"Error de micrófono",
+    mistakes:"Mis errores", mistakesTitle:"MIS ERRORES", noMistakes:"Todavía no hay correcciones guardadas. ¡Haz una llamada!",
+    exportAnki:"Exportar para Anki", clearHistory:"Borrar historial", clearConfirm:"¿Borrar todas las correcciones guardadas?",
+    back:"VOLVER", evalTitle:"EVALUACIÓN", evalLoading:"Evaluando tu llamada…", evalFail:"(No se pudo generar la evaluación)",
+    saved:"guardadas" },
   en:{ tagline:"Practise German phone calls. You speak, the other person answers.",
     pick:"Choose the situation", level:"Level", helpLang:"Language for corrections", call:"CALL",
     hangUp:"HANG UP", speak:"Tap and speak", listening:"Listening…", repeat:"Repeat slowly",
@@ -203,15 +272,43 @@ const T = {
     ended:"CALL ENDED", review:"Your corrections", again:"ANOTHER CALL", you:"YOU",
     handsFree:"Hands free", err:"No answer from the server. Is node server.js running?",
     noMic:"This browser does not do speech recognition. Use Chrome.", micBlocked:"Microphone blocked. Allow access via the padlock in the address bar.",
-    noSpeech:"Nothing was heard. Speak closer to the microphone.", noDevice:"No microphone found.", micErr:"Microphone error" },
+    noSpeech:"Nothing was heard. Speak closer to the microphone.", noDevice:"No microphone found.", micErr:"Microphone error",
+    mistakes:"My mistakes", mistakesTitle:"MY MISTAKES", noMistakes:"No saved corrections yet. Make a call!",
+    exportAnki:"Export for Anki", clearHistory:"Clear history", clearConfirm:"Delete all saved corrections?",
+    back:"BACK", evalTitle:"EVALUATION", evalLoading:"Evaluating your call…", evalFail:"(Could not generate the evaluation)",
+    saved:"saved" },
 };
 
 const S = { scenario:SCENARIOS[0], level:"A1", lang:"es", turns:[], busy:false,
-            listening:false, handsFree:true, seconds:0, timerId:null, hint:null, voice:null, rec:null };
+            listening:false, handsFree:true, seconds:0, timerId:null, hint:null, voice:null, rec:null,
+            currentGoal:null, wakeLock:null };
 
 const $ = (id) => document.getElementById(id);
 const t = () => T[S.lang];
 const esc = (s) => String(s == null ? "" : s).replace(/[&<>"]/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c]));
+
+/* ---------- saved corrections (localStorage) ---------- */
+const FIX_KEY = "telefontrainer.fixes";
+function loadFixes() {
+  try { return JSON.parse(localStorage.getItem(FIX_KEY)) || []; } catch (e) { return []; }
+}
+function saveFix(text, fix) {
+  const fixes = loadFixes();
+  fixes.push({ text, fix, scenario: S.scenario.id, level: S.level, date: new Date().toISOString().slice(0, 10) });
+  try { localStorage.setItem(FIX_KEY, JSON.stringify(fixes.slice(-300))); } catch (e) {}
+}
+
+/* ---------- keep the screen on during a call ---------- */
+async function acquireWakeLock() {
+  try { if ("wakeLock" in navigator) S.wakeLock = await navigator.wakeLock.request("screen"); } catch (e) {}
+}
+function releaseWakeLock() {
+  try { S.wakeLock && S.wakeLock.release(); } catch (e) {}
+  S.wakeLock = null;
+}
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible" && S.timerId && !S.wakeLock) acquireWakeLock();
+});
 
 /* ---------- voices ---------- */
 function loadVoices() {
@@ -250,7 +347,7 @@ function renderSetup() {
   $("scenarios").querySelectorAll(".item").forEach((b) =>
     b.onclick = () => { S.scenario = SCENARIOS.find((x) => x.id === b.dataset.id); renderSetup(); });
 
-  $("levels").innerHTML = ["A1","A2","B1"].map((k) =>
+  $("levels").innerHTML = Object.keys(LEVELS).map((k) =>
     `<button class="${k === S.level ? "on" : ""}" data-k="${k}">${k}</button>`).join("");
   $("levels").querySelectorAll("button").forEach((b) =>
     b.onclick = () => { S.level = b.dataset.k; renderSetup(); });
@@ -260,14 +357,52 @@ function renderSetup() {
     `<button class="${k === S.lang ? "on" : ""}" data-k="${k}">${n}</button>`).join("");
   $("langs").querySelectorAll("button").forEach((b) =>
     b.onclick = () => { S.lang = b.dataset.k; renderSetup(); });
+
+  const n = loadFixes().length;
+  $("mistakesBtn").textContent = `${L.mistakes}${n ? ` (${n} ${L.saved})` : ""}`;
+}
+
+/* ---------- mistakes history screen ---------- */
+function renderMistakes() {
+  const L = t();
+  $("mistakesTitle").textContent = L.mistakesTitle;
+  $("ankiBtn").textContent = L.exportAnki;
+  $("clearBtn").textContent = L.clearHistory;
+  $("backBtn").textContent = L.back;
+  const fixes = loadFixes().slice().reverse();
+  $("ankiBtn").disabled = !fixes.length;
+  $("mistakesList").innerHTML = fixes.length
+    ? fixes.map((f) => `<div style="margin-bottom:14px">
+        <div class="said">${esc(f.text)}</div>
+        <div class="fix">${esc(f.fix)}</div>
+        <div class="sub" style="font-size:11px">${esc(f.date)} · ${esc(f.scenario)} · ${esc(f.level)}</div>
+      </div>`).join("")
+    : `<p class="note">${esc(L.noMistakes)}</p>`;
+}
+
+function exportAnki() {
+  const fixes = loadFixes();
+  if (!fixes.length) return;
+  // Anki: File > Import, fields separated by Tab. Front = your sentence, Back = correction.
+  const tsv = fixes.map((f) => `${f.text.replace(/[\t\n]/g, " ")}\t${f.fix.replace(/[\t\n]/g, " ")}`).join("\n");
+  const blob = new Blob(["﻿" + tsv], { type: "text/tab-separated-values;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "telefontrainer-anki.txt";
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
 }
 
 /* ---------- call ---------- */
 function systemPrompt() {
   const L = LEVELS[S.level], help = S.lang === "es" ? "Spanish" : "English", s = S.scenario;
+  const recent = loadFixes().slice(-8);
+  const weakSpots = recent.length
+    ? `\nThe learner's recent recurring mistakes (from earlier calls):\n${recent.map((f) => `- said "${f.text}" -> better: ${f.fix}`).join("\n")}\nWhen natural, steer the conversation so the learner gets a chance to practise these patterns again. Never mention that you are doing this.\n`
+    : "";
   return `You are running a German-language telephone role-play for a learner at CEFR level ${S.level}.
-Your role: ${s.role} at ${s.place}. The learner is calling to ${s.goal}.
-
+Your role: ${s.role} at ${s.place}. The learner is calling to ${S.currentGoal}.
+${weakSpots}
 Rules:
 - The "reply" field is ONLY German. Stay in character for the whole call. Never mention that this is practice.
 - Level guidance: ${L.guide}
@@ -302,7 +437,9 @@ async function ask() {
     const clean = raw.replace(/```json|```/g, "").trim();
     const p = JSON.parse(clean.slice(clean.indexOf("{"), clean.lastIndexOf("}") + 1));
     if (p.feedback) {
-      for (let i = S.turns.length - 1; i >= 0; i--) { if (S.turns[i].me) { S.turns[i].fix = p.feedback; break; } }
+      for (let i = S.turns.length - 1; i >= 0; i--) {
+        if (S.turns[i].me) { S.turns[i].fix = p.feedback; saveFix(S.turns[i].text, p.feedback); break; }
+      }
     }
     S.turns.push({ me:false, text:p.reply, tr:p.translation });
     S.hint = p.suggestion || null;
@@ -404,13 +541,49 @@ function renderCall() {
 }
 
 function show(which) {
-  ["setup","call","done"].forEach((id) => $(id).classList.toggle("hidden", id !== which));
+  ["setup","call","done","mistakes"].forEach((id) => $(id).classList.toggle("hidden", id !== which));
+}
+
+/* ---------- end-of-call evaluation ---------- */
+async function evaluateCall() {
+  const spoke = S.turns.some((x) => x.me);
+  const L = t();
+  if (!spoke) { $("evalBox").innerHTML = ""; return; }
+  $("evalBox").innerHTML = `<div class="label" style="margin:0">${esc(L.evalTitle)}</div><p class="note">${esc(L.evalLoading)}</p>`;
+  const help = S.lang === "es" ? "Spanish" : "English";
+  const transcript = S.turns.map((x) => `${x.me ? "LEARNER" : "OTHER"}: ${x.text}`).join("\n");
+  try {
+    const res = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        system: `You evaluate a German phone-call role-play by a learner at CEFR level ${S.level}. The learner's goal was: ${S.currentGoal}. Return ONLY a JSON object, no markdown, with keys: "achieved" (true/false/"partial" - did the learner reach the goal), "comment" (2 sentences in ${help}: what went well and overall impression), "tips" (array of at most 3 short concrete tips in ${help} to improve, most important first).`,
+        messages: [{ role: "user", content: `Transcript of the call:\n${transcript}` }],
+      }),
+    });
+    const data = await res.json();
+    const raw = (data.content || []).filter((b) => b.type === "text").map((b) => b.text).join("");
+    const clean = raw.replace(/```json|```/g, "").trim();
+    const p = JSON.parse(clean.slice(clean.indexOf("{"), clean.lastIndexOf("}") + 1));
+    const badge = p.achieved === true ? "✅" : p.achieved === "partial" ? "🟡" : "❌";
+    $("evalBox").innerHTML =
+      `<div class="label" style="margin:0">${esc(L.evalTitle)} ${badge}</div>` +
+      `<p style="font-size:14.5px;line-height:1.5;margin:10px 0 6px">${esc(p.comment)}</p>` +
+      (Array.isArray(p.tips) && p.tips.length
+        ? `<ul style="margin:6px 0 0;padding-left:20px">${p.tips.map((tip) => `<li style="font-size:13.5px;line-height:1.5;margin-top:4px">${esc(tip)}</li>`).join("")}</ul>`
+        : "");
+  } catch (e) {
+    $("evalBox").innerHTML = `<div class="label" style="margin:0">${esc(L.evalTitle)}</div><p class="note">${esc(L.evalFail)}</p>`;
+  }
 }
 
 /* ---------- wiring ---------- */
 $("callBtn").onclick = () => {
   S.turns = []; S.hint = null; S.hintOpen = false; S.seconds = 0; S.handsFree = true;
+  const g = S.scenario.goals;
+  S.currentGoal = g[Math.floor(Math.random() * g.length)];
   show("call"); alertMsg(null); renderCall();
+  acquireWakeLock();
   clearInterval(S.timerId);
   S.timerId = setInterval(() => { S.seconds++; $("timer").textContent = "VERBUNDEN · " + mmss(); }, 1000);
   ask();
@@ -418,6 +591,8 @@ $("callBtn").onclick = () => {
 $("hangBtn").onclick = () => {
   S.handsFree = false;
   clearInterval(S.timerId);
+  S.timerId = null;
+  releaseWakeLock();
   speechSynthesis.cancel();
   try { S.rec && S.rec.abort(); } catch (e) {}
   const L = t();
@@ -428,8 +603,15 @@ $("hangBtn").onclick = () => {
     (fixes.length ? fixes.map((x) => `<div style="margin-top:14px"><div class="said">${esc(x.text)}</div><div class="fix">${esc(x.fix)}</div></div>`).join("")
                   : '<p class="note">—</p>');
   show("done");
+  evaluateCall();
 };
 $("againBtn").onclick = () => { show("setup"); renderSetup(); };
+$("mistakesBtn").onclick = () => { renderMistakes(); show("mistakes"); };
+$("backBtn").onclick = () => { show("setup"); renderSetup(); };
+$("ankiBtn").onclick = () => exportAnki();
+$("clearBtn").onclick = () => {
+  if (confirm(t().clearConfirm)) { localStorage.removeItem(FIX_KEY); renderMistakes(); }
+};
 $("micBtn").onclick = () => listen();
 $("freeBtn").onclick = () => { S.handsFree = !S.handsFree; renderCall(); };
 $("repeatBtn").onclick = () => {
