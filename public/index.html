@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Telefontrainer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600&family=Archivo:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --yellow: #f0c000;
+    --ink: #15130f;
+    --paper: #efeadd;
+    --red: #b33a2b;
+    --green: #2c6b4e;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--yellow);
+    color: var(--ink);
+    font-family: Archivo, Helvetica, sans-serif;
+    padding: 26px 16px 48px;
+    display: flex;
+    justify-content: center;
+  }
+  main { width: 100%; max-width: 560px; }
+  .plate {
+    border: 3px solid var(--ink);
+    padding: 10px 16px;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .plate span {
+    font-family: Oswald, sans-serif;
+    font-size: 22px;
+    letter-spacing: .22em;
+    font-weight: 600;
+  }
+  .tagline { font-size: 15px; line-height: 1.5; margin: 18px 0 26px; max-width: 440px; }
+  .label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px; letter-spacing: .2em; opacity: .7;
+    margin: 26px 0 8px; text-transform: uppercase;
+  }
+  .label:first-of-type { margin-top: 0; }
+  .list { border: 2px solid var(--ink); background: var(--paper); }
+  .item {
+    display: block; width: 100%; text-align: left; padding: 14px;
+    border: none; border-top: 1px solid rgba(21,19,15,.13);
+    background: transparent; color: var(--ink); cursor: pointer; font: inherit;
+  }
+  .item:first-child { border-top: none; }
+  .item.on { background: var(--ink); color: var(--paper); }
+  .item b { font-family: Oswald, sans-serif; font-size: 17px; font-weight: 500; display: block; }
+  .item small { font-size: 12.5px; opacity: .75; }
+  .seg { display: flex; border: 2px solid var(--ink); }
+  .seg button {
+    flex: 1; padding: 10px 6px; border: none; border-left: 2px solid var(--ink);
+    background: transparent; color: var(--ink); cursor: pointer;
+    font: 600 13px Archivo, sans-serif; letter-spacing: .06em;
+  }
+  .seg button:first-child { border-left: none; }
+  .seg button.on { background: var(--ink); color: var(--yellow); }
+  .note { font-size: 12.5px; margin: 8px 0 0; opacity: .8; }
+  .big {
+    font-family: Oswald, sans-serif; width: 100%; padding: 18px; margin-top: 30px;
+    background: var(--ink); color: var(--yellow); border: none; font-size: 22px;
+    letter-spacing: .2em; cursor: pointer; display: flex; align-items: center;
+    justify-content: center; gap: 12px;
+  }
+  .big[disabled] { opacity: .5; cursor: not-allowed; }
+  .big.live { background: var(--red); color: #fff; animation: ring 1.4s infinite; }
+  @keyframes ring { 0%,100% { box-shadow: 0 0 0 0 rgba(179,58,43,.55); } 50% { box-shadow: 0 0 0 12px rgba(179,58,43,0); } }
+  .bar {
+    background: var(--ink); color: var(--yellow); padding: 12px 14px;
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  }
+  .bar .who { font-family: Oswald, sans-serif; font-size: 17px; }
+  .bar .meta { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing: .18em; opacity: .7; }
+  .hang { background: var(--red); color: #fff; border: none; padding: 9px 12px; font: 600 12px Archivo, sans-serif; letter-spacing: .08em; cursor: pointer; }
+  .log {
+    background: var(--paper); border: 2px solid var(--ink); border-top: none;
+    min-height: 260px; max-height: 46vh; overflow-y: auto; padding-bottom: 8px;
+  }
+  .turn { padding: 10px 14px; border-bottom: 1px solid rgba(21,19,15,.09); display: flex; gap: 10px; }
+  .tag {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: .14em;
+    width: 84px; flex: 0 0 84px; padding-top: 3px; opacity: .85;
+  }
+  .tag.me { color: var(--green); }
+  .said { font-size: 15.5px; line-height: 1.45; }
+  .sub { font-size: 13px; opacity: .75; margin-top: 4px; }
+  .fix { font-size: 12.5px; color: var(--red); margin-top: 4px; }
+  .mini { background: none; border: none; padding: 0; font: 12px Archivo, sans-serif; color: var(--ink); opacity: .7; text-decoration: underline; cursor: pointer; margin-right: 12px; }
+  .row { display: flex; gap: 8px; margin-top: 12px; }
+  .ghost { flex: 1; padding: 11px 10px; background: transparent; border: 2px solid var(--ink); color: var(--ink); font: 600 13px Archivo, sans-serif; cursor: pointer; }
+  .ghost[disabled] { opacity: .4; cursor: not-allowed; }
+  .toggle { width: 100%; margin-top: 10px; padding: 10px; border: 2px solid var(--ink); background: transparent; color: var(--ink); font: 600 12.5px Archivo, sans-serif; letter-spacing: .08em; cursor: pointer; }
+  .toggle.on { background: var(--ink); color: var(--yellow); }
+  .hint { margin-top: 10px; border: 2px dashed var(--ink); padding: 10px 12px; font-size: 15px; }
+  .hint .label { margin: 0 0 4px; }
+  .alert { margin-top: 10px; border: 2px solid var(--red); color: var(--red); padding: 10px 12px; font: 600 12.5px Archivo, sans-serif; line-height: 1.45; }
+  input[type=text] { flex: 1; padding: 12px; border: 2px solid var(--ink); background: var(--paper); font: 15px Archivo, sans-serif; color: var(--ink); }
+  .hidden { display: none; }
+  button:focus-visible, input:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
+</style>
+</head>
+<body>
+<main>
+  <!-- SETUP -->
+  <section id="setup">
+    <div class="plate"><svg width="22" height="22" viewBox="0 0 24 24" fill="#15130f"><path d="M6.6 10.8c1.6 3.1 4.1 5.6 7.2 7.2l2.4-2.4c.3-.3.7-.4 1.1-.3 1.2.4 2.5.6 3.8.6.6 0 1 .4 1 1V21c0 .6-.4 1-1 1C11.6 22 2 12.4 2 1c0-.6.4-1 1-1h3.9c.6 0 1 .4 1 1 0 1.3.2 2.6.6 3.8.1.4 0 .8-.3 1.1L6.6 10.8z"/></svg><span>TELEFONTRAINER</span></div>
+    <p class="tagline" id="tagline"></p>
+
+    <div class="label" id="lblPick"></div>
+    <div class="list" id="scenarios"></div>
+
+    <div class="label" id="lblLevel"></div>
+    <div class="seg" id="levels"></div>
+    <p class="note" id="levelNote"></p>
+
+    <div class="label" id="lblLang"></div>
+    <div class="seg" id="langs"></div>
+
+    <button class="big" id="callBtn"></button>
+  </section>
+
+  <!-- CALL -->
+  <section id="call" class="hidden">
+    <div class="bar">
+      <div><div class="meta" id="timer">VERBUNDEN · 00:00</div><div class="who" id="who"></div></div>
+      <button class="hang" id="hangBtn"></button>
+    </div>
+    <div class="log" id="log"></div>
+    <div class="row">
+      <button class="ghost" id="repeatBtn"></button>
+      <button class="ghost" id="hintBtn"></button>
+    </div>
+    <div id="hintBox" class="hint hidden"><div class="label">VORSCHLAG</div><div id="hintText"></div></div>
+    <button class="toggle on" id="freeBtn"></button>
+    <div id="alert" class="alert hidden"></div>
+    <button class="big" id="micBtn"></button>
+    <button class="mini" id="typeBtn" style="margin-top:10px"></button>
+    <div class="row hidden" id="typeRow">
+      <input type="text" id="draft" placeholder="Guten Tag, ich möchte…" />
+      <button class="ghost" id="sendBtn" style="flex:0 0 auto"></button>
+    </div>
+  </section>
+
+  <!-- DONE -->
+  <section id="done" class="hidden">
+    <div class="plate"><span id="doneTitle"></span></div>
+    <div class="list" style="margin-top:22px;padding:16px 14px" id="review"></div>
+    <button class="big" id="againBtn"></button>
+  </section>
+</main>
+
+<script>
+const SCENARIOS = [
+  { id:"arzt", de:"Beim Hausarzt anrufen", es:"Pedir cita en el médico de cabecera", en:"Book a doctor's appointment",
+    who:"Praxis Dr. Wagner", tag:"PRAXIS", role:"a receptionist at a family doctor's practice",
+    place:"Hausarztpraxis Dr. Wagner in Odenthal", goal:"book an appointment because of a persistent cough" },
+  { id:"amt", de:"Termin beim Bürgeramt", es:"Cita en la oficina municipal", en:"Appointment at the citizens' office",
+    who:"Bürgeramt", tag:"AMT", role:"a clerk at the municipal citizens' office",
+    place:"Bürgeramt Bergisch Gladbach", goal:"get an appointment to re-register an address" },
+  { id:"werkstatt", de:"Auto zur Inspektion", es:"Llevar el coche al taller", en:"Take the car in for a service",
+    who:"KFZ-Werkstatt Reuter", tag:"WERKSTATT", role:"a service adviser at a car workshop",
+    place:"KFZ-Werkstatt Reuter", goal:"book the car in for its service and ask what it costs" },
+  { id:"friseur", de:"Beim Friseur", es:"Reservar en la peluquería", en:"Book at the hairdresser",
+    who:"Salon Bergmann", tag:"SALON", role:"a hairdresser taking bookings",
+    place:"Salon Bergmann", goal:"book a haircut for Saturday morning" },
+  { id:"restaurant", de:"Tisch reservieren", es:"Reservar mesa", en:"Reserve a table",
+    who:"Restaurant Alte Mühle", tag:"RESERVIERUNG", role:"a waiter taking table reservations",
+    place:"Restaurant Alte Mühle", goal:"reserve a table for four people on Friday evening" },
+];
+
+const LEVELS = {
+  A1:{ words:18, rate:.72, es:"Frases muy cortas, habla lenta", en:"Very short sentences, slow speech",
+       guide:"Absolute beginner. Present tense only, very common words, short main clauses, no subordinate clauses. Repeat key information. One question per turn." },
+  A2:{ words:28, rate:.88, es:"Lenguaje cotidiano, ritmo normal", en:"Everyday language, normal pace",
+       guide:"Elementary. Simple everyday language, occasional subordinate clause with weil or dass. Normal politeness formulas." },
+  B1:{ words:40, rate:1.0, es:"Alemán natural, con imprevistos", en:"Natural German, with complications",
+       guide:"Intermediate. Natural office German at normal speed, with fillers, follow-up questions and small complications such as a fully booked day." },
+};
+
+const T = {
+  es:{ tagline:"Practica llamadas telefónicas en alemán. Tú hablas, la otra persona responde.",
+    pick:"Elige la situación", level:"Nivel", helpLang:"Idioma de las correcciones", call:"LLAMAR",
+    hangUp:"COLGAR", speak:"Pulsa y habla", listening:"Escuchando…", repeat:"Repetir despacio",
+    hint:"¿Qué puedo decir?", type:"Escribir en vez de hablar", send:"Enviar", show:"Traducción",
+    ended:"LLAMADA TERMINADA", review:"Tus correcciones", again:"OTRA LLAMADA", you:"TÚ",
+    handsFree:"Manos libres", err:"No hay respuesta del servidor. ¿Está corriendo node server.js?",
+    noMic:"Este navegador no reconoce voz. Usa Chrome.", micBlocked:"Micrófono bloqueado. Permite el acceso en el candado de la barra de direcciones.",
+    noSpeech:"No se oyó nada. Habla más cerca del micrófono.", noDevice:"No se encuentra ningún micrófono.", micErr:"Error de micrófono" },
+  en:{ tagline:"Practise German phone calls. You speak, the other person answers.",
+    pick:"Choose the situation", level:"Level", helpLang:"Language for corrections", call:"CALL",
+    hangUp:"HANG UP", speak:"Tap and speak", listening:"Listening…", repeat:"Repeat slowly",
+    hint:"What can I say?", type:"Type instead of speaking", send:"Send", show:"Translation",
+    ended:"CALL ENDED", review:"Your corrections", again:"ANOTHER CALL", you:"YOU",
+    handsFree:"Hands free", err:"No answer from the server. Is node server.js running?",
+    noMic:"This browser does not do speech recognition. Use Chrome.", micBlocked:"Microphone blocked. Allow access via the padlock in the address bar.",
+    noSpeech:"Nothing was heard. Speak closer to the microphone.", noDevice:"No microphone found.", micErr:"Microphone error" },
+};
+
+const S = { scenario:SCENARIOS[0], level:"A1", lang:"es", turns:[], busy:false,
+            listening:false, handsFree:true, seconds:0, timerId:null, hint:null, voice:null, rec:null };
+
+const $ = (id) => document.getElementById(id);
+const t = () => T[S.lang];
+const esc = (s) => String(s == null ? "" : s).replace(/[&<>"]/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c]));
+
+/* ---------- voices ---------- */
+function loadVoices() {
+  const v = speechSynthesis.getVoices() || [];
+  S.voice = v.find((x) => x.lang === "de-DE" && /google|deutsch|anna|katja/i.test(x.name))
+         || v.find((x) => x.lang === "de-DE")
+         || v.find((x) => (x.lang || "").startsWith("de")) || null;
+}
+loadVoices();
+speechSynthesis.onvoiceschanged = loadVoices;
+
+function speak(text, slow, done) {
+  if (!text) { if (done) done(); return; }
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = "de-DE";
+  if (S.voice) u.voice = S.voice;
+  u.rate = slow ? 0.6 : LEVELS[S.level].rate;
+  u.onend = () => done && setTimeout(done, 350);
+  u.onerror = () => done && setTimeout(done, 350);
+  speechSynthesis.speak(u);
+}
+
+/* ---------- setup screen ---------- */
+function renderSetup() {
+  const L = t();
+  $("tagline").textContent = L.tagline;
+  $("lblPick").textContent = L.pick;
+  $("lblLevel").textContent = L.level;
+  $("lblLang").textContent = L.helpLang;
+  $("callBtn").innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="#f0c000"><path d="M6.6 10.8c1.6 3.1 4.1 5.6 7.2 7.2l2.4-2.4c.3-.3.7-.4 1.1-.3 1.2.4 2.5.6 3.8.6.6 0 1 .4 1 1V21c0 .6-.4 1-1 1C11.6 22 2 12.4 2 1c0-.6.4-1 1-1h3.9c.6 0 1 .4 1 1 0 1.3.2 2.6.6 3.8.1.4 0 .8-.3 1.1L6.6 10.8z"/></svg>' + L.call;
+
+  $("scenarios").innerHTML = SCENARIOS.map((s) =>
+    `<button class="item ${s.id === S.scenario.id ? "on" : ""}" data-id="${s.id}">
+       <b>${esc(s.de)}</b><small>${esc(s[S.lang])} · ${esc(s.who)}</small></button>`).join("");
+  $("scenarios").querySelectorAll(".item").forEach((b) =>
+    b.onclick = () => { S.scenario = SCENARIOS.find((x) => x.id === b.dataset.id); renderSetup(); });
+
+  $("levels").innerHTML = ["A1","A2","B1"].map((k) =>
+    `<button class="${k === S.level ? "on" : ""}" data-k="${k}">${k}</button>`).join("");
+  $("levels").querySelectorAll("button").forEach((b) =>
+    b.onclick = () => { S.level = b.dataset.k; renderSetup(); });
+  $("levelNote").textContent = LEVELS[S.level][S.lang];
+
+  $("langs").innerHTML = [["es","Español"],["en","English"]].map(([k, n]) =>
+    `<button class="${k === S.lang ? "on" : ""}" data-k="${k}">${n}</button>`).join("");
+  $("langs").querySelectorAll("button").forEach((b) =>
+    b.onclick = () => { S.lang = b.dataset.k; renderSetup(); });
+}
+
+/* ---------- call ---------- */
+function systemPrompt() {
+  const L = LEVELS[S.level], help = S.lang === "es" ? "Spanish" : "English", s = S.scenario;
+  return `You are running a German-language telephone role-play for a learner at CEFR level ${S.level}.
+Your role: ${s.role} at ${s.place}. The learner is calling to ${s.goal}.
+
+Rules:
+- The "reply" field is ONLY German. Stay in character for the whole call. Never mention that this is practice.
+- Level guidance: ${L.guide}
+- At most ${L.words} words per reply, at most one question per turn.
+- Answer the phone first with a realistic German greeting for this kind of business.
+- Drive the call to a real conclusion: offer concrete dates and times, confirm the learner's name, then say goodbye.
+- If the learner speaks English or Spanish, still answer in German, and make "suggestion" easier.
+
+Return ONLY a JSON object. No markdown, no code fences. Keys:
+"reply": your German line.
+"translation": that same line in ${help}.
+"feedback": at most 25 words in ${help} about the learner's last German line - what was wrong and the natural way to say it. Empty string if the learner has not spoken yet or the line was fine.
+"suggestion": one natural German sentence the learner could say next, at level ${S.level}.
+"done": true only after you have said goodbye.`;
+}
+
+function history() {
+  return [{ role:"user", content:"[Das Telefon klingelt. Nimm ab.]" }]
+    .concat(S.turns.map((x) => ({ role: x.me ? "user" : "assistant", content: x.text })));
+}
+
+async function ask() {
+  S.busy = true; renderCall();
+  try {
+    const res = await fetch("/api/chat", {
+      method:"POST",
+      headers:{ "content-type":"application/json" },
+      body: JSON.stringify({ system: systemPrompt(), messages: history() }),
+    });
+    const data = await res.json();
+    const raw = (data.content || []).filter((b) => b.type === "text").map((b) => b.text).join("");
+    const clean = raw.replace(/```json|```/g, "").trim();
+    const p = JSON.parse(clean.slice(clean.indexOf("{"), clean.lastIndexOf("}") + 1));
+    if (p.feedback) {
+      for (let i = S.turns.length - 1; i >= 0; i--) { if (S.turns[i].me) { S.turns[i].fix = p.feedback; break; } }
+    }
+    S.turns.push({ me:false, text:p.reply, tr:p.translation });
+    S.hint = p.suggestion || null;
+    S.busy = false; renderCall();
+    speak(p.reply, false, () => { if (S.handsFree && !p.done) listen(); });
+  } catch (e) {
+    S.busy = false; alertMsg(t().err); renderCall();
+  }
+}
+
+function send(text) {
+  const clean = (text || "").trim();
+  if (!clean || S.busy) return;
+  S.turns.push({ me:true, text:clean });
+  S.hint = null;
+  $("draft").value = "";
+  ask();
+}
+
+function alertMsg(msg) {
+  const el = $("alert");
+  if (!msg) { el.classList.add("hidden"); return; }
+  el.textContent = msg; el.classList.remove("hidden");
+}
+
+async function listen() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { alertMsg(t().noMic); $("typeRow").classList.remove("hidden"); return; }
+  if (S.listening) { try { S.rec.stop(); } catch (e) {} return; }
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio:true });
+    stream.getTracks().forEach((tr) => tr.stop());
+  } catch (e) { alertMsg(t().micBlocked); $("typeRow").classList.remove("hidden"); return; }
+
+  speechSynthesis.cancel();
+  alertMsg(null);
+  const r = new SR();
+  r.lang = "de-DE"; r.interimResults = false; r.maxAlternatives = 1;
+  r.onresult = (e) => send(e.results[0][0].transcript);
+  r.onerror = (e) => {
+    S.listening = false;
+    const c = e && e.error;
+    if (c === "not-allowed" || c === "service-not-allowed") alertMsg(t().micBlocked);
+    else if (c === "no-speech") alertMsg(t().noSpeech);
+    else if (c === "audio-capture") alertMsg(t().noDevice);
+    else if (c !== "aborted") alertMsg(t().micErr + ": " + c);
+    renderCall();
+  };
+  r.onend = () => { S.listening = false; renderCall(); };
+  S.rec = r;
+  try { r.start(); S.listening = true; renderCall(); }
+  catch (e) { S.listening = false; alertMsg(t().micErr + ": " + e.message); renderCall(); }
+}
+
+function mmss() {
+  const m = String(Math.floor(S.seconds / 60)).padStart(2, "0");
+  const s = String(S.seconds % 60).padStart(2, "0");
+  return m + ":" + s;
+}
+
+function renderCall() {
+  const L = t();
+  $("who").textContent = S.scenario.who;
+  $("timer").textContent = "VERBUNDEN · " + mmss();
+  $("hangBtn").textContent = L.hangUp;
+  $("repeatBtn").textContent = L.repeat;
+  $("hintBtn").textContent = L.hint;
+  $("typeBtn").textContent = L.type;
+  $("sendBtn").textContent = L.send;
+  $("freeBtn").textContent = (S.handsFree ? "\u25CF " : "\u25CB ") + L.handsFree;
+  $("freeBtn").className = "toggle" + (S.handsFree ? " on" : "");
+  $("micBtn").textContent = S.listening ? L.listening : L.speak;
+  $("micBtn").className = "big" + (S.listening ? " live" : "");
+  $("micBtn").disabled = S.busy;
+  $("hintBtn").disabled = !S.hint;
+  $("repeatBtn").disabled = !S.turns.some((x) => !x.me);
+
+  if (S.hint && S.hintOpen) { $("hintText").textContent = S.hint; $("hintBox").classList.remove("hidden"); }
+  else $("hintBox").classList.add("hidden");
+
+  $("log").innerHTML = S.turns.map((x, i) => `
+    <div class="turn">
+      <div class="tag ${x.me ? "me" : ""}">${x.me ? L.you : esc(S.scenario.tag)}</div>
+      <div style="flex:1">
+        <div class="said">${esc(x.text)}</div>
+        ${x.me ? "" : `<div style="margin-top:5px">
+            <button class="mini" data-play="${i}">&#9834;</button>
+            <button class="mini" data-tr="${i}">${L.show}</button></div>`}
+        ${!x.me && x.open ? `<div class="sub">${esc(x.tr)}</div>` : ""}
+        ${x.me && x.fix ? `<div class="fix">${esc(x.fix)}</div>` : ""}
+      </div>
+    </div>`).join("") + (S.busy ? '<div class="turn" style="opacity:.5">· · ·</div>' : "");
+
+  $("log").querySelectorAll("[data-play]").forEach((b) =>
+    b.onclick = () => speak(S.turns[+b.dataset.play].text, true));
+  $("log").querySelectorAll("[data-tr]").forEach((b) =>
+    b.onclick = () => { const x = S.turns[+b.dataset.tr]; x.open = !x.open; renderCall(); });
+  $("log").scrollTop = $("log").scrollHeight;
+}
+
+function show(which) {
+  ["setup","call","done"].forEach((id) => $(id).classList.toggle("hidden", id !== which));
+}
+
+/* ---------- wiring ---------- */
+$("callBtn").onclick = () => {
+  S.turns = []; S.hint = null; S.hintOpen = false; S.seconds = 0; S.handsFree = true;
+  show("call"); alertMsg(null); renderCall();
+  clearInterval(S.timerId);
+  S.timerId = setInterval(() => { S.seconds++; $("timer").textContent = "VERBUNDEN · " + mmss(); }, 1000);
+  ask();
+};
+$("hangBtn").onclick = () => {
+  S.handsFree = false;
+  clearInterval(S.timerId);
+  speechSynthesis.cancel();
+  try { S.rec && S.rec.abort(); } catch (e) {}
+  const L = t();
+  $("doneTitle").textContent = L.ended;
+  $("againBtn").textContent = L.again;
+  const fixes = S.turns.filter((x) => x.me && x.fix);
+  $("review").innerHTML = `<div class="label" style="margin:0">${esc(L.review)} · ${mmss()}</div>` +
+    (fixes.length ? fixes.map((x) => `<div style="margin-top:14px"><div class="said">${esc(x.text)}</div><div class="fix">${esc(x.fix)}</div></div>`).join("")
+                  : '<p class="note">—</p>');
+  show("done");
+};
+$("againBtn").onclick = () => { show("setup"); renderSetup(); };
+$("micBtn").onclick = () => listen();
+$("freeBtn").onclick = () => { S.handsFree = !S.handsFree; renderCall(); };
+$("repeatBtn").onclick = () => {
+  for (let i = S.turns.length - 1; i >= 0; i--) if (!S.turns[i].me) { speak(S.turns[i].text, true); break; }
+};
+$("hintBtn").onclick = () => { S.hintOpen = !S.hintOpen; renderCall(); };
+$("typeBtn").onclick = () => $("typeRow").classList.toggle("hidden");
+$("sendBtn").onclick = () => send($("draft").value);
+$("draft").onkeydown = (e) => { if (e.key === "Enter") send($("draft").value); };
+
+renderSetup();
+</script>
+</body>
+</html>
