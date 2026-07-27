@@ -264,7 +264,7 @@ const T = {
     mistakes:"Mis errores", mistakesTitle:"MIS ERRORES", noMistakes:"Todavía no hay correcciones guardadas. ¡Haz una llamada!",
     exportAnki:"Exportar para Anki", clearHistory:"Borrar historial", clearConfirm:"¿Borrar todas las correcciones guardadas?",
     back:"VOLVER", evalTitle:"EVALUACIÓN", evalLoading:"Evaluando tu llamada…", evalFail:"(No se pudo generar la evaluación)",
-    saved:"guardadas" },
+    saved:"guardadas", pinAsk:"Introduce el PIN de acceso:" },
   en:{ tagline:"Practise German phone calls. You speak, the other person answers.",
     pick:"Choose the situation", level:"Level", helpLang:"Language for corrections", call:"CALL",
     hangUp:"HANG UP", speak:"Tap and speak", listening:"Listening…", repeat:"Repeat slowly",
@@ -276,7 +276,7 @@ const T = {
     mistakes:"My mistakes", mistakesTitle:"MY MISTAKES", noMistakes:"No saved corrections yet. Make a call!",
     exportAnki:"Export for Anki", clearHistory:"Clear history", clearConfirm:"Delete all saved corrections?",
     back:"BACK", evalTitle:"EVALUATION", evalLoading:"Evaluating your call…", evalFail:"(Could not generate the evaluation)",
-    saved:"saved" },
+    saved:"saved", pinAsk:"Enter the access PIN:" },
 };
 
 const S = { scenario:SCENARIOS[0], level:"A1", lang:"es", turns:[], busy:false,
@@ -296,6 +296,26 @@ function saveFix(text, fix) {
   const fixes = loadFixes();
   fixes.push({ text, fix, scenario: S.scenario.id, level: S.level, date: new Date().toISOString().slice(0, 10) });
   try { localStorage.setItem(FIX_KEY, JSON.stringify(fixes.slice(-300))); } catch (e) {}
+}
+
+/* ---------- API calls (with optional PIN when hosted) ---------- */
+const PIN_KEY = "telefontrainer.pin";
+async function chatFetch(payload) {
+  const doFetch = () => fetch("/api/chat", {
+    method: "POST",
+    headers: { "content-type": "application/json", "x-trainer-pin": localStorage.getItem(PIN_KEY) || "" },
+    body: JSON.stringify(payload),
+  });
+  let res = await doFetch();
+  if (res.status === 401) {
+    const pin = prompt(t().pinAsk);
+    if (pin != null && pin.trim()) {
+      localStorage.setItem(PIN_KEY, pin.trim());
+      res = await doFetch();
+    }
+    if (res.status === 401) localStorage.removeItem(PIN_KEY);
+  }
+  return res;
 }
 
 /* ---------- keep the screen on during a call ---------- */
@@ -427,11 +447,7 @@ function history() {
 async function ask() {
   S.busy = true; renderCall();
   try {
-    const res = await fetch("/api/chat", {
-      method:"POST",
-      headers:{ "content-type":"application/json" },
-      body: JSON.stringify({ system: systemPrompt(), messages: history() }),
-    });
+    const res = await chatFetch({ system: systemPrompt(), messages: history() });
     const data = await res.json();
     const raw = (data.content || []).filter((b) => b.type === "text").map((b) => b.text).join("");
     const clean = raw.replace(/```json|```/g, "").trim();
@@ -553,13 +569,9 @@ async function evaluateCall() {
   const help = S.lang === "es" ? "Spanish" : "English";
   const transcript = S.turns.map((x) => `${x.me ? "LEARNER" : "OTHER"}: ${x.text}`).join("\n");
   try {
-    const res = await fetch("/api/chat", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        system: `You evaluate a German phone-call role-play by a learner at CEFR level ${S.level}. The learner's goal was: ${S.currentGoal}. Return ONLY a JSON object, no markdown, with keys: "achieved" (true/false/"partial" - did the learner reach the goal), "comment" (2 sentences in ${help}: what went well and overall impression), "tips" (array of at most 3 short concrete tips in ${help} to improve, most important first).`,
-        messages: [{ role: "user", content: `Transcript of the call:\n${transcript}` }],
-      }),
+    const res = await chatFetch({
+      system: `You evaluate a German phone-call role-play by a learner at CEFR level ${S.level}. The learner's goal was: ${S.currentGoal}. Return ONLY a JSON object, no markdown, with keys: "achieved" (true/false/"partial" - did the learner reach the goal), "comment" (2 sentences in ${help}: what went well and overall impression), "tips" (array of at most 3 short concrete tips in ${help} to improve, most important first).`,
+      messages: [{ role: "user", content: `Transcript of the call:\n${transcript}` }],
     });
     const data = await res.json();
     const raw = (data.content || []).filter((b) => b.type === "text").map((b) => b.text).join("");

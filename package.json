@@ -1,0 +1,12 @@
+{
+  "name": "telefontrainer",
+  "version": "1.0.0",
+  "private": true,
+  "description": "German phone-call practice with AI",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

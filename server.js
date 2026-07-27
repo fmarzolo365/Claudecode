@@ -26,6 +26,9 @@ const BASE = (process.env.ANTHROPIC_BASE_URL || "https://api.anthropic.com").rep
 const AUTH_TOKEN = process.env.ANTHROPIC_AUTH_TOKEN || "";
 const API_KEY = process.env.ANTHROPIC_API_KEY || "";
 const MODEL = process.env.TRAINER_MODEL || "claude-sonnet-4-6";
+// Optional access PIN. Set TRAINER_PIN when hosting publicly so strangers
+// can't spend your API credits. Unset (local use) = no PIN asked.
+const PIN = process.env.TRAINER_PIN || "";
 
 if (!AUTH_TOKEN && !API_KEY) {
   console.error("No credentials found.");
@@ -68,6 +71,11 @@ function readBody(req) {
 
 const server = http.createServer(async (req, res) => {
   if (req.method === "POST" && req.url === "/api/chat") {
+    if (PIN && req.headers["x-trainer-pin"] !== PIN) {
+      res.writeHead(401, { "content-type": "application/json" });
+      res.end(JSON.stringify({ error: "pin_required" }));
+      return;
+    }
     try {
       const { system, messages } = JSON.parse(await readBody(req));
       const upstream = await fetch(`${BASE}/v1/messages`, {

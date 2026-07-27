@@ -1,0 +1,14 @@
+# Render.com blueprint — deploy with "New +" -> "Blueprint" and this repo.
+# Render will ask for the two secret values on first deploy.
+services:
+  - type: web
+    name: telefontrainer
+    runtime: node
+    plan: free
+    buildCommand: "npm install --no-audit --no-fund"
+    startCommand: "node server.js"
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: TRAINER_PIN
+        sync: false
