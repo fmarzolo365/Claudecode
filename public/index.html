@@ -346,51 +346,68 @@ T.uk = { tagline:"Тренуй телефонні розмови німецьк�
   days:"днів поспіль", calls:"дзвінків", minutes:"хв практики",
   customPH:"Напр.: подзвонити у спортзал і скасувати абонемент" };
 
-const HELP_LANG = { es:"Spanish", en:"English", tr:"Turkish", ar:"Arabic", uk:"Ukrainian" };
+T.it = { tagline:"Allenati con le telefonate in tedesco. Tu parli, l'altra persona risponde.",
+  pick:"Scegli la situazione", level:"Livello", helpLang:"Lingua delle correzioni", call:"CHIAMA",
+  hangUp:"RIAGGANCIA", speak:"Premi e parla", listening:"In ascolto…", repeat:"Ripeti lentamente",
+  hint:"Cosa posso dire?", type:"Scrivi invece di parlare", send:"Invia", show:"Traduzione",
+  ended:"CHIAMATA TERMINATA", review:"Le tue correzioni", again:"UN'ALTRA CHIAMATA", you:"TU",
+  handsFree:"Vivavoce", err:"Nessuna risposta dal server. node server.js è in esecuzione?",
+  noMic:"Questo browser non riconosce la voce. Usa Chrome.", micBlocked:"Microfono bloccato. Consenti l'accesso dal lucchetto nella barra degli indirizzi.",
+  noSpeech:"Non si è sentito nulla. Parla più vicino al microfono.", noDevice:"Nessun microfono trovato.", micErr:"Errore del microfono",
+  mistakes:"I miei errori", mistakesTitle:"I MIEI ERRORI", noMistakes:"Ancora nessuna correzione salvata. Fai una chiamata!",
+  exportAnki:"Esporta per Anki", clearHistory:"Cancella cronologia", clearConfirm:"Eliminare tutte le correzioni salvate?",
+  back:"INDIETRO", evalTitle:"VALUTAZIONE", evalLoading:"Sto valutando la tua chiamata…", evalFail:"(Impossibile generare la valutazione)",
+  saved:"salvate", pinAsk:"Inserisci il PIN di accesso:",
+  speed:"Velocità della voce", speedSlow:"Lenta", speedNormal:"Normale", speedFast:"Veloce",
+  days:"giorni di fila", calls:"chiamate", minutes:"min di pratica",
+  customPH:"Es.: chiamare la palestra per disdire l'abbonamento" };
+
+const HELP_LANG = { es:"Spanish", en:"English", tr:"Turkish", ar:"Arabic", uk:"Ukrainian", it:"Italian" };
 
 /* ---------- C1 level + scenario/level translations ---------- */
 LEVELS.C1 = { words:70, rate:1.12,
   es:"Casi nativo: rápido, idiomático, exigente", en:"Near-native: fast, idiomatic, demanding",
   tr:"Ana dile yakın: hızlı, deyimsel, zorlu", ar:"قريب من مستوى الناطقين: سريع واصطلاحي وصعب",
   uk:"Майже рідний рівень: швидко, ідіоматично, вимогливо",
+  it:"Quasi madrelingua: veloce, idiomatico, esigente",
   guide:"Advanced (C1). Speak like a fast native office or call-centre worker: idioms, colloquial contractions, irony, occasional regional flavour. Multi-step complications that require negotiation (conflicting appointments, refunds, policy exceptions, being put through to someone else). Interrupt politely sometimes. Only correct errors a native would actually notice." };
 
 const LEVEL_L10N = {
-  A1:{ tr:"Çok kısa cümleler, yavaş konuşma", ar:"جمل قصيرة جدًا وكلام بطيء", uk:"Дуже короткі фрази, повільна мова" },
-  A2:{ tr:"Günlük dil, normal tempo", ar:"لغة يومية وإيقاع عادي", uk:"Побутова мова, звичайний темп" },
-  B1:{ tr:"Doğal Almanca, sürprizlerle", ar:"ألمانية طبيعية مع مفاجآت", uk:"Природна німецька з несподіванками" },
-  B2:{ tr:"Hızlı ve gerçek zorluklarla", ar:"سريع ومع تعقيدات حقيقية", uk:"Швидко і з реальними ускладненнями" },
+  A1:{ tr:"Çok kısa cümleler, yavaş konuşma", ar:"جمل قصيرة جدًا وكلام بطيء", uk:"Дуже короткі фрази, повільна мова", it:"Frasi molto corte, parlato lento" },
+  A2:{ tr:"Günlük dil, normal tempo", ar:"لغة يومية وإيقاع عادي", uk:"Побутова мова, звичайний темп", it:"Lingua quotidiana, ritmo normale" },
+  B1:{ tr:"Doğal Almanca, sürprizlerle", ar:"ألمانية طبيعية مع مفاجآت", uk:"Природна німецька з несподіванками", it:"Tedesco naturale, con imprevisti" },
+  B2:{ tr:"Hızlı ve gerçek zorluklarla", ar:"سريع ومع تعقيدات حقيقية", uk:"Швидко і з реальними ускладненнями", it:"Veloce e con vere complicazioni" },
 };
 Object.entries(LEVEL_L10N).forEach(([k, v]) => Object.assign(LEVELS[k], v));
 
 const SCEN_L10N = {
-  arzt:{ tr:"Aile hekiminden randevu al", ar:"احجز موعدًا عند طبيب العائلة", uk:"Записатися до сімейного лікаря" },
-  amt:{ tr:"Vatandaşlık dairesinden randevu", ar:"موعد في دائرة شؤون المواطنين", uk:"Запис у міську адміністрацію" },
-  werkstatt:{ tr:"Arabayı servise götür", ar:"خذ السيارة إلى الورشة", uk:"Записати авто на техогляд" },
-  friseur:{ tr:"Kuaförden randevu al", ar:"احجز موعدًا عند الحلاق", uk:"Запис до перукаря" },
-  restaurant:{ tr:"Masa ayırt", ar:"احجز طاولة", uk:"Забронювати столик" },
-  apotheke:{ tr:"Eczaneyi ara", ar:"اتصل بالصيدلية", uk:"Подзвонити в аптеку" },
-  paket:{ tr:"Gelmeyen kargo", ar:"طرد لم يصل", uk:"Посилка не прийшла" },
-  vermieter:{ tr:"Ev sahibini ara", ar:"اتصل بمالك الشقة", uk:"Подзвонити орендодавцю" },
-  bank:{ tr:"Bankayı ara", ar:"اتصل بالبنك", uk:"Подзвонити в банк" },
-  kita:{ tr:"Çocuğun hastalığını bildir", ar:"أبلغ عن مرض طفلك", uk:"Повідомити, що дитина хвора" },
+  arzt:{ tr:"Aile hekiminden randevu al", ar:"احجز موعدًا عند طبيب العائلة", uk:"Записатися до сімейного лікаря", it:"Prendere appuntamento dal medico di base" },
+  amt:{ tr:"Vatandaşlık dairesinden randevu", ar:"موعد في دائرة شؤون المواطنين", uk:"Запис у міську адміністрацію", it:"Appuntamento all'anagrafe" },
+  werkstatt:{ tr:"Arabayı servise götür", ar:"خذ السيارة إلى الورشة", uk:"Записати авто на техогляд", it:"Portare l'auto in officina" },
+  friseur:{ tr:"Kuaförden randevu al", ar:"احجز موعدًا عند الحلاق", uk:"Запис до перукаря", it:"Prenotare dal parrucchiere" },
+  restaurant:{ tr:"Masa ayırt", ar:"احجز طاولة", uk:"Забронювати столик", it:"Prenotare un tavolo" },
+  apotheke:{ tr:"Eczaneyi ara", ar:"اتصل بالصيدلية", uk:"Подзвонити в аптеку", it:"Chiamare la farmacia" },
+  paket:{ tr:"Gelmeyen kargo", ar:"طرد لم يصل", uk:"Посилка не прийшла", it:"Pacco mai arrivato" },
+  vermieter:{ tr:"Ev sahibini ara", ar:"اتصل بمالك الشقة", uk:"Подзвонити орендодавцю", it:"Chiamare il padrone di casa" },
+  bank:{ tr:"Bankayı ara", ar:"اتصل بالبنك", uk:"Подзвонити в банк", it:"Chiamare la banca" },
+  kita:{ tr:"Çocuğun hastalığını bildir", ar:"أبلغ عن مرض طفلك", uk:"Повідомити, що дитина хвора", it:"Avvisare che il bambino è malato" },
 };
 SCENARIOS.forEach((s) => Object.assign(s, SCEN_L10N[s.id] || {}));
 
 /* ---------- free mode + scenario groups ---------- */
 SCENARIOS.push(
   { id:"random", de:"🎲 Überraschungsanruf", es:"Una llamada al azar", en:"A random call",
-    tr:"Rastgele bir arama", ar:"مكالمة عشوائية", uk:"Випадковий дзвінок", who:"???", tag:"???" },
+    tr:"Rastgele bir arama", ar:"مكالمة عشوائية", uk:"Випадковий дзвінок", it:"Una chiamata a sorpresa", who:"???", tag:"???" },
   { id:"custom", de:"✏️ Eigenes Thema", es:"Describe tu propia situación", en:"Describe your own situation",
-    tr:"Kendi durumunu anlat", ar:"صف موقفك الخاص", uk:"Опиши власну ситуацію", who:"Freies Gespräch", tag:"FREI" },
+    tr:"Kendi durumunu anlat", ar:"صف موقفك الخاص", uk:"Опиши власну ситуацію", it:"Descrivi la tua situazione", who:"Freies Gespräch", tag:"FREI" },
 );
 
 const GROUPS = [
-  { es:"Salud", en:"Health", tr:"Sağlık", ar:"الصحة", uk:"Здоровʼя", ids:["arzt","apotheke"] },
-  { es:"Trámites y dinero", en:"Bureaucracy & money", tr:"Resmî işler ve para", ar:"معاملات ومال", uk:"Справи та гроші", ids:["amt","bank"] },
-  { es:"Casa y día a día", en:"Home & daily life", tr:"Ev ve günlük hayat", ar:"البيت والحياة اليومية", uk:"Дім і побут", ids:["vermieter","paket","werkstatt","kita"] },
-  { es:"Ocio y reservas", en:"Leisure & bookings", tr:"Boş zaman ve rezervasyon", ar:"ترفيه وحجوزات", uk:"Дозвілля та бронювання", ids:["friseur","restaurant"] },
-  { es:"Modo libre", en:"Free mode", tr:"Serbest mod", ar:"وضع حر", uk:"Вільний режим", ids:["random","custom"] },
+  { es:"Salud", en:"Health", tr:"Sağlık", ar:"الصحة", uk:"Здоровʼя", it:"Salute", ids:["arzt","apotheke"] },
+  { es:"Trámites y dinero", en:"Bureaucracy & money", tr:"Resmî işler ve para", ar:"معاملات ومال", uk:"Справи та гроші", it:"Burocrazia e soldi", ids:["amt","bank"] },
+  { es:"Casa y día a día", en:"Home & daily life", tr:"Ev ve günlük hayat", ar:"البيت والحياة اليومية", uk:"Дім і побут", it:"Casa e vita quotidiana", ids:["vermieter","paket","werkstatt","kita"] },
+  { es:"Ocio y reservas", en:"Leisure & bookings", tr:"Boş zaman ve rezervasyon", ar:"ترفيه وحجوزات", uk:"Дозвілля та бронювання", it:"Tempo libero e prenotazioni", ids:["friseur","restaurant"] },
+  { es:"Modo libre", en:"Free mode", tr:"Serbest mod", ar:"وضع حر", uk:"Вільний режим", it:"Modalità libera", ids:["random","custom"] },
 ];
 
 const SPEEDS = { slow:0.8, normal:1, fast:1.2 };
@@ -555,7 +572,7 @@ function renderSetup() {
   $("speeds").querySelectorAll("button").forEach((b) =>
     b.onclick = () => { S.speed = b.dataset.k; saveSettings(); renderSetup(); });
 
-  $("langs").innerHTML = [["es","Español"],["en","English"],["tr","Türkçe"],["ar","العربية"],["uk","Українська"]].map(([k, n]) =>
+  $("langs").innerHTML = [["es","Español"],["en","English"],["it","Italiano"],["tr","Türkçe"],["ar","العربية"],["uk","Українська"]].map(([k, n]) =>
     `<button class="${k === S.lang ? "on" : ""}" data-k="${k}">${n}</button>`).join("");
   $("langs").querySelectorAll("button").forEach((b) =>
     b.onclick = () => { S.lang = b.dataset.k; saveSettings(); renderSetup(); });

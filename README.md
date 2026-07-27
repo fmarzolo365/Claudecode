@@ -102,7 +102,7 @@ https://docs.claude.com/en/docs/about-claude/models
   the same situation never plays out twice.
 - **Levels A1–C1**: B2 adds real complications; C1 speaks like a fast native with
   idioms and negotiation.
-- **Corrections in 5 languages**: Español, English, Türkçe, العربية, Українська.
+- **Corrections in 6 languages**: Español, English, Italiano, Türkçe, العربية, Українська.
 - **Free mode**: a fully random surprise call, or describe your own situation in
   your words and the app builds the phone call around it.
 - **Scenario groups**: calls organised by Health, Bureaucracy & money, Home &
