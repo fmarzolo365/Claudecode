@@ -71,6 +71,10 @@
   }
   .seg button:first-child { border-left: none; }
   .seg button.on { background: var(--ink); color: var(--yellow); }
+  .seg.wrap { flex-wrap: wrap; }
+  .seg.wrap button { flex: 1 1 32%; border-top: 1px solid rgba(21,19,15,.25); }
+  .seg.wrap button:nth-child(-n+3) { border-top: none; }
+  .seg.wrap button:nth-child(3n+1) { border-left: none; }
   .note { font-size: 12.5px; margin: 8px 0 0; opacity: .8; }
   .big {
     font-family: Oswald, sans-serif; width: 100%; padding: 18px; margin-top: 30px;
@@ -126,6 +130,9 @@
 
     <div class="label" id="lblPick"></div>
     <div class="list" id="scenarios"></div>
+    <div class="row hidden" id="customRow">
+      <input type="text" id="customTopic" />
+    </div>
 
     <div class="label" id="lblLevel"></div>
     <div class="seg" id="levels"></div>
@@ -135,7 +142,7 @@
     <div class="seg" id="speeds"></div>
 
     <div class="label" id="lblLang"></div>
-    <div class="seg" id="langs"></div>
+    <div class="seg wrap" id="langs"></div>
 
     <button class="big" id="callBtn"></button>
     <button class="toggle" id="mistakesBtn" style="margin-top:14px"></button>
@@ -273,7 +280,8 @@ const T = {
     back:"VOLVER", evalTitle:"EVALUACIÓN", evalLoading:"Evaluando tu llamada…", evalFail:"(No se pudo generar la evaluación)",
     saved:"guardadas", pinAsk:"Introduce el PIN de acceso:",
     speed:"Velocidad de la voz", speedSlow:"Lenta", speedNormal:"Normal", speedFast:"Rápida",
-    days:"días seguidos", calls:"llamadas", minutes:"min practicados" },
+    days:"días seguidos", calls:"llamadas", minutes:"min practicados",
+    customPH:"Ej.: llamar al gimnasio para cancelar mi abono" },
   en:{ tagline:"Practise German phone calls. You speak, the other person answers.",
     pick:"Choose the situation", level:"Level", helpLang:"Language for corrections", call:"CALL",
     hangUp:"HANG UP", speak:"Tap and speak", listening:"Listening…", repeat:"Repeat slowly",
@@ -287,20 +295,115 @@ const T = {
     back:"BACK", evalTitle:"EVALUATION", evalLoading:"Evaluating your call…", evalFail:"(Could not generate the evaluation)",
     saved:"saved", pinAsk:"Enter the access PIN:",
     speed:"Voice speed", speedSlow:"Slow", speedNormal:"Normal", speedFast:"Fast",
-    days:"day streak", calls:"calls", minutes:"min practised" },
+    days:"day streak", calls:"calls", minutes:"min practised",
+    customPH:"E.g.: call the gym to cancel my membership" },
 };
+
+/* ---------- additional help languages ---------- */
+T.tr = { tagline:"Almanca telefon görüşmeleri pratiği yap. Sen konuş, karşı taraf cevap versin.",
+  pick:"Durumu seç", level:"Seviye", helpLang:"Düzeltme dili", call:"ARA",
+  hangUp:"KAPAT", speak:"Bas ve konuş", listening:"Dinliyor…", repeat:"Yavaş tekrarla",
+  hint:"Ne diyebilirim?", type:"Konuşmak yerine yaz", send:"Gönder", show:"Çeviri",
+  ended:"GÖRÜŞME BİTTİ", review:"Düzeltmelerin", again:"YENİ ARAMA", you:"SEN",
+  handsFree:"Eller serbest", err:"Sunucudan yanıt yok. node server.js çalışıyor mu?",
+  noMic:"Bu tarayıcı sesi tanımıyor. Chrome kullan.", micBlocked:"Mikrofon engelli. Adres çubuğundaki kilitten izin ver.",
+  noSpeech:"Ses duyulmadı. Mikrofona daha yakın konuş.", noDevice:"Mikrofon bulunamadı.", micErr:"Mikrofon hatası",
+  mistakes:"Hatalarım", mistakesTitle:"HATALARIM", noMistakes:"Henüz kayıtlı düzeltme yok. Bir arama yap!",
+  exportAnki:"Anki için dışa aktar", clearHistory:"Geçmişi sil", clearConfirm:"Tüm kayıtlı düzeltmeler silinsin mi?",
+  back:"GERİ", evalTitle:"DEĞERLENDİRME", evalLoading:"Araman değerlendiriliyor…", evalFail:"(Değerlendirme oluşturulamadı)",
+  saved:"kayıtlı", pinAsk:"Erişim PIN kodunu gir:",
+  speed:"Ses hızı", speedSlow:"Yavaş", speedNormal:"Normal", speedFast:"Hızlı",
+  days:"günlük seri", calls:"arama", minutes:"dk pratik",
+  customPH:"Örn.: spor salonunu arayıp üyeliğimi iptal etmek" };
+T.ar = { tagline:"تدرّب على المكالمات الهاتفية بالألمانية. أنت تتكلم والطرف الآخر يجيب.",
+  pick:"اختر الموقف", level:"المستوى", helpLang:"لغة التصحيحات", call:"اتصل",
+  hangUp:"إنهاء", speak:"اضغط وتكلّم", listening:"يستمع…", repeat:"إعادة ببطء",
+  hint:"ماذا يمكنني أن أقول؟", type:"اكتب بدلاً من الكلام", send:"إرسال", show:"الترجمة",
+  ended:"انتهت المكالمة", review:"تصحيحاتك", again:"مكالمة أخرى", you:"أنت",
+  handsFree:"دون استخدام اليدين", err:"لا يوجد رد من الخادم. هل node server.js يعمل؟",
+  noMic:"هذا المتصفح لا يدعم التعرف على الصوت. استخدم Chrome.", micBlocked:"الميكروفون محظور. اسمح بالوصول من رمز القفل في شريط العنوان.",
+  noSpeech:"لم يُسمع شيء. تكلّم أقرب إلى الميكروفون.", noDevice:"لم يتم العثور على ميكروفون.", micErr:"خطأ في الميكروفون",
+  mistakes:"أخطائي", mistakesTitle:"أخطائي", noMistakes:"لا توجد تصحيحات محفوظة بعد. قم بمكالمة!",
+  exportAnki:"تصدير إلى Anki", clearHistory:"مسح السجل", clearConfirm:"هل تريد حذف جميع التصحيحات المحفوظة؟",
+  back:"رجوع", evalTitle:"التقييم", evalLoading:"جارٍ تقييم مكالمتك…", evalFail:"(تعذّر إنشاء التقييم)",
+  saved:"محفوظة", pinAsk:"أدخل رمز PIN:",
+  speed:"سرعة الصوت", speedSlow:"بطيئة", speedNormal:"عادية", speedFast:"سريعة",
+  days:"أيام متتالية", calls:"مكالمات", minutes:"دقيقة تدريب",
+  customPH:"مثال: الاتصال بالنادي الرياضي لإلغاء اشتراكي" };
+T.uk = { tagline:"Тренуй телефонні розмови німецькою. Ти говориш — співрозмовник відповідає.",
+  pick:"Обери ситуацію", level:"Рівень", helpLang:"Мова пояснень", call:"ДЗВОНИТИ",
+  hangUp:"ПОКЛАСТИ", speak:"Натисни і говори", listening:"Слухаю…", repeat:"Повторити повільно",
+  hint:"Що можна сказати?", type:"Писати замість говорити", send:"Надіслати", show:"Переклад",
+  ended:"ДЗВІНОК ЗАВЕРШЕНО", review:"Твої виправлення", again:"ЩЕ ДЗВІНОК", you:"ТИ",
+  handsFree:"Вільні руки", err:"Немає відповіді від сервера. Чи запущено node server.js?",
+  noMic:"Цей браузер не розпізнає мовлення. Використовуй Chrome.", micBlocked:"Мікрофон заблоковано. Дозволь доступ через замок у рядку адреси.",
+  noSpeech:"Нічого не чутно. Говори ближче до мікрофона.", noDevice:"Мікрофон не знайдено.", micErr:"Помилка мікрофона",
+  mistakes:"Мої помилки", mistakesTitle:"МОЇ ПОМИЛКИ", noMistakes:"Ще немає збережених виправлень. Зроби дзвінок!",
+  exportAnki:"Експорт для Anki", clearHistory:"Очистити історію", clearConfirm:"Видалити всі збережені виправлення?",
+  back:"НАЗАД", evalTitle:"ОЦІНКА", evalLoading:"Оцінюю твій дзвінок…", evalFail:"(Не вдалося створити оцінку)",
+  saved:"збережено", pinAsk:"Введи PIN доступу:",
+  speed:"Швидкість мовлення", speedSlow:"Повільно", speedNormal:"Звичайно", speedFast:"Швидко",
+  days:"днів поспіль", calls:"дзвінків", minutes:"хв практики",
+  customPH:"Напр.: подзвонити у спортзал і скасувати абонемент" };
+
+const HELP_LANG = { es:"Spanish", en:"English", tr:"Turkish", ar:"Arabic", uk:"Ukrainian" };
+
+/* ---------- C1 level + scenario/level translations ---------- */
+LEVELS.C1 = { words:70, rate:1.12,
+  es:"Casi nativo: rápido, idiomático, exigente", en:"Near-native: fast, idiomatic, demanding",
+  tr:"Ana dile yakın: hızlı, deyimsel, zorlu", ar:"قريب من مستوى الناطقين: سريع واصطلاحي وصعب",
+  uk:"Майже рідний рівень: швидко, ідіоматично, вимогливо",
+  guide:"Advanced (C1). Speak like a fast native office or call-centre worker: idioms, colloquial contractions, irony, occasional regional flavour. Multi-step complications that require negotiation (conflicting appointments, refunds, policy exceptions, being put through to someone else). Interrupt politely sometimes. Only correct errors a native would actually notice." };
+
+const LEVEL_L10N = {
+  A1:{ tr:"Çok kısa cümleler, yavaş konuşma", ar:"جمل قصيرة جدًا وكلام بطيء", uk:"Дуже короткі фрази, повільна мова" },
+  A2:{ tr:"Günlük dil, normal tempo", ar:"لغة يومية وإيقاع عادي", uk:"Побутова мова, звичайний темп" },
+  B1:{ tr:"Doğal Almanca, sürprizlerle", ar:"ألمانية طبيعية مع مفاجآت", uk:"Природна німецька з несподіванками" },
+  B2:{ tr:"Hızlı ve gerçek zorluklarla", ar:"سريع ومع تعقيدات حقيقية", uk:"Швидко і з реальними ускладненнями" },
+};
+Object.entries(LEVEL_L10N).forEach(([k, v]) => Object.assign(LEVELS[k], v));
+
+const SCEN_L10N = {
+  arzt:{ tr:"Aile hekiminden randevu al", ar:"احجز موعدًا عند طبيب العائلة", uk:"Записатися до сімейного лікаря" },
+  amt:{ tr:"Vatandaşlık dairesinden randevu", ar:"موعد في دائرة شؤون المواطنين", uk:"Запис у міську адміністрацію" },
+  werkstatt:{ tr:"Arabayı servise götür", ar:"خذ السيارة إلى الورشة", uk:"Записати авто на техогляд" },
+  friseur:{ tr:"Kuaförden randevu al", ar:"احجز موعدًا عند الحلاق", uk:"Запис до перукаря" },
+  restaurant:{ tr:"Masa ayırt", ar:"احجز طاولة", uk:"Забронювати столик" },
+  apotheke:{ tr:"Eczaneyi ara", ar:"اتصل بالصيدلية", uk:"Подзвонити в аптеку" },
+  paket:{ tr:"Gelmeyen kargo", ar:"طرد لم يصل", uk:"Посилка не прийшла" },
+  vermieter:{ tr:"Ev sahibini ara", ar:"اتصل بمالك الشقة", uk:"Подзвонити орендодавцю" },
+  bank:{ tr:"Bankayı ara", ar:"اتصل بالبنك", uk:"Подзвонити в банк" },
+  kita:{ tr:"Çocuğun hastalığını bildir", ar:"أبلغ عن مرض طفلك", uk:"Повідомити, що дитина хвора" },
+};
+SCENARIOS.forEach((s) => Object.assign(s, SCEN_L10N[s.id] || {}));
+
+/* ---------- free mode + scenario groups ---------- */
+SCENARIOS.push(
+  { id:"random", de:"🎲 Überraschungsanruf", es:"Una llamada al azar", en:"A random call",
+    tr:"Rastgele bir arama", ar:"مكالمة عشوائية", uk:"Випадковий дзвінок", who:"???", tag:"???" },
+  { id:"custom", de:"✏️ Eigenes Thema", es:"Describe tu propia situación", en:"Describe your own situation",
+    tr:"Kendi durumunu anlat", ar:"صف موقفك الخاص", uk:"Опиши власну ситуацію", who:"Freies Gespräch", tag:"FREI" },
+);
+
+const GROUPS = [
+  { es:"Salud", en:"Health", tr:"Sağlık", ar:"الصحة", uk:"Здоровʼя", ids:["arzt","apotheke"] },
+  { es:"Trámites y dinero", en:"Bureaucracy & money", tr:"Resmî işler ve para", ar:"معاملات ومال", uk:"Справи та гроші", ids:["amt","bank"] },
+  { es:"Casa y día a día", en:"Home & daily life", tr:"Ev ve günlük hayat", ar:"البيت والحياة اليومية", uk:"Дім і побут", ids:["vermieter","paket","werkstatt","kita"] },
+  { es:"Ocio y reservas", en:"Leisure & bookings", tr:"Boş zaman ve rezervasyon", ar:"ترفيه وحجوزات", uk:"Дозвілля та бронювання", ids:["friseur","restaurant"] },
+  { es:"Modo libre", en:"Free mode", tr:"Serbest mod", ar:"وضع حر", uk:"Вільний режим", ids:["random","custom"] },
+];
 
 const SPEEDS = { slow:0.8, normal:1, fast:1.2 };
 
 const S = { scenario:SCENARIOS[0], level:"A1", lang:"es", speed:"normal", turns:[], busy:false,
             listening:false, handsFree:true, seconds:0, timerId:null, hint:null, voice:null, rec:null,
-            currentGoal:null, wakeLock:null };
+            currentGoal:null, wakeLock:null, active:null, customTopic:"" };
 
 /* ---------- settings persistence ---------- */
 const SET_KEY = "telefontrainer.settings";
 function saveSettings() {
   try {
-    localStorage.setItem(SET_KEY, JSON.stringify({ scenario:S.scenario.id, level:S.level, lang:S.lang, speed:S.speed }));
+    localStorage.setItem(SET_KEY, JSON.stringify({ scenario:S.scenario.id, level:S.level, lang:S.lang, speed:S.speed, customTopic:S.customTopic }));
   } catch (e) {}
 }
 (function loadSettings() {
@@ -311,6 +414,7 @@ function saveSettings() {
     if (LEVELS[s.level]) S.level = s.level;
     if (T[s.lang]) S.lang = s.lang;
     if (SPEEDS[s.speed]) S.speed = s.speed;
+    if (typeof s.customTopic === "string") S.customTopic = s.customTopic;
   } catch (e) {}
 })();
 
@@ -349,7 +453,7 @@ function loadFixes() {
 }
 function saveFix(text, fix) {
   const fixes = loadFixes();
-  fixes.push({ text, fix, scenario: S.scenario.id, level: S.level, date: new Date().toISOString().slice(0, 10) });
+  fixes.push({ text, fix, scenario: (S.active || S.scenario).id, level: S.level, date: new Date().toISOString().slice(0, 10) });
   try { localStorage.setItem(FIX_KEY, JSON.stringify(fixes.slice(-300))); } catch (e) {}
 }
 
@@ -425,11 +529,20 @@ function renderSetup() {
   }
   $("callBtn").innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="#f0c000"><path d="M6.6 10.8c1.6 3.1 4.1 5.6 7.2 7.2l2.4-2.4c.3-.3.7-.4 1.1-.3 1.2.4 2.5.6 3.8.6.6 0 1 .4 1 1V21c0 .6-.4 1-1 1C11.6 22 2 12.4 2 1c0-.6.4-1 1-1h3.9c.6 0 1 .4 1 1 0 1.3.2 2.6.6 3.8.1.4 0 .8-.3 1.1L6.6 10.8z"/></svg>' + L.call;
 
-  $("scenarios").innerHTML = SCENARIOS.map((s) =>
-    `<button class="item ${s.id === S.scenario.id ? "on" : ""}" data-id="${s.id}">
-       <b>${esc(s.de)}</b><small>${esc(s[S.lang])} · ${esc(s.who)}</small></button>`).join("");
+  $("scenarios").innerHTML = GROUPS.map((g) =>
+    `<div class="label" style="margin:14px 14px 6px">${esc(g[S.lang] || g.en)}</div>` +
+    g.ids.map((id) => {
+      const s = SCENARIOS.find((x) => x.id === id);
+      return `<button class="item ${s.id === S.scenario.id ? "on" : ""}" data-id="${s.id}">
+       <b>${esc(s.de)}</b><small>${esc(s[S.lang] || s.en)} · ${esc(s.who)}</small></button>`;
+    }).join("")
+  ).join("");
   $("scenarios").querySelectorAll(".item").forEach((b) =>
     b.onclick = () => { S.scenario = SCENARIOS.find((x) => x.id === b.dataset.id); saveSettings(); renderSetup(); });
+
+  $("customRow").classList.toggle("hidden", S.scenario.id !== "custom");
+  $("customTopic").placeholder = L.customPH;
+  if (S.customTopic && !$("customTopic").value) $("customTopic").value = S.customTopic;
 
   $("levels").innerHTML = Object.keys(LEVELS).map((k) =>
     `<button class="${k === S.level ? "on" : ""}" data-k="${k}">${k}</button>`).join("");
@@ -442,7 +555,7 @@ function renderSetup() {
   $("speeds").querySelectorAll("button").forEach((b) =>
     b.onclick = () => { S.speed = b.dataset.k; saveSettings(); renderSetup(); });
 
-  $("langs").innerHTML = [["es","Español"],["en","English"]].map(([k, n]) =>
+  $("langs").innerHTML = [["es","Español"],["en","English"],["tr","Türkçe"],["ar","العربية"],["uk","Українська"]].map(([k, n]) =>
     `<button class="${k === S.lang ? "on" : ""}" data-k="${k}">${n}</button>`).join("");
   $("langs").querySelectorAll("button").forEach((b) =>
     b.onclick = () => { S.lang = b.dataset.k; saveSettings(); renderSetup(); });
@@ -484,14 +597,17 @@ function exportAnki() {
 
 /* ---------- call ---------- */
 function systemPrompt() {
-  const L = LEVELS[S.level], help = S.lang === "es" ? "Spanish" : "English", s = S.scenario;
+  const L = LEVELS[S.level], help = HELP_LANG[S.lang] || "English", s = S.active || S.scenario;
+  const custom = s.id === "custom"
+    ? `\nThe learner described the situation in their own words (possibly not in German): interpret it, decide what kind of business or office would be called, and play that role realistically.\n`
+    : "";
   const recent = loadFixes().slice(-8);
   const weakSpots = recent.length
     ? `\nThe learner's recent recurring mistakes (from earlier calls):\n${recent.map((f) => `- said "${f.text}" -> better: ${f.fix}`).join("\n")}\nWhen natural, steer the conversation so the learner gets a chance to practise these patterns again. Never mention that you are doing this.\n`
     : "";
   return `You are running a German-language telephone role-play for a learner at CEFR level ${S.level}.
 Your role: ${s.role} at ${s.place}. The learner is calling to ${S.currentGoal}.
-${weakSpots}
+${custom}${weakSpots}
 Rules:
 - The "reply" field is ONLY German. Stay in character for the whole call. Never mention that this is practice.
 - Level guidance: ${L.guide}
@@ -587,7 +703,8 @@ function mmss() {
 
 function renderCall() {
   const L = t();
-  $("who").textContent = S.scenario.who;
+  const A = S.active || S.scenario;
+  $("who").textContent = A.who;
   $("timer").textContent = "VERBUNDEN · " + mmss();
   $("hangBtn").textContent = L.hangUp;
   $("repeatBtn").textContent = L.repeat;
@@ -607,7 +724,7 @@ function renderCall() {
 
   $("log").innerHTML = S.turns.map((x, i) => `
     <div class="turn">
-      <div class="tag ${x.me ? "me" : ""}">${x.me ? L.you : esc(S.scenario.tag)}</div>
+      <div class="tag ${x.me ? "me" : ""}">${x.me ? L.you : esc(A.tag)}</div>
       <div style="flex:1">
         <div class="said">${esc(x.text)}</div>
         ${x.me ? "" : `<div style="margin-top:5px">
@@ -635,7 +752,7 @@ async function evaluateCall() {
   const L = t();
   if (!spoke) { $("evalBox").innerHTML = ""; return; }
   $("evalBox").innerHTML = `<div class="label" style="margin:0">${esc(L.evalTitle)}</div><p class="note">${esc(L.evalLoading)}</p>`;
-  const help = S.lang === "es" ? "Spanish" : "English";
+  const help = HELP_LANG[S.lang] || "English";
   const transcript = S.turns.map((x) => `${x.me ? "LEARNER" : "OTHER"}: ${x.text}`).join("\n");
   try {
     const res = await chatFetch({
@@ -660,8 +777,22 @@ async function evaluateCall() {
 
 /* ---------- wiring ---------- */
 $("callBtn").onclick = () => {
+  const REAL = SCENARIOS.filter((x) => x.goals);
+  if (S.scenario.id === "custom") {
+    const topic = ($("customTopic").value || "").trim();
+    if (!topic) { $("customTopic").focus(); return; }
+    S.customTopic = topic; saveSettings();
+    S.active = { id:"custom", who:"Freies Gespräch", tag:"FREI",
+      role:"the person who would naturally answer the phone for the situation the learner describes",
+      place:"the appropriate business, office or organisation",
+      goals:[topic] };
+  } else if (S.scenario.id === "random") {
+    S.active = REAL[Math.floor(Math.random() * REAL.length)];
+  } else {
+    S.active = S.scenario;
+  }
   S.turns = []; S.hint = null; S.hintOpen = false; S.seconds = 0; S.handsFree = true;
-  const g = S.scenario.goals;
+  const g = S.active.goals;
   S.currentGoal = g[Math.floor(Math.random() * g.length)];
   show("call"); alertMsg(null); renderCall();
   acquireWakeLock();
@@ -702,6 +833,7 @@ $("repeatBtn").onclick = () => {
 $("hintBtn").onclick = () => { S.hintOpen = !S.hintOpen; renderCall(); };
 $("typeBtn").onclick = () => $("typeRow").classList.toggle("hidden");
 $("sendBtn").onclick = () => send($("draft").value);
+$("customTopic").oninput = (e) => { S.customTopic = e.target.value; };
 $("draft").onkeydown = (e) => { if (e.key === "Enter") send($("draft").value); };
 
 renderSetup();
