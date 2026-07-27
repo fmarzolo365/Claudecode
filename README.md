@@ -47,6 +47,23 @@ cd Claudecode && git pull
 
 Then restart the server (Ctrl+C, `./start.sh`) and reload the page.
 
+## Host it online (free, no Termux needed)
+
+The repo includes a `render.yaml` blueprint for [Render](https://render.com):
+
+1. Sign up at render.com (log in with GitHub).
+2. **New +** → **Blueprint** → select this repository.
+3. Render reads `render.yaml` and asks for two values:
+   - `ANTHROPIC_API_KEY` — your key
+   - `TRAINER_PIN` — any PIN you choose (protects your credits from strangers)
+4. Deploy. You get a URL like `https://telefontrainer.onrender.com`.
+5. Open it on any phone → Chrome asks for the PIN on the first call → menu ⋮ →
+   **Add to Home screen** for the app icon. Works anywhere, HTTPS, no Termux.
+
+Notes: on the free plan the server sleeps after ~15 min idle — the first load after a
+pause takes up to a minute, then it's fast. When `TRAINER_PIN` is unset (local use),
+no PIN is asked.
+
 ## Credentials
 
 The server reads them from the environment or from `./.env` and never sends them to the
