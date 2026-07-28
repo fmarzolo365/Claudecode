@@ -120,27 +120,45 @@
     border-radius: 999px; transition: filter .15s ease;
   }
   .vcbar {
-    background: var(--ink); color: #fdfbf5; padding: 22px 18px 16px; position: relative;
-    border-radius: var(--radius) var(--radius) 0 0; text-align: center;
+    background: var(--ink); color: #fdfbf5; padding: 10px; position: relative;
+    border-radius: var(--radius) var(--radius) 0 0;
   }
-  .vcbar .hang { position: absolute; top: 12px; right: 12px; }
-  .vcbar .who { font-family: 'Space Grotesk', sans-serif; font-size: 17px; font-weight: 600; margin-top: 10px; }
-  .vcbar .meta { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: .16em; color: var(--yellow); opacity: .9; margin-top: 4px; }
-  .vc-av {
-    width: 78px; height: 78px; margin: 0 auto; border-radius: 50%; background: #332d1f;
-    display: flex; align-items: center; justify-content: center; font-size: 42px;
-    border: 2.5px solid rgba(245,197,49,.35); position: relative; overflow: hidden;
+  .vc-stage {
+    position: relative; width: 100%; aspect-ratio: 4 / 3; border-radius: 12px;
+    overflow: hidden; background: #332d1f;
+    display: flex; align-items: center; justify-content: center;
   }
-  .vc-av img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: none; }
-  .vc-av img.ok { display: block; }
+  .vc-stage .vc-emoji { font-size: 92px; }
+  .vc-stage img {
+    position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+    display: none; will-change: transform;
+  }
+  .vc-stage img.ok { display: block; }
+  .vc-stage.speaking { animation: stageglow 1.3s ease-in-out infinite; }
+  @keyframes stageglow {
+    0%, 100% { box-shadow: inset 0 0 0 2.5px rgba(245,197,49,.35); }
+    50% { box-shadow: inset 0 0 0 4px rgba(245,197,49,.9); }
+  }
   .vc-mouth {
-    position: absolute; left: 50%; top: 63%; width: 24%; height: 3px;
-    transform: translateX(-50%); background: #1d0f0c; border-radius: 50% / 62%;
-    opacity: 0; pointer-events: none; box-shadow: inset 0 -2px 3px rgba(120,50,45,.65);
+    position: absolute; left: 50%; top: 62%; width: 14%; height: 4px;
+    transform: translateX(-50%); border-radius: 46% / 68%;
+    background: linear-gradient(#5e2019 0%, #2a0c08 40%, #150604 100%);
+    box-shadow: inset 0 2px 0 rgba(255,252,245,.5), 0 1px 2px rgba(0,0,0,.35);
+    opacity: 0; pointer-events: none; transition: opacity .15s ease;
   }
-  .vc-av.photo.speaking .vc-mouth { opacity: .85; }
-  .vc-av.speaking { animation: talk 1.1s infinite; border-color: var(--yellow); }
-  @keyframes talk { 0% { box-shadow: 0 0 0 0 rgba(245,197,49,.5); } 100% { box-shadow: 0 0 0 18px rgba(245,197,49,0); } }
+  .vc-stage.photo.speaking .vc-mouth { opacity: .92; }
+  .vc-timer {
+    position: absolute; top: 10px; left: 12px; z-index: 2;
+    font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: .16em;
+    color: var(--yellow); background: rgba(22,19,13,.55); padding: 5px 9px; border-radius: 8px;
+  }
+  .vc-who {
+    position: absolute; left: 12px; bottom: 10px; z-index: 2;
+    font-family: 'Space Grotesk', sans-serif; font-size: 16px; font-weight: 600;
+    color: #fff; text-shadow: 0 1px 8px rgba(0,0,0,.75);
+    background: rgba(22,19,13,.45); padding: 5px 10px; border-radius: 8px;
+  }
+  .vc-stage .hang { position: absolute; top: 10px; right: 10px; z-index: 2; }
   .hang:hover { filter: brightness(1.1); }
   .log {
     background: var(--card); border: 1px solid var(--line); border-top: none;
@@ -328,10 +346,14 @@
   <!-- CALL -->
   <section id="call" class="hidden">
     <div class="vcbar">
-      <button class="hang" id="hangBtn"></button>
-      <div class="vc-av" id="vcAv"><span id="vcEmoji">🎧</span><img id="vcImg" alt="" /><div class="vc-mouth" id="vcMouth"></div></div>
-      <div class="who" id="who"></div>
-      <div class="meta" id="timer">VERBUNDEN · 00:00</div>
+      <div class="vc-stage" id="vcAv">
+        <span class="vc-emoji" id="vcEmoji">🎧</span>
+        <img id="vcImg" alt="" />
+        <div class="vc-mouth" id="vcMouth"></div>
+        <div class="vc-timer" id="timer">VERBUNDEN · 00:00</div>
+        <div class="vc-who" id="who"></div>
+        <button class="hang" id="hangBtn"></button>
+      </div>
     </div>
     <div class="log" id="log"></div>
     <p class="note hidden" id="tapHint" style="margin:8px 2px 0"></p>
@@ -971,9 +993,22 @@ function setSpeaking(on) {
 let AC = null, mouthRAF = null, mouthFake = null;
 function mouthSet(amp) {
   const m = $("vcMouth");
-  if (m) m.style.height = Math.round(2 + amp * 15) + "px";
-  const av = $("vcAv");
-  if (av) av.style.transform = amp ? "scale(" + (1 + amp * 0.03).toFixed(3) + ")" : "";
+  if (m) {
+    m.style.height = Math.round(3 + amp * 30) + "px";
+    m.style.width = (14 + amp * 4).toFixed(1) + "%";
+  }
+  // the "camera" lives: slow sway + breathing scale, stronger with the voice
+  const img = $("vcImg");
+  if (img) {
+    if (amp > 0) {
+      const now = performance.now();
+      const rot = Math.sin(now / 650) * 0.8;
+      const ty = Math.sin(now / 900) * 2;
+      img.style.transform = `scale(${(1.04 + amp * 0.05).toFixed(3)}) rotate(${rot.toFixed(2)}deg) translateY(${ty.toFixed(1)}px)`;
+    } else {
+      img.style.transform = "";
+    }
+  }
 }
 function mouthStop() {
   if (mouthRAF) { cancelAnimationFrame(mouthRAF); mouthRAF = null; }
@@ -995,19 +1030,30 @@ async function attachAnalyser(a) {
 }
 function mouthLoop(an, a) {
   const data = new Uint8Array(an.frequencyBinCount);
+  let cur = 0;
   const tick = () => {
     if (currentAudio !== a) { mouthStop(); return; }
     an.getByteFrequencyData(data);
     let sum = 0;
     for (let i = 2; i < 42; i++) sum += data[i];
-    mouthSet(Math.min(1, sum / 40 / 150));
+    const amp = Math.min(1, sum / 40 / 140);
+    cur = cur * 0.55 + amp * 0.45; // light smoothing, keeps syllable snap
+    mouthSet(cur);
     mouthRAF = requestAnimationFrame(tick);
   };
   tick();
 }
 function mouthFakeStart() {
   if (mouthFake) return;
-  mouthFake = setInterval(() => mouthSet(0.15 + Math.random() * 0.7), 90);
+  let target = 0.5, cur = 0.2;
+  mouthFake = setInterval(() => { target = 0.1 + Math.random() * 0.8; }, 140);
+  const tick = () => {
+    if (!mouthFake) return;
+    cur += (target - cur) * 0.3;
+    mouthSet(cur);
+    mouthRAF = requestAnimationFrame(tick);
+  };
+  tick();
 }
 
 function stopAudio() {
