@@ -1700,10 +1700,18 @@ function renderCall() {
     : "";
   if (img.dataset.src !== src) {
     img.dataset.src = src;
+    img.dataset.retried = "";
     img.classList.remove("ok");
     if (src) {
       img.onload = () => img.classList.add("ok"); // photo covers the emoji only once loaded
-      img.onerror = () => img.classList.remove("ok");
+      img.onerror = () => {
+        img.classList.remove("ok");
+        // one delayed retry: generation can take ~10s on the very first view
+        if (!img.dataset.retried) {
+          img.dataset.retried = "1";
+          setTimeout(() => { if (img.dataset.src === src) img.src = src + "&r=" + Date.now(); }, 8000);
+        }
+      };
       img.src = src;
     } else {
       img.removeAttribute("src");
