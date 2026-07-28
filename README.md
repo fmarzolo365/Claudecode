@@ -149,6 +149,10 @@ https://docs.claude.com/en/docs/about-claude/models
   revealing the right sentence, so you say it aloud and get instant feedback.
 - **Daily routine**: a three-step checklist on the home card (vocabulary →
   conversation → mistakes) that ticks itself off as you practise each day.
+- **Mi progreso**: an optional 5-minute speaking pretest (say 6 sentences of
+  rising difficulty in German), AI-scored 0–100 with a CEFR estimate. Repeat it
+  weekly and the progress screen draws your curve — where you started, where
+  you are, and a dashed projection of where you'll be if you keep going.
 - **Level A0 + call preparation**: a true zero level (5–8 word replies, only
   the most common words, yes/no questions) and a 🎒 warm-up before any call:
   the meaning appears in your language, you produce the German — tiniest words
