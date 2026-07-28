@@ -130,7 +130,10 @@ https://docs.claude.com/en/docs/about-claude/models
   matter for that exact scenario as speaking-first flashcards — tap to guess the
   meaning, hear each word and example sentence in the neural voice, and say it
   out loud while the mic checks your pronunciation. Decks are generated once per
-  scenario/level/language and cached on the device.
+  scenario/level/language and cached on the device. Three built-in decks work
+  offline and for every situation: ❓ W-Fragen (question words), ☎️ Am Telefon
+  (survival phrases like "Wie bitte?"), and 🕘 Zeit & Termine (times, days,
+  rescheduling and cancelling).
 
 ## Changing the scenarios
 
