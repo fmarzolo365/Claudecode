@@ -139,14 +139,6 @@
     0%, 100% { box-shadow: inset 0 0 0 2.5px rgba(245,197,49,.35); }
     50% { box-shadow: inset 0 0 0 4px rgba(245,197,49,.9); }
   }
-  .vc-mouth {
-    position: absolute; left: 50%; top: 62%; width: 14%; height: 4px;
-    transform: translateX(-50%); border-radius: 46% / 68%;
-    background: linear-gradient(#5e2019 0%, #2a0c08 40%, #150604 100%);
-    box-shadow: inset 0 2px 0 rgba(255,252,245,.5), 0 1px 2px rgba(0,0,0,.35);
-    opacity: 0; pointer-events: none; transition: opacity .15s ease;
-  }
-  .vc-stage.photo.speaking .vc-mouth { opacity: .92; }
   .vc-timer {
     position: absolute; top: 10px; left: 12px; z-index: 2;
     font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: .16em;
@@ -349,7 +341,6 @@
       <div class="vc-stage" id="vcAv">
         <span class="vc-emoji" id="vcEmoji">🎧</span>
         <img id="vcImg" alt="" />
-        <div class="vc-mouth" id="vcMouth"></div>
         <div class="vc-timer" id="timer">VERBUNDEN · 00:00</div>
         <div class="vc-who" id="who"></div>
         <button class="hang" id="hangBtn"></button>
@@ -983,77 +974,37 @@ let neuralOK = true;
 const ttsCache = new Map(); // text -> object URL (mp3)
 let currentAudio = null;
 
+/* while the character speaks: glowing frame + a very subtle slow camera
+   drift on the photo (like a live webcam). No facial animation - a good
+   still portrait beats a fake mouth. */
+let lifeRAF = null;
+function lifeStart() {
+  if (lifeRAF) return;
+  const img = $("vcImg");
+  if (img) img.style.transition = "";
+  const tick = () => {
+    const el = $("vcImg");
+    if (el) {
+      const now = performance.now();
+      const rot = Math.sin(now / 1600) * 0.4;
+      const ty = Math.sin(now / 2100) * 2.2;
+      const sc = 1.045 + Math.sin(now / 1200) * 0.006;
+      el.style.transform = `scale(${sc.toFixed(3)}) rotate(${rot.toFixed(2)}deg) translateY(${ty.toFixed(1)}px)`;
+    }
+    lifeRAF = requestAnimationFrame(tick);
+  };
+  tick();
+}
+function lifeStop() {
+  if (lifeRAF) { cancelAnimationFrame(lifeRAF); lifeRAF = null; }
+  const el = $("vcImg");
+  if (el) { el.style.transition = "transform .6s ease"; el.style.transform = ""; }
+}
+
 function setSpeaking(on) {
   const el = $("vcAv");
   if (el) el.classList.toggle("speaking", !!on);
-}
-
-/* lip-sync: the mouth overlay is driven by the real loudness of the audio
-   (Web Audio analyser). Device-voice fallback gets a plausible fake rhythm. */
-let AC = null, mouthRAF = null, mouthFake = null;
-function mouthSet(amp) {
-  const m = $("vcMouth");
-  if (m) {
-    m.style.height = Math.round(3 + amp * 30) + "px";
-    m.style.width = (14 + amp * 4).toFixed(1) + "%";
-  }
-  // the "camera" lives: slow sway + breathing scale, stronger with the voice
-  const img = $("vcImg");
-  if (img) {
-    if (amp > 0) {
-      const now = performance.now();
-      const rot = Math.sin(now / 650) * 0.8;
-      const ty = Math.sin(now / 900) * 2;
-      img.style.transform = `scale(${(1.04 + amp * 0.05).toFixed(3)}) rotate(${rot.toFixed(2)}deg) translateY(${ty.toFixed(1)}px)`;
-    } else {
-      img.style.transform = "";
-    }
-  }
-}
-function mouthStop() {
-  if (mouthRAF) { cancelAnimationFrame(mouthRAF); mouthRAF = null; }
-  if (mouthFake) { clearInterval(mouthFake); mouthFake = null; }
-  mouthSet(0);
-}
-async function attachAnalyser(a) {
-  try {
-    AC = AC || new (window.AudioContext || window.webkitAudioContext)();
-    if (AC.state === "suspended") await AC.resume();
-    if (AC.state !== "running") return null; // don't route audio through a dead context
-    const src = AC.createMediaElementSource(a);
-    const an = AC.createAnalyser();
-    an.fftSize = 256;
-    src.connect(an);
-    an.connect(AC.destination);
-    return an;
-  } catch (e) { return null; }
-}
-function mouthLoop(an, a) {
-  const data = new Uint8Array(an.frequencyBinCount);
-  let cur = 0;
-  const tick = () => {
-    if (currentAudio !== a) { mouthStop(); return; }
-    an.getByteFrequencyData(data);
-    let sum = 0;
-    for (let i = 2; i < 42; i++) sum += data[i];
-    const amp = Math.min(1, sum / 40 / 140);
-    cur = cur * 0.55 + amp * 0.45; // light smoothing, keeps syllable snap
-    mouthSet(cur);
-    mouthRAF = requestAnimationFrame(tick);
-  };
-  tick();
-}
-function mouthFakeStart() {
-  if (mouthFake) return;
-  let target = 0.5, cur = 0.2;
-  mouthFake = setInterval(() => { target = 0.1 + Math.random() * 0.8; }, 140);
-  const tick = () => {
-    if (!mouthFake) return;
-    cur += (target - cur) * 0.3;
-    mouthSet(cur);
-    mouthRAF = requestAnimationFrame(tick);
-  };
-  tick();
+  if (on) lifeStart(); else lifeStop();
 }
 
 function stopAudio() {
@@ -1062,7 +1013,6 @@ function stopAudio() {
     currentAudio = null;
   }
   setSpeaking(false);
-  mouthStop();
 }
 
 async function neuralSpeak(text, rate, done) {
@@ -1092,13 +1042,10 @@ async function neuralSpeak(text, rate, done) {
   a.onended = () => {
     if (currentAudio === a) currentAudio = null;
     setSpeaking(false);
-    mouthStop();
     done && setTimeout(done, 350);
   };
-  const an = await attachAnalyser(a);
   await a.play();
   setSpeaking(true);
-  if (an) mouthLoop(an, a); else mouthFakeStart();
 }
 
 function deviceSpeak(text, rate, done) {
@@ -1106,9 +1053,9 @@ function deviceSpeak(text, rate, done) {
   u.lang = "de-DE";
   if (S.voice) u.voice = S.voice;
   u.rate = rate;
-  u.onstart = () => { setSpeaking(true); mouthFakeStart(); };
-  u.onend = () => { setSpeaking(false); mouthStop(); done && setTimeout(done, 350); };
-  u.onerror = () => { setSpeaking(false); mouthStop(); done && setTimeout(done, 350); };
+  u.onstart = () => setSpeaking(true);
+  u.onend = () => { setSpeaking(false); done && setTimeout(done, 350); };
+  u.onerror = () => { setSpeaking(false); done && setTimeout(done, 350); };
   speechSynthesis.speak(u);
 }
 
