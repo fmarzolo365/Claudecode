@@ -1733,10 +1733,10 @@ function renderPrep() {
     const st = P.steps[P.i];
     $("prepBody").innerHTML =
       `<div class="drill-prog">${P.i + 1} / ${P.steps.length}</div>
-       <div class="v-card" style="margin-top:10px;cursor:default">
+       <div class="v-card" data-pa="card" style="margin-top:10px">
          ${P.revealed
-           ? `<div class="v-de">${esc(st.de)}</div><div class="v-tr">${esc(st.tr)}</div>`
-           : `<div class="v-flip">${esc(L.howSay)}</div><div class="v-de">${esc(st.tr)}</div>`}
+           ? `<div class="v-de">${esc(st.de)}</div><div class="v-tr">${esc(st.tr)}</div><div class="v-flip">&#9834;</div>`
+           : `<div class="v-flip">${esc(L.howSay)}</div><div class="v-de">${esc(st.tr)}</div><div class="v-flip">${esc(L.dontKnow)} &darr;</div>`}
        </div>
        ${verdictHTML(P, L)}
        <div class="row">
@@ -1754,6 +1754,10 @@ function renderPrep() {
       case "go": stopAudio(); speechSynthesis.cancel(); startConversation(); break;
       case "hear": if (st) speak(st.de, true); break;
       case "say": if (st) listenFor(st.de, P, renderPrep); break;
+      case "card":
+        if (!st) break;
+        if (P.revealed) { speak(st.de, true); break; }
+        // falls through to reveal behaviour below
       case "reveal":
         if (!st) break;
         P.revealed = true; renderPrep();
