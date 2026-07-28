@@ -134,6 +134,10 @@ https://docs.claude.com/en/docs/about-claude/models
   offline and for every situation: ❓ W-Fragen (question words), ☎️ Am Telefon
   (survival phrases like "Wie bitte?"), and 🕘 Zeit & Termine (times, days,
   rescheduling and cancelling).
+- **Mis palabras**: during a call, tap any word the other person says that you
+  don't know — the app saves its dictionary form, translation and the sentence
+  it appeared in. Saved words become a personal ⭐ flashcard deck in the
+  vocabulary chooser (with per-card delete).
 
 ## Changing the scenarios
 
