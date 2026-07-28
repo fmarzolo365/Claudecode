@@ -35,6 +35,30 @@ const TTS_KEY = process.env.TTS_API_KEY || "";
 const TTS_MODEL = process.env.TTS_MODEL || "gpt-4o-mini-tts";
 const TTS_VOICE = process.env.TTS_VOICE || "coral";
 
+// AI portrait photos for the call characters. Generated once per character
+// with the same OpenAI key as TTS (~1 cent each, cached on disk), served
+// from /api/avatar/<id>. Without TTS_API_KEY the client keeps emoji avatars.
+const os = require("os");
+const AVATAR_DIR = path.join(os.tmpdir(), "telefontrainer-avatars");
+const AVATAR_STYLE = "Warm friendly portrait photo, head and shoulders, looking at the camera with a slight natural smile, soft light, plain warm beige background, photorealistic, natural skin, no text, no watermark: ";
+const AVATARS = {
+  arzt: "a German medical practice receptionist, woman in her 30s, white polo shirt",
+  amt: "a municipal citizens' office clerk, man in his 40s, light shirt",
+  werkstatt: "a car mechanic, man in his 30s, dark work overalls",
+  friseur: "a hairdresser, stylish woman in her 20s",
+  restaurant: "a waiter, man in his 30s, white shirt and dark apron",
+  apotheke: "a pharmacist, woman in her 40s, white coat",
+  paket: "a parcel-service call-center agent, young man wearing a headset",
+  vermieter: "a property manager, man in his 50s with a short beard, jacket",
+  bank: "a bank service employee, man in his 30s, suit and tie",
+  kita: "a kindergarten teacher, woman in her 30s, colorful cardigan",
+  nachbar: "a friendly retired German man in his 70s, grey hair, cardigan, very warm smile",
+  baecker: "a bakery saleswoman in her 40s, apron, cheerful",
+  supermarkt: "a supermarket employee, young woman in a store vest",
+  kollegen: "a friendly office colleague, woman in her 30s, casual smart clothes",
+  empfang: "a doctor's practice front-desk receptionist, woman in her 20s",
+};
+
 if (!AUTH_TOKEN && !API_KEY) {
   console.error("No credentials found.");
   console.error("Set ANTHROPIC_AUTH_TOKEN (router / gateway) or ANTHROPIC_API_KEY (direct),");
@@ -93,6 +117,54 @@ const server = http.createServer(async (req, res) => {
       res.end(text);
     } catch (err) {
       console.error("Proxy failed:", err.message);
+      res.writeHead(502, { "content-type": "application/json" });
+      res.end(JSON.stringify({ error: err.message }));
+    }
+    return;
+  }
+
+  if (req.method === "GET" && req.url.startsWith("/api/avatar/")) {
+    const [p, q] = req.url.split("?");
+    const id = p.slice("/api/avatar/".length).replace(/[^a-z]/g, "");
+    const params = new URLSearchParams(q || "");
+    if (PIN && params.get("pin") !== PIN) {
+      res.writeHead(401, { "content-type": "application/json" });
+      res.end(JSON.stringify({ error: "pin_required" }));
+      return;
+    }
+    const desc = AVATARS[id];
+    if (!desc || !TTS_KEY) {
+      res.writeHead(404, { "content-type": "application/json" });
+      res.end(JSON.stringify({ error: "no_avatar" }));
+      return;
+    }
+    const file = path.join(AVATAR_DIR, id + ".png");
+    const serve = (buf) => {
+      res.writeHead(200, { "content-type": "image/png", "content-length": buf.length, "cache-control": "public, max-age=604800" });
+      res.end(buf);
+    };
+    try {
+      serve(fs.readFileSync(file));
+      return;
+    } catch (e) { /* not cached yet - generate */ }
+    try {
+      const upstream = await fetch("https://api.openai.com/v1/images/generations", {
+        method: "POST",
+        headers: { authorization: `Bearer ${TTS_KEY}`, "content-type": "application/json" },
+        body: JSON.stringify({ model: "gpt-image-1", prompt: AVATAR_STYLE + desc, size: "1024x1024", quality: "low", n: 1 }),
+      });
+      if (!upstream.ok) {
+        console.error("Avatar gen failed:", upstream.status, (await upstream.text()).slice(0, 200));
+        res.writeHead(502, { "content-type": "application/json" });
+        res.end(JSON.stringify({ error: "avatar_failed" }));
+        return;
+      }
+      const data = await upstream.json();
+      const buf = Buffer.from(data.data[0].b64_json, "base64");
+      try { fs.mkdirSync(AVATAR_DIR, { recursive: true }); fs.writeFileSync(file, buf); } catch (e) {}
+      serve(buf);
+    } catch (err) {
+      console.error("Avatar proxy failed:", err.message);
       res.writeHead(502, { "content-type": "application/json" });
       res.end(JSON.stringify({ error: err.message }));
     }

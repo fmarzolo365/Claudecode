@@ -129,8 +129,10 @@
   .vc-av {
     width: 78px; height: 78px; margin: 0 auto; border-radius: 50%; background: #332d1f;
     display: flex; align-items: center; justify-content: center; font-size: 42px;
-    border: 2.5px solid rgba(245,197,49,.35);
+    border: 2.5px solid rgba(245,197,49,.35); position: relative; overflow: hidden;
   }
+  .vc-av img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: none; }
+  .vc-av img.ok { display: block; }
   .vc-av.speaking { animation: talk 1.1s infinite; border-color: var(--yellow); }
   @keyframes talk { 0% { box-shadow: 0 0 0 0 rgba(245,197,49,.5); } 100% { box-shadow: 0 0 0 18px rgba(245,197,49,0); } }
   .hang:hover { filter: brightness(1.1); }
@@ -321,7 +323,7 @@
   <section id="call" class="hidden">
     <div class="vcbar">
       <button class="hang" id="hangBtn"></button>
-      <div class="vc-av" id="vcAv"><span id="vcEmoji">🎧</span></div>
+      <div class="vc-av" id="vcAv"><span id="vcEmoji">🎧</span><img id="vcImg" alt="" /></div>
       <div class="who" id="who"></div>
       <div class="meta" id="timer">VERBUNDEN · 00:00</div>
     </div>
@@ -1692,6 +1694,21 @@ function renderCall() {
   const A = S.active || S.scenario;
   $("who").textContent = A.who;
   $("vcEmoji").textContent = A.avatar || "🎧";
+  const img = $("vcImg");
+  const src = A.id && A.id !== "custom" && A.id !== "random"
+    ? `/api/avatar/${A.id}?pin=${encodeURIComponent(localStorage.getItem(PIN_KEY) || "")}`
+    : "";
+  if (img.dataset.src !== src) {
+    img.dataset.src = src;
+    img.classList.remove("ok");
+    if (src) {
+      img.onload = () => img.classList.add("ok"); // photo covers the emoji only once loaded
+      img.onerror = () => img.classList.remove("ok");
+      img.src = src;
+    } else {
+      img.removeAttribute("src");
+    }
+  }
   $("timer").textContent = timerText();
   $("hangBtn").textContent = A.kind === "face" ? L.endTalk : L.hangUp;
   $("repeatBtn").textContent = L.repeat;
