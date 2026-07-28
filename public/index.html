@@ -1021,15 +1021,16 @@ function voiceOf(sp) {
   return (sp === 2 ? A.voice2 || A.voice : A.voice) || "";
 }
 
-async function neuralSpeak(text, rate, done, voice) {
+async function neuralSpeak(text, rate, done, voice, pace) {
   if (voice === undefined) voice = voiceOf(1);
-  const key = voice + "|" + text;
+  pace = pace || "normal";
+  const key = voice + "|" + pace + "|" + text;
   let url = ttsCache.get(key);
   if (!url) {
     const res = await fetch("/api/tts", {
       method: "POST",
       headers: { "content-type": "application/json", "x-trainer-pin": localStorage.getItem(PIN_KEY) || "" },
-      body: JSON.stringify({ text, voice }),
+      body: JSON.stringify({ text, voice, pace }),
     });
     if (res.status === 501) { neuralOK = false; throw new Error("unconfigured"); }
     if (!res.ok) throw new Error("tts " + res.status);
@@ -1042,7 +1043,8 @@ async function neuralSpeak(text, rate, done, voice) {
     }
   }
   const a = new Audio(url);
-  a.playbackRate = rate;
+  // the pace lives in the speech itself now; only fine-tune, never stretch
+  a.playbackRate = Math.max(0.9, Math.min(1.1, rate));
   if ("preservesPitch" in a) a.preservesPitch = true;
   currentAudio = a;
   a.onended = () => {
@@ -1071,7 +1073,8 @@ function speak(text, slow, done, sp) {
   stopAudio();
   const rate = slow ? 0.6 : LEVELS[S.level].rate * (SPEEDS[S.speed] || 1);
   if (neuralOK) {
-    neuralSpeak(text, rate, done, voiceOf(sp || 1)).catch(() => deviceSpeak(text, rate, done));
+    const pace = slow || rate < 0.92 ? "slow" : rate > 1.08 ? "fast" : "normal";
+    neuralSpeak(text, rate, done, voiceOf(sp || 1), pace).catch(() => deviceSpeak(text, rate, done));
     return;
   }
   deviceSpeak(text, rate, done);

@@ -214,7 +214,7 @@ const server = http.createServer(async (req, res) => {
       return;
     }
     try {
-      const { text, voice } = JSON.parse(await readBody(req));
+      const { text, voice, pace } = JSON.parse(await readBody(req));
       if (!text || typeof text !== "string" || text.length > 1200) {
         res.writeHead(400, { "content-type": "application/json" });
         res.end(JSON.stringify({ error: "bad_text" }));
@@ -225,7 +225,15 @@ const server = http.createServer(async (req, res) => {
       const useVoice = VOICES.includes(voice) ? voice : TTS_VOICE;
       const body = { model: TTS_MODEL, voice: useVoice, input: text, response_format: "mp3" };
       if (TTS_MODEL.startsWith("gpt-")) {
-        body.instructions = "Speak natural, native German as a friendly, professional employee answering a phone call. Natural pacing and intonation, slightly warm.";
+        // slow speech is asked from the model (natural pauses, real prosody)
+        // instead of time-stretching the audio afterwards, which sounds robotic
+        const PACE = {
+          slow: "Speak VERY slowly and extra clearly, like a warm, patient native German speaker talking to a beginner: unhurried, clearly articulated, with small natural pauses between phrases. Keep the intonation lively and human - slow must never mean flat or robotic.",
+          fast: "Speak briskly, like a busy native German employee in a hurry - quick natural conversational pace, but still clearly articulated.",
+          normal: "Speak at a relaxed natural conversational pace.",
+        };
+        body.instructions = "You are a friendly German native speaker in a real conversation. Natural, warm, human intonation - never monotone. " +
+          (PACE[pace] || PACE.normal);
       }
       const upstream = await fetch("https://api.openai.com/v1/audio/speech", {
         method: "POST",
