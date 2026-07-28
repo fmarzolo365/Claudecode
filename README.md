@@ -149,6 +149,11 @@ https://docs.claude.com/en/docs/about-claude/models
   revealing the right sentence, so you say it aloud and get instant feedback.
 - **Daily routine**: a three-step checklist on the home card (vocabulary →
   conversation → mistakes) that ticks itself off as you practise each day.
+- **Level A0 + call preparation**: a true zero level (5–8 word replies, only
+  the most common words, yes/no questions) and a 🎒 warm-up before any call:
+  the meaning appears in your language, you produce the German — tiniest words
+  first, then mini-sentences — with "show me" + repeat-after-me when you don't
+  know, ending in a START NOW button that launches the call.
 
 ## Changing the scenarios
 

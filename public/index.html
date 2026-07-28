@@ -294,7 +294,8 @@
     <div class="seg wrap" id="langs"></div>
 
     <button class="big" id="callBtn"></button>
-    <button class="toggle" id="vocabBtn" style="margin-top:14px"></button>
+    <button class="toggle" id="prepBtn" style="margin-top:14px"></button>
+    <button class="toggle" id="vocabBtn"></button>
     <button class="toggle" id="drillBtn"></button>
     <button class="toggle" id="mistakesBtn"></button>
   </section>
@@ -345,6 +346,14 @@
       <button class="ghost" id="clearBtn"></button>
     </div>
     <button class="big" id="backBtn"></button>
+  </section>
+
+  <!-- PRE-CALL PREPARATION (level zero warm-up) -->
+  <section id="prep" class="hidden">
+    <div class="plate"><span id="prepTitle"></span></div>
+    <p class="note" id="prepSub" style="margin-top:8px"></p>
+    <div id="prepBody" style="margin-top:14px"></div>
+    <button class="big" id="prepBack"></button>
   </section>
 
   <!-- SCENARIO VOCABULARY -->
@@ -478,7 +487,9 @@ const T = {
     vocabDone:"¡Vocabulario repasado!", forCall:"Para esta llamada",
     myWords:"Mis palabras", tapWordHint:"💡 Toca una palabra que no conozcas para guardarla",
     talk:"HABLAR", endTalk:"TERMINAR", endedTalk:"CONVERSACIÓN TERMINADA",
-    routine:"Rutina de hoy", rCall:"Conversación", rVocab:"Vocabulario", rDrill:"Errores" },
+    routine:"Rutina de hoy", rCall:"Conversación", rVocab:"Vocabulario", rDrill:"Errores",
+    prep:"Preparar la llamada", prepTitle:"PREPARACIÓN", howSay:"¿Cómo se dice en alemán?",
+    dontKnow:"No lo sé, muéstramelo", ready:"¡Listo! Ya tienes lo básico.", startNow:"EMPEZAR YA" },
   en:{ tagline:"Practise real German calls and conversations. You speak, the other person answers.",
     pick:"Choose the situation", level:"Level", helpLang:"Language for corrections", call:"CALL",
     hangUp:"HANG UP", speak:"Tap and speak", listening:"Listening…", repeat:"Repeat slowly",
@@ -505,7 +516,9 @@ const T = {
     vocabDone:"Vocabulary done!", forCall:"For this call",
     myWords:"My words", tapWordHint:"💡 Tap any word you don't know to save it",
     talk:"TALK", endTalk:"END", endedTalk:"CONVERSATION ENDED",
-    routine:"Today's routine", rCall:"Conversation", rVocab:"Vocabulary", rDrill:"Mistakes" },
+    routine:"Today's routine", rCall:"Conversation", rVocab:"Vocabulary", rDrill:"Mistakes",
+    prep:"Prepare the call", prepTitle:"PREPARATION", howSay:"How do you say it in German?",
+    dontKnow:"I don't know, show me", ready:"Ready! You have the basics.", startNow:"START NOW" },
 };
 
 /* ---------- additional help languages ---------- */
@@ -535,7 +548,9 @@ T.tr = { tagline:"Gerçek Almanca aramalar ve konuşmalar pratiği yap. Sen konu
   vocabDone:"Kelimeler tamamlandı!", forCall:"Bu arama için",
   myWords:"Kelimelerim", tapWordHint:"💡 Bilmediğin bir kelimeye dokun, kaydedilsin",
   talk:"KONUŞ", endTalk:"BİTİR", endedTalk:"KONUŞMA BİTTİ",
-  routine:"Bugünkü rutin", rCall:"Konuşma", rVocab:"Kelimeler", rDrill:"Hatalar" };
+  routine:"Bugünkü rutin", rCall:"Konuşma", rVocab:"Kelimeler", rDrill:"Hatalar",
+  prep:"Aramaya hazırlan", prepTitle:"HAZIRLIK", howSay:"Almancası nasıl söylenir?",
+  dontKnow:"Bilmiyorum, göster", ready:"Hazırsın! Temeli öğrendin.", startNow:"ŞİMDİ BAŞLA" };
 T.ar = { tagline:"تدرّب على مكالمات ومحادثات حقيقية بالألمانية. أنت تتكلم والطرف الآخر يجيب.",
   pick:"اختر الموقف", level:"المستوى", helpLang:"لغة التصحيحات", call:"اتصل",
   hangUp:"إنهاء", speak:"اضغط وتكلّم", listening:"يستمع…", repeat:"إعادة ببطء",
@@ -562,7 +577,9 @@ T.ar = { tagline:"تدرّب على مكالمات ومحادثات حقيقية
   vocabDone:"انتهت المفردات!", forCall:"لهذه المكالمة",
   myWords:"كلماتي", tapWordHint:"💡 المس أي كلمة لا تعرفها لحفظها",
   talk:"تحدّث", endTalk:"إنهاء", endedTalk:"انتهت المحادثة",
-  routine:"روتين اليوم", rCall:"محادثة", rVocab:"مفردات", rDrill:"أخطاء" };
+  routine:"روتين اليوم", rCall:"محادثة", rVocab:"مفردات", rDrill:"أخطاء",
+  prep:"التحضير للمكالمة", prepTitle:"التحضير", howSay:"كيف تُقال بالألمانية؟",
+  dontKnow:"لا أعرف، أرني", ready:"جاهز! تعلمت الأساسيات.", startNow:"ابدأ الآن" };
 T.uk = { tagline:"Тренуй реальні дзвінки й розмови німецькою. Ти говориш — співрозмовник відповідає.",
   pick:"Обери ситуацію", level:"Рівень", helpLang:"Мова пояснень", call:"ДЗВОНИТИ",
   hangUp:"ПОКЛАСТИ", speak:"Натисни і говори", listening:"Слухаю…", repeat:"Повторити повільно",
@@ -589,7 +606,9 @@ T.uk = { tagline:"Тренуй реальні дзвінки й розмови �
   vocabDone:"Словник пройдено!", forCall:"Для цього дзвінка",
   myWords:"Мої слова", tapWordHint:"💡 Торкнись незнайомого слова, щоб зберегти його",
   talk:"ГОВОРИТИ", endTalk:"ЗАВЕРШИТИ", endedTalk:"РОЗМОВУ ЗАВЕРШЕНО",
-  routine:"Рутина на сьогодні", rCall:"Розмова", rVocab:"Слова", rDrill:"Помилки" };
+  routine:"Рутина на сьогодні", rCall:"Розмова", rVocab:"Слова", rDrill:"Помилки",
+  prep:"Підготуватися до дзвінка", prepTitle:"ПІДГОТОВКА", howSay:"Як це сказати німецькою?",
+  dontKnow:"Не знаю, покажи", ready:"Готово! Основи є.", startNow:"ПОЧАТИ ЗАРАЗ" };
 
 T.it = { tagline:"Allenati con telefonate e conversazioni reali in tedesco. Tu parli, l'altra persona risponde.",
   pick:"Scegli la situazione", level:"Livello", helpLang:"Lingua delle correzioni", call:"CHIAMA",
@@ -617,7 +636,9 @@ T.it = { tagline:"Allenati con telefonate e conversazioni reali in tedesco. Tu p
   vocabDone:"Vocabolario completato!", forCall:"Per questa chiamata",
   myWords:"Le mie parole", tapWordHint:"💡 Tocca una parola che non conosci per salvarla",
   talk:"PARLA", endTalk:"TERMINA", endedTalk:"CONVERSAZIONE TERMINATA",
-  routine:"Routine di oggi", rCall:"Conversazione", rVocab:"Vocabolario", rDrill:"Errori" };
+  routine:"Routine di oggi", rCall:"Conversazione", rVocab:"Vocabolario", rDrill:"Errori",
+  prep:"Prepara la chiamata", prepTitle:"PREPARAZIONE", howSay:"Come si dice in tedesco?",
+  dontKnow:"Non lo so, mostramelo", ready:"Fatto! Hai le basi.", startNow:"INIZIA ORA" };
 
 const HELP_LANG = { es:"Spanish", en:"English", tr:"Turkish", ar:"Arabic", uk:"Ukrainian", it:"Italian" };
 
@@ -628,6 +649,14 @@ LEVELS.C1 = { words:70, rate:1.12,
   uk:"Майже рідний рівень: швидко, ідіоматично, вимогливо",
   it:"Quasi madrelingua: veloce, idiomatico, esigente",
   guide:"Advanced (C1). Speak like a fast native office or call-centre worker: idioms, colloquial contractions, irony, occasional regional flavour. Multi-step complications that require negotiation (conflicting appointments, refunds, policy exceptions, being put through to someone else). Interrupt politely sometimes. Only correct errors a native would actually notice." };
+
+/* A0: true zero level - for learners who barely have words yet */
+LEVELS.A0 = { words:12, rate:.65,
+  es:"Primerísimas palabras, súper lento", en:"Very first words, super slow",
+  tr:"İlk kelimeler, çok yavaş", ar:"أول الكلمات، بطيء جدًا",
+  uk:"Найперші слова, дуже повільно", it:"Primissime parole, super lento",
+  guide:"Absolute zero beginner (pre-A1). Prefer 5-8 words per reply, never more than 12. Present tense only, only the few hundred most common German words. Speak in short simple chunks and naturally repeat the key word of your reply. Ask only yes/no questions or offer two simple options ('Montag oder Dienstag?'). Be extremely patient and warm; if the learner says even one correct German word, make the conversation move forward." };
+const LEVEL_ORDER = ["A0","A1","A2","B1","B2","C1"];
 
 const LEVEL_L10N = {
   A1:{ tr:"Çok kısa cümleler, yavaş konuşma", ar:"جمل قصيرة جدًا وكلام بطيء", uk:"Дуже короткі фрази, повільна мова", it:"Frasi molto corte, parlato lento" },
@@ -984,7 +1013,7 @@ function renderSetup() {
   $("customTopic").placeholder = L.customPH;
   if (S.customTopic && !$("customTopic").value) $("customTopic").value = S.customTopic;
 
-  $("levels").innerHTML = Object.keys(LEVELS).map((k) =>
+  $("levels").innerHTML = LEVEL_ORDER.map((k) =>
     `<button class="${k === S.level ? "on" : ""}" data-k="${k}">${k}</button>`).join("");
   $("levels").querySelectorAll("button").forEach((b) =>
     b.onclick = () => { S.level = b.dataset.k; saveSettings(); renderSetup(); });
@@ -1006,6 +1035,8 @@ function renderSetup() {
   $("drillBtn").textContent = `🎯 ${L.practice}${drillable ? ` (${Math.min(8, drillable)})` : ""}`;
   $("drillBtn").disabled = !drillable;
   $("vocabBtn").textContent = `📇 ${L.vocab}`;
+  $("prepBtn").textContent = `🎒 ${L.prep}`;
+  $("prepBtn").disabled = S.scenario.id === "random" || (S.scenario.id === "custom" && !(S.customTopic || "").trim());
 }
 
 /* ---------- mistakes history screen ---------- */
@@ -1621,7 +1652,7 @@ function renderCall() {
 }
 
 function show(which) {
-  ["setup","call","done","mistakes","drill","vocab"].forEach((id) => $(id).classList.toggle("hidden", id !== which));
+  ["setup","call","done","mistakes","drill","vocab","prep"].forEach((id) => $(id).classList.toggle("hidden", id !== which));
 }
 
 /* ---------- end-of-call evaluation ---------- */
@@ -1655,8 +1686,83 @@ async function evaluateCall() {
   }
 }
 
+/* ---------- pre-call preparation: produce German from your own language ---------- */
+let P = null;
+async function startPrep() {
+  const L = t();
+  P = { steps: null, i: 0, revealed: false, failed: false, done: false,
+        listening: false, verdict: null, heard: null, err: null };
+  $("prepTitle").textContent = L.prepTitle;
+  $("prepSub").textContent = S.scenario.id === "custom" ? S.customTopic : `${S.scenario.de} · ${S.scenario.who}`;
+  $("prepBack").textContent = L.back;
+  show("prep");
+  renderPrep();
+  try {
+    const deck = await loadDeck();
+    // smallest words first, then a few mini sentences - the level-zero ladder
+    const words = deck.slice().sort((a, b) => normDe(a.de).length - normDe(b.de).length)
+      .slice(0, 6).map((x) => ({ de: x.de, tr: x.tr }));
+    const sents = deck.filter((x) => x.ex).slice(0, 3).map((x) => ({ de: x.ex, tr: x.exTr || "" }));
+    P.steps = words.concat(sents);
+  } catch (e) { P.failed = true; }
+  renderPrep();
+}
+function renderPrep() {
+  const L = t();
+  if (P.failed) {
+    $("prepBody").innerHTML =
+      `<p class="note">${esc(L.vocabFail)}</p>
+       <button class="ghost" style="width:100%;margin-top:12px" data-pa="reload">${esc(L.retry)}</button>`;
+  } else if (!P.steps) {
+    $("prepBody").innerHTML = `<p class="note">${esc(L.vocabLoading)}</p>`;
+  } else if (P.i >= P.steps.length) {
+    if (!P.done) { P.done = true; addXp(10); markDay("vocabDays"); confettiBurst(); }
+    $("prepBody").innerHTML =
+      `<div class="said" style="font-family:'Space Grotesk',sans-serif;font-size:19px;font-weight:700">🎉 ${esc(L.ready)}</div>
+       <div style="margin-top:10px"><span class="chip">+10 XP</span></div>
+       <button class="big" data-pa="go" style="margin-top:20px">${S.scenario.kind === "face" ? "💬 " + esc(L.startNow) : "📞 " + esc(L.startNow)}</button>`;
+  } else {
+    const st = P.steps[P.i];
+    $("prepBody").innerHTML =
+      `<div class="drill-prog">${P.i + 1} / ${P.steps.length}</div>
+       <div class="v-card" style="margin-top:10px;cursor:default">
+         ${P.revealed
+           ? `<div class="v-de">${esc(st.de)}</div><div class="v-tr">${esc(st.tr)}</div>`
+           : `<div class="v-flip">${esc(L.howSay)}</div><div class="v-de">${esc(st.tr)}</div>`}
+       </div>
+       ${verdictHTML(P, L)}
+       <div class="row">
+         ${P.revealed
+           ? `<button class="ghost" data-pa="hear">&#9834; ${esc(L.sayIt)}</button>`
+           : `<button class="ghost" data-pa="reveal">${esc(L.dontKnow)}</button>`}
+         <button class="ghost" data-pa="say" ${P.listening ? "disabled" : ""}>${P.listening ? esc(L.listening) : esc(L.sayWord)}</button>
+       </div>
+       <div class="row"><button class="ghost" data-pa="next">${esc(L.next)} &rsaquo;</button></div>`;
+  }
+  $("prepBody").querySelectorAll("[data-pa]").forEach((b) => b.onclick = () => {
+    const st = P.steps && P.steps[P.i];
+    switch (b.dataset.pa) {
+      case "reload": startPrep(); break;
+      case "go": stopAudio(); speechSynthesis.cancel(); startConversation(); break;
+      case "hear": if (st) speak(st.de, true); break;
+      case "say": if (st) listenFor(st.de, P, renderPrep); break;
+      case "reveal":
+        if (!st) break;
+        P.revealed = true; renderPrep();
+        // show it, say it, then the mic opens so the learner repeats it
+        speak(st.de, true, () => { if (P && P.steps && P.steps[P.i] === st && P.revealed && !P.listening) listenFor(st.de, P, renderPrep); });
+        break;
+      case "next":
+        stopAudio(); speechSynthesis.cancel();
+        P.i++; P.revealed = false; P.verdict = null; P.heard = null; P.err = null;
+        renderPrep();
+        break;
+    }
+  });
+}
+
 /* ---------- wiring ---------- */
-$("callBtn").onclick = () => {
+function startConversation() {
   const REAL = SCENARIOS.filter((x) => x.goals);
   if (S.scenario.id === "custom") {
     const topic = ($("customTopic").value || "").trim();
@@ -1679,7 +1785,8 @@ $("callBtn").onclick = () => {
   clearInterval(S.timerId);
   S.timerId = setInterval(() => { S.seconds++; $("timer").textContent = timerText(); }, 1000);
   ask();
-};
+}
+$("callBtn").onclick = startConversation;
 $("hangBtn").onclick = () => {
   S.handsFree = false;
   clearInterval(S.timerId);
@@ -1726,6 +1833,8 @@ $("mistakesBtn").onclick = () => { renderMistakes(); show("mistakes"); };
 $("drillBtn").onclick = () => startDrill();
 $("drillBack").onclick = () => { stopAudio(); speechSynthesis.cancel(); show("setup"); renderSetup(); };
 $("vocabBtn").onclick = () => startVocab();
+$("prepBtn").onclick = () => startPrep();
+$("prepBack").onclick = () => { stopAudio(); speechSynthesis.cancel(); show("setup"); renderSetup(); };
 $("vocabBack").onclick = () => {
   stopAudio(); speechSynthesis.cancel();
   if (V && V.stage === "deck") startVocab();     // back to the deck chooser first
