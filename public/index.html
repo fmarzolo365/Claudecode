@@ -1030,15 +1030,22 @@ function lev(a, b) {
 function saidWord(heard, target) {
   const SKIP = ["der","die","das","den","dem","des","ein","eine","einen","einem","einer"];
   const H = normDe(heard).split(" ").filter(Boolean);
+  const Hjoin = H.join("");
   const all = normDe(target).split(" ").filter((w) => w && !SKIP.includes(w));
   // prefer content words, but fall back to short ones ("wo", "was") for one-word cards
   let Tw = all.filter((w) => w.length > 2);
   if (!Tw.length) Tw = all;
   if (!Tw.length) return false;
-  return Tw.every((tw) => {
-    const tol = tw.length <= 2 ? 0 : tw.length <= 4 ? 1 : tw.length <= 7 ? 2 : 3;
-    return H.some((h) => lev(h, tw) <= tol);
-  });
+  // forgiving on purpose: this is encouragement, not an exam. The recognizer
+  // itself mangles learner speech, so allow 2 edits on short words, accept the
+  // word inside the joined transcript (recognizers split compounds), and for
+  // phrases require 60% of the content words instead of all of them.
+  const hit = (tw) => {
+    const tol = tw.length <= 2 ? 0 : tw.length <= 7 ? 2 : 3;
+    return H.some((h) => lev(h, tw) <= tol) || (tw.length >= 5 && Hjoin.includes(tw));
+  };
+  const need = Math.max(1, Math.ceil(Tw.length * 0.6));
+  return Tw.filter(hit).length >= need;
 }
 
 /* built-in decks: universal words every caller needs, no API required */
@@ -1224,7 +1231,10 @@ function renderVocab() {
         V.flipped = !V.flipped; renderVocab();
         if (V.flipped && c && c.ex) speak(c.ex, true);
         break;
-      case "hear": if (c) speak(c.de, true); break;
+      case "hear":
+        // listen -> repeat: after the word plays, the mic opens by itself
+        if (c) speak(c.de, true, () => { if (V && V.deck && V.deck[V.i] === c && !V.listening) vocabListen(c.de); });
+        break;
       case "say": if (c) vocabListen(c.de); break;
       case "next":
         stopAudio(); speechSynthesis.cancel();
