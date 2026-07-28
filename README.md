@@ -120,6 +120,12 @@ https://docs.claude.com/en/docs/about-claude/models
   your words and the app builds the phone call around it.
 - **Scenario groups**: calls organised by Health, Bureaucracy & money, Home &
   daily life, Leisure, and Free mode.
+- **Streak, XP and ranks**: every call earns XP (bonus when you achieve the call's
+  goal), with a 7-day activity strip and German rank titles from Neuling up to
+  Telefonlegende.
+- **Practicar mis errores**: a flashcard drill over your saved corrections — see
+  your sentence, recall the right version, reveal it and hear it spoken. Cards you
+  miss come back sooner (spaced-repetition-lite).
 
 ## Changing the scenarios
 
