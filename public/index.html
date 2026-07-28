@@ -181,12 +181,14 @@
   .xpbar div { height: 100%; background: linear-gradient(90deg, var(--yellow), var(--yellow-deep)); border-radius: 99px; transition: width .6s ease; }
   .hero-sub { margin-top: 9px; font-size: 11.5px; color: var(--muted); }
   .routine { display: flex; gap: 6px; margin-top: 10px; }
-  .routine span {
-    flex: 1; text-align: center; font: 600 11px Archivo, sans-serif;
-    padding: 6px 4px; border-radius: 99px; background: #ece5d4; color: var(--muted);
+  .routine button {
+    flex: 1; text-align: center; font: 600 11px Archivo, sans-serif; border: none; cursor: pointer;
+    padding: 7px 4px; border-radius: 99px; background: #ece5d4; color: var(--muted);
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    transition: filter .15s ease;
   }
-  .routine span.done { background: rgba(46,125,91,.15); color: var(--green); }
+  .routine button:hover { filter: brightness(.96); }
+  .routine button.done { background: rgba(46,125,91,.15); color: var(--green); }
   .chip {
     font: 700 11px 'JetBrains Mono', monospace; background: var(--yellow); color: var(--ink);
     border-radius: 99px; padding: 4px 10px; letter-spacing: .06em; white-space: nowrap;
@@ -977,12 +979,18 @@ function renderSetup() {
       `📞 ${st.calls} ${L.calls} · ⏱ ${Math.round((st.seconds || 0) / 60)} ${L.minutes}`;
     const today = new Date().toISOString().slice(0, 10);
     const steps = [
-      ["📇", L.rVocab, (st.vocabDays || {})[today]],
-      ["💬", L.rCall, st.days[today]],
-      ["🎯", L.rDrill, (st.drillDays || {})[today]],
+      ["📇", L.rVocab, (st.vocabDays || {})[today], "vocab"],
+      ["💬", L.rCall, st.days[today], "call"],
+      ["🎯", L.rDrill, (st.drillDays || {})[today], "drill"],
     ];
-    $("routine").innerHTML = steps.map(([ic, name, done]) =>
-      `<span class="${done ? "done" : ""}">${done ? "✓" : ic} ${esc(name)}</span>`).join("");
+    $("routine").innerHTML = steps.map(([ic, name, done, act]) =>
+      `<button class="${done ? "done" : ""}" data-r="${act}">${done ? "✓" : ic} ${esc(name)}</button>`).join("");
+    $("routine").querySelectorAll("[data-r]").forEach((b) => b.onclick = () => {
+      if (b.dataset.r === "vocab") startVocab();
+      else if (b.dataset.r === "call") goCall();
+      else if (loadFixes().some((f) => f.corrected)) startDrill();
+      else { renderMistakes(); show("mistakes"); }
+    });
   }
   $("callBtn").innerHTML = S.scenario.kind === "face"
     ? '💬 ' + L.talk
@@ -1716,7 +1724,7 @@ function renderPrep() {
   } else if (!P.steps) {
     $("prepBody").innerHTML = `<p class="note">${esc(L.vocabLoading)}</p>`;
   } else if (P.i >= P.steps.length) {
-    if (!P.done) { P.done = true; addXp(10); markDay("vocabDays"); confettiBurst(); }
+    if (!P.done) { P.done = true; PREPPED.add(S.scenario.id); addXp(10); markDay("vocabDays"); confettiBurst(); }
     $("prepBody").innerHTML =
       `<div class="said" style="font-family:'Space Grotesk',sans-serif;font-size:19px;font-weight:700">🎉 ${esc(L.ready)}</div>
        <div style="margin-top:10px"><span class="chip">+10 XP</span></div>
@@ -1786,7 +1794,18 @@ function startConversation() {
   S.timerId = setInterval(() => { S.seconds++; $("timer").textContent = timerText(); }, 1000);
   ask();
 }
-$("callBtn").onclick = startConversation;
+/* At A0 the call button routes through preparation first - beginners want
+   words in their head before the phone rings. Once prepared (or after
+   choosing to leave the warm-up), the gate opens for that scenario. */
+const PREPPED = new Set();
+function canPrep() {
+  return S.scenario.id !== "random" && !(S.scenario.id === "custom" && !(S.customTopic || "").trim());
+}
+function goCall() {
+  if (S.level === "A0" && canPrep() && !PREPPED.has(S.scenario.id)) startPrep();
+  else startConversation();
+}
+$("callBtn").onclick = goCall;
 $("hangBtn").onclick = () => {
   S.handsFree = false;
   clearInterval(S.timerId);
@@ -1834,7 +1853,11 @@ $("drillBtn").onclick = () => startDrill();
 $("drillBack").onclick = () => { stopAudio(); speechSynthesis.cancel(); show("setup"); renderSetup(); };
 $("vocabBtn").onclick = () => startVocab();
 $("prepBtn").onclick = () => startPrep();
-$("prepBack").onclick = () => { stopAudio(); speechSynthesis.cancel(); show("setup"); renderSetup(); };
+$("prepBack").onclick = () => {
+  stopAudio(); speechSynthesis.cancel();
+  PREPPED.add(S.scenario.id); // leaving the warm-up counts as "seen it" - don't gate again
+  show("setup"); renderSetup();
+};
 $("vocabBack").onclick = () => {
   stopAudio(); speechSynthesis.cancel();
   if (V && V.stage === "deck") startVocab();     // back to the deck chooser first
