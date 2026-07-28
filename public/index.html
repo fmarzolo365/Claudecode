@@ -79,6 +79,7 @@
   .item b { font-family: 'Space Grotesk', sans-serif; font-size: 16px; font-weight: 600; display: block; letter-spacing: 0; }
   .item small { font-size: 12.5px; color: var(--muted); }
   .item.on small { color: rgba(253,251,245,.65); }
+  .item[disabled] { opacity: .4; cursor: not-allowed; }
   .list .label { margin: 14px 16px 6px; }
   .seg {
     display: flex; gap: 4px; padding: 4px;
@@ -455,7 +456,7 @@ const T = {
     sayWord:"Pronúncialo 🎤", heardYou:"Escuché:", wellSaid:"¡Muy bien dicho!",
     almost:"Casi — escucha y repite", next:"Siguiente",
     vocabLoading:"Creando tu vocabulario…", vocabFail:"No se pudo crear la lista. Inténtalo de nuevo.",
-    vocabDone:"¡Vocabulario repasado!" },
+    vocabDone:"¡Vocabulario repasado!", forCall:"Para esta llamada" },
   en:{ tagline:"Practise German phone calls. You speak, the other person answers.",
     pick:"Choose the situation", level:"Level", helpLang:"Language for corrections", call:"CALL",
     hangUp:"HANG UP", speak:"Tap and speak", listening:"Listening…", repeat:"Repeat slowly",
@@ -479,7 +480,7 @@ const T = {
     sayWord:"Say it out loud 🎤", heardYou:"I heard:", wellSaid:"Well said!",
     almost:"Almost — listen and repeat", next:"Next",
     vocabLoading:"Building your vocabulary…", vocabFail:"Could not create the list. Try again.",
-    vocabDone:"Vocabulary done!" },
+    vocabDone:"Vocabulary done!", forCall:"For this call" },
 };
 
 /* ---------- additional help languages ---------- */
@@ -506,7 +507,7 @@ T.tr = { tagline:"Almanca telefon görüşmeleri pratiği yap. Sen konuş, karş
   sayWord:"Yüksek sesle söyle 🎤", heardYou:"Duyduğum:", wellSaid:"Çok iyi söyledin!",
   almost:"Neredeyse — dinle ve tekrarla", next:"İleri",
   vocabLoading:"Kelime listen hazırlanıyor…", vocabFail:"Liste oluşturulamadı. Tekrar dene.",
-  vocabDone:"Kelimeler tamamlandı!" };
+  vocabDone:"Kelimeler tamamlandı!", forCall:"Bu arama için" };
 T.ar = { tagline:"تدرّب على المكالمات الهاتفية بالألمانية. أنت تتكلم والطرف الآخر يجيب.",
   pick:"اختر الموقف", level:"المستوى", helpLang:"لغة التصحيحات", call:"اتصل",
   hangUp:"إنهاء", speak:"اضغط وتكلّم", listening:"يستمع…", repeat:"إعادة ببطء",
@@ -530,7 +531,7 @@ T.ar = { tagline:"تدرّب على المكالمات الهاتفية بالأ
   sayWord:"قلها بصوت عالٍ 🎤", heardYou:"سمعت:", wellSaid:"أحسنت النطق!",
   almost:"تقريبًا — استمع وكرر", next:"التالي",
   vocabLoading:"جارٍ إنشاء مفرداتك…", vocabFail:"تعذّر إنشاء القائمة. حاول مجددًا.",
-  vocabDone:"انتهت المفردات!" };
+  vocabDone:"انتهت المفردات!", forCall:"لهذه المكالمة" };
 T.uk = { tagline:"Тренуй телефонні розмови німецькою. Ти говориш — співрозмовник відповідає.",
   pick:"Обери ситуацію", level:"Рівень", helpLang:"Мова пояснень", call:"ДЗВОНИТИ",
   hangUp:"ПОКЛАСТИ", speak:"Натисни і говори", listening:"Слухаю…", repeat:"Повторити повільно",
@@ -554,7 +555,7 @@ T.uk = { tagline:"Тренуй телефонні розмови німецьк�
   sayWord:"Скажи вголос 🎤", heardYou:"Я почув:", wellSaid:"Чудово сказано!",
   almost:"Майже — послухай і повтори", next:"Далі",
   vocabLoading:"Створюю твій словник…", vocabFail:"Не вдалося створити список. Спробуй ще.",
-  vocabDone:"Словник пройдено!" };
+  vocabDone:"Словник пройдено!", forCall:"Для цього дзвінка" };
 
 T.it = { tagline:"Allenati con le telefonate in tedesco. Tu parli, l'altra persona risponde.",
   pick:"Scegli la situazione", level:"Livello", helpLang:"Lingua delle correzioni", call:"CHIAMA",
@@ -579,7 +580,7 @@ T.it = { tagline:"Allenati con le telefonate in tedesco. Tu parli, l'altra perso
   sayWord:"Pronuncialo 🎤", heardYou:"Ho sentito:", wellSaid:"Ben detto!",
   almost:"Quasi — ascolta e ripeti", next:"Avanti",
   vocabLoading:"Sto creando il tuo vocabolario…", vocabFail:"Impossibile creare la lista. Riprova.",
-  vocabDone:"Vocabolario completato!" };
+  vocabDone:"Vocabolario completato!", forCall:"Per questa chiamata" };
 
 const HELP_LANG = { es:"Spanish", en:"English", tr:"Turkish", ar:"Arabic", uk:"Ukrainian", it:"Italian" };
 
@@ -894,7 +895,6 @@ function renderSetup() {
   $("drillBtn").textContent = `🎯 ${L.practice}${drillable ? ` (${Math.min(8, drillable)})` : ""}`;
   $("drillBtn").disabled = !drillable;
   $("vocabBtn").textContent = `📇 ${L.vocab}`;
-  $("vocabBtn").disabled = S.scenario.id === "random" || (S.scenario.id === "custom" && !(S.customTopic || "").trim());
 }
 
 /* ---------- mistakes history screen ---------- */
@@ -1011,13 +1011,71 @@ function lev(a, b) {
 function saidWord(heard, target) {
   const SKIP = ["der","die","das","den","dem","des","ein","eine","einen","einem","einer"];
   const H = normDe(heard).split(" ").filter(Boolean);
-  const Tw = normDe(target).split(" ").filter((w) => w.length > 2 && !SKIP.includes(w));
+  const all = normDe(target).split(" ").filter((w) => w && !SKIP.includes(w));
+  // prefer content words, but fall back to short ones ("wo", "was") for one-word cards
+  let Tw = all.filter((w) => w.length > 2);
+  if (!Tw.length) Tw = all;
   if (!Tw.length) return false;
   return Tw.every((tw) => {
-    const tol = tw.length <= 4 ? 1 : tw.length <= 7 ? 2 : 3;
+    const tol = tw.length <= 2 ? 0 : tw.length <= 4 ? 1 : tw.length <= 7 ? 2 : 3;
     return H.some((h) => lev(h, tw) <= tol);
   });
 }
+
+/* built-in decks: universal words every caller needs, no API required */
+const BASIC_DECKS = [
+  { id:"fragen", de:"W-Fragen", icon:"❓",
+    es:"Palabras de pregunta", en:"Question words", it:"Parole interrogative",
+    tr:"Soru kelimeleri", ar:"أدوات الاستفهام", uk:"Питальні слова",
+    items:[
+      { de:"Wann?", ex:"Wann haben Sie geöffnet?", es:"¿Cuándo?", en:"When?", it:"Quando?", tr:"Ne zaman?", ar:"متى؟", uk:"Коли?" },
+      { de:"Wo?", ex:"Wo ist Ihre Praxis?", es:"¿Dónde?", en:"Where?", it:"Dove?", tr:"Nerede?", ar:"أين؟", uk:"Де?" },
+      { de:"Wer?", ex:"Wer ist am Apparat?", es:"¿Quién?", en:"Who?", it:"Chi?", tr:"Kim?", ar:"من؟", uk:"Хто?" },
+      { de:"Was?", ex:"Was kostet das?", es:"¿Qué?", en:"What?", it:"Che cosa?", tr:"Ne?", ar:"ماذا؟", uk:"Що?" },
+      { de:"Wie?", ex:"Wie funktioniert das?", es:"¿Cómo?", en:"How?", it:"Come?", tr:"Nasıl?", ar:"كيف؟", uk:"Як?" },
+      { de:"Warum?", ex:"Warum ist heute geschlossen?", es:"¿Por qué?", en:"Why?", it:"Perché?", tr:"Neden?", ar:"لماذا؟", uk:"Чому?" },
+      { de:"Welche?", ex:"Welche Unterlagen brauche ich?", es:"¿Cuál? / ¿Qué…?", en:"Which?", it:"Quale?", tr:"Hangi?", ar:"أي؟", uk:"Який? / Яка?" },
+      { de:"Wie viel?", ex:"Wie viel kostet die Reparatur?", es:"¿Cuánto?", en:"How much?", it:"Quanto?", tr:"Ne kadar?", ar:"كم؟", uk:"Скільки?" },
+      { de:"Wie lange?", ex:"Wie lange dauert das?", es:"¿Cuánto tiempo?", en:"How long?", it:"Quanto tempo?", tr:"Ne kadar süre?", ar:"كم من الوقت؟", uk:"Як довго?" },
+      { de:"Um wie viel Uhr?", ex:"Um wie viel Uhr soll ich kommen?", es:"¿A qué hora?", en:"At what time?", it:"A che ora?", tr:"Saat kaçta?", ar:"في أي ساعة؟", uk:"О котрій годині?" },
+      { de:"Wohin?", ex:"Wohin soll ich das Paket schicken?", es:"¿Adónde?", en:"Where to?", it:"Verso dove?", tr:"Nereye?", ar:"إلى أين؟", uk:"Куди?" },
+      { de:"Woher?", ex:"Woher bekomme ich das Formular?", es:"¿De dónde?", en:"Where from?", it:"Da dove?", tr:"Nereden?", ar:"من أين؟", uk:"Звідки?" },
+    ] },
+  { id:"telefon", de:"Am Telefon", icon:"☎️",
+    es:"Frases de supervivencia", en:"Survival phrases", it:"Frasi di sopravvivenza",
+    tr:"Hayatta kalma cümleleri", ar:"عبارات أساسية للهاتف", uk:"Фрази виживання",
+    items:[
+      { de:"Wie bitte?", ex:"Wie bitte? Das habe ich nicht verstanden.", es:"¿Cómo dice? (no he entendido)", en:"Pardon? (I didn't catch that)", it:"Come, scusi?", tr:"Efendim? (anlamadım)", ar:"عفوًا، ماذا قلت؟", uk:"Перепрошую, що ви сказали?" },
+      { de:"Können Sie das bitte wiederholen?", ex:"", es:"¿Puede repetirlo, por favor?", en:"Can you repeat that, please?", it:"Può ripetere, per favore?", tr:"Tekrar eder misiniz lütfen?", ar:"هل يمكنك التكرار من فضلك؟", uk:"Можете повторити, будь ласка?" },
+      { de:"Sprechen Sie bitte langsamer.", ex:"", es:"Hable más despacio, por favor.", en:"Please speak more slowly.", it:"Parli più lentamente, per favore.", tr:"Lütfen daha yavaş konuşun.", ar:"تكلم ببطء من فضلك.", uk:"Говоріть повільніше, будь ласка." },
+      { de:"Ich verstehe nicht.", ex:"", es:"No entiendo.", en:"I don't understand.", it:"Non capisco.", tr:"Anlamıyorum.", ar:"لا أفهم.", uk:"Я не розумію." },
+      { de:"Können Sie das buchstabieren?", ex:"", es:"¿Puede deletrearlo?", en:"Can you spell that?", it:"Può fare lo spelling?", tr:"Harf harf söyler misiniz?", ar:"هل يمكنك تهجئتها؟", uk:"Можете сказати по літерах?" },
+      { de:"Einen Moment, bitte.", ex:"", es:"Un momento, por favor.", en:"One moment, please.", it:"Un attimo, prego.", tr:"Bir dakika lütfen.", ar:"لحظة من فضلك.", uk:"Хвилинку, будь ласка." },
+      { de:"Ich rufe an wegen …", ex:"Ich rufe an wegen meines Termins.", es:"Llamo por…", en:"I'm calling about…", it:"Chiamo per…", tr:"… için arıyorum.", ar:"أتصل بخصوص…", uk:"Я телефоную щодо…" },
+      { de:"Ich hätte gern einen Termin.", ex:"", es:"Quisiera una cita.", en:"I'd like an appointment.", it:"Vorrei un appuntamento.", tr:"Randevu almak istiyorum.", ar:"أود حجز موعد.", uk:"Я хочу записатися на прийом." },
+      { de:"Passt es am Montag?", ex:"", es:"¿Le viene bien el lunes?", en:"Does Monday work?", it:"Va bene lunedì?", tr:"Pazartesi uygun mu?", ar:"هل يناسب يوم الاثنين؟", uk:"Чи підходить понеділок?" },
+      { de:"Das passt mir gut.", ex:"", es:"Me viene bien.", en:"That works for me.", it:"Mi va bene.", tr:"Bana uyar.", ar:"هذا يناسبني.", uk:"Мені це підходить." },
+      { de:"Vielen Dank für Ihre Hilfe.", ex:"", es:"Muchas gracias por su ayuda.", en:"Thank you very much for your help.", it:"Grazie mille per l'aiuto.", tr:"Yardımınız için çok teşekkürler.", ar:"شكرًا جزيلًا لمساعدتك.", uk:"Дуже дякую за допомогу." },
+      { de:"Auf Wiederhören!", ex:"", es:"¡Adiós! (solo al teléfono)", en:"Goodbye! (phone only)", it:"Arrivederci! (solo al telefono)", tr:"Hoşça kalın! (telefonda)", ar:"إلى اللقاء (على الهاتف)", uk:"До побачення! (лише телефоном)" },
+    ] },
+  { id:"zeit", de:"Zeit & Termine", icon:"🕘",
+    es:"Tiempo y citas", en:"Time & appointments", it:"Tempo e appuntamenti",
+    tr:"Zaman ve randevular", ar:"الوقت والمواعيد", uk:"Час і записи",
+    items:[
+      { de:"heute", ex:"Haben Sie heute noch einen Termin frei?", es:"hoy", en:"today", it:"oggi", tr:"bugün", ar:"اليوم", uk:"сьогодні" },
+      { de:"morgen", ex:"Ich kann morgen vorbeikommen.", es:"mañana", en:"tomorrow", it:"domani", tr:"yarın", ar:"غدًا", uk:"завтра" },
+      { de:"übermorgen", ex:"Übermorgen passt mir besser.", es:"pasado mañana", en:"the day after tomorrow", it:"dopodomani", tr:"öbür gün", ar:"بعد غد", uk:"післязавтра" },
+      { de:"vormittags", ex:"Ich kann nur vormittags.", es:"por la mañana", en:"in the morning", it:"di mattina", tr:"öğleden önce", ar:"في الصباح", uk:"вранці" },
+      { de:"nachmittags", ex:"Nachmittags bin ich zu Hause.", es:"por la tarde", en:"in the afternoon", it:"di pomeriggio", tr:"öğleden sonra", ar:"بعد الظهر", uk:"після обіду" },
+      { de:"nächste Woche", ex:"Geht es auch nächste Woche?", es:"la semana que viene", en:"next week", it:"la settimana prossima", tr:"gelecek hafta", ar:"الأسبوع القادم", uk:"наступного тижня" },
+      { de:"um halb zehn", ex:"Der Termin ist um halb zehn.", es:"a las 9:30 (¡ojo: halb zehn = 9:30!)", en:"at 9:30 (careful: halb zehn = 9:30!)", it:"alle 9:30 (attenzione: halb zehn = 9:30!)", tr:"9.30'da (dikkat: halb zehn = 9.30!)", ar:"في 9:30 (انتبه: halb zehn = 9:30!)", uk:"о 9:30 (увага: halb zehn = 9:30!)" },
+      { de:"um Viertel nach acht", ex:"Kommen Sie um Viertel nach acht.", es:"a las ocho y cuarto", en:"at a quarter past eight", it:"alle otto e un quarto", tr:"sekizi çeyrek geçe", ar:"في الثامنة والربع", uk:"о чверть на дев'яту" },
+      { de:"das Wochenende", ex:"Am Wochenende haben wir geschlossen.", es:"el fin de semana", en:"the weekend", it:"il fine settimana", tr:"hafta sonu", ar:"عطلة نهاية الأسبوع", uk:"вихідні" },
+      { de:"der Feiertag", ex:"Montag ist ein Feiertag.", es:"el día festivo", en:"the public holiday", it:"il giorno festivo", tr:"resmi tatil", ar:"يوم عطلة رسمية", uk:"святковий день" },
+      { de:"verschieben", ex:"Kann ich den Termin verschieben?", es:"aplazar / cambiar la fecha", en:"to postpone / reschedule", it:"rimandare", tr:"ertelemek", ar:"تأجيل", uk:"перенести" },
+      { de:"absagen", ex:"Ich muss den Termin leider absagen.", es:"cancelar", en:"to cancel", it:"disdire", tr:"iptal etmek", ar:"إلغاء", uk:"скасувати" },
+    ] },
+];
 
 async function loadDeck() {
   const sc = S.scenario;
@@ -1047,25 +1105,46 @@ Pick what is genuinely most useful for THIS call: core nouns, key verbs, and 2-3
   return deck;
 }
 
-async function startVocab() {
+function startVocab() {
   const L = t();
-  const sc = S.scenario;
-  V = { deck: null, i: 0, flipped: false, heard: null, verdict: null, listening: false, failed: false };
+  V = { stage: "pick" };
   $("vocabTitle").textContent = L.vocab.toUpperCase();
-  $("vocabSub").textContent = sc.id === "custom" ? S.customTopic : `${sc.de} · ${sc.who}`;
+  $("vocabSub").textContent = "";
   $("vocabBack").textContent = L.back;
   show("vocab");
   renderVocab();
-  try {
-    V.deck = await loadDeck();
-  } catch (e) {
-    V.failed = true;
+}
+
+async function openDeck(kind) {
+  V = { stage: "deck", deck: null, i: 0, flipped: false, heard: null, verdict: null, listening: false, failed: false };
+  if (kind === "call") {
+    const sc = S.scenario;
+    $("vocabSub").textContent = sc.id === "custom" ? S.customTopic : `${sc.de} · ${sc.who}`;
+    renderVocab();
+    try { V.deck = await loadDeck(); } catch (e) { V.failed = true; }
+    renderVocab();
+  } else {
+    const d = BASIC_DECKS.find((x) => x.id === kind);
+    $("vocabSub").textContent = `${d.icon} ${d.de} · ${d[S.lang] || d.en}`;
+    V.deck = d.items.map((it) => ({ de: it.de, tr: it[S.lang] || it.en, ex: it.ex || "" }));
+    renderVocab();
   }
-  renderVocab();
 }
 
 function renderVocab() {
   const L = t();
+  if (V.stage === "pick") {
+    const scOK = !(S.scenario.id === "random" || (S.scenario.id === "custom" && !(S.customTopic || "").trim()));
+    $("vocabBody").innerHTML = `<div class="list">
+      <button class="item" data-vd="call" ${scOK ? "" : "disabled"}>
+        <b>📞 ${esc(L.forCall)}</b><small>${esc(S.scenario.id === "custom" ? (S.customTopic || "—") : S.scenario.de)}</small></button>
+      ${BASIC_DECKS.map((d) => `<button class="item" data-vd="${d.id}">
+        <b>${d.icon} ${esc(d.de)}</b><small>${esc(d[S.lang] || d.en)}</small></button>`).join("")}
+    </div>`;
+    $("vocabBody").querySelectorAll("[data-vd]").forEach((b) =>
+      b.onclick = () => { if (!b.disabled) openDeck(b.dataset.vd); });
+    return;
+  }
   if (V.failed) {
     $("vocabBody").innerHTML =
       `<p class="note">${esc(L.vocabFail)}</p>
@@ -1100,7 +1179,7 @@ function renderVocab() {
   $("vocabBody").querySelectorAll("[data-va]").forEach((b) => b.onclick = () => {
     const c = V.deck && V.deck[V.i];
     switch (b.dataset.va) {
-      case "reload": startVocab(); break;
+      case "reload": openDeck("call"); break;
       case "flip":
         V.flipped = !V.flipped; renderVocab();
         if (V.flipped && c && c.ex) speak(c.ex, true);
@@ -1414,7 +1493,11 @@ $("mistakesBtn").onclick = () => { renderMistakes(); show("mistakes"); };
 $("drillBtn").onclick = () => startDrill();
 $("drillBack").onclick = () => { stopAudio(); speechSynthesis.cancel(); show("setup"); renderSetup(); };
 $("vocabBtn").onclick = () => startVocab();
-$("vocabBack").onclick = () => { stopAudio(); speechSynthesis.cancel(); show("setup"); renderSetup(); };
+$("vocabBack").onclick = () => {
+  stopAudio(); speechSynthesis.cancel();
+  if (V && V.stage === "deck") startVocab();     // back to the deck chooser first
+  else { show("setup"); renderSetup(); }
+};
 $("backBtn").onclick = () => { show("setup"); renderSetup(); };
 $("ankiBtn").onclick = () => exportAnki();
 $("clearBtn").onclick = () => {
