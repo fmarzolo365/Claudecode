@@ -119,6 +119,20 @@
     font: 700 12px Archivo, sans-serif; letter-spacing: .06em; cursor: pointer;
     border-radius: 999px; transition: filter .15s ease;
   }
+  .vcbar {
+    background: var(--ink); color: #fdfbf5; padding: 22px 18px 16px; position: relative;
+    border-radius: var(--radius) var(--radius) 0 0; text-align: center;
+  }
+  .vcbar .hang { position: absolute; top: 12px; right: 12px; }
+  .vcbar .who { font-family: 'Space Grotesk', sans-serif; font-size: 17px; font-weight: 600; margin-top: 10px; }
+  .vcbar .meta { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: .16em; color: var(--yellow); opacity: .9; margin-top: 4px; }
+  .vc-av {
+    width: 78px; height: 78px; margin: 0 auto; border-radius: 50%; background: #332d1f;
+    display: flex; align-items: center; justify-content: center; font-size: 42px;
+    border: 2.5px solid rgba(245,197,49,.35);
+  }
+  .vc-av.speaking { animation: talk 1.1s infinite; border-color: var(--yellow); }
+  @keyframes talk { 0% { box-shadow: 0 0 0 0 rgba(245,197,49,.5); } 100% { box-shadow: 0 0 0 18px rgba(245,197,49,0); } }
   .hang:hover { filter: brightness(1.1); }
   .log {
     background: var(--card); border: 1px solid var(--line); border-top: none;
@@ -305,9 +319,11 @@
 
   <!-- CALL -->
   <section id="call" class="hidden">
-    <div class="bar">
-      <div><div class="meta" id="timer">VERBUNDEN · 00:00</div><div class="who" id="who"></div></div>
+    <div class="vcbar">
       <button class="hang" id="hangBtn"></button>
+      <div class="vc-av" id="vcAv"><span id="vcEmoji">🎧</span></div>
+      <div class="who" id="who"></div>
+      <div class="meta" id="timer">VERBUNDEN · 00:00</div>
     </div>
     <div class="log" id="log"></div>
     <p class="note hidden" id="tapHint" style="margin:8px 2px 0"></p>
@@ -396,62 +412,62 @@
 
 <script>
 const SCENARIOS = [
-  { id:"arzt", de:"Beim Hausarzt anrufen", es:"Pedir cita en el médico de cabecera", en:"Book a doctor's appointment",
+  { id:"arzt", avatar:"👩‍⚕️", voice:"coral", de:"Beim Hausarzt anrufen", es:"Pedir cita en el médico de cabecera", en:"Book a doctor's appointment",
     who:"Praxis Dr. Wagner", tag:"PRAXIS", role:"a receptionist at a family doctor's practice",
     place:"Hausarztpraxis Dr. Wagner in Odenthal",
     goals:["book an appointment because of a persistent cough",
            "book an appointment because of strong back pain",
            "ask for a repeat prescription and whether you need to come in",
            "reschedule an existing appointment because something came up"] },
-  { id:"amt", de:"Termin beim Bürgeramt", es:"Cita en la oficina municipal", en:"Appointment at the citizens' office",
+  { id:"amt", avatar:"🧑‍💼", voice:"sage", de:"Termin beim Bürgeramt", es:"Cita en la oficina municipal", en:"Appointment at the citizens' office",
     who:"Bürgeramt", tag:"AMT", role:"a clerk at the municipal citizens' office",
     place:"Bürgeramt Bergisch Gladbach",
     goals:["get an appointment to re-register an address",
            "ask what documents are needed to renew an ID card and book a slot",
            "ask about registering a car and where to go"] },
-  { id:"werkstatt", de:"Auto zur Inspektion", es:"Llevar el coche al taller", en:"Take the car in for a service",
+  { id:"werkstatt", avatar:"👨‍🔧", voice:"onyx", de:"Auto zur Inspektion", es:"Llevar el coche al taller", en:"Take the car in for a service",
     who:"KFZ-Werkstatt Reuter", tag:"WERKSTATT", role:"a service adviser at a car workshop",
     place:"KFZ-Werkstatt Reuter",
     goals:["book the car in for its service and ask what it costs",
            "describe a strange noise when braking and get an appointment",
            "ask if they can check the battery today because the car barely starts"] },
-  { id:"friseur", de:"Beim Friseur", es:"Reservar en la peluquería", en:"Book at the hairdresser",
+  { id:"friseur", avatar:"💇‍♀️", voice:"shimmer", de:"Beim Friseur", es:"Reservar en la peluquería", en:"Book at the hairdresser",
     who:"Salon Bergmann", tag:"SALON", role:"a hairdresser taking bookings",
     place:"Salon Bergmann",
     goals:["book a haircut for Saturday morning",
            "book a haircut after work this week, you can only come after 5 pm",
            "move your existing appointment to another day"] },
-  { id:"restaurant", de:"Tisch reservieren", es:"Reservar mesa", en:"Reserve a table",
+  { id:"restaurant", avatar:"🤵", voice:"ballad", de:"Tisch reservieren", es:"Reservar mesa", en:"Reserve a table",
     who:"Restaurant Alte Mühle", tag:"RESERVIERUNG", role:"a waiter taking table reservations",
     place:"Restaurant Alte Mühle",
     goals:["reserve a table for four people on Friday evening",
            "reserve a table for two on Saturday and ask about vegetarian options",
            "cancel a reservation and apologize, ask to rebook next week"] },
-  { id:"apotheke", de:"In der Apotheke anrufen", es:"Llamar a la farmacia", en:"Call the pharmacy",
+  { id:"apotheke", avatar:"👩‍🔬", voice:"nova", de:"In der Apotheke anrufen", es:"Llamar a la farmacia", en:"Call the pharmacy",
     who:"Adler-Apotheke", tag:"APOTHEKE", role:"a pharmacist answering the phone",
     place:"Adler-Apotheke",
     goals:["ask if a medicine is in stock and reserve it for pickup",
            "ask how to take a prescribed medicine and if it can be taken with food",
            "ask if they can order a medicine that is out of stock and when it arrives"] },
-  { id:"paket", de:"Paket nicht angekommen", es:"Paquete que no llega", en:"Missing parcel",
+  { id:"paket", avatar:"🎧", voice:"echo", de:"Paket nicht angekommen", es:"Paquete que no llega", en:"Missing parcel",
     who:"Paketdienst", tag:"KUNDENDIENST", role:"a customer service agent at a parcel delivery company",
     place:"the customer service line of a parcel delivery company",
     goals:["report that a parcel marked as delivered never arrived",
            "arrange a new delivery date because you were not at home",
            "ask where a parcel is that has been in transit for two weeks"] },
-  { id:"vermieter", de:"Beim Vermieter anrufen", es:"Llamar al casero", en:"Call the landlord",
+  { id:"vermieter", avatar:"🧔", voice:"ash", de:"Beim Vermieter anrufen", es:"Llamar al casero", en:"Call the landlord",
     who:"Hausverwaltung Krüger", tag:"VERWALTUNG", role:"a property manager taking tenant calls",
     place:"Hausverwaltung Krüger",
     goals:["report that the heating is not working and ask for a repair",
            "report a dripping tap in the bathroom and arrange a visit",
            "ask a question about the utility bill you received"] },
-  { id:"bank", de:"Bei der Bank anrufen", es:"Llamar al banco", en:"Call the bank",
+  { id:"bank", avatar:"👨‍💼", voice:"alloy", de:"Bei der Bank anrufen", es:"Llamar al banco", en:"Call the bank",
     who:"Volksbank", tag:"BANK", role:"a bank employee on the service hotline",
     place:"the service hotline of Volksbank",
     goals:["report a lost bank card and ask to block it",
            "ask about a charge on your account you do not recognize",
            "make an appointment to open an account"] },
-  { id:"kita", de:"Kind krankmelden", es:"Avisar que el niño está enfermo", en:"Call in sick for your child",
+  { id:"kita", avatar:"👩‍🏫", voice:"fable", de:"Kind krankmelden", es:"Avisar que el niño está enfermo", en:"Call in sick for your child",
     who:"Kita Sonnenschein", tag:"KITA", role:"a kindergarten teacher answering the phone",
     place:"Kita Sonnenschein",
     goals:["tell them your child is sick and will stay home today",
@@ -504,7 +520,8 @@ const T = {
     progress:"Mi progreso", takeTest:"HACER EL TEST (5 min)", pretestHint:"Haz el pretest para saber dónde empiezas",
     weeklyHint:"Ya pasó una semana: haz otro test y mira tu mejora", testSay:"Di esto en alemán:",
     skip:"Saltar", scoring:"Evaluando tu test…", yourLevel:"Tu nivel", projected:"Si sigues así",
-    testFail:"(No se pudo evaluar el test. Inténtalo de nuevo.)", firstPoint:"Haz otro test la próxima semana para ver tu curva" },
+    testFail:"(No se pudo evaluar el test. Inténtalo de nuevo.)", firstPoint:"Haz otro test la próxima semana para ver tu curva",
+    didWell:"Lo que hiciste bien", toImprove:"Para mejorar", learnWords:"Vocabulario para aprender", addWords:"Guardar en Mis palabras", addedWords:"Guardadas ✓" },
   en:{ tagline:"Practise real German calls and conversations. You speak, the other person answers.",
     pick:"Choose the situation", level:"Level", helpLang:"Language for corrections", call:"CALL",
     hangUp:"HANG UP", speak:"Tap and speak", listening:"Listening…", repeat:"Repeat slowly",
@@ -538,7 +555,8 @@ const T = {
     progress:"My progress", takeTest:"TAKE THE TEST (5 min)", pretestHint:"Take the pretest to see where you start",
     weeklyHint:"A week has passed: take another test and see your improvement", testSay:"Say this in German:",
     skip:"Skip", scoring:"Scoring your test…", yourLevel:"Your level", projected:"If you keep going",
-    testFail:"(Could not score the test. Try again.)", firstPoint:"Take another test next week to see your curve" },
+    testFail:"(Could not score the test. Try again.)", firstPoint:"Take another test next week to see your curve",
+    didWell:"What you did well", toImprove:"To improve", learnWords:"Vocabulary to learn", addWords:"Save to My words", addedWords:"Saved ✓" },
 };
 
 /* ---------- additional help languages ---------- */
@@ -575,7 +593,8 @@ T.tr = { tagline:"Gerçek Almanca aramalar ve konuşmalar pratiği yap. Sen konu
   progress:"İlerlemem", takeTest:"TESTİ YAP (5 dk)", pretestHint:"Nereden başladığını görmek için ön testi yap",
   weeklyHint:"Bir hafta geçti: yeni bir test yap ve gelişimini gör", testSay:"Bunu Almanca söyle:",
   skip:"Atla", scoring:"Testin değerlendiriliyor…", yourLevel:"Seviyen", projected:"Böyle devam edersen",
-  testFail:"(Test değerlendirilemedi. Tekrar dene.)", firstPoint:"Eğrini görmek için gelecek hafta bir test daha yap" };
+  testFail:"(Test değerlendirilemedi. Tekrar dene.)", firstPoint:"Eğrini görmek için gelecek hafta bir test daha yap",
+  didWell:"İyi yaptıkların", toImprove:"Geliştirilecekler", learnWords:"Öğrenilecek kelimeler", addWords:"Kelimelerime kaydet", addedWords:"Kaydedildi ✓" };
 T.ar = { tagline:"تدرّب على مكالمات ومحادثات حقيقية بالألمانية. أنت تتكلم والطرف الآخر يجيب.",
   pick:"اختر الموقف", level:"المستوى", helpLang:"لغة التصحيحات", call:"اتصل",
   hangUp:"إنهاء", speak:"اضغط وتكلّم", listening:"يستمع…", repeat:"إعادة ببطء",
@@ -609,7 +628,8 @@ T.ar = { tagline:"تدرّب على مكالمات ومحادثات حقيقية
   progress:"تقدمي", takeTest:"ابدأ الاختبار (5 دقائق)", pretestHint:"قم بالاختبار الأولي لتعرف من أين تبدأ",
   weeklyHint:"مر أسبوع: قم باختبار آخر وشاهد تحسنك", testSay:"قل هذا بالألمانية:",
   skip:"تخطَّ", scoring:"جارٍ تقييم اختبارك…", yourLevel:"مستواك", projected:"إذا واصلت هكذا",
-  testFail:"(تعذّر تقييم الاختبار. حاول مجددًا.)", firstPoint:"قم باختبار آخر الأسبوع القادم لترى منحنى تقدمك" };
+  testFail:"(تعذّر تقييم الاختبار. حاول مجددًا.)", firstPoint:"قم باختبار آخر الأسبوع القادم لترى منحنى تقدمك",
+  didWell:"ما أجدته", toImprove:"ما يجب تحسينه", learnWords:"مفردات للتعلم", addWords:"احفظ في كلماتي", addedWords:"تم الحفظ ✓" };
 T.uk = { tagline:"Тренуй реальні дзвінки й розмови німецькою. Ти говориш — співрозмовник відповідає.",
   pick:"Обери ситуацію", level:"Рівень", helpLang:"Мова пояснень", call:"ДЗВОНИТИ",
   hangUp:"ПОКЛАСТИ", speak:"Натисни і говори", listening:"Слухаю…", repeat:"Повторити повільно",
@@ -643,7 +663,8 @@ T.uk = { tagline:"Тренуй реальні дзвінки й розмови �
   progress:"Мій прогрес", takeTest:"ПРОЙТИ ТЕСТ (5 хв)", pretestHint:"Пройди перший тест, щоб побачити свій старт",
   weeklyHint:"Минув тиждень: пройди ще один тест і побач свій поступ", testSay:"Скажи це німецькою:",
   skip:"Пропустити", scoring:"Оцінюю твій тест…", yourLevel:"Твій рівень", projected:"Якщо продовжиш так",
-  testFail:"(Не вдалося оцінити тест. Спробуй ще.)", firstPoint:"Пройди ще один тест наступного тижня, щоб побачити криву" };
+  testFail:"(Не вдалося оцінити тест. Спробуй ще.)", firstPoint:"Пройди ще один тест наступного тижня, щоб побачити криву",
+  didWell:"Що вдалося добре", toImprove:"Що покращити", learnWords:"Слова для вивчення", addWords:"Зберегти в Мої слова", addedWords:"Збережено ✓" };
 
 T.it = { tagline:"Allenati con telefonate e conversazioni reali in tedesco. Tu parli, l'altra persona risponde.",
   pick:"Scegli la situazione", level:"Livello", helpLang:"Lingua delle correzioni", call:"CHIAMA",
@@ -678,7 +699,8 @@ T.it = { tagline:"Allenati con telefonate e conversazioni reali in tedesco. Tu p
   progress:"I miei progressi", takeTest:"FAI IL TEST (5 min)", pretestHint:"Fai il pretest per vedere da dove parti",
   weeklyHint:"È passata una settimana: fai un altro test e guarda i tuoi progressi", testSay:"Dillo in tedesco:",
   skip:"Salta", scoring:"Sto valutando il tuo test…", yourLevel:"Il tuo livello", projected:"Se continui così",
-  testFail:"(Impossibile valutare il test. Riprova.)", firstPoint:"Fai un altro test la prossima settimana per vedere la tua curva" };
+  testFail:"(Impossibile valutare il test. Riprova.)", firstPoint:"Fai un altro test la prossima settimana per vedere la tua curva",
+  didWell:"Cosa hai fatto bene", toImprove:"Da migliorare", learnWords:"Vocabolario da imparare", addWords:"Salva in Le mie parole", addedWords:"Salvate ✓" };
 
 const HELP_LANG = { es:"Spanish", en:"English", tr:"Turkish", ar:"Arabic", uk:"Ukrainian", it:"Italian" };
 
@@ -722,7 +744,7 @@ SCENARIOS.forEach((s) => Object.assign(s, SCEN_L10N[s.id] || {}));
 
 /* ---------- face-to-face scenarios (kind:"face" = in person, not a call) ---------- */
 SCENARIOS.push(
-  { id:"nachbar", kind:"face", de:"Mit dem Nachbarn sprechen", who:"Herr Schmidt (Nachbar)", tag:"NACHBAR",
+  { id:"nachbar", avatar:"👴", voice:"onyx", kind:"face", de:"Mit dem Nachbarn sprechen", who:"Herr Schmidt (Nachbar)", tag:"NACHBAR",
     role:"the learner's neighbour Herr Schmidt, a friendly but chatty retired man",
     place:"the staircase of the learner's apartment building",
     es:"Hablar con el vecino", en:"Talk to your neighbour", it:"Parlare con il vicino",
@@ -732,7 +754,7 @@ SCENARIOS.push(
            "ask to borrow a drill for the weekend",
            "make small talk about the weather and the new neighbours moving in downstairs",
            "tell him you are having a small party on Saturday and apologise in advance for the noise"] },
-  { id:"baecker", kind:"face", de:"Beim Bäcker bestellen", who:"Bäckerei Voss", tag:"BÄCKEREI",
+  { id:"baecker", avatar:"👩‍🍳", voice:"shimmer", kind:"face", de:"Beim Bäcker bestellen", who:"Bäckerei Voss", tag:"BÄCKEREI",
     role:"a cheerful bakery shop assistant",
     place:"the counter of Bäckerei Voss",
     es:"Pedir en la panadería", en:"Order at the bakery", it:"Ordinare in panetteria",
@@ -740,7 +762,7 @@ SCENARIOS.push(
     goals:["order bread rolls and a coffee to take away",
            "ask what is fresh today and buy a cake for guests",
            "order a birthday cake to pick up on Saturday"] },
-  { id:"supermarkt", kind:"face", de:"Im Supermarkt fragen", who:"REWE-Mitarbeiterin", tag:"MARKT",
+  { id:"supermarkt", avatar:"👱‍♀️", voice:"nova", kind:"face", de:"Im Supermarkt fragen", who:"REWE-Mitarbeiterin", tag:"MARKT",
     role:"a supermarket employee stacking shelves",
     place:"a REWE supermarket",
     es:"Preguntar en el supermercado", en:"Ask at the supermarket", it:"Chiedere al supermercato",
@@ -748,7 +770,7 @@ SCENARIOS.push(
     goals:["ask where to find flour and baking ingredients",
            "ask about a product that seems to be out of stock",
            "return a yoghurt that was already open and ask for a refund"] },
-  { id:"kollegen", kind:"face", de:"Smalltalk mit Kollegen", who:"Kollegin Anna", tag:"BÜRO",
+  { id:"kollegen", avatar:"👩‍💻", voice:"coral", kind:"face", de:"Smalltalk mit Kollegen", who:"Kollegin Anna", tag:"BÜRO",
     role:"the learner's friendly colleague Anna, chatting in the office kitchen",
     place:"the office kitchen at the learner's workplace",
     es:"Charlar con una colega", en:"Small talk with a colleague", it:"Chiacchierare con una collega",
@@ -757,7 +779,7 @@ SCENARIOS.push(
            "ask her how the coffee machine works",
            "ask her advice about a good dentist nearby",
            "tell her you are new and ask about good lunch places"] },
-  { id:"empfang", kind:"face", de:"An der Praxis-Anmeldung", who:"Anmeldung Dr. Wagner", tag:"ANMELDUNG",
+  { id:"empfang", avatar:"💁‍♀️", voice:"sage", kind:"face", de:"An der Praxis-Anmeldung", who:"Anmeldung Dr. Wagner", tag:"ANMELDUNG",
     role:"the receptionist at the front desk of a doctor's practice, speaking to patients in person",
     place:"the front desk of Praxis Dr. Wagner",
     es:"En recepción del médico", en:"At the doctor's front desk", it:"Alla reception del medico",
@@ -769,9 +791,9 @@ SCENARIOS.push(
 
 /* ---------- free mode + scenario groups ---------- */
 SCENARIOS.push(
-  { id:"random", de:"🎲 Überraschungsanruf", es:"Una llamada al azar", en:"A random call",
+  { id:"random", avatar:"🎲", de:"🎲 Überraschungsanruf", es:"Una llamada al azar", en:"A random call",
     tr:"Rastgele bir arama", ar:"مكالمة عشوائية", uk:"Випадковий дзвінок", it:"Una chiamata a sorpresa", who:"???", tag:"???" },
-  { id:"custom", de:"✏️ Eigenes Thema", es:"Describe tu propia situación", en:"Describe your own situation",
+  { id:"custom", avatar:"🎭", de:"✏️ Eigenes Thema", es:"Describe tu propia situación", en:"Describe your own situation",
     tr:"Kendi durumunu anlat", ar:"صف موقفك الخاص", uk:"Опиши власну ситуацію", it:"Descrivi la tua situazione", who:"Freies Gespräch", tag:"FREI" },
 );
 
@@ -931,25 +953,33 @@ let neuralOK = true;
 const ttsCache = new Map(); // text -> object URL (mp3)
 let currentAudio = null;
 
+function setSpeaking(on) {
+  const el = $("vcAv");
+  if (el) el.classList.toggle("speaking", !!on);
+}
+
 function stopAudio() {
   if (currentAudio) {
     try { currentAudio.onended = null; currentAudio.pause(); } catch (e) {}
     currentAudio = null;
   }
+  setSpeaking(false);
 }
 
 async function neuralSpeak(text, rate, done) {
-  let url = ttsCache.get(text);
+  const voice = (S.active || S.scenario || {}).voice || "";
+  const key = voice + "|" + text;
+  let url = ttsCache.get(key);
   if (!url) {
     const res = await fetch("/api/tts", {
       method: "POST",
       headers: { "content-type": "application/json", "x-trainer-pin": localStorage.getItem(PIN_KEY) || "" },
-      body: JSON.stringify({ text }),
+      body: JSON.stringify({ text, voice }),
     });
     if (res.status === 501) { neuralOK = false; throw new Error("unconfigured"); }
     if (!res.ok) throw new Error("tts " + res.status);
     url = URL.createObjectURL(await res.blob());
-    ttsCache.set(text, url);
+    ttsCache.set(key, url);
     if (ttsCache.size > 40) {
       const k = ttsCache.keys().next().value;
       URL.revokeObjectURL(ttsCache.get(k));
@@ -960,8 +990,13 @@ async function neuralSpeak(text, rate, done) {
   a.playbackRate = rate;
   if ("preservesPitch" in a) a.preservesPitch = true;
   currentAudio = a;
-  a.onended = () => { if (currentAudio === a) currentAudio = null; done && setTimeout(done, 350); };
+  a.onended = () => {
+    if (currentAudio === a) currentAudio = null;
+    setSpeaking(false);
+    done && setTimeout(done, 350);
+  };
   await a.play();
+  setSpeaking(true);
 }
 
 function deviceSpeak(text, rate, done) {
@@ -969,8 +1004,9 @@ function deviceSpeak(text, rate, done) {
   u.lang = "de-DE";
   if (S.voice) u.voice = S.voice;
   u.rate = rate;
-  u.onend = () => done && setTimeout(done, 350);
-  u.onerror = () => done && setTimeout(done, 350);
+  u.onstart = () => setSpeaking(true);
+  u.onend = () => { setSpeaking(false); done && setTimeout(done, 350); };
+  u.onerror = () => { setSpeaking(false); done && setTimeout(done, 350); };
   speechSynthesis.speak(u);
 }
 
@@ -1512,6 +1548,7 @@ ${face
 - This is spoken in person: casual register where natural, react to the situation around you (queue, weather, noise), small human touches.`
   : `- Answer the phone first with a realistic German greeting for this kind of business.`}
 - Drive the ${face ? "conversation" : "call"} to a real conclusion: ${face ? "resolve the learner's concern concretely, then part naturally" : "offer concrete dates and times, confirm the learner's name, then say goodbye"}.
+- You are a warm real person who notices the learner is not a native speaker. When they make a clear mistake, OCCASIONALLY (at most every third turn, not always) react the way a kind German would: show you understood, then naturally model the correct phrase inside your German reply - e.g. "Ach, ich verstehe schon! Man sagt übrigens: 'Ich hätte gern einen Termin.' Also, wann passt es Ihnen?". Keep it brief and encouraging, never lecture, then continue the conversation.
 - If the learner speaks English or Spanish, still answer in German, and make "suggestion" easier.
 
 Return ONLY a JSON object. No markdown, no code fences. Keys:
@@ -1654,6 +1691,7 @@ function renderCall() {
   const L = t();
   const A = S.active || S.scenario;
   $("who").textContent = A.who;
+  $("vcEmoji").textContent = A.avatar || "🎧";
   $("timer").textContent = timerText();
   $("hangBtn").textContent = A.kind === "face" ? L.endTalk : L.hangUp;
   $("repeatBtn").textContent = L.repeat;
@@ -1714,7 +1752,12 @@ async function evaluateCall() {
   const transcript = S.turns.map((x) => `${x.me ? "LEARNER" : "OTHER"}: ${x.text}`).join("\n");
   try {
     const res = await chatFetch({
-      system: `You evaluate a German ${(S.active || S.scenario).kind === "face" ? "face-to-face" : "phone-call"} role-play by a learner at CEFR level ${S.level}. The learner's goal was: ${S.currentGoal}. Return ONLY a JSON object, no markdown, with keys: "achieved" (true/false/"partial" - did the learner reach the goal), "comment" (2 sentences in ${help}: what went well and overall impression), "tips" (array of at most 3 short concrete tips in ${help} to improve, most important first).`,
+      system: `You evaluate a German ${(S.active || S.scenario).kind === "face" ? "face-to-face" : "phone-call"} role-play by a learner at CEFR level ${S.level}. The learner's goal was: ${S.currentGoal}. Return ONLY a JSON object, no markdown, with keys:
+"achieved" (true/false/"partial" - did the learner reach the goal),
+"comment" (2 sentences in ${help}: overall impression),
+"good" (array of at most 3 short points in ${help}: concrete things the learner did WELL in this conversation),
+"tips" (array of at most 3 short concrete tips in ${help} to improve, most important first),
+"vocab" (array of at most 5 objects {"de":"...","tr":"..."} - German words or short phrases the learner clearly lacked, misused or avoided in this conversation, with the translation in ${help}; empty array if none).`,
       messages: [{ role: "user", content: `Transcript of the call:\n${transcript}` }],
     });
     const data = await res.json();
@@ -1723,13 +1766,33 @@ async function evaluateCall() {
     const p = JSON.parse(clean.slice(clean.indexOf("{"), clean.lastIndexOf("}") + 1));
     const badge = p.achieved === true ? "✅" : p.achieved === "partial" ? "🟡" : "❌";
     if (p.achieved === true) { addXp(25); confettiBurst(); }
+    const vocab = (Array.isArray(p.vocab) ? p.vocab : []).filter((w) => w && w.de && w.tr).slice(0, 5);
+    const ul = (arr) => `<ul style="margin:4px 0 0;padding-left:20px">${arr.map((x) => `<li style="font-size:13.5px;line-height:1.5;margin-top:4px">${esc(x)}</li>`).join("")}</ul>`;
     $("evalBox").innerHTML =
       (p.achieved === true ? `<div class="goal-hit">🏆 ${esc(L.goalHit)} <span class="chip">+25 XP</span></div>` : "") +
       `<div class="label" style="margin:0">${esc(L.evalTitle)} ${badge}</div>` +
       `<p style="font-size:14.5px;line-height:1.5;margin:10px 0 6px">${esc(p.comment)}</p>` +
+      (Array.isArray(p.good) && p.good.length
+        ? `<div class="label" style="margin:14px 0 0">✅ ${esc(L.didWell)}</div>` + ul(p.good) : "") +
       (Array.isArray(p.tips) && p.tips.length
-        ? `<ul style="margin:6px 0 0;padding-left:20px">${p.tips.map((tip) => `<li style="font-size:13.5px;line-height:1.5;margin-top:4px">${esc(tip)}</li>`).join("")}</ul>`
+        ? `<div class="label" style="margin:14px 0 0">🔧 ${esc(L.toImprove)}</div>` + ul(p.tips) : "") +
+      (vocab.length
+        ? `<div class="label" style="margin:14px 0 0">📚 ${esc(L.learnWords)}</div>` +
+          `<ul style="margin:4px 0 0;padding-left:20px">${vocab.map((w) => `<li style="font-size:13.5px;line-height:1.5;margin-top:4px"><b>${esc(w.de)}</b> — ${esc(w.tr)}</li>`).join("")}</ul>` +
+          `<button class="toggle" data-addw style="margin-top:12px">⭐ ${esc(L.addWords)}</button>`
         : "");
+    const addBtn = $("evalBox").querySelector("[data-addw]");
+    if (addBtn) addBtn.onclick = () => {
+      const words = loadWords();
+      for (const w of vocab) {
+        if (!words.some((x) => normDe(x.de) === normDe(w.de))) {
+          words.push({ de: w.de, tr: w.tr, raw: w.de, ex: "", exTr: "", lang: S.lang, date: new Date().toISOString().slice(0, 10) });
+        }
+      }
+      saveWordsList(words);
+      addBtn.textContent = L.addedWords;
+      addBtn.disabled = true;
+    };
   } catch (e) {
     $("evalBox").innerHTML = `<div class="label" style="margin:0">${esc(L.evalTitle)}</div><p class="note">${esc(L.evalFail)}</p>`;
   }
@@ -2083,7 +2146,7 @@ function startConversation() {
     const topic = ($("customTopic").value || "").trim();
     if (!topic) { $("customTopic").focus(); return; }
     S.customTopic = topic; saveSettings();
-    S.active = { id:"custom", who:"Freies Gespräch", tag:"FREI",
+    S.active = { id:"custom", avatar:"🎭", who:"Freies Gespräch", tag:"FREI",
       role:"the person who would naturally answer the phone for the situation the learner describes",
       place:"the appropriate business, office or organisation",
       goals:[topic] };
