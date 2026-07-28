@@ -300,6 +300,7 @@
     <button class="toggle" id="vocabBtn"></button>
     <button class="toggle" id="drillBtn"></button>
     <button class="toggle" id="mistakesBtn"></button>
+    <button class="toggle" id="progressBtn"></button>
   </section>
 
   <!-- CALL -->
@@ -348,6 +349,13 @@
       <button class="ghost" id="clearBtn"></button>
     </div>
     <button class="big" id="backBtn"></button>
+  </section>
+
+  <!-- PROGRESS: speaking test + improvement chart -->
+  <section id="test" class="hidden">
+    <div class="plate"><span id="testTitle"></span></div>
+    <div id="testBody" style="margin-top:16px"></div>
+    <button class="big" id="testBack"></button>
   </section>
 
   <!-- PRE-CALL PREPARATION (level zero warm-up) -->
@@ -492,7 +500,11 @@ const T = {
     routine:"Rutina de hoy", rCall:"Conversación", rVocab:"Vocabulario", rDrill:"Errores",
     prep:"Preparar la llamada", prepTitle:"PREPARACIÓN", howSay:"¿Cómo se dice en alemán?",
     dontKnow:"No lo sé, muéstramelo", ready:"¡Listo! Ya tienes lo básico.", startNow:"EMPEZAR YA",
-    wantMore:"¿Quieres aprender más palabras?", moreWords:"SÍ, MÁS PALABRAS" },
+    wantMore:"¿Quieres aprender más palabras?", moreWords:"SÍ, MÁS PALABRAS",
+    progress:"Mi progreso", takeTest:"HACER EL TEST (5 min)", pretestHint:"Haz el pretest para saber dónde empiezas",
+    weeklyHint:"Ya pasó una semana: haz otro test y mira tu mejora", testSay:"Di esto en alemán:",
+    skip:"Saltar", scoring:"Evaluando tu test…", yourLevel:"Tu nivel", projected:"Si sigues así",
+    testFail:"(No se pudo evaluar el test. Inténtalo de nuevo.)", firstPoint:"Haz otro test la próxima semana para ver tu curva" },
   en:{ tagline:"Practise real German calls and conversations. You speak, the other person answers.",
     pick:"Choose the situation", level:"Level", helpLang:"Language for corrections", call:"CALL",
     hangUp:"HANG UP", speak:"Tap and speak", listening:"Listening…", repeat:"Repeat slowly",
@@ -522,7 +534,11 @@ const T = {
     routine:"Today's routine", rCall:"Conversation", rVocab:"Vocabulary", rDrill:"Mistakes",
     prep:"Prepare the call", prepTitle:"PREPARATION", howSay:"How do you say it in German?",
     dontKnow:"I don't know, show me", ready:"Ready! You have the basics.", startNow:"START NOW",
-    wantMore:"Do you want to learn more words?", moreWords:"YES, MORE WORDS" },
+    wantMore:"Do you want to learn more words?", moreWords:"YES, MORE WORDS",
+    progress:"My progress", takeTest:"TAKE THE TEST (5 min)", pretestHint:"Take the pretest to see where you start",
+    weeklyHint:"A week has passed: take another test and see your improvement", testSay:"Say this in German:",
+    skip:"Skip", scoring:"Scoring your test…", yourLevel:"Your level", projected:"If you keep going",
+    testFail:"(Could not score the test. Try again.)", firstPoint:"Take another test next week to see your curve" },
 };
 
 /* ---------- additional help languages ---------- */
@@ -555,7 +571,11 @@ T.tr = { tagline:"Gerçek Almanca aramalar ve konuşmalar pratiği yap. Sen konu
   routine:"Bugünkü rutin", rCall:"Konuşma", rVocab:"Kelimeler", rDrill:"Hatalar",
   prep:"Aramaya hazırlan", prepTitle:"HAZIRLIK", howSay:"Almancası nasıl söylenir?",
   dontKnow:"Bilmiyorum, göster", ready:"Hazırsın! Temeli öğrendin.", startNow:"ŞİMDİ BAŞLA",
-  wantMore:"Daha fazla kelime öğrenmek ister misin?", moreWords:"EVET, DAHA FAZLA" };
+  wantMore:"Daha fazla kelime öğrenmek ister misin?", moreWords:"EVET, DAHA FAZLA",
+  progress:"İlerlemem", takeTest:"TESTİ YAP (5 dk)", pretestHint:"Nereden başladığını görmek için ön testi yap",
+  weeklyHint:"Bir hafta geçti: yeni bir test yap ve gelişimini gör", testSay:"Bunu Almanca söyle:",
+  skip:"Atla", scoring:"Testin değerlendiriliyor…", yourLevel:"Seviyen", projected:"Böyle devam edersen",
+  testFail:"(Test değerlendirilemedi. Tekrar dene.)", firstPoint:"Eğrini görmek için gelecek hafta bir test daha yap" };
 T.ar = { tagline:"تدرّب على مكالمات ومحادثات حقيقية بالألمانية. أنت تتكلم والطرف الآخر يجيب.",
   pick:"اختر الموقف", level:"المستوى", helpLang:"لغة التصحيحات", call:"اتصل",
   hangUp:"إنهاء", speak:"اضغط وتكلّم", listening:"يستمع…", repeat:"إعادة ببطء",
@@ -585,7 +605,11 @@ T.ar = { tagline:"تدرّب على مكالمات ومحادثات حقيقية
   routine:"روتين اليوم", rCall:"محادثة", rVocab:"مفردات", rDrill:"أخطاء",
   prep:"التحضير للمكالمة", prepTitle:"التحضير", howSay:"كيف تُقال بالألمانية؟",
   dontKnow:"لا أعرف، أرني", ready:"جاهز! تعلمت الأساسيات.", startNow:"ابدأ الآن",
-  wantMore:"هل تريد تعلم المزيد من الكلمات؟", moreWords:"نعم، المزيد" };
+  wantMore:"هل تريد تعلم المزيد من الكلمات؟", moreWords:"نعم، المزيد",
+  progress:"تقدمي", takeTest:"ابدأ الاختبار (5 دقائق)", pretestHint:"قم بالاختبار الأولي لتعرف من أين تبدأ",
+  weeklyHint:"مر أسبوع: قم باختبار آخر وشاهد تحسنك", testSay:"قل هذا بالألمانية:",
+  skip:"تخطَّ", scoring:"جارٍ تقييم اختبارك…", yourLevel:"مستواك", projected:"إذا واصلت هكذا",
+  testFail:"(تعذّر تقييم الاختبار. حاول مجددًا.)", firstPoint:"قم باختبار آخر الأسبوع القادم لترى منحنى تقدمك" };
 T.uk = { tagline:"Тренуй реальні дзвінки й розмови німецькою. Ти говориш — співрозмовник відповідає.",
   pick:"Обери ситуацію", level:"Рівень", helpLang:"Мова пояснень", call:"ДЗВОНИТИ",
   hangUp:"ПОКЛАСТИ", speak:"Натисни і говори", listening:"Слухаю…", repeat:"Повторити повільно",
@@ -615,7 +639,11 @@ T.uk = { tagline:"Тренуй реальні дзвінки й розмови �
   routine:"Рутина на сьогодні", rCall:"Розмова", rVocab:"Слова", rDrill:"Помилки",
   prep:"Підготуватися до дзвінка", prepTitle:"ПІДГОТОВКА", howSay:"Як це сказати німецькою?",
   dontKnow:"Не знаю, покажи", ready:"Готово! Основи є.", startNow:"ПОЧАТИ ЗАРАЗ",
-  wantMore:"Хочеш вивчити більше слів?", moreWords:"ТАК, ЩЕ СЛОВА" };
+  wantMore:"Хочеш вивчити більше слів?", moreWords:"ТАК, ЩЕ СЛОВА",
+  progress:"Мій прогрес", takeTest:"ПРОЙТИ ТЕСТ (5 хв)", pretestHint:"Пройди перший тест, щоб побачити свій старт",
+  weeklyHint:"Минув тиждень: пройди ще один тест і побач свій поступ", testSay:"Скажи це німецькою:",
+  skip:"Пропустити", scoring:"Оцінюю твій тест…", yourLevel:"Твій рівень", projected:"Якщо продовжиш так",
+  testFail:"(Не вдалося оцінити тест. Спробуй ще.)", firstPoint:"Пройди ще один тест наступного тижня, щоб побачити криву" };
 
 T.it = { tagline:"Allenati con telefonate e conversazioni reali in tedesco. Tu parli, l'altra persona risponde.",
   pick:"Scegli la situazione", level:"Livello", helpLang:"Lingua delle correzioni", call:"CHIAMA",
@@ -646,7 +674,11 @@ T.it = { tagline:"Allenati con telefonate e conversazioni reali in tedesco. Tu p
   routine:"Routine di oggi", rCall:"Conversazione", rVocab:"Vocabolario", rDrill:"Errori",
   prep:"Prepara la chiamata", prepTitle:"PREPARAZIONE", howSay:"Come si dice in tedesco?",
   dontKnow:"Non lo so, mostramelo", ready:"Fatto! Hai le basi.", startNow:"INIZIA ORA",
-  wantMore:"Vuoi imparare altre parole?", moreWords:"SÌ, ALTRE PAROLE" };
+  wantMore:"Vuoi imparare altre parole?", moreWords:"SÌ, ALTRE PAROLE",
+  progress:"I miei progressi", takeTest:"FAI IL TEST (5 min)", pretestHint:"Fai il pretest per vedere da dove parti",
+  weeklyHint:"È passata una settimana: fai un altro test e guarda i tuoi progressi", testSay:"Dillo in tedesco:",
+  skip:"Salta", scoring:"Sto valutando il tuo test…", yourLevel:"Il tuo livello", projected:"Se continui così",
+  testFail:"(Impossibile valutare il test. Riprova.)", firstPoint:"Fai un altro test la prossima settimana per vedere la tua curva" };
 
 const HELP_LANG = { es:"Spanish", en:"English", tr:"Turkish", ar:"Arabic", uk:"Ukrainian", it:"Italian" };
 
@@ -1051,6 +1083,9 @@ function renderSetup() {
   $("vocabBtn").textContent = `📇 ${L.vocab}`;
   $("prepBtn").textContent = `🎒 ${L.prep}`;
   $("prepBtn").disabled = S.scenario.id === "random" || (S.scenario.id === "custom" && !(S.customTopic || "").trim());
+  const due = daysSinceTest() >= 7;
+  $("progressBtn").textContent = `📈 ${L.progress}${due ? " ●" : ""}`;
+  $("progressBtn").className = "toggle" + (due ? " on" : "");
 }
 
 /* ---------- mistakes history screen ---------- */
@@ -1666,7 +1701,7 @@ function renderCall() {
 }
 
 function show(which) {
-  ["setup","call","done","mistakes","drill","vocab","prep"].forEach((id) => $(id).classList.toggle("hidden", id !== which));
+  ["setup","call","done","mistakes","drill","vocab","prep","test"].forEach((id) => $(id).classList.toggle("hidden", id !== which));
 }
 
 /* ---------- end-of-call evaluation ---------- */
@@ -1698,6 +1733,208 @@ async function evaluateCall() {
   } catch (e) {
     $("evalBox").innerHTML = `<div class="label" style="margin:0">${esc(L.evalTitle)}</div><p class="note">${esc(L.evalFail)}</p>`;
   }
+}
+
+/* ---------- weekly speaking test + progress chart ---------- */
+const TEST_KEY = "telefontrainer.tests";
+function loadTests() {
+  try { return JSON.parse(localStorage.getItem(TEST_KEY)) || []; } catch (e) { return []; }
+}
+function saveTestResult(rec) {
+  const arr = loadTests();
+  arr.push(rec);
+  try { localStorage.setItem(TEST_KEY, JSON.stringify(arr.slice(-52))); } catch (e) {}
+}
+function daysSinceTest() {
+  const arr = loadTests();
+  if (!arr.length) return Infinity;
+  return (Date.now() - new Date(arr[arr.length - 1].date).getTime()) / 864e5;
+}
+
+/* score history + dashed projection as a small self-contained SVG */
+function chartSVG(tests) {
+  const W = 340, H = 180, PL = 26, PR = 34, PT = 12, PB = 20;
+  const pts = tests.slice(-8);
+  const bands = [[20, "A1"], [40, "A2"], [55, "B1"], [70, "B2"], [85, "C1"]];
+  const y = (s) => PT + (100 - s) / 100 * (H - PT - PB);
+  // projection: average improvement of the recent gaps, 3 weekly points ahead
+  let proj = [];
+  if (pts.length >= 2) {
+    const recent = pts.slice(-4);
+    const delta = (recent[recent.length - 1].score - recent[0].score) / (recent.length - 1);
+    let last = pts[pts.length - 1].score;
+    for (let k = 1; k <= 3; k++) proj.push(Math.max(5, Math.min(98, last + delta * k)));
+  }
+  const total = pts.length + proj.length;
+  const x = (i) => total > 1 ? PL + i / (total - 1) * (W - PL - PR) : W / 2;
+  let svg = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto" xmlns="http://www.w3.org/2000/svg">`;
+  for (const [s, name] of bands) {
+    svg += `<line x1="${PL}" y1="${y(s)}" x2="${W - PR}" y2="${y(s)}" stroke="rgba(22,19,13,.1)" stroke-width="1"/>` +
+           `<text x="${W - PR + 5}" y="${y(s) + 3.5}" font-size="9" fill="#6f6858" font-family="monospace">${name}</text>`;
+  }
+  if (pts.length > 1) {
+    svg += `<polyline fill="none" stroke="#16130d" stroke-width="2.5" stroke-linejoin="round" points="${pts.map((p, i) => `${x(i)},${y(p.score)}`).join(" ")}"/>`;
+  }
+  if (proj.length) {
+    const start = `${x(pts.length - 1)},${y(pts[pts.length - 1].score)}`;
+    svg += `<polyline fill="none" stroke="#2e7d5b" stroke-width="2" stroke-dasharray="5 5" points="${start} ${proj.map((s, k) => `${x(pts.length + k)},${y(s)}`).join(" ")}"/>`;
+    proj.forEach((s, k) => svg += `<circle cx="${x(pts.length + k)}" cy="${y(s)}" r="4" fill="#f7f3ea" stroke="#2e7d5b" stroke-width="2"/>`);
+    svg += `<text x="${x(total - 1)}" y="${y(proj[proj.length - 1]) - 10}" font-size="10" font-weight="700" fill="#2e7d5b" text-anchor="end" font-family="sans-serif">${Math.round(proj[proj.length - 1])}</text>`;
+  }
+  pts.forEach((p, i) => {
+    svg += `<circle cx="${x(i)}" cy="${y(p.score)}" r="4.5" fill="#f5c531" stroke="#16130d" stroke-width="2"/>`;
+    svg += `<text x="${x(i)}" y="${y(p.score) - 10}" font-size="10" font-weight="700" fill="#16130d" text-anchor="middle" font-family="sans-serif">${p.score}</text>`;
+  });
+  return svg + "</svg>";
+}
+
+let TST = null;
+function startProgress() {
+  TST = { phase: "home" };
+  const L = t();
+  $("testTitle").textContent = L.progress.toUpperCase();
+  $("testBack").textContent = L.back;
+  show("test");
+  renderTest();
+}
+async function beginTest() {
+  const L = t();
+  TST = { phase: "loading" };
+  renderTest();
+  try {
+    const help = HELP_LANG[S.lang] || "English";
+    const res = await chatFetch({
+      system: `You create a short German speaking test. Return ONLY a JSON array, no markdown, of exactly 6 items: [{"tr":"...","ref":"..."}]
+"tr": a sentence in ${help} that the learner must say in German. "ref": a natural, correct German version.
+Difficulty ladder: items 1-2 very easy (greeting, name, a simple need - A0/A1), items 3-4 everyday A2 (appointment, time, buying something), items 5-6 B1 (politely declining a date, explaining a problem, a request with a subordinate clause).
+Each sentence 4-12 words, everyday phone/errand situations, fresh content every time.`,
+      messages: [{ role: "user", content: "Create the test." }],
+    });
+    const data = await res.json();
+    const raw = (data.content || []).filter((b) => b.type === "text").map((b) => b.text).join("");
+    const clean = raw.replace(/```json|```/g, "").trim();
+    const items = JSON.parse(clean.slice(clean.indexOf("["), clean.lastIndexOf("]") + 1))
+      .filter((x) => x && x.tr && x.ref).slice(0, 6);
+    if (items.length < 4) throw new Error("bad test");
+    TST = { phase: "item", items, i: 0, answers: items.map(() => ""), listening: false, err: null, heard: null };
+  } catch (e) {
+    TST = { phase: "home", err: t().testFail };
+  }
+  renderTest();
+}
+function testListen() {
+  const L = t();
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR || TST.listening) return;
+  speechSynthesis.cancel(); stopAudio();
+  const r = new SR();
+  r.lang = "de-DE"; r.interimResults = false; r.maxAlternatives = 1;
+  r.onresult = (e) => {
+    TST.answers[TST.i] = e.results[0][0].transcript;
+    nextTestItem();
+  };
+  r.onerror = (e) => {
+    TST.listening = false;
+    const c = e && e.error;
+    TST.err = c === "no-speech" ? L.noSpeech : c === "not-allowed" ? L.micBlocked : c !== "aborted" ? L.micErr : null;
+    renderTest();
+  };
+  r.onend = () => { TST.listening = false; renderTest(); };
+  try { r.start(); TST.listening = true; TST.err = null; renderTest(); } catch (e) { TST.listening = false; }
+}
+function nextTestItem() {
+  TST.i++; TST.listening = false; TST.err = null;
+  if (TST.i >= TST.items.length) scoreTest();
+  else renderTest();
+}
+async function scoreTest() {
+  const L = t();
+  TST.phase = "scoring";
+  renderTest();
+  try {
+    const help = HELP_LANG[S.lang] || "English";
+    const lines = TST.items.map((it, i) =>
+      `${i + 1}. target (${help}): "${it.tr}" | reference German: "${it.ref}" | learner said: "${TST.answers[i] || "(nothing)"}"`).join("\n");
+    const res = await chatFetch({
+      system: `You grade a German speaking test. The learner's answers come from speech recognition, so minor transcription noise is normal - grade the communication, not the transcription.
+Return ONLY a JSON object: {"score": <0-100 holistic speaking score>, "cefr": "<A0|A1|A2|B1|B2|C1>", "comment": "<2 short encouraging sentences in ${help}: one strength, one concrete thing to improve>"}
+Scoring guide: 0-19 barely any German yet, 20-39 A1 basics, 40-54 simple everyday A2, 55-69 solid B1, 70-84 confident B2, 85+ C1.`,
+      messages: [{ role: "user", content: `Test answers:\n${lines}` }],
+    });
+    const data = await res.json();
+    const raw = (data.content || []).filter((b) => b.type === "text").map((b) => b.text).join("");
+    const clean = raw.replace(/```json|```/g, "").trim();
+    const p = JSON.parse(clean.slice(clean.indexOf("{"), clean.lastIndexOf("}") + 1));
+    const rec = { date: new Date().toISOString(), score: Math.max(0, Math.min(100, Math.round(p.score))), cefr: p.cefr || "?" };
+    saveTestResult(rec);
+    addXp(15);
+    const prev = loadTests().slice(-2)[0];
+    if (!prev || rec.score >= (prev.score || 0)) confettiBurst();
+    TST = { phase: "result", rec, comment: p.comment || "" };
+  } catch (e) {
+    TST = { phase: "home", err: L.testFail };
+  }
+  renderTest();
+}
+function renderTest() {
+  const L = t();
+  const tests = loadTests();
+  if (TST.phase === "loading" || TST.phase === "scoring") {
+    $("testBody").innerHTML = `<p class="note">${esc(TST.phase === "scoring" ? L.scoring : L.vocabLoading)}</p>`;
+  } else if (TST.phase === "item") {
+    const it = TST.items[TST.i];
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    $("testBody").innerHTML =
+      `<div class="drill-prog">${TST.i + 1} / ${TST.items.length}</div>
+       <div class="v-card" style="margin-top:10px;cursor:default">
+         <div class="v-flip">${esc(L.testSay)}</div>
+         <div class="v-de" style="font-size:22px">${esc(it.tr)}</div>
+       </div>
+       ${TST.err ? `<div class="v-verdict bad">${esc(TST.err)}</div>` : ""}
+       ${SR
+         ? `<div class="row"><button class="ghost" data-ta="say" ${TST.listening ? "disabled" : ""}>${TST.listening ? esc(L.listening) : esc(L.sayWord)}</button></div>`
+         : `<div class="row"><input type="text" id="testInput" placeholder="…" /><button class="ghost" data-ta="type" style="flex:0 0 auto">${esc(L.send)}</button></div>`}
+       <div class="row"><button class="mini" data-ta="skip" style="margin:8px auto 0">${esc(L.skip)}</button></div>`;
+  } else if (TST.phase === "result") {
+    $("testBody").innerHTML =
+      `<div class="hero" style="margin:0 0 14px">
+         <div style="display:flex;align-items:baseline;gap:12px">
+           <span style="font-family:'Space Grotesk',sans-serif;font-size:44px;font-weight:700">${TST.rec.score}</span>
+           <span class="chip">${esc(L.yourLevel)}: ${esc(TST.rec.cefr)}</span>
+         </div>
+         <p style="font-size:14px;line-height:1.55;margin:10px 0 0">${esc(TST.comment)}</p>
+       </div>
+       ${tests.length >= 2 ? chartSVG(tests) : `<p class="note">${esc(L.firstPoint)}</p>`}
+       ${tests.length >= 2 ? `<p class="note" style="margin-top:6px">🟢 ${esc(L.projected)}</p>` : ""}`;
+  } else { // home
+    $("testBody").innerHTML =
+      (TST.err ? `<div class="v-verdict bad">${esc(TST.err)}</div>` : "") +
+      (tests.length
+        ? `<div class="hero" style="margin:0 0 14px">
+             <div style="display:flex;align-items:baseline;gap:12px">
+               <span style="font-family:'Space Grotesk',sans-serif;font-size:34px;font-weight:700">${tests[tests.length - 1].score}</span>
+               <span class="chip">${esc(tests[tests.length - 1].cefr)}</span>
+               <span class="drill-prog">${esc(new Date(tests[tests.length - 1].date).toISOString().slice(0, 10))}</span>
+             </div>
+           </div>
+           ${tests.length >= 2 ? chartSVG(tests) + `<p class="note" style="margin-top:6px">🟢 ${esc(L.projected)}</p>` : `<p class="note">${esc(L.firstPoint)}</p>`}
+           ${daysSinceTest() >= 7 ? `<p class="note" style="margin-top:10px">📈 ${esc(L.weeklyHint)}</p>` : ""}`
+        : `<p class="note">${esc(L.pretestHint)}</p>`) +
+      `<button class="big" data-ta="begin" style="margin-top:18px">📈 ${esc(L.takeTest)}</button>`;
+  }
+  $("testBody").querySelectorAll("[data-ta]").forEach((b) => b.onclick = () => {
+    switch (b.dataset.ta) {
+      case "begin": beginTest(); break;
+      case "say": testListen(); break;
+      case "skip": nextTestItem(); break;
+      case "type": {
+        const v = ($("testInput") && $("testInput").value || "").trim();
+        TST.answers[TST.i] = v;
+        nextTestItem();
+        break;
+      }
+    }
+  });
 }
 
 /* ---------- pre-call preparation: produce German from your own language ---------- */
@@ -1923,6 +2160,8 @@ $("drillBtn").onclick = () => startDrill();
 $("drillBack").onclick = () => { stopAudio(); speechSynthesis.cancel(); show("setup"); renderSetup(); };
 $("vocabBtn").onclick = () => startVocab();
 $("prepBtn").onclick = () => startPrep();
+$("progressBtn").onclick = () => startProgress();
+$("testBack").onclick = () => { stopAudio(); speechSynthesis.cancel(); show("setup"); renderSetup(); };
 $("prepBack").onclick = () => {
   stopAudio(); speechSynthesis.cancel();
   PREPPED.add(S.scenario.id); // leaving the warm-up counts as "seen it" - don't gate again
