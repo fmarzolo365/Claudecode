@@ -149,6 +149,14 @@ https://docs.claude.com/en/docs/about-claude/models
   revealing the right sentence, so you say it aloud and get instant feedback.
 - **Daily routine**: a three-step checklist on the home card (vocabulary →
   conversation → mistakes) that ticks itself off as you practise each day.
+- **DTZ exam practice**: the three parts of the Deutsch-Test für Zuwanderer
+  speaking exam (introduce yourself, talk about a topic, plan together) with a
+  realistic examiner character — the B1 exam every integration-course student
+  faces.
+- **Backups & legal**: one-tap export/import of all learning data (drawer menu),
+  Impressum + Datenschutzerklärung pages (fill in the placeholders before going
+  public), daily request caps on the server (`TRAINER_DAILY_LIMIT`,
+  `TRAINER_IP_LIMIT`) so a public link can't drain API credits.
 - **Mi progreso**: an optional 5-minute speaking pretest (say 6 sentences of
   rising difficulty in German), AI-scored 0–100 with a CEFR estimate. Repeat it
   weekly and the progress screen draws your curve — where you started, where

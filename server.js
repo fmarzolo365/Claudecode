@@ -74,7 +74,27 @@ const AVATARS = {
   supermarkt2: "a supermarket store manager, man in his 40s, shirt with name badge",
   kollegen2: "a department boss, man in his 50s, shirt and tie",
   empfang2: "a German doctor, man in his 50s, white coat, stethoscope",
+  dtz1: "a warm professional German language exam examiner, woman in her 40s, glasses, cardigan",
+  dtz2: "a friendly German language exam examiner, woman in her 40s, blazer",
+  dtz3: "an encouraging German language exam examiner, woman in her 30s",
+  dtz12: "a German language exam co-examiner, man in his 50s, glasses",
+  dtz22: "a German language exam co-examiner, man in his 50s, jacket",
+  dtz32: "a German language exam co-examiner, man in his 40s",
 };
+
+// Free-tier protection: daily request caps (global + per IP) so a public
+// link can never drain the API credits. Counters reset at midnight UTC.
+const DAILY_LIMIT = parseInt(process.env.TRAINER_DAILY_LIMIT || "500", 10);
+const IP_LIMIT = parseInt(process.env.TRAINER_IP_LIMIT || "150", 10);
+let usageDay = "", usageTotal = 0, usageByIp = {};
+function overLimit(req) {
+  const today = new Date().toISOString().slice(0, 10);
+  if (usageDay !== today) { usageDay = today; usageTotal = 0; usageByIp = {}; }
+  const ip = String(req.headers["x-forwarded-for"] || req.socket.remoteAddress || "?").split(",")[0].trim();
+  usageTotal++;
+  usageByIp[ip] = (usageByIp[ip] || 0) + 1;
+  return usageTotal > DAILY_LIMIT || usageByIp[ip] > IP_LIMIT;
+}
 
 if (!AUTH_TOKEN && !API_KEY) {
   console.error("No credentials found.");
@@ -120,6 +140,11 @@ const server = http.createServer(async (req, res) => {
     if (PIN && req.headers["x-trainer-pin"] !== PIN) {
       res.writeHead(401, { "content-type": "application/json" });
       res.end(JSON.stringify({ error: "pin_required" }));
+      return;
+    }
+    if (overLimit(req)) {
+      res.writeHead(429, { "content-type": "application/json" });
+      res.end(JSON.stringify({ error: "limit" }));
       return;
     }
     try {
@@ -206,6 +231,11 @@ const server = http.createServer(async (req, res) => {
     if (PIN && req.headers["x-trainer-pin"] !== PIN) {
       res.writeHead(401, { "content-type": "application/json" });
       res.end(JSON.stringify({ error: "pin_required" }));
+      return;
+    }
+    if (overLimit(req)) {
+      res.writeHead(429, { "content-type": "application/json" });
+      res.end(JSON.stringify({ error: "limit" }));
       return;
     }
     if (!TTS_KEY) {
