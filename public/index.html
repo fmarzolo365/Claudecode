@@ -133,6 +133,12 @@
   }
   .vc-av img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: none; }
   .vc-av img.ok { display: block; }
+  .vc-mouth {
+    position: absolute; left: 50%; top: 63%; width: 24%; height: 3px;
+    transform: translateX(-50%); background: #1d0f0c; border-radius: 50% / 62%;
+    opacity: 0; pointer-events: none; box-shadow: inset 0 -2px 3px rgba(120,50,45,.65);
+  }
+  .vc-av.photo.speaking .vc-mouth { opacity: .85; }
   .vc-av.speaking { animation: talk 1.1s infinite; border-color: var(--yellow); }
   @keyframes talk { 0% { box-shadow: 0 0 0 0 rgba(245,197,49,.5); } 100% { box-shadow: 0 0 0 18px rgba(245,197,49,0); } }
   .hang:hover { filter: brightness(1.1); }
@@ -323,7 +329,7 @@
   <section id="call" class="hidden">
     <div class="vcbar">
       <button class="hang" id="hangBtn"></button>
-      <div class="vc-av" id="vcAv"><span id="vcEmoji">🎧</span><img id="vcImg" alt="" /></div>
+      <div class="vc-av" id="vcAv"><span id="vcEmoji">🎧</span><img id="vcImg" alt="" /><div class="vc-mouth" id="vcMouth"></div></div>
       <div class="who" id="who"></div>
       <div class="meta" id="timer">VERBUNDEN · 00:00</div>
     </div>
@@ -960,12 +966,57 @@ function setSpeaking(on) {
   if (el) el.classList.toggle("speaking", !!on);
 }
 
+/* lip-sync: the mouth overlay is driven by the real loudness of the audio
+   (Web Audio analyser). Device-voice fallback gets a plausible fake rhythm. */
+let AC = null, mouthRAF = null, mouthFake = null;
+function mouthSet(amp) {
+  const m = $("vcMouth");
+  if (m) m.style.height = Math.round(2 + amp * 15) + "px";
+  const av = $("vcAv");
+  if (av) av.style.transform = amp ? "scale(" + (1 + amp * 0.03).toFixed(3) + ")" : "";
+}
+function mouthStop() {
+  if (mouthRAF) { cancelAnimationFrame(mouthRAF); mouthRAF = null; }
+  if (mouthFake) { clearInterval(mouthFake); mouthFake = null; }
+  mouthSet(0);
+}
+async function attachAnalyser(a) {
+  try {
+    AC = AC || new (window.AudioContext || window.webkitAudioContext)();
+    if (AC.state === "suspended") await AC.resume();
+    if (AC.state !== "running") return null; // don't route audio through a dead context
+    const src = AC.createMediaElementSource(a);
+    const an = AC.createAnalyser();
+    an.fftSize = 256;
+    src.connect(an);
+    an.connect(AC.destination);
+    return an;
+  } catch (e) { return null; }
+}
+function mouthLoop(an, a) {
+  const data = new Uint8Array(an.frequencyBinCount);
+  const tick = () => {
+    if (currentAudio !== a) { mouthStop(); return; }
+    an.getByteFrequencyData(data);
+    let sum = 0;
+    for (let i = 2; i < 42; i++) sum += data[i];
+    mouthSet(Math.min(1, sum / 40 / 150));
+    mouthRAF = requestAnimationFrame(tick);
+  };
+  tick();
+}
+function mouthFakeStart() {
+  if (mouthFake) return;
+  mouthFake = setInterval(() => mouthSet(0.15 + Math.random() * 0.7), 90);
+}
+
 function stopAudio() {
   if (currentAudio) {
     try { currentAudio.onended = null; currentAudio.pause(); } catch (e) {}
     currentAudio = null;
   }
   setSpeaking(false);
+  mouthStop();
 }
 
 async function neuralSpeak(text, rate, done) {
@@ -995,10 +1046,13 @@ async function neuralSpeak(text, rate, done) {
   a.onended = () => {
     if (currentAudio === a) currentAudio = null;
     setSpeaking(false);
+    mouthStop();
     done && setTimeout(done, 350);
   };
+  const an = await attachAnalyser(a);
   await a.play();
   setSpeaking(true);
+  if (an) mouthLoop(an, a); else mouthFakeStart();
 }
 
 function deviceSpeak(text, rate, done) {
@@ -1006,9 +1060,9 @@ function deviceSpeak(text, rate, done) {
   u.lang = "de-DE";
   if (S.voice) u.voice = S.voice;
   u.rate = rate;
-  u.onstart = () => setSpeaking(true);
-  u.onend = () => { setSpeaking(false); done && setTimeout(done, 350); };
-  u.onerror = () => { setSpeaking(false); done && setTimeout(done, 350); };
+  u.onstart = () => { setSpeaking(true); mouthFakeStart(); };
+  u.onend = () => { setSpeaking(false); mouthStop(); done && setTimeout(done, 350); };
+  u.onerror = () => { setSpeaking(false); mouthStop(); done && setTimeout(done, 350); };
   speechSynthesis.speak(u);
 }
 
@@ -1703,9 +1757,10 @@ function renderCall() {
     img.dataset.retried = "";
     img.classList.remove("ok");
     if (src) {
-      img.onload = () => img.classList.add("ok"); // photo covers the emoji only once loaded
+      img.onload = () => { img.classList.add("ok"); $("vcAv").classList.add("photo"); }; // photo covers the emoji only once loaded
       img.onerror = () => {
         img.classList.remove("ok");
+        $("vcAv").classList.remove("photo");
         // one delayed retry: generation can take ~10s on the very first view
         if (!img.dataset.retried) {
           img.dataset.retried = "1";
@@ -1715,6 +1770,7 @@ function renderCall() {
       img.src = src;
     } else {
       img.removeAttribute("src");
+      $("vcAv").classList.remove("photo");
     }
   }
   $("timer").textContent = timerText();

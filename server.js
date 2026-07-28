@@ -40,7 +40,8 @@ const TTS_VOICE = process.env.TTS_VOICE || "coral";
 // from /api/avatar/<id>. Without TTS_API_KEY the client keeps emoji avatars.
 const os = require("os");
 const AVATAR_DIR = path.join(os.tmpdir(), "telefontrainer-avatars");
-const AVATAR_STYLE = "Warm friendly portrait photo, head and shoulders, looking at the camera with a slight natural smile, soft light, plain warm beige background, photorealistic, natural skin, no text, no watermark: ";
+// v2 framing: tight, centered face so the animated mouth overlay lands right
+const AVATAR_STYLE = "Warm friendly close-up face portrait photo, head centered and filling most of the frame, looking straight at the camera, mouth closed with a slight natural smile, soft light, plain warm beige background, photorealistic, natural skin, no text, no watermark: ";
 const AVATARS = {
   arzt: "a German medical practice receptionist, woman in her 30s, white polo shirt",
   amt: "a municipal citizens' office clerk, man in his 40s, light shirt",
@@ -138,7 +139,7 @@ const server = http.createServer(async (req, res) => {
       res.end(JSON.stringify({ error: "no_avatar" }));
       return;
     }
-    const file = path.join(AVATAR_DIR, id + ".png");
+    const file = path.join(AVATAR_DIR, id + "-v2.png");
     const serve = (buf) => {
       res.writeHead(200, { "content-type": "image/png", "content-length": buf.length, "cache-control": "public, max-age=604800" });
       res.end(buf);
