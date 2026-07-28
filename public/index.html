@@ -170,6 +170,34 @@
     font: 15px Archivo, sans-serif; color: var(--ink); border-radius: 12px;
   }
   input[type=text]::placeholder { color: var(--muted); opacity: .8; }
+  .picked {
+    width: 100%; text-align: left; border: 1px solid var(--line); background: var(--card);
+    border-radius: var(--radius); box-shadow: var(--shadow); padding: 14px 44px 14px 16px;
+    cursor: pointer; font: inherit; display: flex; flex-direction: column; gap: 2px; position: relative;
+    transition: background .15s ease;
+  }
+  .picked:hover { background: rgba(245,197,49,.08); }
+  .picked b { font-family: 'Space Grotesk', sans-serif; font-size: 16px; font-weight: 600; }
+  .picked small { font-size: 12.5px; color: var(--muted); }
+  .picked .chev { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); font-size: 24px; color: var(--muted); }
+  .menu-btn {
+    width: 42px; height: 42px; flex: 0 0 42px; border: 1px solid var(--line);
+    background: var(--card); border-radius: 13px; cursor: pointer;
+    display: inline-flex; flex-direction: column; gap: 4px; align-items: center; justify-content: center;
+    box-shadow: 0 1px 2px rgba(22,19,13,.04);
+  }
+  .menu-btn span { width: 16px; height: 2px; background: var(--ink); border-radius: 2px; display: block; }
+  .drawer-back { position: fixed; inset: 0; background: rgba(22,19,13,.45); z-index: 40; }
+  .drawer {
+    position: fixed; top: 0; left: 0; bottom: 0; width: min(330px, 86vw);
+    background: var(--bg); z-index: 50; transform: translateX(-105%);
+    transition: transform .25s ease; overflow-y: auto; padding: 14px;
+    box-shadow: 0 0 60px rgba(22,19,13,.3);
+  }
+  .drawer.open { transform: none; }
+  .drawer-head { display: flex; align-items: center; justify-content: space-between; padding: 6px 2px 12px; }
+  .drawer-title { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 18px; }
+  .drawer-close { background: none; border: none; font-size: 22px; cursor: pointer; color: var(--muted); padding: 4px 8px; }
   .hidden { display: none; }
   button:focus-visible, input:focus-visible { outline: 2.5px solid var(--yellow-deep); outline-offset: 2px; }
   @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
@@ -179,15 +207,14 @@
 <main>
   <!-- SETUP -->
   <section id="setup">
-    <header class="brand"><span class="mark"><svg width="20" height="20" viewBox="0 0 24 24" fill="#f5c531"><path d="M6.6 10.8c1.6 3.1 4.1 5.6 7.2 7.2l2.4-2.4c.3-.3.7-.4 1.1-.3 1.2.4 2.5.6 3.8.6.6 0 1 .4 1 1V21c0 .6-.4 1-1 1C11.6 22 2 12.4 2 1c0-.6.4-1 1-1h3.9c.6 0 1 .4 1 1 0 1.3.2 2.6.6 3.8.1.4 0 .8-.3 1.1L6.6 10.8z"/></svg></span><span class="word">Telefontrainer</span></header>
+    <header class="brand"><button class="menu-btn" id="menuBtn" aria-label="Menu"><span></span><span></span><span></span></button><span class="mark"><svg width="20" height="20" viewBox="0 0 24 24" fill="#f5c531"><path d="M6.6 10.8c1.6 3.1 4.1 5.6 7.2 7.2l2.4-2.4c.3-.3.7-.4 1.1-.3 1.2.4 2.5.6 3.8.6.6 0 1 .4 1 1V21c0 .6-.4 1-1 1C11.6 22 2 12.4 2 1c0-.6.4-1 1-1h3.9c.6 0 1 .4 1 1 0 1.3.2 2.6.6 3.8.1.4 0 .8-.3 1.1L6.6 10.8z"/></svg></span><span class="word">Telefontrainer</span></header>
     <p class="tagline" id="tagline"></p>
     <p class="note hidden" id="stats" style="margin:-14px 0 20px"></p>
 
     <div class="label" id="lblPick"></div>
-    <div class="list" id="scenarios"></div>
-    <div class="row hidden" id="customRow">
-      <input type="text" id="customTopic" />
-    </div>
+    <button class="picked" id="pickedCard">
+      <b id="pickedTitle"></b><small id="pickedSub"></small><span class="chev">&rsaquo;</span>
+    </button>
 
     <div class="label" id="lblLevel"></div>
     <div class="seg" id="levels"></div>
@@ -228,7 +255,8 @@
   <!-- DONE -->
   <section id="done" class="hidden">
     <div class="plate"><span id="doneTitle"></span></div>
-    <div class="list" style="margin-top:22px;padding:16px 14px" id="review"></div>
+    <button class="ghost hidden" id="replayBtn" style="width:100%;margin-top:16px"></button>
+    <div class="list" style="margin-top:14px;padding:16px 14px" id="review"></div>
     <div class="list" style="margin-top:14px;padding:16px 14px" id="evalBox"></div>
     <button class="big" id="againBtn"></button>
   </section>
@@ -244,6 +272,18 @@
     <button class="big" id="backBtn"></button>
   </section>
 </main>
+
+<div id="drawerBack" class="drawer-back hidden"></div>
+<aside id="drawer" class="drawer">
+  <div class="drawer-head">
+    <span class="drawer-title" id="drawerTitle"></span>
+    <button class="drawer-close" id="drawerClose" aria-label="Close">&#10005;</button>
+  </div>
+  <div class="list" id="scenarios"></div>
+  <div class="row hidden" id="customRow" style="margin-top:12px">
+    <input type="text" id="customTopic" />
+  </div>
+</aside>
 
 <script>
 const SCENARIOS = [
@@ -336,7 +376,8 @@ const T = {
     saved:"guardadas", pinAsk:"Introduce el PIN de acceso:",
     speed:"Velocidad de la voz", speedSlow:"Lenta", speedNormal:"Normal", speedFast:"Rápida",
     days:"días seguidos", calls:"llamadas", minutes:"min practicados",
-    customPH:"Ej.: llamar al gimnasio para cancelar mi abono" },
+    customPH:"Ej.: llamar al gimnasio para cancelar mi abono",
+    sayIt:"Escuchar bien dicho", replayAll:"Reproducir la llamada corregida" },
   en:{ tagline:"Practise German phone calls. You speak, the other person answers.",
     pick:"Choose the situation", level:"Level", helpLang:"Language for corrections", call:"CALL",
     hangUp:"HANG UP", speak:"Tap and speak", listening:"Listening…", repeat:"Repeat slowly",
@@ -351,7 +392,8 @@ const T = {
     saved:"saved", pinAsk:"Enter the access PIN:",
     speed:"Voice speed", speedSlow:"Slow", speedNormal:"Normal", speedFast:"Fast",
     days:"day streak", calls:"calls", minutes:"min practised",
-    customPH:"E.g.: call the gym to cancel my membership" },
+    customPH:"E.g.: call the gym to cancel my membership",
+    sayIt:"Hear it said right", replayAll:"Replay the corrected call" },
 };
 
 /* ---------- additional help languages ---------- */
@@ -369,7 +411,8 @@ T.tr = { tagline:"Almanca telefon görüşmeleri pratiği yap. Sen konuş, karş
   saved:"kayıtlı", pinAsk:"Erişim PIN kodunu gir:",
   speed:"Ses hızı", speedSlow:"Yavaş", speedNormal:"Normal", speedFast:"Hızlı",
   days:"günlük seri", calls:"arama", minutes:"dk pratik",
-  customPH:"Örn.: spor salonunu arayıp üyeliğimi iptal etmek" };
+  customPH:"Örn.: spor salonunu arayıp üyeliğimi iptal etmek",
+  sayIt:"Doğrusunu dinle", replayAll:"Düzeltilmiş aramayı dinle" };
 T.ar = { tagline:"تدرّب على المكالمات الهاتفية بالألمانية. أنت تتكلم والطرف الآخر يجيب.",
   pick:"اختر الموقف", level:"المستوى", helpLang:"لغة التصحيحات", call:"اتصل",
   hangUp:"إنهاء", speak:"اضغط وتكلّم", listening:"يستمع…", repeat:"إعادة ببطء",
@@ -384,7 +427,8 @@ T.ar = { tagline:"تدرّب على المكالمات الهاتفية بالأ
   saved:"محفوظة", pinAsk:"أدخل رمز PIN:",
   speed:"سرعة الصوت", speedSlow:"بطيئة", speedNormal:"عادية", speedFast:"سريعة",
   days:"أيام متتالية", calls:"مكالمات", minutes:"دقيقة تدريب",
-  customPH:"مثال: الاتصال بالنادي الرياضي لإلغاء اشتراكي" };
+  customPH:"مثال: الاتصال بالنادي الرياضي لإلغاء اشتراكي",
+  sayIt:"استمع إلى النطق الصحيح", replayAll:"استمع إلى المكالمة المصحّحة" };
 T.uk = { tagline:"Тренуй телефонні розмови німецькою. Ти говориш — співрозмовник відповідає.",
   pick:"Обери ситуацію", level:"Рівень", helpLang:"Мова пояснень", call:"ДЗВОНИТИ",
   hangUp:"ПОКЛАСТИ", speak:"Натисни і говори", listening:"Слухаю…", repeat:"Повторити повільно",
@@ -399,7 +443,8 @@ T.uk = { tagline:"Тренуй телефонні розмови німецьк�
   saved:"збережено", pinAsk:"Введи PIN доступу:",
   speed:"Швидкість мовлення", speedSlow:"Повільно", speedNormal:"Звичайно", speedFast:"Швидко",
   days:"днів поспіль", calls:"дзвінків", minutes:"хв практики",
-  customPH:"Напр.: подзвонити у спортзал і скасувати абонемент" };
+  customPH:"Напр.: подзвонити у спортзал і скасувати абонемент",
+  sayIt:"Послухай, як правильно", replayAll:"Прослухати виправлену розмову" };
 
 T.it = { tagline:"Allenati con le telefonate in tedesco. Tu parli, l'altra persona risponde.",
   pick:"Scegli la situazione", level:"Livello", helpLang:"Lingua delle correzioni", call:"CHIAMA",
@@ -415,7 +460,8 @@ T.it = { tagline:"Allenati con le telefonate in tedesco. Tu parli, l'altra perso
   saved:"salvate", pinAsk:"Inserisci il PIN di accesso:",
   speed:"Velocità della voce", speedSlow:"Lenta", speedNormal:"Normale", speedFast:"Veloce",
   days:"giorni di fila", calls:"chiamate", minutes:"min di pratica",
-  customPH:"Es.: chiamare la palestra per disdire l'abbonamento" };
+  customPH:"Es.: chiamare la palestra per disdire l'abbonamento",
+  sayIt:"Ascolta come si dice", replayAll:"Riascolta la chiamata corretta" };
 
 const HELP_LANG = { es:"Spanish", en:"English", tr:"Turkish", ar:"Arabic", uk:"Ukrainian", it:"Italian" };
 
@@ -523,9 +569,9 @@ const FIX_KEY = "telefontrainer.fixes";
 function loadFixes() {
   try { return JSON.parse(localStorage.getItem(FIX_KEY)) || []; } catch (e) { return []; }
 }
-function saveFix(text, fix) {
+function saveFix(text, fix, corrected) {
   const fixes = loadFixes();
-  fixes.push({ text, fix, scenario: (S.active || S.scenario).id, level: S.level, date: new Date().toISOString().slice(0, 10) });
+  fixes.push({ text, fix, corrected: corrected || "", scenario: (S.active || S.scenario).id, level: S.level, date: new Date().toISOString().slice(0, 10) });
   try { localStorage.setItem(FIX_KEY, JSON.stringify(fixes.slice(-300))); } catch (e) {}
 }
 
@@ -660,7 +706,17 @@ function renderSetup() {
     }).join("")
   ).join("");
   $("scenarios").querySelectorAll(".item").forEach((b) =>
-    b.onclick = () => { S.scenario = SCENARIOS.find((x) => x.id === b.dataset.id); saveSettings(); renderSetup(); });
+    b.onclick = () => {
+      S.scenario = SCENARIOS.find((x) => x.id === b.dataset.id);
+      saveSettings(); renderSetup();
+      if (S.scenario.id !== "custom") closeDrawer();
+    });
+
+  $("drawerTitle").textContent = L.pick;
+  $("pickedTitle").textContent = S.scenario.de;
+  $("pickedSub").textContent = S.scenario.id === "custom" && S.customTopic
+    ? S.customTopic
+    : `${S.scenario[S.lang] || S.scenario.en} · ${S.scenario.who}`;
 
   $("customRow").classList.toggle("hidden", S.scenario.id !== "custom");
   $("customTopic").placeholder = L.customPH;
@@ -696,12 +752,15 @@ function renderMistakes() {
   const fixes = loadFixes().slice().reverse();
   $("ankiBtn").disabled = !fixes.length;
   $("mistakesList").innerHTML = fixes.length
-    ? fixes.map((f) => `<div style="margin-bottom:14px">
+    ? fixes.map((f, i) => `<div style="margin-bottom:14px">
         <div class="said">${esc(f.text)}</div>
         <div class="fix">${esc(f.fix)}</div>
+        ${f.corrected ? `<div style="margin-top:4px"><button class="mini" data-sayh="${i}">&#9654; ${esc(L.sayIt)}</button></div>` : ""}
         <div class="sub" style="font-size:11px">${esc(f.date)} · ${esc(f.scenario)} · ${esc(f.level)}</div>
       </div>`).join("")
     : `<p class="note">${esc(L.noMistakes)}</p>`;
+  $("mistakesList").querySelectorAll("[data-sayh]").forEach((b) =>
+    b.onclick = () => speak(fixes[+b.dataset.sayh].corrected, true));
 }
 
 function exportAnki() {
@@ -742,6 +801,7 @@ Return ONLY a JSON object. No markdown, no code fences. Keys:
 "reply": your German line.
 "translation": that same line in ${help}.
 "feedback": at most 25 words in ${help} about the learner's last German line - what was wrong and the natural way to say it. Empty string if the learner has not spoken yet or the line was fine.
+"corrected": the learner's last line rewritten as one natural, correct German sentence. Empty string if the learner has not spoken yet or the line was fine.
 "suggestion": one natural German sentence the learner could say next, at level ${S.level}.
 "done": true only after you have said goodbye.`;
 }
@@ -761,7 +821,12 @@ async function ask() {
     const p = JSON.parse(clean.slice(clean.indexOf("{"), clean.lastIndexOf("}") + 1));
     if (p.feedback) {
       for (let i = S.turns.length - 1; i >= 0; i--) {
-        if (S.turns[i].me) { S.turns[i].fix = p.feedback; saveFix(S.turns[i].text, p.feedback); break; }
+        if (S.turns[i].me) {
+          S.turns[i].fix = p.feedback;
+          if (p.corrected) S.turns[i].corrected = p.corrected;
+          saveFix(S.turns[i].text, p.feedback, p.corrected || "");
+          break;
+        }
       }
     }
     S.turns.push({ me:false, text:p.reply, tr:p.translation });
@@ -854,12 +919,14 @@ function renderCall() {
             <button class="mini" data-play="${i}">&#9834;</button>
             <button class="mini" data-tr="${i}">${L.show}</button></div>`}
         ${!x.me && x.open ? `<div class="sub">${esc(x.tr)}</div>` : ""}
-        ${x.me && x.fix ? `<div class="fix">${esc(x.fix)}</div>` : ""}
+        ${x.me && x.fix ? `<div class="fix">${esc(x.fix)}</div>${x.corrected ? `<div style="margin-top:4px"><button class="mini" data-say="${i}">&#9654; ${L.sayIt}</button></div>` : ""}` : ""}
       </div>
     </div>`).join("") + (S.busy ? '<div class="turn" style="opacity:.5">· · ·</div>' : "");
 
   $("log").querySelectorAll("[data-play]").forEach((b) =>
     b.onclick = () => speak(S.turns[+b.dataset.play].text, true));
+  $("log").querySelectorAll("[data-say]").forEach((b) =>
+    b.onclick = () => speak(S.turns[+b.dataset.say].corrected, true));
   $("log").querySelectorAll("[data-tr]").forEach((b) =>
     b.onclick = () => { const x = S.turns[+b.dataset.tr]; x.open = !x.open; renderCall(); });
   $("log").scrollTop = $("log").scrollHeight;
@@ -936,13 +1003,33 @@ $("hangBtn").onclick = () => {
   $("againBtn").textContent = L.again;
   const fixes = S.turns.filter((x) => x.me && x.fix);
   $("review").innerHTML = `<div class="label" style="margin:0">${esc(L.review)} · ${mmss()}</div>` +
-    (fixes.length ? fixes.map((x) => `<div style="margin-top:14px"><div class="said">${esc(x.text)}</div><div class="fix">${esc(x.fix)}</div></div>`).join("")
+    (fixes.length ? fixes.map((x, i) => `<div style="margin-top:14px"><div class="said">${esc(x.text)}</div><div class="fix">${esc(x.fix)}</div>${x.corrected ? `<div style="margin-top:4px"><button class="mini" data-sayr="${i}">&#9654; ${L.sayIt}</button></div>` : ""}</div>`).join("")
                   : '<p class="note">—</p>');
+  $("review").querySelectorAll("[data-sayr]").forEach((b) =>
+    b.onclick = () => speak(fixes[+b.dataset.sayr].corrected, true));
+  $("replayBtn").textContent = "▶ " + L.replayAll;
+  $("replayBtn").classList.toggle("hidden", !S.turns.length);
   recordCall();
   show("done");
   evaluateCall();
 };
-$("againBtn").onclick = () => { show("setup"); renderSetup(); };
+$("againBtn").onclick = () => { stopAudio(); speechSynthesis.cancel(); show("setup"); renderSetup(); };
+function openDrawer() { $("drawer").classList.add("open"); $("drawerBack").classList.remove("hidden"); }
+function closeDrawer() { $("drawer").classList.remove("open"); $("drawerBack").classList.add("hidden"); }
+$("menuBtn").onclick = openDrawer;
+$("pickedCard").onclick = openDrawer;
+$("drawerBack").onclick = closeDrawer;
+$("drawerClose").onclick = closeDrawer;
+$("replayBtn").onclick = () => {
+  stopAudio(); speechSynthesis.cancel();
+  let i = 0;
+  const next = () => {
+    if (i >= S.turns.length) return;
+    const turn = S.turns[i++];
+    speak(turn.me ? (turn.corrected || turn.text) : turn.text, false, next);
+  };
+  next();
+};
 $("mistakesBtn").onclick = () => { renderMistakes(); show("mistakes"); };
 $("backBtn").onclick = () => { show("setup"); renderSetup(); };
 $("ankiBtn").onclick = () => exportAnki();
