@@ -126,6 +126,11 @@ https://docs.claude.com/en/docs/about-claude/models
 - **Practicar mis errores**: a flashcard drill over your saved corrections — see
   your sentence, recall the right version, reveal it and hear it spoken. Cards you
   miss come back sooner (spaced-repetition-lite).
+- **Vocabulario clave**: before a call, get the 12 words and phone phrases that
+  matter for that exact scenario as speaking-first flashcards — tap to guess the
+  meaning, hear each word and example sentence in the neural voice, and say it
+  out loud while the mic checks your pronunciation. Decks are generated once per
+  scenario/level/language and cached on the device.
 
 ## Changing the scenarios
 

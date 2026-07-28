@@ -184,6 +184,18 @@
     border-radius: 12px; margin: 0 0 12px;
   }
   .drill-prog { font: 500 10px 'JetBrains Mono', monospace; letter-spacing: .15em; color: var(--muted); }
+  .v-card {
+    border: 1px solid var(--line); background: var(--card); border-radius: var(--radius);
+    box-shadow: var(--shadow); padding: 28px 18px; text-align: center; cursor: pointer;
+    min-height: 180px; display: flex; flex-direction: column; justify-content: center; gap: 10px;
+  }
+  .v-de { font-family: 'Space Grotesk', sans-serif; font-size: 26px; font-weight: 700; line-height: 1.25; }
+  .v-tr { font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 600; color: var(--green); line-height: 1.3; }
+  .v-ex { font-size: 14px; color: var(--muted); line-height: 1.5; }
+  .v-flip { font-size: 11.5px; color: var(--muted); }
+  .v-verdict { margin-top: 12px; padding: 11px 14px; border-radius: 12px; font: 600 13.5px Archivo, sans-serif; line-height: 1.5; }
+  .v-verdict.ok { background: rgba(46,125,91,.12); color: var(--green); }
+  .v-verdict.bad { background: rgba(194,70,52,.1); color: var(--red); }
   .drill-ok { font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 600; color: var(--green); margin-top: 12px; line-height: 1.4; }
   .confetti { position: fixed; inset: 0; pointer-events: none; z-index: 90; overflow: hidden; }
   .confetti i { position: absolute; top: -14px; width: 8px; height: 12px; border-radius: 2px; animation: fall linear forwards; }
@@ -268,7 +280,8 @@
     <div class="seg wrap" id="langs"></div>
 
     <button class="big" id="callBtn"></button>
-    <button class="toggle" id="drillBtn" style="margin-top:14px"></button>
+    <button class="toggle" id="vocabBtn" style="margin-top:14px"></button>
+    <button class="toggle" id="drillBtn"></button>
     <button class="toggle" id="mistakesBtn"></button>
   </section>
 
@@ -312,6 +325,14 @@
       <button class="ghost" id="clearBtn"></button>
     </div>
     <button class="big" id="backBtn"></button>
+  </section>
+
+  <!-- SCENARIO VOCABULARY -->
+  <section id="vocab" class="hidden">
+    <div class="plate"><span id="vocabTitle"></span></div>
+    <p class="note" id="vocabSub" style="margin-top:8px"></p>
+    <div id="vocabBody" style="margin-top:14px"></div>
+    <button class="big" id="vocabBack"></button>
   </section>
 
   <!-- MISTAKE DRILL -->
@@ -429,7 +450,12 @@ const T = {
     sayIt:"Escuchar bien dicho", replayAll:"Reproducir la llamada corregida",
     practice:"Practicar mis errores", drillTitle:"PRÁCTICA", drillQ:"¿Cómo se dice correctamente?",
     reveal:"Mostrar solución", knew:"Lo sabía ✓", retry:"Otra vez ↻", drillDone:"¡Práctica terminada!",
-    toNext:"para el siguiente nivel", goalHit:"¡Objetivo conseguido!" },
+    toNext:"para el siguiente nivel", goalHit:"¡Objetivo conseguido!",
+    vocab:"Vocabulario clave", vocabFlip:"Toca la tarjeta para ver el significado",
+    sayWord:"Pronúncialo 🎤", heardYou:"Escuché:", wellSaid:"¡Muy bien dicho!",
+    almost:"Casi — escucha y repite", next:"Siguiente",
+    vocabLoading:"Creando tu vocabulario…", vocabFail:"No se pudo crear la lista. Inténtalo de nuevo.",
+    vocabDone:"¡Vocabulario repasado!" },
   en:{ tagline:"Practise German phone calls. You speak, the other person answers.",
     pick:"Choose the situation", level:"Level", helpLang:"Language for corrections", call:"CALL",
     hangUp:"HANG UP", speak:"Tap and speak", listening:"Listening…", repeat:"Repeat slowly",
@@ -448,7 +474,12 @@ const T = {
     sayIt:"Hear it said right", replayAll:"Replay the corrected call",
     practice:"Practise my mistakes", drillTitle:"PRACTICE", drillQ:"How do you say it correctly?",
     reveal:"Show solution", knew:"I knew it ✓", retry:"Again ↻", drillDone:"Practice done!",
-    toNext:"to the next level", goalHit:"Goal achieved!" },
+    toNext:"to the next level", goalHit:"Goal achieved!",
+    vocab:"Key vocabulary", vocabFlip:"Tap the card to see the meaning",
+    sayWord:"Say it out loud 🎤", heardYou:"I heard:", wellSaid:"Well said!",
+    almost:"Almost — listen and repeat", next:"Next",
+    vocabLoading:"Building your vocabulary…", vocabFail:"Could not create the list. Try again.",
+    vocabDone:"Vocabulary done!" },
 };
 
 /* ---------- additional help languages ---------- */
@@ -470,7 +501,12 @@ T.tr = { tagline:"Almanca telefon görüşmeleri pratiği yap. Sen konuş, karş
   sayIt:"Doğrusunu dinle", replayAll:"Düzeltilmiş aramayı dinle",
   practice:"Hatalarımı çalış", drillTitle:"ALIŞTIRMA", drillQ:"Doğrusu nasıl söylenir?",
   reveal:"Çözümü göster", knew:"Biliyordum ✓", retry:"Tekrar ↻", drillDone:"Alıştırma bitti!",
-  toNext:"sonraki seviyeye", goalHit:"Hedefe ulaşıldı!" };
+  toNext:"sonraki seviyeye", goalHit:"Hedefe ulaşıldı!",
+  vocab:"Anahtar kelimeler", vocabFlip:"Anlamı görmek için karta dokun",
+  sayWord:"Yüksek sesle söyle 🎤", heardYou:"Duyduğum:", wellSaid:"Çok iyi söyledin!",
+  almost:"Neredeyse — dinle ve tekrarla", next:"İleri",
+  vocabLoading:"Kelime listen hazırlanıyor…", vocabFail:"Liste oluşturulamadı. Tekrar dene.",
+  vocabDone:"Kelimeler tamamlandı!" };
 T.ar = { tagline:"تدرّب على المكالمات الهاتفية بالألمانية. أنت تتكلم والطرف الآخر يجيب.",
   pick:"اختر الموقف", level:"المستوى", helpLang:"لغة التصحيحات", call:"اتصل",
   hangUp:"إنهاء", speak:"اضغط وتكلّم", listening:"يستمع…", repeat:"إعادة ببطء",
@@ -489,7 +525,12 @@ T.ar = { tagline:"تدرّب على المكالمات الهاتفية بالأ
   sayIt:"استمع إلى النطق الصحيح", replayAll:"استمع إلى المكالمة المصحّحة",
   practice:"تدرّب على أخطائي", drillTitle:"تدريب", drillQ:"كيف تُقال بشكل صحيح؟",
   reveal:"أظهر الحل", knew:"كنت أعرفها ✓", retry:"مرة أخرى ↻", drillDone:"انتهى التدريب!",
-  toNext:"للمستوى التالي", goalHit:"تم تحقيق الهدف!" };
+  toNext:"للمستوى التالي", goalHit:"تم تحقيق الهدف!",
+  vocab:"المفردات الأساسية", vocabFlip:"المس البطاقة لرؤية المعنى",
+  sayWord:"قلها بصوت عالٍ 🎤", heardYou:"سمعت:", wellSaid:"أحسنت النطق!",
+  almost:"تقريبًا — استمع وكرر", next:"التالي",
+  vocabLoading:"جارٍ إنشاء مفرداتك…", vocabFail:"تعذّر إنشاء القائمة. حاول مجددًا.",
+  vocabDone:"انتهت المفردات!" };
 T.uk = { tagline:"Тренуй телефонні розмови німецькою. Ти говориш — співрозмовник відповідає.",
   pick:"Обери ситуацію", level:"Рівень", helpLang:"Мова пояснень", call:"ДЗВОНИТИ",
   hangUp:"ПОКЛАСТИ", speak:"Натисни і говори", listening:"Слухаю…", repeat:"Повторити повільно",
@@ -508,7 +549,12 @@ T.uk = { tagline:"Тренуй телефонні розмови німецьк�
   sayIt:"Послухай, як правильно", replayAll:"Прослухати виправлену розмову",
   practice:"Тренувати мої помилки", drillTitle:"ТРЕНУВАННЯ", drillQ:"Як сказати правильно?",
   reveal:"Показати відповідь", knew:"Я це знаю ✓", retry:"Ще раз ↻", drillDone:"Тренування завершено!",
-  toNext:"до наступного рівня", goalHit:"Мету досягнуто!" };
+  toNext:"до наступного рівня", goalHit:"Мету досягнуто!",
+  vocab:"Ключові слова", vocabFlip:"Торкнись картки, щоб побачити значення",
+  sayWord:"Скажи вголос 🎤", heardYou:"Я почув:", wellSaid:"Чудово сказано!",
+  almost:"Майже — послухай і повтори", next:"Далі",
+  vocabLoading:"Створюю твій словник…", vocabFail:"Не вдалося створити список. Спробуй ще.",
+  vocabDone:"Словник пройдено!" };
 
 T.it = { tagline:"Allenati con le telefonate in tedesco. Tu parli, l'altra persona risponde.",
   pick:"Scegli la situazione", level:"Livello", helpLang:"Lingua delle correzioni", call:"CHIAMA",
@@ -528,7 +574,12 @@ T.it = { tagline:"Allenati con le telefonate in tedesco. Tu parli, l'altra perso
   sayIt:"Ascolta come si dice", replayAll:"Riascolta la chiamata corretta",
   practice:"Allena i miei errori", drillTitle:"PRATICA", drillQ:"Come si dice correttamente?",
   reveal:"Mostra soluzione", knew:"La sapevo ✓", retry:"Di nuovo ↻", drillDone:"Pratica completata!",
-  toNext:"al prossimo livello", goalHit:"Obiettivo raggiunto!" };
+  toNext:"al prossimo livello", goalHit:"Obiettivo raggiunto!",
+  vocab:"Vocabolario chiave", vocabFlip:"Tocca la carta per vedere il significato",
+  sayWord:"Pronuncialo 🎤", heardYou:"Ho sentito:", wellSaid:"Ben detto!",
+  almost:"Quasi — ascolta e ripeti", next:"Avanti",
+  vocabLoading:"Sto creando il tuo vocabolario…", vocabFail:"Impossibile creare la lista. Riprova.",
+  vocabDone:"Vocabolario completato!" };
 
 const HELP_LANG = { es:"Spanish", en:"English", tr:"Turkish", ar:"Arabic", uk:"Ukrainian", it:"Italian" };
 
@@ -842,6 +893,8 @@ function renderSetup() {
   const drillable = loadFixes().filter((f) => f.corrected).length;
   $("drillBtn").textContent = `🎯 ${L.practice}${drillable ? ` (${Math.min(8, drillable)})` : ""}`;
   $("drillBtn").disabled = !drillable;
+  $("vocabBtn").textContent = `📇 ${L.vocab}`;
+  $("vocabBtn").disabled = S.scenario.id === "random" || (S.scenario.id === "custom" && !(S.customTopic || "").trim());
 }
 
 /* ---------- mistakes history screen ---------- */
@@ -931,6 +984,154 @@ function renderDrill() {
     D.i++; D.open = false;
     renderDrill();
   });
+}
+
+/* ---------- scenario vocabulary (speaking-first flashcards) ---------- */
+let V = null;
+const VOCAB_NS = "telefontrainer.vocab.";
+
+function normDe(s) {
+  return String(s || "").toLowerCase().replace(/[^a-zäöüß ]/g, " ").replace(/\s+/g, " ").trim();
+}
+function lev(a, b) {
+  const m = a.length, n = b.length;
+  if (!m) return n; if (!n) return m;
+  let prev = Array.from({ length: n + 1 }, (_, j) => j);
+  for (let i = 1; i <= m; i++) {
+    const cur = [i];
+    for (let j = 1; j <= n; j++) {
+      cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    }
+    prev = cur;
+  }
+  return prev[n];
+}
+/* the learner said the word if every content word of the target appears
+   (fuzzily) in what the recognizer heard - articles don't count */
+function saidWord(heard, target) {
+  const SKIP = ["der","die","das","den","dem","des","ein","eine","einen","einem","einer"];
+  const H = normDe(heard).split(" ").filter(Boolean);
+  const Tw = normDe(target).split(" ").filter((w) => w.length > 2 && !SKIP.includes(w));
+  if (!Tw.length) return false;
+  return Tw.every((tw) => {
+    const tol = tw.length <= 4 ? 1 : tw.length <= 7 ? 2 : 3;
+    return H.some((h) => lev(h, tw) <= tol);
+  });
+}
+
+async function loadDeck() {
+  const sc = S.scenario;
+  const topic = sc.id === "custom" ? (S.customTopic || "").trim() : "";
+  const key = VOCAB_NS + sc.id + "." + (topic ? encodeURIComponent(topic).slice(0, 60) + "." : "") + S.lang + "." + S.level;
+  try {
+    const c = JSON.parse(localStorage.getItem(key));
+    if (Array.isArray(c) && c.length) return c;
+  } catch (e) {}
+  const help = HELP_LANG[S.lang] || "English";
+  const what = topic ? `a phone call about: ${topic}` : `${sc.de} - calling ${sc.place}`;
+  const res = await chatFetch({
+    system: `You create a vocabulary deck for a German learner at CEFR level ${S.level} preparing for ${what}.
+Return ONLY a JSON array, no markdown, of exactly 12 items:
+[{"de":"...","tr":"...","ex":"..."}]
+"de": the German word with its article (for nouns) or a short key phrase. "tr": its translation in ${help}. "ex": one short natural German sentence using it, something the learner could actually say or hear in this phone call, at level ${S.level}.
+Pick what is genuinely most useful for THIS call: core nouns, key verbs, and 2-3 fixed telephone phrases.`,
+    messages: [{ role: "user", content: "Create the deck." }],
+  });
+  const data = await res.json();
+  const raw = (data.content || []).filter((b) => b.type === "text").map((b) => b.text).join("");
+  const clean = raw.replace(/```json|```/g, "").trim();
+  const deck = JSON.parse(clean.slice(clean.indexOf("["), clean.lastIndexOf("]") + 1))
+    .filter((x) => x && x.de && x.tr).slice(0, 12);
+  if (!deck.length) throw new Error("empty deck");
+  try { localStorage.setItem(key, JSON.stringify(deck)); } catch (e) {}
+  return deck;
+}
+
+async function startVocab() {
+  const L = t();
+  const sc = S.scenario;
+  V = { deck: null, i: 0, flipped: false, heard: null, verdict: null, listening: false, failed: false };
+  $("vocabTitle").textContent = L.vocab.toUpperCase();
+  $("vocabSub").textContent = sc.id === "custom" ? S.customTopic : `${sc.de} · ${sc.who}`;
+  $("vocabBack").textContent = L.back;
+  show("vocab");
+  renderVocab();
+  try {
+    V.deck = await loadDeck();
+  } catch (e) {
+    V.failed = true;
+  }
+  renderVocab();
+}
+
+function renderVocab() {
+  const L = t();
+  if (V.failed) {
+    $("vocabBody").innerHTML =
+      `<p class="note">${esc(L.vocabFail)}</p>
+       <button class="ghost" style="width:100%;margin-top:12px" data-va="reload">${esc(L.retry)}</button>`;
+  } else if (!V.deck) {
+    $("vocabBody").innerHTML = `<p class="note">${esc(L.vocabLoading)}</p>`;
+  } else if (V.i >= V.deck.length) {
+    addXp(12);
+    confettiBurst();
+    $("vocabBody").innerHTML =
+      `<div class="said" style="font-family:'Space Grotesk',sans-serif;font-size:19px;font-weight:700">🎉 ${esc(L.vocabDone)}</div>
+       <div style="margin-top:10px"><span class="chip">+12 XP</span></div>`;
+  } else {
+    const c = V.deck[V.i];
+    $("vocabBody").innerHTML =
+      `<div class="drill-prog">${V.i + 1} / ${V.deck.length}</div>
+       <div class="v-card" data-va="flip" style="margin-top:10px">
+         <div class="v-de">${esc(c.de)}</div>
+         ${V.flipped
+           ? `<div class="v-tr">${esc(c.tr)}</div>${c.ex ? `<div class="v-ex">„${esc(c.ex)}“</div>` : ""}`
+           : `<div class="v-flip">${esc(L.vocabFlip)}</div>`}
+       </div>
+       ${V.verdict ? `<div class="v-verdict ${V.verdict}">${V.verdict === "ok" ? "✅ " + esc(L.wellSaid) : "🔁 " + esc(L.almost)}${V.heard ? `<br><span style="font-weight:400">${esc(L.heardYou)} „${esc(V.heard)}“</span>` : ""}</div>` : ""}
+       <div class="row">
+         <button class="ghost" data-va="hear">&#9834; ${esc(L.sayIt)}</button>
+         <button class="ghost ${V.listening ? "" : ""}" data-va="say" ${V.listening ? "disabled" : ""}>${V.listening ? esc(L.listening) : esc(L.sayWord)}</button>
+       </div>
+       <div class="row">
+         <button class="ghost" data-va="next">${esc(L.next)} &rsaquo;</button>
+       </div>`;
+  }
+  $("vocabBody").querySelectorAll("[data-va]").forEach((b) => b.onclick = () => {
+    const c = V.deck && V.deck[V.i];
+    switch (b.dataset.va) {
+      case "reload": startVocab(); break;
+      case "flip":
+        V.flipped = !V.flipped; renderVocab();
+        if (V.flipped && c && c.ex) speak(c.ex, true);
+        break;
+      case "hear": if (c) speak(c.de, true); break;
+      case "say": if (c) vocabListen(c.de); break;
+      case "next":
+        stopAudio(); speechSynthesis.cancel();
+        V.i++; V.flipped = false; V.heard = null; V.verdict = null;
+        renderVocab();
+        break;
+    }
+  });
+}
+
+function vocabListen(target) {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { V.verdict = "bad"; V.heard = t().noMic; renderVocab(); return; }
+  speechSynthesis.cancel(); stopAudio();
+  const r = new SR();
+  r.lang = "de-DE"; r.interimResults = false; r.maxAlternatives = 3;
+  r.onresult = (e) => {
+    const alts = Array.from(e.results[0]).map((a) => a.transcript);
+    const ok = alts.some((a) => saidWord(a, target));
+    V.heard = alts[0]; V.verdict = ok ? "ok" : "bad";
+    renderVocab();
+    if (!ok) speak(target, true);
+  };
+  r.onerror = () => { V.listening = false; renderVocab(); };
+  r.onend = () => { V.listening = false; renderVocab(); };
+  try { r.start(); V.listening = true; renderVocab(); } catch (e) { V.listening = false; }
 }
 
 /* ---------- celebration ---------- */
@@ -1108,7 +1309,7 @@ function renderCall() {
 }
 
 function show(which) {
-  ["setup","call","done","mistakes","drill"].forEach((id) => $(id).classList.toggle("hidden", id !== which));
+  ["setup","call","done","mistakes","drill","vocab"].forEach((id) => $(id).classList.toggle("hidden", id !== which));
 }
 
 /* ---------- end-of-call evaluation ---------- */
@@ -1212,6 +1413,8 @@ $("replayBtn").onclick = () => {
 $("mistakesBtn").onclick = () => { renderMistakes(); show("mistakes"); };
 $("drillBtn").onclick = () => startDrill();
 $("drillBack").onclick = () => { stopAudio(); speechSynthesis.cancel(); show("setup"); renderSetup(); };
+$("vocabBtn").onclick = () => startVocab();
+$("vocabBack").onclick = () => { stopAudio(); speechSynthesis.cancel(); show("setup"); renderSetup(); };
 $("backBtn").onclick = () => { show("setup"); renderSetup(); };
 $("ankiBtn").onclick = () => exportAnki();
 $("clearBtn").onclick = () => {
