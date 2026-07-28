@@ -111,13 +111,16 @@ const server = http.createServer(async (req, res) => {
       return;
     }
     try {
-      const { text } = JSON.parse(await readBody(req));
+      const { text, voice } = JSON.parse(await readBody(req));
       if (!text || typeof text !== "string" || text.length > 1200) {
         res.writeHead(400, { "content-type": "application/json" });
         res.end(JSON.stringify({ error: "bad_text" }));
         return;
       }
-      const body = { model: TTS_MODEL, voice: TTS_VOICE, input: text, response_format: "mp3" };
+      // per-character voices from the client, whitelisted
+      const VOICES = ["alloy", "ash", "ballad", "coral", "echo", "fable", "nova", "onyx", "sage", "shimmer"];
+      const useVoice = VOICES.includes(voice) ? voice : TTS_VOICE;
+      const body = { model: TTS_MODEL, voice: useVoice, input: text, response_format: "mp3" };
       if (TTS_MODEL.startsWith("gpt-")) {
         body.instructions = "Speak natural, native German as a friendly, professional employee answering a phone call. Natural pacing and intonation, slightly warm.";
       }
