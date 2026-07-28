@@ -58,6 +58,22 @@ const AVATARS = {
   supermarkt: "a supermarket employee, young woman in a store vest",
   kollegen: "a friendly office colleague, woman in her 30s, casual smart clothes",
   empfang: "a doctor's practice front-desk receptionist, woman in her 20s",
+  // second person who may take over the conversation mid-call
+  arzt2: "a German family doctor, man in his 50s, white coat, glasses",
+  amt2: "a senior municipal office supervisor, woman in her 50s, blazer",
+  werkstatt2: "a master mechanic and workshop owner, man in his 50s, grey hair",
+  friseur2: "a salon owner, woman in her 40s, elegant",
+  restaurant2: "a restaurant manager, woman in her 40s, dark blazer",
+  apotheke2: "a senior pharmacist, man in his 50s, white coat",
+  paket2: "a customer service shift supervisor, woman in her 40s, headset",
+  vermieter2: "a building caretaker (Hausmeister), man in his 40s, work jacket",
+  bank2: "a bank branch advisor, woman in her 40s, business dress",
+  kita2: "a kindergarten director, woman in her 50s, warm cardigan",
+  nachbar2: "a friendly retired German woman in her 70s, grey hair, blouse, kind smile",
+  baecker2: "a master baker, man in his 50s, white baker's jacket, flour dust",
+  supermarkt2: "a supermarket store manager, man in his 40s, shirt with name badge",
+  kollegen2: "a department boss, man in his 50s, shirt and tie",
+  empfang2: "a German doctor, man in his 50s, white coat, stethoscope",
 };
 
 if (!AUTH_TOKEN && !API_KEY) {
@@ -126,7 +142,7 @@ const server = http.createServer(async (req, res) => {
 
   if (req.method === "GET" && req.url.startsWith("/api/avatar/")) {
     const [p, q] = req.url.split("?");
-    const id = p.slice("/api/avatar/".length).replace(/[^a-z]/g, "");
+    const id = p.slice("/api/avatar/".length).replace(/[^a-z0-9]/g, "");
     const params = new URLSearchParams(q || "");
     if (PIN && params.get("pin") !== PIN) {
       res.writeHead(401, { "content-type": "application/json" });

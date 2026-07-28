@@ -433,62 +433,62 @@
 
 <script>
 const SCENARIOS = [
-  { id:"arzt", avatar:"👩‍⚕️", voice:"coral", de:"Beim Hausarzt anrufen", es:"Pedir cita en el médico de cabecera", en:"Book a doctor's appointment",
+  { id:"arzt", avatar:"👩‍⚕️", voice:"coral", voice2:"onyx", de:"Beim Hausarzt anrufen", es:"Pedir cita en el médico de cabecera", en:"Book a doctor's appointment",
     who:"Praxis Dr. Wagner", tag:"PRAXIS", role:"a receptionist at a family doctor's practice",
     place:"Hausarztpraxis Dr. Wagner in Odenthal",
     goals:["book an appointment because of a persistent cough",
            "book an appointment because of strong back pain",
            "ask for a repeat prescription and whether you need to come in",
            "reschedule an existing appointment because something came up"] },
-  { id:"amt", avatar:"🧑‍💼", voice:"sage", de:"Termin beim Bürgeramt", es:"Cita en la oficina municipal", en:"Appointment at the citizens' office",
+  { id:"amt", avatar:"🧑‍💼", voice:"sage", voice2:"shimmer", de:"Termin beim Bürgeramt", es:"Cita en la oficina municipal", en:"Appointment at the citizens' office",
     who:"Bürgeramt", tag:"AMT", role:"a clerk at the municipal citizens' office",
     place:"Bürgeramt Bergisch Gladbach",
     goals:["get an appointment to re-register an address",
            "ask what documents are needed to renew an ID card and book a slot",
            "ask about registering a car and where to go"] },
-  { id:"werkstatt", avatar:"👨‍🔧", voice:"onyx", de:"Auto zur Inspektion", es:"Llevar el coche al taller", en:"Take the car in for a service",
+  { id:"werkstatt", avatar:"👨‍🔧", voice:"onyx", voice2:"nova", de:"Auto zur Inspektion", es:"Llevar el coche al taller", en:"Take the car in for a service",
     who:"KFZ-Werkstatt Reuter", tag:"WERKSTATT", role:"a service adviser at a car workshop",
     place:"KFZ-Werkstatt Reuter",
     goals:["book the car in for its service and ask what it costs",
            "describe a strange noise when braking and get an appointment",
            "ask if they can check the battery today because the car barely starts"] },
-  { id:"friseur", avatar:"💇‍♀️", voice:"shimmer", de:"Beim Friseur", es:"Reservar en la peluquería", en:"Book at the hairdresser",
+  { id:"friseur", avatar:"💇‍♀️", voice:"shimmer", voice2:"ash", de:"Beim Friseur", es:"Reservar en la peluquería", en:"Book at the hairdresser",
     who:"Salon Bergmann", tag:"SALON", role:"a hairdresser taking bookings",
     place:"Salon Bergmann",
     goals:["book a haircut for Saturday morning",
            "book a haircut after work this week, you can only come after 5 pm",
            "move your existing appointment to another day"] },
-  { id:"restaurant", avatar:"🤵", voice:"ballad", de:"Tisch reservieren", es:"Reservar mesa", en:"Reserve a table",
+  { id:"restaurant", avatar:"🤵", voice:"ballad", voice2:"coral", de:"Tisch reservieren", es:"Reservar mesa", en:"Reserve a table",
     who:"Restaurant Alte Mühle", tag:"RESERVIERUNG", role:"a waiter taking table reservations",
     place:"Restaurant Alte Mühle",
     goals:["reserve a table for four people on Friday evening",
            "reserve a table for two on Saturday and ask about vegetarian options",
            "cancel a reservation and apologize, ask to rebook next week"] },
-  { id:"apotheke", avatar:"👩‍🔬", voice:"nova", de:"In der Apotheke anrufen", es:"Llamar a la farmacia", en:"Call the pharmacy",
+  { id:"apotheke", avatar:"👩‍🔬", voice:"nova", voice2:"onyx", de:"In der Apotheke anrufen", es:"Llamar a la farmacia", en:"Call the pharmacy",
     who:"Adler-Apotheke", tag:"APOTHEKE", role:"a pharmacist answering the phone",
     place:"Adler-Apotheke",
     goals:["ask if a medicine is in stock and reserve it for pickup",
            "ask how to take a prescribed medicine and if it can be taken with food",
            "ask if they can order a medicine that is out of stock and when it arrives"] },
-  { id:"paket", avatar:"🎧", voice:"echo", de:"Paket nicht angekommen", es:"Paquete que no llega", en:"Missing parcel",
+  { id:"paket", avatar:"🎧", voice:"echo", voice2:"shimmer", de:"Paket nicht angekommen", es:"Paquete que no llega", en:"Missing parcel",
     who:"Paketdienst", tag:"KUNDENDIENST", role:"a customer service agent at a parcel delivery company",
     place:"the customer service line of a parcel delivery company",
     goals:["report that a parcel marked as delivered never arrived",
            "arrange a new delivery date because you were not at home",
            "ask where a parcel is that has been in transit for two weeks"] },
-  { id:"vermieter", avatar:"🧔", voice:"ash", de:"Beim Vermieter anrufen", es:"Llamar al casero", en:"Call the landlord",
+  { id:"vermieter", avatar:"🧔", voice:"ash", voice2:"nova", de:"Beim Vermieter anrufen", es:"Llamar al casero", en:"Call the landlord",
     who:"Hausverwaltung Krüger", tag:"VERWALTUNG", role:"a property manager taking tenant calls",
     place:"Hausverwaltung Krüger",
     goals:["report that the heating is not working and ask for a repair",
            "report a dripping tap in the bathroom and arrange a visit",
            "ask a question about the utility bill you received"] },
-  { id:"bank", avatar:"👨‍💼", voice:"alloy", de:"Bei der Bank anrufen", es:"Llamar al banco", en:"Call the bank",
+  { id:"bank", avatar:"👨‍💼", voice:"alloy", voice2:"shimmer", de:"Bei der Bank anrufen", es:"Llamar al banco", en:"Call the bank",
     who:"Volksbank", tag:"BANK", role:"a bank employee on the service hotline",
     place:"the service hotline of Volksbank",
     goals:["report a lost bank card and ask to block it",
            "ask about a charge on your account you do not recognize",
            "make an appointment to open an account"] },
-  { id:"kita", avatar:"👩‍🏫", voice:"fable", de:"Kind krankmelden", es:"Avisar que el niño está enfermo", en:"Call in sick for your child",
+  { id:"kita", avatar:"👩‍🏫", voice:"fable", voice2:"sage", de:"Kind krankmelden", es:"Avisar que el niño está enfermo", en:"Call in sick for your child",
     who:"Kita Sonnenschein", tag:"KITA", role:"a kindergarten teacher answering the phone",
     place:"Kita Sonnenschein",
     goals:["tell them your child is sick and will stay home today",
@@ -765,7 +765,7 @@ SCENARIOS.forEach((s) => Object.assign(s, SCEN_L10N[s.id] || {}));
 
 /* ---------- face-to-face scenarios (kind:"face" = in person, not a call) ---------- */
 SCENARIOS.push(
-  { id:"nachbar", avatar:"👴", voice:"onyx", kind:"face", de:"Mit dem Nachbarn sprechen", who:"Herr Schmidt (Nachbar)", tag:"NACHBAR",
+  { id:"nachbar", avatar:"👴", voice:"onyx", voice2:"shimmer", kind:"face", de:"Mit dem Nachbarn sprechen", who:"Herr Schmidt (Nachbar)", tag:"NACHBAR",
     role:"the learner's neighbour Herr Schmidt, a friendly but chatty retired man",
     place:"the staircase of the learner's apartment building",
     es:"Hablar con el vecino", en:"Talk to your neighbour", it:"Parlare con il vicino",
@@ -775,7 +775,7 @@ SCENARIOS.push(
            "ask to borrow a drill for the weekend",
            "make small talk about the weather and the new neighbours moving in downstairs",
            "tell him you are having a small party on Saturday and apologise in advance for the noise"] },
-  { id:"baecker", avatar:"👩‍🍳", voice:"shimmer", kind:"face", de:"Beim Bäcker bestellen", who:"Bäckerei Voss", tag:"BÄCKEREI",
+  { id:"baecker", avatar:"👩‍🍳", voice:"shimmer", voice2:"onyx", kind:"face", de:"Beim Bäcker bestellen", who:"Bäckerei Voss", tag:"BÄCKEREI",
     role:"a cheerful bakery shop assistant",
     place:"the counter of Bäckerei Voss",
     es:"Pedir en la panadería", en:"Order at the bakery", it:"Ordinare in panetteria",
@@ -783,7 +783,7 @@ SCENARIOS.push(
     goals:["order bread rolls and a coffee to take away",
            "ask what is fresh today and buy a cake for guests",
            "order a birthday cake to pick up on Saturday"] },
-  { id:"supermarkt", avatar:"👱‍♀️", voice:"nova", kind:"face", de:"Im Supermarkt fragen", who:"REWE-Mitarbeiterin", tag:"MARKT",
+  { id:"supermarkt", avatar:"👱‍♀️", voice:"nova", voice2:"ash", kind:"face", de:"Im Supermarkt fragen", who:"REWE-Mitarbeiterin", tag:"MARKT",
     role:"a supermarket employee stacking shelves",
     place:"a REWE supermarket",
     es:"Preguntar en el supermercado", en:"Ask at the supermarket", it:"Chiedere al supermercato",
@@ -791,7 +791,7 @@ SCENARIOS.push(
     goals:["ask where to find flour and baking ingredients",
            "ask about a product that seems to be out of stock",
            "return a yoghurt that was already open and ask for a refund"] },
-  { id:"kollegen", avatar:"👩‍💻", voice:"coral", kind:"face", de:"Smalltalk mit Kollegen", who:"Kollegin Anna", tag:"BÜRO",
+  { id:"kollegen", avatar:"👩‍💻", voice:"coral", voice2:"onyx", kind:"face", de:"Smalltalk mit Kollegen", who:"Kollegin Anna", tag:"BÜRO",
     role:"the learner's friendly colleague Anna, chatting in the office kitchen",
     place:"the office kitchen at the learner's workplace",
     es:"Charlar con una colega", en:"Small talk with a colleague", it:"Chiacchierare con una collega",
@@ -800,7 +800,7 @@ SCENARIOS.push(
            "ask her how the coffee machine works",
            "ask her advice about a good dentist nearby",
            "tell her you are new and ask about good lunch places"] },
-  { id:"empfang", avatar:"💁‍♀️", voice:"sage", kind:"face", de:"An der Praxis-Anmeldung", who:"Anmeldung Dr. Wagner", tag:"ANMELDUNG",
+  { id:"empfang", avatar:"💁‍♀️", voice:"sage", voice2:"onyx", kind:"face", de:"An der Praxis-Anmeldung", who:"Anmeldung Dr. Wagner", tag:"ANMELDUNG",
     role:"the receptionist at the front desk of a doctor's practice, speaking to patients in person",
     place:"the front desk of Praxis Dr. Wagner",
     es:"En recepción del médico", en:"At the doctor's front desk", it:"Alla reception del medico",
@@ -832,7 +832,7 @@ const SPEEDS = { slow:0.8, normal:1, fast:1.2 };
 
 const S = { scenario:SCENARIOS[0], level:"A1", lang:"es", speed:"normal", turns:[], busy:false,
             listening:false, handsFree:true, seconds:0, timerId:null, hint:null, voice:null, rec:null,
-            currentGoal:null, wakeLock:null, active:null, customTopic:"" };
+            currentGoal:null, wakeLock:null, active:null, customTopic:"", speaker:1 };
 
 /* ---------- settings persistence ---------- */
 const SET_KEY = "telefontrainer.settings";
@@ -1015,8 +1015,14 @@ function stopAudio() {
   setSpeaking(false);
 }
 
-async function neuralSpeak(text, rate, done) {
-  const voice = (S.active || S.scenario || {}).voice || "";
+/* voice of speaker 1 (the usual contact) or 2 (doctor/boss/spouse who took over) */
+function voiceOf(sp) {
+  const A = S.active || S.scenario || {};
+  return (sp === 2 ? A.voice2 || A.voice : A.voice) || "";
+}
+
+async function neuralSpeak(text, rate, done, voice) {
+  if (voice === undefined) voice = voiceOf(1);
   const key = voice + "|" + text;
   let url = ttsCache.get(key);
   if (!url) {
@@ -1059,13 +1065,13 @@ function deviceSpeak(text, rate, done) {
   speechSynthesis.speak(u);
 }
 
-function speak(text, slow, done) {
+function speak(text, slow, done, sp) {
   if (!text) { if (done) done(); return; }
   speechSynthesis.cancel();
   stopAudio();
   const rate = slow ? 0.6 : LEVELS[S.level].rate * (SPEEDS[S.speed] || 1);
   if (neuralOK) {
-    neuralSpeak(text, rate, done).catch(() => deviceSpeak(text, rate, done));
+    neuralSpeak(text, rate, done, voiceOf(sp || 1)).catch(() => deviceSpeak(text, rate, done));
     return;
   }
   deviceSpeak(text, rate, done);
@@ -1598,6 +1604,7 @@ ${face
   : `- Answer the phone first with a realistic German greeting for this kind of business.`}
 - Drive the ${face ? "conversation" : "call"} to a real conclusion: ${face ? "resolve the learner's concern concretely, then part naturally" : "offer concrete dates and times, confirm the learner's name, then say goodbye"}.
 - You are a warm real person who notices the learner is not a native speaker. When they make a clear mistake, OCCASIONALLY (at most every third turn, not always) react the way a kind German would: show you understood, then naturally model the correct phrase inside your German reply - e.g. "Ach, ich verstehe schon! Man sagt übrigens: 'Ich hätte gern einen Termin.' Also, wann passt es Ihnen?". Keep it brief and encouraging, never lecture, then continue the conversation.
+- Sometimes, when natural (especially at B1 and above, or when the learner's request needs it), hand the learner over to a SECOND person - the doctor, a supervisor, a colleague, a spouse. That person introduces themselves and continues the conversation in their own manner. From that reply on set "speaker":"second"; if the first person takes the call back, set "speaker":"main" again.
 - If the learner speaks English or Spanish, still answer in German, and make "suggestion" easier.
 
 Return ONLY a JSON object. No markdown, no code fences. Keys:
@@ -1606,6 +1613,7 @@ Return ONLY a JSON object. No markdown, no code fences. Keys:
 "feedback": at most 25 words in ${help} about the learner's last German line - what was wrong and the natural way to say it. Empty string if the learner has not spoken yet or the line was fine.
 "corrected": the learner's last line rewritten as one natural, correct German sentence. Empty string if the learner has not spoken yet or the line was fine.
 "suggestion": one natural German sentence the learner could say next, at level ${S.level}.
+"speaker": "main" while the usual contact person is speaking, "second" while a different person (doctor, supervisor, colleague, spouse) has the conversation.
 "done": true only after you have said goodbye.`;
 }
 
@@ -1632,10 +1640,11 @@ async function ask() {
         }
       }
     }
-    S.turns.push({ me:false, text:p.reply, tr:p.translation });
+    S.speaker = p.speaker === "second" ? 2 : 1;
+    S.turns.push({ me:false, text:p.reply, tr:p.translation, sp:S.speaker });
     S.hint = p.suggestion || null;
     S.busy = false; renderCall();
-    speak(p.reply, false, () => { if (S.handsFree && !p.done) listen(); });
+    speak(p.reply, false, () => { if (S.handsFree && !p.done) listen(); }, S.speaker);
   } catch (e) {
     S.busy = false; alertMsg(t().err); renderCall();
   }
@@ -1743,7 +1752,7 @@ function renderCall() {
   $("vcEmoji").textContent = A.avatar || "🎧";
   const img = $("vcImg");
   const src = A.id && A.id !== "custom" && A.id !== "random"
-    ? `/api/avatar/${A.id}?pin=${encodeURIComponent(localStorage.getItem(PIN_KEY) || "")}`
+    ? `/api/avatar/${A.id}${S.speaker === 2 ? "2" : ""}?pin=${encodeURIComponent(localStorage.getItem(PIN_KEY) || "")}`
     : "";
   if (img.dataset.src !== src) {
     img.dataset.src = src;
@@ -1804,7 +1813,7 @@ function renderCall() {
   $("log").querySelectorAll("[data-w]").forEach((b) =>
     b.onclick = () => saveWordTap(+b.dataset.ti, b.dataset.w));
   $("log").querySelectorAll("[data-play]").forEach((b) =>
-    b.onclick = () => speak(S.turns[+b.dataset.play].text, true));
+    b.onclick = () => { const x = S.turns[+b.dataset.play]; speak(x.text, true, null, x.sp); });
   $("log").querySelectorAll("[data-say]").forEach((b) =>
     b.onclick = () => speak(S.turns[+b.dataset.say].corrected, true));
   $("log").querySelectorAll("[data-tr]").forEach((b) =>
@@ -2229,7 +2238,7 @@ function startConversation() {
   } else {
     S.active = S.scenario;
   }
-  S.turns = []; S.hint = null; S.hintOpen = false; S.seconds = 0; S.handsFree = true;
+  S.turns = []; S.hint = null; S.hintOpen = false; S.seconds = 0; S.handsFree = true; S.speaker = 1;
   const g = S.active.goals;
   S.currentGoal = g[Math.floor(Math.random() * g.length)];
   show("call"); alertMsg(null); renderCall();
@@ -2288,7 +2297,7 @@ $("replayBtn").onclick = () => {
   const next = () => {
     if (i >= S.turns.length) return;
     const turn = S.turns[i++];
-    speak(turn.me ? (turn.corrected || turn.text) : turn.text, false, next);
+    speak(turn.me ? (turn.corrected || turn.text) : turn.text, false, next, turn.sp);
   };
   next();
 };
@@ -2319,7 +2328,7 @@ document.querySelectorAll("[data-sos]").forEach((b) =>
   b.onclick = () => { if (!S.busy) send(b.dataset.sos); });
 $("freeBtn").onclick = () => { S.handsFree = !S.handsFree; renderCall(); };
 $("repeatBtn").onclick = () => {
-  for (let i = S.turns.length - 1; i >= 0; i--) if (!S.turns[i].me) { speak(S.turns[i].text, true); break; }
+  for (let i = S.turns.length - 1; i >= 0; i--) if (!S.turns[i].me) { speak(S.turns[i].text, true, null, S.turns[i].sp); break; }
 };
 $("hintBtn").onclick = () => { S.hintOpen = !S.hintOpen; renderCall(); };
 $("typeBtn").onclick = () => $("typeRow").classList.toggle("hidden");
