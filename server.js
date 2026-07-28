@@ -148,19 +148,33 @@ const server = http.createServer(async (req, res) => {
       return;
     } catch (e) { /* not cached yet - generate */ }
     try {
-      const upstream = await fetch("https://api.openai.com/v1/images/generations", {
-        method: "POST",
-        headers: { authorization: `Bearer ${TTS_KEY}`, "content-type": "application/json" },
-        body: JSON.stringify({ model: "gpt-image-1", prompt: AVATAR_STYLE + desc, size: "1024x1024", quality: "low", n: 1 }),
-      });
-      if (!upstream.ok) {
-        console.error("Avatar gen failed:", upstream.status, (await upstream.text()).slice(0, 200));
+      // gpt-image-1 is cheapest but needs a verified OpenAI org;
+      // DALL-E 3 works on every account, so fall back to it.
+      let buf = null;
+      for (const model of ["gpt-image-1", "dall-e-3"]) {
+        const body = model === "gpt-image-1"
+          ? { model, prompt: AVATAR_STYLE + desc, size: "1024x1024", quality: "low", n: 1 }
+          : { model, prompt: AVATAR_STYLE + desc, size: "1024x1024", response_format: "b64_json", n: 1 };
+        const upstream = await fetch("https://api.openai.com/v1/images/generations", {
+          method: "POST",
+          headers: { authorization: `Bearer ${TTS_KEY}`, "content-type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        if (!upstream.ok) {
+          console.error("Avatar gen failed:", model, upstream.status, (await upstream.text()).slice(0, 200));
+          continue;
+        }
+        const data = await upstream.json();
+        if (data.data && data.data[0] && data.data[0].b64_json) {
+          buf = Buffer.from(data.data[0].b64_json, "base64");
+          break;
+        }
+      }
+      if (!buf) {
         res.writeHead(502, { "content-type": "application/json" });
         res.end(JSON.stringify({ error: "avatar_failed" }));
         return;
       }
-      const data = await upstream.json();
-      const buf = Buffer.from(data.data[0].b64_json, "base64");
       try { fs.mkdirSync(AVATAR_DIR, { recursive: true }); fs.writeFileSync(file, buf); } catch (e) {}
       serve(buf);
     } catch (err) {
