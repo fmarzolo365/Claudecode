@@ -333,6 +333,11 @@
     <button class="toggle" id="drillBtn"></button>
     <button class="toggle" id="mistakesBtn"></button>
     <button class="toggle" id="progressBtn"></button>
+    <button class="toggle" id="shareBtn"></button>
+    <p class="note" style="text-align:center;margin-top:24px">
+      <a href="/impressum.html" style="color:inherit">Impressum</a> ·
+      <a href="/datenschutz.html" style="color:inherit">Datenschutz</a>
+    </p>
   </section>
 
   <!-- CALL -->
@@ -429,6 +434,11 @@
   <div class="row hidden" id="customRow" style="margin-top:12px">
     <input type="text" id="customTopic" />
   </div>
+  <div class="row" style="margin-top:20px">
+    <button class="ghost" id="exportBtn"></button>
+    <button class="ghost" id="importBtn"></button>
+  </div>
+  <input type="file" id="importFile" accept="application/json" class="hidden" />
 </aside>
 
 <script>
@@ -542,7 +552,10 @@ const T = {
     weeklyHint:"Ya pasó una semana: haz otro test y mira tu mejora", testSay:"Di esto en alemán:",
     skip:"Saltar", scoring:"Evaluando tu test…", yourLevel:"Tu nivel", projected:"Si sigues así",
     testFail:"(No se pudo evaluar el test. Inténtalo de nuevo.)", firstPoint:"Haz otro test la próxima semana para ver tu curva",
-    didWell:"Lo que hiciste bien", toImprove:"Para mejorar", learnWords:"Vocabulario para aprender", addWords:"Guardar en Mis palabras", addedWords:"Guardadas ✓" },
+    didWell:"Lo que hiciste bien", toImprove:"Para mejorar", learnWords:"Vocabulario para aprender", addWords:"Guardar en Mis palabras", addedWords:"Guardadas ✓",
+    dataExport:"Guardar copia de mis datos", dataImport:"Restaurar copia", importedOk:"Datos restaurados ✓",
+    limitMsg:"Se alcanzó el límite diario gratuito. ¡Vuelve mañana! 🙏", share:"Recomendar la app",
+    shareText:"Estoy practicando alemán hablado con Telefontrainer. ¡Pruébalo!", copied:"Enlace copiado ✓" },
   en:{ tagline:"Practise real German calls and conversations. You speak, the other person answers.",
     pick:"Choose the situation", level:"Level", helpLang:"Language for corrections", call:"CALL",
     hangUp:"HANG UP", speak:"Tap and speak", listening:"Listening…", repeat:"Repeat slowly",
@@ -577,7 +590,10 @@ const T = {
     weeklyHint:"A week has passed: take another test and see your improvement", testSay:"Say this in German:",
     skip:"Skip", scoring:"Scoring your test…", yourLevel:"Your level", projected:"If you keep going",
     testFail:"(Could not score the test. Try again.)", firstPoint:"Take another test next week to see your curve",
-    didWell:"What you did well", toImprove:"To improve", learnWords:"Vocabulary to learn", addWords:"Save to My words", addedWords:"Saved ✓" },
+    didWell:"What you did well", toImprove:"To improve", learnWords:"Vocabulary to learn", addWords:"Save to My words", addedWords:"Saved ✓",
+    dataExport:"Back up my data", dataImport:"Restore backup", importedOk:"Data restored ✓",
+    limitMsg:"The free daily limit is reached. Come back tomorrow! 🙏", share:"Recommend the app",
+    shareText:"I'm practising spoken German with Telefontrainer. Try it!", copied:"Link copied ✓" },
 };
 
 /* ---------- additional help languages ---------- */
@@ -615,7 +631,10 @@ T.tr = { tagline:"Gerçek Almanca aramalar ve konuşmalar pratiği yap. Sen konu
   weeklyHint:"Bir hafta geçti: yeni bir test yap ve gelişimini gör", testSay:"Bunu Almanca söyle:",
   skip:"Atla", scoring:"Testin değerlendiriliyor…", yourLevel:"Seviyen", projected:"Böyle devam edersen",
   testFail:"(Test değerlendirilemedi. Tekrar dene.)", firstPoint:"Eğrini görmek için gelecek hafta bir test daha yap",
-  didWell:"İyi yaptıkların", toImprove:"Geliştirilecekler", learnWords:"Öğrenilecek kelimeler", addWords:"Kelimelerime kaydet", addedWords:"Kaydedildi ✓" };
+  didWell:"İyi yaptıkların", toImprove:"Geliştirilecekler", learnWords:"Öğrenilecek kelimeler", addWords:"Kelimelerime kaydet", addedWords:"Kaydedildi ✓",
+  dataExport:"Verilerimi yedekle", dataImport:"Yedeği geri yükle", importedOk:"Veriler geri yüklendi ✓",
+  limitMsg:"Günlük ücretsiz sınıra ulaşıldı. Yarın tekrar gel! 🙏", share:"Uygulamayı öner",
+  shareText:"Telefontrainer ile Almanca konuşma pratiği yapıyorum. Dene!", copied:"Bağlantı kopyalandı ✓" };
 T.ar = { tagline:"تدرّب على مكالمات ومحادثات حقيقية بالألمانية. أنت تتكلم والطرف الآخر يجيب.",
   pick:"اختر الموقف", level:"المستوى", helpLang:"لغة التصحيحات", call:"اتصل",
   hangUp:"إنهاء", speak:"اضغط وتكلّم", listening:"يستمع…", repeat:"إعادة ببطء",
@@ -650,7 +669,10 @@ T.ar = { tagline:"تدرّب على مكالمات ومحادثات حقيقية
   weeklyHint:"مر أسبوع: قم باختبار آخر وشاهد تحسنك", testSay:"قل هذا بالألمانية:",
   skip:"تخطَّ", scoring:"جارٍ تقييم اختبارك…", yourLevel:"مستواك", projected:"إذا واصلت هكذا",
   testFail:"(تعذّر تقييم الاختبار. حاول مجددًا.)", firstPoint:"قم باختبار آخر الأسبوع القادم لترى منحنى تقدمك",
-  didWell:"ما أجدته", toImprove:"ما يجب تحسينه", learnWords:"مفردات للتعلم", addWords:"احفظ في كلماتي", addedWords:"تم الحفظ ✓" };
+  didWell:"ما أجدته", toImprove:"ما يجب تحسينه", learnWords:"مفردات للتعلم", addWords:"احفظ في كلماتي", addedWords:"تم الحفظ ✓",
+  dataExport:"احفظ نسخة من بياناتي", dataImport:"استعادة النسخة", importedOk:"تمت استعادة البيانات ✓",
+  limitMsg:"تم بلوغ الحد اليومي المجاني. عد غدًا! 🙏", share:"أوصِ بالتطبيق",
+  shareText:"أتدرب على التحدث بالألمانية مع Telefontrainer. جربه!", copied:"تم نسخ الرابط ✓" };
 T.uk = { tagline:"Тренуй реальні дзвінки й розмови німецькою. Ти говориш — співрозмовник відповідає.",
   pick:"Обери ситуацію", level:"Рівень", helpLang:"Мова пояснень", call:"ДЗВОНИТИ",
   hangUp:"ПОКЛАСТИ", speak:"Натисни і говори", listening:"Слухаю…", repeat:"Повторити повільно",
@@ -685,7 +707,10 @@ T.uk = { tagline:"Тренуй реальні дзвінки й розмови �
   weeklyHint:"Минув тиждень: пройди ще один тест і побач свій поступ", testSay:"Скажи це німецькою:",
   skip:"Пропустити", scoring:"Оцінюю твій тест…", yourLevel:"Твій рівень", projected:"Якщо продовжиш так",
   testFail:"(Не вдалося оцінити тест. Спробуй ще.)", firstPoint:"Пройди ще один тест наступного тижня, щоб побачити криву",
-  didWell:"Що вдалося добре", toImprove:"Що покращити", learnWords:"Слова для вивчення", addWords:"Зберегти в Мої слова", addedWords:"Збережено ✓" };
+  didWell:"Що вдалося добре", toImprove:"Що покращити", learnWords:"Слова для вивчення", addWords:"Зберегти в Мої слова", addedWords:"Збережено ✓",
+  dataExport:"Зберегти копію моїх даних", dataImport:"Відновити копію", importedOk:"Дані відновлено ✓",
+  limitMsg:"Досягнуто безкоштовний денний ліміт. Повертайся завтра! 🙏", share:"Порадити застосунок",
+  shareText:"Я треную розмовну німецьку з Telefontrainer. Спробуй!", copied:"Посилання скопійовано ✓" };
 
 T.it = { tagline:"Allenati con telefonate e conversazioni reali in tedesco. Tu parli, l'altra persona risponde.",
   pick:"Scegli la situazione", level:"Livello", helpLang:"Lingua delle correzioni", call:"CHIAMA",
@@ -721,7 +746,10 @@ T.it = { tagline:"Allenati con telefonate e conversazioni reali in tedesco. Tu p
   weeklyHint:"È passata una settimana: fai un altro test e guarda i tuoi progressi", testSay:"Dillo in tedesco:",
   skip:"Salta", scoring:"Sto valutando il tuo test…", yourLevel:"Il tuo livello", projected:"Se continui così",
   testFail:"(Impossibile valutare il test. Riprova.)", firstPoint:"Fai un altro test la prossima settimana per vedere la tua curva",
-  didWell:"Cosa hai fatto bene", toImprove:"Da migliorare", learnWords:"Vocabolario da imparare", addWords:"Salva in Le mie parole", addedWords:"Salvate ✓" };
+  didWell:"Cosa hai fatto bene", toImprove:"Da migliorare", learnWords:"Vocabolario da imparare", addWords:"Salva in Le mie parole", addedWords:"Salvate ✓",
+  dataExport:"Salva una copia dei miei dati", dataImport:"Ripristina copia", importedOk:"Dati ripristinati ✓",
+  limitMsg:"Limite giornaliero gratuito raggiunto. Torna domani! 🙏", share:"Consiglia l'app",
+  shareText:"Sto praticando il tedesco parlato con Telefontrainer. Provalo!", copied:"Link copiato ✓" };
 
 const HELP_LANG = { es:"Spanish", en:"English", tr:"Turkish", ar:"Arabic", uk:"Ukrainian", it:"Italian" };
 
@@ -810,6 +838,37 @@ SCENARIOS.push(
            "ask for a sick note (Krankschreibung) for your employer"] },
 );
 
+/* ---------- DTZ speaking exam (B1 integration exam) practice ---------- */
+SCENARIOS.push(
+  { id:"dtz1", kind:"face", avatar:"👩‍💼", voice:"sage", voice2:"onyx",
+    de:"DTZ: Sich vorstellen", who:"Prüferin Frau Berger", tag:"PRÜFUNG",
+    role:"a warm, professional German examiner (Frau Berger) conducting part 1 of the DTZ speaking exam; encouraging but realistic, asks the official kinds of follow-up questions",
+    place:"the speaking part of the DTZ (Deutsch-Test für Zuwanderer) exam",
+    es:"Examen DTZ: presentarte", en:"DTZ exam: introduce yourself", it:"Esame DTZ: presentarsi",
+    tr:"DTZ sınavı: kendini tanıtma", ar:"امتحان DTZ: قدّم نفسك", uk:"Іспит DTZ: представитися",
+    goals:["introduce yourself: name, where you come from, family, work and why you learn German",
+           "introduce yourself and answer follow-up questions about your daily life and hobbies",
+           "introduce yourself and talk about your plans for the future in Germany"] },
+  { id:"dtz2", kind:"face", avatar:"👩‍💼", voice:"coral", voice2:"ash",
+    de:"DTZ: Über ein Thema sprechen", who:"Prüferin Frau Berger", tag:"PRÜFUNG",
+    role:"a warm, professional German examiner (Frau Berger) conducting part 2 of the DTZ speaking exam: the learner talks about an everyday topic and answers follow-up questions",
+    place:"the speaking part of the DTZ (Deutsch-Test für Zuwanderer) exam",
+    es:"Examen DTZ: hablar de un tema", en:"DTZ exam: talk about a topic", it:"Esame DTZ: parlare di un tema",
+    tr:"DTZ sınavı: bir konu anlatma", ar:"امتحان DTZ: التحدث عن موضوع", uk:"Іспит DTZ: розповісти про тему",
+    goals:["talk about shopping habits in your family and answer follow-up questions",
+           "talk about how you use your phone and the internet, with follow-up questions",
+           "talk about how celebrations work in your home country, with follow-up questions"] },
+  { id:"dtz3", kind:"face", avatar:"👩‍💼", voice:"nova", voice2:"echo",
+    de:"DTZ: Gemeinsam planen", who:"Prüferin Frau Berger", tag:"PRÜFUNG",
+    role:"a warm, professional German examiner (Frau Berger) playing the exam partner in part 3 of the DTZ speaking exam: planning something together, making and reacting to suggestions",
+    place:"the speaking part of the DTZ (Deutsch-Test für Zuwanderer) exam",
+    es:"Examen DTZ: planear juntos", en:"DTZ exam: plan together", it:"Esame DTZ: pianificare insieme",
+    tr:"DTZ sınavı: birlikte planlama", ar:"امتحان DTZ: التخطيط معًا", uk:"Іспит DTZ: планувати разом",
+    goals:["plan a farewell present and a small party for a colleague together",
+           "plan a joint weekend trip together: when, how to travel, what to bring",
+           "plan a visit to a sick friend together: when to go, what to bring along"] },
+);
+
 /* ---------- free mode + scenario groups ---------- */
 SCENARIOS.push(
   { id:"random", avatar:"🎲", de:"🎲 Überraschungsanruf", es:"Una llamada al azar", en:"A random call",
@@ -825,6 +884,8 @@ const GROUPS = [
   { es:"Ocio y reservas", en:"Leisure & bookings", tr:"Boş zaman ve rezervasyon", ar:"ترفيه وحجوزات", uk:"Дозвілля та бронювання", it:"Tempo libero e prenotazioni", ids:["friseur","restaurant"] },
   { es:"Cara a cara", en:"Face to face", tr:"Yüz yüze", ar:"وجهًا لوجه", uk:"Віч-на-віч", it:"Faccia a faccia",
     ids:["nachbar","baecker","supermarkt","kollegen","empfang"] },
+  { es:"Examen DTZ (B1)", en:"DTZ exam (B1)", tr:"DTZ sınavı (B1)", ar:"امتحان DTZ (B1)", uk:"Іспит DTZ (B1)", it:"Esame DTZ (B1)",
+    ids:["dtz1","dtz2","dtz3"] },
   { es:"Modo libre", en:"Free mode", tr:"Serbest mod", ar:"وضع حر", uk:"Вільний режим", it:"Modalità libera", ids:["random","custom"] },
 ];
 
@@ -850,6 +911,11 @@ function saveSettings() {
     if (T[s.lang]) S.lang = s.lang;
     if (SPEEDS[s.speed]) S.speed = s.speed;
     if (typeof s.customTopic === "string") S.customTopic = s.customTopic;
+    // first run: preselect the correction language from the phone's language
+    if (!localStorage.getItem(SET_KEY)) {
+      const nav2 = ((typeof navigator !== "undefined" && navigator.language) || "").slice(0, 2).toLowerCase();
+      if (T[nav2]) S.lang = nav2;
+    }
   } catch (e) {}
 })();
 
@@ -941,6 +1007,10 @@ async function chatFetch(payload) {
       res = await doFetch();
     }
     if (res.status === 401) localStorage.removeItem(PIN_KEY);
+  }
+  if (res.status === 429 && !S.limitShown) {
+    S.limitShown = true;
+    alert(t().limitMsg);
   }
   return res;
 }
@@ -1188,6 +1258,9 @@ function renderSetup() {
   const due = daysSinceTest() >= 7;
   $("progressBtn").textContent = `📈 ${L.progress}${due ? " ●" : ""}`;
   $("progressBtn").className = "toggle" + (due ? " on" : "");
+  $("shareBtn").textContent = `📤 ${L.share}`;
+  $("exportBtn").textContent = `⬇ ${L.dataExport}`;
+  $("importBtn").textContent = `⬆ ${L.dataImport}`;
 }
 
 /* ---------- mistakes history screen ---------- */
@@ -2345,6 +2418,45 @@ $("hintBtn").onclick = () => { S.hintOpen = !S.hintOpen; renderCall(); };
 $("typeBtn").onclick = () => $("typeRow").classList.toggle("hidden");
 $("sendBtn").onclick = () => send($("draft").value);
 $("customTopic").oninput = (e) => { S.customTopic = e.target.value; };
+$("shareBtn").onclick = async () => {
+  const url = location.origin;
+  const text = t().shareText;
+  if (navigator.share) {
+    try { await navigator.share({ title: "Telefontrainer", text, url }); } catch (e) {}
+  } else if (navigator.clipboard) {
+    try { await navigator.clipboard.writeText(text + " " + url); alert(t().copied); } catch (e) {}
+  }
+};
+$("exportBtn").onclick = () => {
+  const data = {};
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (k && k.indexOf("telefontrainer.") === 0) data[k] = localStorage.getItem(k);
+  }
+  const blob = new Blob([JSON.stringify(data)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "telefontrainer-backup.json";
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+};
+$("importBtn").onclick = () => $("importFile").click();
+$("importFile").onchange = (e) => {
+  const f = e.target.files && e.target.files[0];
+  if (!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      const data = JSON.parse(r.result);
+      Object.entries(data).forEach(([k, v]) => {
+        if (k.indexOf("telefontrainer.") === 0 && typeof v === "string") localStorage.setItem(k, v);
+      });
+      alert(t().importedOk);
+      location.reload();
+    } catch (err) { alert("✗"); }
+  };
+  r.readAsText(f);
+};
 $("draft").onkeydown = (e) => { if (e.key === "Enter") send($("draft").value); };
 
 renderSetup();
