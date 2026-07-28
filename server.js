@@ -214,7 +214,7 @@ const server = http.createServer(async (req, res) => {
       return;
     }
     try {
-      const { text, voice, pace } = JSON.parse(await readBody(req));
+      const { text, voice, pace, char } = JSON.parse(await readBody(req));
       if (!text || typeof text !== "string" || text.length > 1200) {
         res.writeHead(400, { "content-type": "application/json" });
         res.end(JSON.stringify({ error: "bad_text" }));
@@ -232,8 +232,11 @@ const server = http.createServer(async (req, res) => {
           fast: "Speak briskly, like a busy native German employee in a hurry - quick natural conversational pace, but still clearly articulated.",
           normal: "Speak at a relaxed natural conversational pace.",
         };
-        body.instructions = "You are a friendly German native speaker in a real conversation. Natural, warm, human intonation - never monotone. " +
-          (PACE[pace] || PACE.normal);
+        // voice-act the person whose portrait is on screen
+        const persona = typeof char === "string" && AVATARS[char.replace(/[^a-z0-9]/g, "")]
+          ? " You are " + AVATARS[char.replace(/[^a-z0-9]/g, "")] + " - let age, gender and personality come through in the voice." : "";
+        body.instructions = "You are a friendly German native speaker in a real conversation. Natural, warm, human intonation - never monotone." +
+          persona + " " + (PACE[pace] || PACE.normal);
       }
       const upstream = await fetch("https://api.openai.com/v1/audio/speech", {
         method: "POST",

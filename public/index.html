@@ -440,19 +440,19 @@ const SCENARIOS = [
            "book an appointment because of strong back pain",
            "ask for a repeat prescription and whether you need to come in",
            "reschedule an existing appointment because something came up"] },
-  { id:"amt", avatar:"🧑‍💼", voice:"sage", voice2:"shimmer", de:"Termin beim Bürgeramt", es:"Cita en la oficina municipal", en:"Appointment at the citizens' office",
+  { id:"amt", avatar:"🧑‍💼", voice:"alloy", voice2:"shimmer", de:"Termin beim Bürgeramt", es:"Cita en la oficina municipal", en:"Appointment at the citizens' office",
     who:"Bürgeramt", tag:"AMT", role:"a clerk at the municipal citizens' office",
     place:"Bürgeramt Bergisch Gladbach",
     goals:["get an appointment to re-register an address",
            "ask what documents are needed to renew an ID card and book a slot",
            "ask about registering a car and where to go"] },
-  { id:"werkstatt", avatar:"👨‍🔧", voice:"onyx", voice2:"nova", de:"Auto zur Inspektion", es:"Llevar el coche al taller", en:"Take the car in for a service",
+  { id:"werkstatt", avatar:"👨‍🔧", voice:"onyx", voice2:"ash", de:"Auto zur Inspektion", es:"Llevar el coche al taller", en:"Take the car in for a service",
     who:"KFZ-Werkstatt Reuter", tag:"WERKSTATT", role:"a service adviser at a car workshop",
     place:"KFZ-Werkstatt Reuter",
     goals:["book the car in for its service and ask what it costs",
            "describe a strange noise when braking and get an appointment",
            "ask if they can check the battery today because the car barely starts"] },
-  { id:"friseur", avatar:"💇‍♀️", voice:"shimmer", voice2:"ash", de:"Beim Friseur", es:"Reservar en la peluquería", en:"Book at the hairdresser",
+  { id:"friseur", avatar:"💇‍♀️", voice:"shimmer", voice2:"coral", de:"Beim Friseur", es:"Reservar en la peluquería", en:"Book at the hairdresser",
     who:"Salon Bergmann", tag:"SALON", role:"a hairdresser taking bookings",
     place:"Salon Bergmann",
     goals:["book a haircut for Saturday morning",
@@ -476,7 +476,7 @@ const SCENARIOS = [
     goals:["report that a parcel marked as delivered never arrived",
            "arrange a new delivery date because you were not at home",
            "ask where a parcel is that has been in transit for two weeks"] },
-  { id:"vermieter", avatar:"🧔", voice:"ash", voice2:"nova", de:"Beim Vermieter anrufen", es:"Llamar al casero", en:"Call the landlord",
+  { id:"vermieter", avatar:"🧔", voice:"ash", voice2:"echo", de:"Beim Vermieter anrufen", es:"Llamar al casero", en:"Call the landlord",
     who:"Hausverwaltung Krüger", tag:"VERWALTUNG", role:"a property manager taking tenant calls",
     place:"Hausverwaltung Krüger",
     goals:["report that the heating is not working and ask for a repair",
@@ -488,7 +488,7 @@ const SCENARIOS = [
     goals:["report a lost bank card and ask to block it",
            "ask about a charge on your account you do not recognize",
            "make an appointment to open an account"] },
-  { id:"kita", avatar:"👩‍🏫", voice:"fable", voice2:"sage", de:"Kind krankmelden", es:"Avisar que el niño está enfermo", en:"Call in sick for your child",
+  { id:"kita", avatar:"👩‍🏫", voice:"sage", voice2:"coral", de:"Kind krankmelden", es:"Avisar que el niño está enfermo", en:"Call in sick for your child",
     who:"Kita Sonnenschein", tag:"KITA", role:"a kindergarten teacher answering the phone",
     place:"Kita Sonnenschein",
     goals:["tell them your child is sick and will stay home today",
@@ -1021,16 +1021,24 @@ function voiceOf(sp) {
   return (sp === 2 ? A.voice2 || A.voice : A.voice) || "";
 }
 
-async function neuralSpeak(text, rate, done, voice, pace) {
+/* character id of the current speaker, for voice acting on the server */
+function charOf(sp) {
+  const A = S.active || S.scenario || {};
+  if (!A.id || A.id === "custom" || A.id === "random") return "";
+  return sp === 2 ? A.id + "2" : A.id;
+}
+
+async function neuralSpeak(text, rate, done, voice, pace, char) {
   if (voice === undefined) voice = voiceOf(1);
   pace = pace || "normal";
-  const key = voice + "|" + pace + "|" + text;
+  char = char || "";
+  const key = voice + "|" + pace + "|" + char + "|" + text;
   let url = ttsCache.get(key);
   if (!url) {
     const res = await fetch("/api/tts", {
       method: "POST",
       headers: { "content-type": "application/json", "x-trainer-pin": localStorage.getItem(PIN_KEY) || "" },
-      body: JSON.stringify({ text, voice, pace }),
+      body: JSON.stringify({ text, voice, pace, char }),
     });
     if (res.status === 501) { neuralOK = false; throw new Error("unconfigured"); }
     if (!res.ok) throw new Error("tts " + res.status);
@@ -1074,7 +1082,7 @@ function speak(text, slow, done, sp) {
   const rate = slow ? 0.6 : LEVELS[S.level].rate * (SPEEDS[S.speed] || 1);
   if (neuralOK) {
     const pace = slow || rate < 0.92 ? "slow" : rate > 1.08 ? "fast" : "normal";
-    neuralSpeak(text, rate, done, voiceOf(sp || 1), pace).catch(() => deviceSpeak(text, rate, done));
+    neuralSpeak(text, rate, done, voiceOf(sp || 1), pace, charOf(sp || 1)).catch(() => deviceSpeak(text, rate, done));
     return;
   }
   deviceSpeak(text, rate, done);

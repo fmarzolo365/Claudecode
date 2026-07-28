@@ -164,9 +164,34 @@ check("XP and rank math", () => {
 });
 
 check("speaker voices: main and second differ where defined", () => {
+  for (const sc of tt.SCENARIOS) {
+    if (sc.goals && sc.voice === sc.voice2) throw new Error(sc.id + " voice == voice2");
+  }
   tt.S.active = tt.SCENARIOS.find((x) => x.id === "arzt");
-  if (tt.voiceOf(1) === tt.voiceOf(2)) throw new Error("arzt voices identical");
   if (tt.voiceOf(1) !== "coral" || tt.voiceOf(2) !== "onyx") throw new Error(tt.voiceOf(1) + "/" + tt.voiceOf(2));
+});
+
+check("voice gender matches the portrait gender for every character", () => {
+  const FEMALE = new Set(["coral", "nova", "sage", "shimmer"]);
+  const MALE = new Set(["alloy", "ash", "ballad", "echo", "onyx", "fable"]);
+  const server = fs.readFileSync(path.join(__dirname, "..", "server.js"), "utf8");
+  const block = server.slice(server.indexOf("const AVATARS"), server.indexOf("};", server.indexOf("const AVATARS")));
+  const portraits = {};
+  for (const m2 of block.matchAll(/^\s{2}(\w+): "([^"]+)"/gm)) {
+    portraits[m2[1]] = /\bwoman\b/.test(m2[2]) ? "F" : /\bman\b/.test(m2[2]) ? "M" : "?";
+  }
+  if (Object.keys(portraits).length < 30) throw new Error("could not parse AVATARS from server.js");
+  const genderOf = (v) => (FEMALE.has(v) ? "F" : MALE.has(v) ? "M" : "?");
+  for (const sc of tt.SCENARIOS) {
+    if (!sc.goals) continue;
+    for (const [key, voice] of [[sc.id, sc.voice], [sc.id + "2", sc.voice2]]) {
+      const pg = portraits[key];
+      if (!pg) throw new Error("no portrait for " + key);
+      if (pg !== "?" && genderOf(voice) !== pg) {
+        throw new Error(key + ": portrait is " + pg + " but voice " + voice + " is " + genderOf(voice));
+      }
+    }
+  }
 });
 
 check("timer label switches for face-to-face scenarios", () => {
