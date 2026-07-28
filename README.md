@@ -138,6 +138,17 @@ https://docs.claude.com/en/docs/about-claude/models
   don't know — the app saves its dictionary form, translation and the sentence
   it appeared in. Saved words become a personal ⭐ flashcard deck in the
   vocabulary chooser (with per-card delete).
+- **Face-to-face conversations**: not everything is a phone call — talk to your
+  neighbour in the stairwell, order at the bakery, ask in the supermarket,
+  small-talk with a colleague, or check in at the doctor's front desk, with
+  natural in-person openings instead of phone formulas.
+- **SOS phrases**: one-tap rescue lines during any conversation ("Wie bitte?",
+  "Langsamer, bitte", "Noch einmal, bitte") — the real-world repair strategies
+  that take the fear out of not understanding.
+- **Speak your corrections**: the mistake drill opens the microphone after
+  revealing the right sentence, so you say it aloud and get instant feedback.
+- **Daily routine**: a three-step checklist on the home card (vocabulary →
+  conversation → mistakes) that ticks itself off as you practise each day.
 
 ## Changing the scenarios
 

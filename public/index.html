@@ -144,6 +144,8 @@
   }
   .mini:hover { color: var(--ink); }
   .row { display: flex; gap: 10px; margin-top: 14px; }
+  .row.sos { gap: 6px; margin-top: 10px; }
+  .row.sos .ghost { font-size: 11.5px; padding: 9px 4px; }
   .ghost {
     flex: 1; padding: 12px 10px; background: var(--card); border: 1px solid var(--line);
     color: var(--ink); font: 600 13px Archivo, sans-serif; cursor: pointer;
@@ -178,6 +180,13 @@
   .xpbar { height: 7px; background: #ece5d4; border-radius: 99px; margin-top: 7px; overflow: hidden; }
   .xpbar div { height: 100%; background: linear-gradient(90deg, var(--yellow), var(--yellow-deep)); border-radius: 99px; transition: width .6s ease; }
   .hero-sub { margin-top: 9px; font-size: 11.5px; color: var(--muted); }
+  .routine { display: flex; gap: 6px; margin-top: 10px; }
+  .routine span {
+    flex: 1; text-align: center; font: 600 11px Archivo, sans-serif;
+    padding: 6px 4px; border-radius: 99px; background: #ece5d4; color: var(--muted);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .routine span.done { background: rgba(46,125,91,.15); color: var(--green); }
   .chip {
     font: 700 11px 'JetBrains Mono', monospace; background: var(--yellow); color: var(--ink);
     border-radius: 99px; padding: 4px 10px; letter-spacing: .06em; white-space: nowrap;
@@ -266,6 +275,7 @@
       <div class="hero-lv"><span class="ttl" id="heroLv"></span><span class="hero-xp" id="heroXp"></span></div>
       <div class="xpbar"><div id="xpFill" style="width:0%"></div></div>
       <div class="hero-sub" id="heroSub"></div>
+      <div class="routine" id="routine"></div>
     </div>
 
     <div class="label" id="lblPick"></div>
@@ -302,6 +312,11 @@
       <button class="ghost" id="hintBtn"></button>
     </div>
     <div id="hintBox" class="hint hidden"><div class="label">VORSCHLAG</div><div id="hintText"></div></div>
+    <div class="row sos">
+      <button class="ghost" data-sos="Wie bitte?">🆘 Wie bitte?</button>
+      <button class="ghost" data-sos="Langsamer, bitte.">🐢 Langsamer, bitte</button>
+      <button class="ghost" data-sos="Können Sie das noch einmal sagen?">🔁 Noch einmal, bitte</button>
+    </div>
     <button class="toggle on" id="freeBtn"></button>
     <div id="alert" class="alert hidden"></div>
     <button class="big" id="micBtn"></button>
@@ -437,7 +452,7 @@ const LEVELS = {
 };
 
 const T = {
-  es:{ tagline:"Practica llamadas telefónicas en alemán. Tú hablas, la otra persona responde.",
+  es:{ tagline:"Practica llamadas y conversaciones reales en alemán. Tú hablas, la otra persona responde.",
     pick:"Elige la situación", level:"Nivel", helpLang:"Idioma de las correcciones", call:"LLAMAR",
     hangUp:"COLGAR", speak:"Pulsa y habla", listening:"Escuchando…", repeat:"Repetir despacio",
     hint:"¿Qué puedo decir?", type:"Escribir en vez de hablar", send:"Enviar", show:"Traducción",
@@ -461,8 +476,10 @@ const T = {
     almost:"Casi — escucha y repite", next:"Siguiente",
     vocabLoading:"Creando tu vocabulario…", vocabFail:"No se pudo crear la lista. Inténtalo de nuevo.",
     vocabDone:"¡Vocabulario repasado!", forCall:"Para esta llamada",
-    myWords:"Mis palabras", tapWordHint:"💡 Toca una palabra que no conozcas para guardarla" },
-  en:{ tagline:"Practise German phone calls. You speak, the other person answers.",
+    myWords:"Mis palabras", tapWordHint:"💡 Toca una palabra que no conozcas para guardarla",
+    talk:"HABLAR", endTalk:"TERMINAR", endedTalk:"CONVERSACIÓN TERMINADA",
+    routine:"Rutina de hoy", rCall:"Conversación", rVocab:"Vocabulario", rDrill:"Errores" },
+  en:{ tagline:"Practise real German calls and conversations. You speak, the other person answers.",
     pick:"Choose the situation", level:"Level", helpLang:"Language for corrections", call:"CALL",
     hangUp:"HANG UP", speak:"Tap and speak", listening:"Listening…", repeat:"Repeat slowly",
     hint:"What can I say?", type:"Type instead of speaking", send:"Send", show:"Translation",
@@ -486,11 +503,13 @@ const T = {
     almost:"Almost — listen and repeat", next:"Next",
     vocabLoading:"Building your vocabulary…", vocabFail:"Could not create the list. Try again.",
     vocabDone:"Vocabulary done!", forCall:"For this call",
-    myWords:"My words", tapWordHint:"💡 Tap any word you don't know to save it" },
+    myWords:"My words", tapWordHint:"💡 Tap any word you don't know to save it",
+    talk:"TALK", endTalk:"END", endedTalk:"CONVERSATION ENDED",
+    routine:"Today's routine", rCall:"Conversation", rVocab:"Vocabulary", rDrill:"Mistakes" },
 };
 
 /* ---------- additional help languages ---------- */
-T.tr = { tagline:"Almanca telefon görüşmeleri pratiği yap. Sen konuş, karşı taraf cevap versin.",
+T.tr = { tagline:"Gerçek Almanca aramalar ve konuşmalar pratiği yap. Sen konuş, karşı taraf cevap versin.",
   pick:"Durumu seç", level:"Seviye", helpLang:"Düzeltme dili", call:"ARA",
   hangUp:"KAPAT", speak:"Bas ve konuş", listening:"Dinliyor…", repeat:"Yavaş tekrarla",
   hint:"Ne diyebilirim?", type:"Konuşmak yerine yaz", send:"Gönder", show:"Çeviri",
@@ -514,8 +533,10 @@ T.tr = { tagline:"Almanca telefon görüşmeleri pratiği yap. Sen konuş, karş
   almost:"Neredeyse — dinle ve tekrarla", next:"İleri",
   vocabLoading:"Kelime listen hazırlanıyor…", vocabFail:"Liste oluşturulamadı. Tekrar dene.",
   vocabDone:"Kelimeler tamamlandı!", forCall:"Bu arama için",
-  myWords:"Kelimelerim", tapWordHint:"💡 Bilmediğin bir kelimeye dokun, kaydedilsin" };
-T.ar = { tagline:"تدرّب على المكالمات الهاتفية بالألمانية. أنت تتكلم والطرف الآخر يجيب.",
+  myWords:"Kelimelerim", tapWordHint:"💡 Bilmediğin bir kelimeye dokun, kaydedilsin",
+  talk:"KONUŞ", endTalk:"BİTİR", endedTalk:"KONUŞMA BİTTİ",
+  routine:"Bugünkü rutin", rCall:"Konuşma", rVocab:"Kelimeler", rDrill:"Hatalar" };
+T.ar = { tagline:"تدرّب على مكالمات ومحادثات حقيقية بالألمانية. أنت تتكلم والطرف الآخر يجيب.",
   pick:"اختر الموقف", level:"المستوى", helpLang:"لغة التصحيحات", call:"اتصل",
   hangUp:"إنهاء", speak:"اضغط وتكلّم", listening:"يستمع…", repeat:"إعادة ببطء",
   hint:"ماذا يمكنني أن أقول؟", type:"اكتب بدلاً من الكلام", send:"إرسال", show:"الترجمة",
@@ -539,8 +560,10 @@ T.ar = { tagline:"تدرّب على المكالمات الهاتفية بالأ
   almost:"تقريبًا — استمع وكرر", next:"التالي",
   vocabLoading:"جارٍ إنشاء مفرداتك…", vocabFail:"تعذّر إنشاء القائمة. حاول مجددًا.",
   vocabDone:"انتهت المفردات!", forCall:"لهذه المكالمة",
-  myWords:"كلماتي", tapWordHint:"💡 المس أي كلمة لا تعرفها لحفظها" };
-T.uk = { tagline:"Тренуй телефонні розмови німецькою. Ти говориш — співрозмовник відповідає.",
+  myWords:"كلماتي", tapWordHint:"💡 المس أي كلمة لا تعرفها لحفظها",
+  talk:"تحدّث", endTalk:"إنهاء", endedTalk:"انتهت المحادثة",
+  routine:"روتين اليوم", rCall:"محادثة", rVocab:"مفردات", rDrill:"أخطاء" };
+T.uk = { tagline:"Тренуй реальні дзвінки й розмови німецькою. Ти говориш — співрозмовник відповідає.",
   pick:"Обери ситуацію", level:"Рівень", helpLang:"Мова пояснень", call:"ДЗВОНИТИ",
   hangUp:"ПОКЛАСТИ", speak:"Натисни і говори", listening:"Слухаю…", repeat:"Повторити повільно",
   hint:"Що можна сказати?", type:"Писати замість говорити", send:"Надіслати", show:"Переклад",
@@ -564,9 +587,11 @@ T.uk = { tagline:"Тренуй телефонні розмови німецьк�
   almost:"Майже — послухай і повтори", next:"Далі",
   vocabLoading:"Створюю твій словник…", vocabFail:"Не вдалося створити список. Спробуй ще.",
   vocabDone:"Словник пройдено!", forCall:"Для цього дзвінка",
-  myWords:"Мої слова", tapWordHint:"💡 Торкнись незнайомого слова, щоб зберегти його" };
+  myWords:"Мої слова", tapWordHint:"💡 Торкнись незнайомого слова, щоб зберегти його",
+  talk:"ГОВОРИТИ", endTalk:"ЗАВЕРШИТИ", endedTalk:"РОЗМОВУ ЗАВЕРШЕНО",
+  routine:"Рутина на сьогодні", rCall:"Розмова", rVocab:"Слова", rDrill:"Помилки" };
 
-T.it = { tagline:"Allenati con le telefonate in tedesco. Tu parli, l'altra persona risponde.",
+T.it = { tagline:"Allenati con telefonate e conversazioni reali in tedesco. Tu parli, l'altra persona risponde.",
   pick:"Scegli la situazione", level:"Livello", helpLang:"Lingua delle correzioni", call:"CHIAMA",
   hangUp:"RIAGGANCIA", speak:"Premi e parla", listening:"In ascolto…", repeat:"Ripeti lentamente",
   hint:"Cosa posso dire?", type:"Scrivi invece di parlare", send:"Invia", show:"Traduzione",
@@ -590,7 +615,9 @@ T.it = { tagline:"Allenati con le telefonate in tedesco. Tu parli, l'altra perso
   almost:"Quasi — ascolta e ripeti", next:"Avanti",
   vocabLoading:"Sto creando il tuo vocabolario…", vocabFail:"Impossibile creare la lista. Riprova.",
   vocabDone:"Vocabolario completato!", forCall:"Per questa chiamata",
-  myWords:"Le mie parole", tapWordHint:"💡 Tocca una parola che non conosci per salvarla" };
+  myWords:"Le mie parole", tapWordHint:"💡 Tocca una parola che non conosci per salvarla",
+  talk:"PARLA", endTalk:"TERMINA", endedTalk:"CONVERSAZIONE TERMINATA",
+  routine:"Routine di oggi", rCall:"Conversazione", rVocab:"Vocabolario", rDrill:"Errori" };
 
 const HELP_LANG = { es:"Spanish", en:"English", tr:"Turkish", ar:"Arabic", uk:"Ukrainian", it:"Italian" };
 
@@ -624,6 +651,53 @@ const SCEN_L10N = {
 };
 SCENARIOS.forEach((s) => Object.assign(s, SCEN_L10N[s.id] || {}));
 
+/* ---------- face-to-face scenarios (kind:"face" = in person, not a call) ---------- */
+SCENARIOS.push(
+  { id:"nachbar", kind:"face", de:"Mit dem Nachbarn sprechen", who:"Herr Schmidt (Nachbar)", tag:"NACHBAR",
+    role:"the learner's neighbour Herr Schmidt, a friendly but chatty retired man",
+    place:"the staircase of the learner's apartment building",
+    es:"Hablar con el vecino", en:"Talk to your neighbour", it:"Parlare con il vicino",
+    tr:"Komşuyla konuşmak", ar:"التحدث مع الجار", uk:"Поговорити з сусідом",
+    goals:["ask him to accept a parcel for you tomorrow",
+           "politely mention that the music was very loud last night and ask him to keep it down",
+           "ask to borrow a drill for the weekend",
+           "make small talk about the weather and the new neighbours moving in downstairs",
+           "tell him you are having a small party on Saturday and apologise in advance for the noise"] },
+  { id:"baecker", kind:"face", de:"Beim Bäcker bestellen", who:"Bäckerei Voss", tag:"BÄCKEREI",
+    role:"a cheerful bakery shop assistant",
+    place:"the counter of Bäckerei Voss",
+    es:"Pedir en la panadería", en:"Order at the bakery", it:"Ordinare in panetteria",
+    tr:"Fırında sipariş vermek", ar:"الطلب من المخبز", uk:"Замовити в пекарні",
+    goals:["order bread rolls and a coffee to take away",
+           "ask what is fresh today and buy a cake for guests",
+           "order a birthday cake to pick up on Saturday"] },
+  { id:"supermarkt", kind:"face", de:"Im Supermarkt fragen", who:"REWE-Mitarbeiterin", tag:"MARKT",
+    role:"a supermarket employee stacking shelves",
+    place:"a REWE supermarket",
+    es:"Preguntar en el supermercado", en:"Ask at the supermarket", it:"Chiedere al supermercato",
+    tr:"Markette sormak", ar:"السؤال في السوبر ماركت", uk:"Запитати в супермаркеті",
+    goals:["ask where to find flour and baking ingredients",
+           "ask about a product that seems to be out of stock",
+           "return a yoghurt that was already open and ask for a refund"] },
+  { id:"kollegen", kind:"face", de:"Smalltalk mit Kollegen", who:"Kollegin Anna", tag:"BÜRO",
+    role:"the learner's friendly colleague Anna, chatting in the office kitchen",
+    place:"the office kitchen at the learner's workplace",
+    es:"Charlar con una colega", en:"Small talk with a colleague", it:"Chiacchierare con una collega",
+    tr:"İş arkadaşıyla sohbet", ar:"دردشة مع زميلة", uk:"Розмова з колегою",
+    goals:["make small talk about the weekend",
+           "ask her how the coffee machine works",
+           "ask her advice about a good dentist nearby",
+           "tell her you are new and ask about good lunch places"] },
+  { id:"empfang", kind:"face", de:"An der Praxis-Anmeldung", who:"Anmeldung Dr. Wagner", tag:"ANMELDUNG",
+    role:"the receptionist at the front desk of a doctor's practice, speaking to patients in person",
+    place:"the front desk of Praxis Dr. Wagner",
+    es:"En recepción del médico", en:"At the doctor's front desk", it:"Alla reception del medico",
+    tr:"Doktor resepsiyonunda", ar:"في استقبال العيادة", uk:"На реєстратурі в лікаря",
+    goals:["check in for your appointment and hand over your insurance card",
+           "explain that you have no appointment but strong pain, and ask to be seen today",
+           "ask for a sick note (Krankschreibung) for your employer"] },
+);
+
 /* ---------- free mode + scenario groups ---------- */
 SCENARIOS.push(
   { id:"random", de:"🎲 Überraschungsanruf", es:"Una llamada al azar", en:"A random call",
@@ -637,6 +711,8 @@ const GROUPS = [
   { es:"Trámites y dinero", en:"Bureaucracy & money", tr:"Resmî işler ve para", ar:"معاملات ومال", uk:"Справи та гроші", it:"Burocrazia e soldi", ids:["amt","bank"] },
   { es:"Casa y día a día", en:"Home & daily life", tr:"Ev ve günlük hayat", ar:"البيت والحياة اليومية", uk:"Дім і побут", it:"Casa e vita quotidiana", ids:["vermieter","paket","werkstatt","kita"] },
   { es:"Ocio y reservas", en:"Leisure & bookings", tr:"Boş zaman ve rezervasyon", ar:"ترفيه وحجوزات", uk:"Дозвілля та бронювання", it:"Tempo libero e prenotazioni", ids:["friseur","restaurant"] },
+  { es:"Cara a cara", en:"Face to face", tr:"Yüz yüze", ar:"وجهًا لوجه", uk:"Віч-на-віч", it:"Faccia a faccia",
+    ids:["nachbar","baecker","supermarkt","kollegen","empfang"] },
   { es:"Modo libre", en:"Free mode", tr:"Serbest mod", ar:"وضع حر", uk:"Вільний режим", it:"Modalità libera", ids:["random","custom"] },
 ];
 
@@ -686,6 +762,12 @@ function recordCall() {
 function addXp(n) {
   const st = loadStats();
   st.xp = (st.xp || 0) + n;
+  try { localStorage.setItem(STAT_KEY, JSON.stringify(st)); } catch (e) {}
+}
+function markDay(kind) { // "vocabDays" | "drillDays" - calls already live in st.days
+  const st = loadStats();
+  st[kind] = st[kind] || {};
+  st[kind][new Date().toISOString().slice(0, 10)] = true;
   try { localStorage.setItem(STAT_KEY, JSON.stringify(st)); } catch (e) {}
 }
 /* caller ranks by lifetime XP; titles stay German on purpose */
@@ -864,8 +946,18 @@ function renderSetup() {
     $("heroSub").textContent =
       (r.next ? `${r.next - xp} XP ${L.toNext} · ` : "") +
       `📞 ${st.calls} ${L.calls} · ⏱ ${Math.round((st.seconds || 0) / 60)} ${L.minutes}`;
+    const today = new Date().toISOString().slice(0, 10);
+    const steps = [
+      ["📇", L.rVocab, (st.vocabDays || {})[today]],
+      ["💬", L.rCall, st.days[today]],
+      ["🎯", L.rDrill, (st.drillDays || {})[today]],
+    ];
+    $("routine").innerHTML = steps.map(([ic, name, done]) =>
+      `<span class="${done ? "done" : ""}">${done ? "✓" : ic} ${esc(name)}</span>`).join("");
   }
-  $("callBtn").innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M6.6 10.8c1.6 3.1 4.1 5.6 7.2 7.2l2.4-2.4c.3-.3.7-.4 1.1-.3 1.2.4 2.5.6 3.8.6.6 0 1 .4 1 1V21c0 .6-.4 1-1 1C11.6 22 2 12.4 2 1c0-.6.4-1 1-1h3.9c.6 0 1 .4 1 1 0 1.3.2 2.6.6 3.8.1.4 0 .8-.3 1.1L6.6 10.8z"/></svg>' + L.call;
+  $("callBtn").innerHTML = S.scenario.kind === "face"
+    ? '💬 ' + L.talk
+    : '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M6.6 10.8c1.6 3.1 4.1 5.6 7.2 7.2l2.4-2.4c.3-.3.7-.4 1.1-.3 1.2.4 2.5.6 3.8.6.6 0 1 .4 1 1V21c0 .6-.4 1-1 1C11.6 22 2 12.4 2 1c0-.6.4-1 1-1h3.9c.6 0 1 .4 1 1 0 1.3.2 2.6.6 3.8.1.4 0 .8-.3 1.1L6.6 10.8z"/></svg>' + L.call;
 
   $("scenarios").innerHTML = GROUPS.map((g) =>
     `<div class="label" style="margin:14px 14px 6px">${esc(g[S.lang] || g.en)}</div>` +
@@ -969,6 +1061,7 @@ function renderDrill() {
   if (D.i >= D.q.length) {
     const xp = D.total * 3;
     addXp(xp);
+    markDay("drillDays");
     confettiBurst();
     $("drillCard").innerHTML =
       `<div class="said" style="font-family:'Space Grotesk',sans-serif;font-size:19px;font-weight:700">🎉 ${esc(L.drillDone)}</div>
@@ -984,7 +1077,11 @@ function renderDrill() {
       ? `<button class="ghost" style="width:100%;margin-top:14px" data-da="reveal">${esc(L.reveal)}</button>`
       : `<div class="drill-ok">${esc(f.corrected)}</div>
          ${f.fix ? `<div class="fix">${esc(f.fix)}</div>` : ""}
-         <div style="margin-top:8px"><button class="mini" data-da="play">&#9654; ${esc(L.sayIt)}</button></div>
+         ${verdictHTML(D, L)}
+         <div class="row">
+           <button class="ghost" data-da="play">&#9654; ${esc(L.sayIt)}</button>
+           <button class="ghost" data-da="say" ${D.listening ? "disabled" : ""}>${D.listening ? esc(L.listening) : esc(L.sayWord)}</button>
+         </div>
          <div class="row">
            <button class="ghost" data-da="knew">${esc(L.knew)}</button>
            <button class="ghost" data-da="retry">${esc(L.retry)}</button>
@@ -992,7 +1089,13 @@ function renderDrill() {
   $("drillCard").querySelectorAll("[data-da]").forEach((b) => b.onclick = () => {
     const act = b.dataset.da;
     if (act === "play") { speak(f.corrected, true); return; }
-    if (act === "reveal") { D.open = true; renderDrill(); speak(f.corrected, true); return; }
+    if (act === "say") { listenFor(f.corrected, D, renderDrill); return; }
+    if (act === "reveal") {
+      D.open = true; renderDrill();
+      // listen -> repeat: after the corrected sentence plays, the mic opens
+      speak(f.corrected, true, () => { if (D && D.open && D.q[D.i] === item && !D.listening) listenFor(f.corrected, D, renderDrill); });
+      return;
+    }
     const all = loadFixes(), rec = all[item.i];
     if (rec) {
       rec.box = act === "knew" ? (rec.box || 0) + 1 : 0;
@@ -1000,7 +1103,7 @@ function renderDrill() {
       saveFixes(all);
     }
     if (act === "retry") D.q.push(item);
-    D.i++; D.open = false;
+    D.i++; D.open = false; D.verdict = null; D.heard = null; D.err = null;
     renderDrill();
   });
 }
@@ -1112,7 +1215,9 @@ async function loadDeck() {
     if (Array.isArray(c) && c.length) return c;
   } catch (e) {}
   const help = HELP_LANG[S.lang] || "English";
-  const what = topic ? `a phone call about: ${topic}` : `${sc.de} - calling ${sc.place}`;
+  const what = topic ? `a phone call about: ${topic}`
+    : sc.kind === "face" ? `${sc.de} - an in-person conversation at ${sc.place}`
+    : `${sc.de} - calling ${sc.place}`;
   const res = await chatFetch({
     system: `You create a vocabulary deck for a German learner at CEFR level ${S.level} preparing for ${what}.
 Return ONLY a JSON array, no markdown, of exactly 12 items:
@@ -1190,6 +1295,7 @@ function renderVocab() {
   } else if (V.i >= V.deck.length) {
     if (!V.deck.length) { $("vocabBody").innerHTML = `<p class="note">—</p>`; return; }
     addXp(12);
+    markDay("vocabDays");
     confettiBurst();
     $("vocabBody").innerHTML =
       `<div class="said" style="font-family:'Space Grotesk',sans-serif;font-size:19px;font-weight:700">🎉 ${esc(L.vocabDone)}</div>
@@ -1204,8 +1310,7 @@ function renderVocab() {
            ? `<div class="v-tr">${esc(c.tr)}</div>${c.ex ? `<div class="v-ex">„${esc(c.ex)}“${c.exTr ? `<br><span style="font-style:italic;opacity:.85">${esc(c.exTr)}</span>` : ""}</div>` : ""}${V.mywords ? `<div><button class="mini" data-va="del">🗑</button></div>` : ""}`
            : `<div class="v-flip">${esc(L.vocabFlip)}</div>`}
        </div>
-       ${V.err ? `<div class="v-verdict bad">${esc(V.err)}</div>` : ""}
-       ${V.verdict ? `<div class="v-verdict ${V.verdict}">${V.verdict === "ok" ? "✅ " + esc(L.wellSaid) : "🔁 " + esc(L.almost)}${V.heard ? `<br><span style="font-weight:400">${esc(L.heardYou)} „${esc(V.heard)}“</span>` : ""}</div>` : ""}
+       ${verdictHTML(V, L)}
        <div class="row">
          <button class="ghost" data-va="hear">&#9834; ${esc(L.sayIt)}</button>
          <button class="ghost ${V.listening ? "" : ""}" data-va="say" ${V.listening ? "disabled" : ""}>${V.listening ? esc(L.listening) : esc(L.sayWord)}</button>
@@ -1245,38 +1350,45 @@ function renderVocab() {
   });
 }
 
-async function vocabListen(target) {
+/* shared pronunciation listener: writes listening/verdict/heard/err into st */
+async function listenFor(target, st, rerender) {
   const L = t();
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR) { V.err = L.noMic; renderVocab(); return; }
-  if (V.listening) return;
+  if (!SR) { st.err = L.noMic; rerender(); return; }
+  if (st.listening) return;
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     stream.getTracks().forEach((tr) => tr.stop());
-  } catch (e) { V.err = L.micBlocked; renderVocab(); return; }
+  } catch (e) { st.err = L.micBlocked; rerender(); return; }
   speechSynthesis.cancel(); stopAudio();
-  V.err = null; V.verdict = null; V.heard = null;
+  st.err = null; st.verdict = null; st.heard = null;
   const r = new SR();
   r.lang = "de-DE"; r.interimResults = false; r.maxAlternatives = 5;
   r.onresult = (e) => {
     const alts = Array.from(e.results[0]).map((a) => a.transcript);
     const ok = alts.some((a) => saidWord(a, target));
-    V.heard = alts[0]; V.verdict = ok ? "ok" : "bad";
-    renderVocab();
+    st.heard = alts[0]; st.verdict = ok ? "ok" : "bad";
+    rerender();
     if (!ok) speak(target, true);
   };
   r.onerror = (e) => {
-    V.listening = false;
+    st.listening = false;
     const c = e && e.error;
-    if (c === "no-speech") V.err = L.noSpeech;
-    else if (c === "not-allowed" || c === "service-not-allowed") V.err = L.micBlocked;
-    else if (c === "audio-capture") V.err = L.noDevice;
-    else if (c !== "aborted") V.err = L.micErr + ": " + c;
-    renderVocab();
+    if (c === "no-speech") st.err = L.noSpeech;
+    else if (c === "not-allowed" || c === "service-not-allowed") st.err = L.micBlocked;
+    else if (c === "audio-capture") st.err = L.noDevice;
+    else if (c !== "aborted") st.err = L.micErr + ": " + c;
+    rerender();
   };
-  r.onend = () => { V.listening = false; renderVocab(); };
-  try { r.start(); V.listening = true; renderVocab(); }
-  catch (e) { V.listening = false; V.err = L.micErr; renderVocab(); }
+  r.onend = () => { st.listening = false; rerender(); };
+  try { r.start(); st.listening = true; rerender(); }
+  catch (e) { st.listening = false; st.err = L.micErr; rerender(); }
+}
+function vocabListen(target) { return listenFor(target, V, renderVocab); }
+/* small verdict box shared by vocab cards and the mistake drill */
+function verdictHTML(st, L) {
+  return (st.err ? `<div class="v-verdict bad">${esc(st.err)}</div>` : "") +
+    (st.verdict ? `<div class="v-verdict ${st.verdict}">${st.verdict === "ok" ? "✅ " + esc(L.wellSaid) : "🔁 " + esc(L.almost)}${st.heard ? `<br><span style="font-weight:400">${esc(L.heardYou)} „${esc(st.heard)}“</span>` : ""}</div>` : "");
 }
 
 /* ---------- celebration ---------- */
@@ -1300,6 +1412,7 @@ function confettiBurst() {
 /* ---------- call ---------- */
 function systemPrompt() {
   const L = LEVELS[S.level], help = HELP_LANG[S.lang] || "English", s = S.active || S.scenario;
+  const face = s.kind === "face";
   const custom = s.id === "custom"
     ? `\nThe learner described the situation in their own words (possibly not in German): interpret it, decide what kind of business or office would be called, and play that role realistically.\n`
     : "";
@@ -1307,15 +1420,18 @@ function systemPrompt() {
   const weakSpots = recent.length
     ? `\nThe learner's recent recurring mistakes (from earlier calls):\n${recent.map((f) => `- said "${f.text}" -> better: ${f.fix}`).join("\n")}\nWhen natural, steer the conversation so the learner gets a chance to practise these patterns again. Never mention that you are doing this.\n`
     : "";
-  return `You are running a German-language telephone role-play for a learner at CEFR level ${S.level}.
-Your role: ${s.role} at ${s.place}. The learner is calling to ${S.currentGoal}.
+  return `You are running a German-language ${face ? "face-to-face" : "telephone"} role-play for a learner at CEFR level ${S.level}.
+Your role: ${s.role} at ${s.place}. The learner ${face ? "approaches you in person" : "is calling"} to ${S.currentGoal}.
 ${custom}${weakSpots}
 Rules:
-- The "reply" field is ONLY German. Stay in character for the whole call. Never mention that this is practice.
+- The "reply" field is ONLY German. Stay in character for the whole ${face ? "conversation" : "call"}. Never mention that this is practice.
 - Level guidance: ${L.guide}
 - At most ${L.words} words per reply, at most one question per turn.
-- Answer the phone first with a realistic German greeting for this kind of business.
-- Drive the call to a real conclusion: offer concrete dates and times, confirm the learner's name, then say goodbye.
+${face
+  ? `- Open the conversation as this person naturally would in this place (a simple "Guten Tag" / "Hallo" / "Was darf's sein?"), never with telephone formulas.
+- This is spoken in person: casual register where natural, react to the situation around you (queue, weather, noise), small human touches.`
+  : `- Answer the phone first with a realistic German greeting for this kind of business.`}
+- Drive the ${face ? "conversation" : "call"} to a real conclusion: ${face ? "resolve the learner's concern concretely, then part naturally" : "offer concrete dates and times, confirm the learner's name, then say goodbye"}.
 - If the learner speaks English or Spanish, still answer in German, and make "suggestion" easier.
 
 Return ONLY a JSON object. No markdown, no code fences. Keys:
@@ -1449,13 +1565,17 @@ function mmss() {
   const s = String(S.seconds % 60).padStart(2, "0");
   return m + ":" + s;
 }
+function timerText() {
+  const A = S.active || S.scenario;
+  return (A.kind === "face" ? "IM GESPRÄCH · " : "VERBUNDEN · ") + mmss();
+}
 
 function renderCall() {
   const L = t();
   const A = S.active || S.scenario;
   $("who").textContent = A.who;
-  $("timer").textContent = "VERBUNDEN · " + mmss();
-  $("hangBtn").textContent = L.hangUp;
+  $("timer").textContent = timerText();
+  $("hangBtn").textContent = A.kind === "face" ? L.endTalk : L.hangUp;
   $("repeatBtn").textContent = L.repeat;
   $("hintBtn").textContent = L.hint;
   $("typeBtn").textContent = L.type;
@@ -1514,7 +1634,7 @@ async function evaluateCall() {
   const transcript = S.turns.map((x) => `${x.me ? "LEARNER" : "OTHER"}: ${x.text}`).join("\n");
   try {
     const res = await chatFetch({
-      system: `You evaluate a German phone-call role-play by a learner at CEFR level ${S.level}. The learner's goal was: ${S.currentGoal}. Return ONLY a JSON object, no markdown, with keys: "achieved" (true/false/"partial" - did the learner reach the goal), "comment" (2 sentences in ${help}: what went well and overall impression), "tips" (array of at most 3 short concrete tips in ${help} to improve, most important first).`,
+      system: `You evaluate a German ${(S.active || S.scenario).kind === "face" ? "face-to-face" : "phone-call"} role-play by a learner at CEFR level ${S.level}. The learner's goal was: ${S.currentGoal}. Return ONLY a JSON object, no markdown, with keys: "achieved" (true/false/"partial" - did the learner reach the goal), "comment" (2 sentences in ${help}: what went well and overall impression), "tips" (array of at most 3 short concrete tips in ${help} to improve, most important first).`,
       messages: [{ role: "user", content: `Transcript of the call:\n${transcript}` }],
     });
     const data = await res.json();
@@ -1557,7 +1677,7 @@ $("callBtn").onclick = () => {
   show("call"); alertMsg(null); renderCall();
   acquireWakeLock();
   clearInterval(S.timerId);
-  S.timerId = setInterval(() => { S.seconds++; $("timer").textContent = "VERBUNDEN · " + mmss(); }, 1000);
+  S.timerId = setInterval(() => { S.seconds++; $("timer").textContent = timerText(); }, 1000);
   ask();
 };
 $("hangBtn").onclick = () => {
@@ -1569,7 +1689,7 @@ $("hangBtn").onclick = () => {
   stopAudio();
   try { S.rec && S.rec.abort(); } catch (e) {}
   const L = t();
-  $("doneTitle").textContent = L.ended;
+  $("doneTitle").textContent = (S.active || S.scenario).kind === "face" ? L.endedTalk : L.ended;
   $("againBtn").textContent = L.again;
   const fixes = S.turns.filter((x) => x.me && x.fix);
   $("review").innerHTML = `<div class="label" style="margin:0">${esc(L.review)} · ${mmss()}</div>` +
@@ -1617,6 +1737,8 @@ $("clearBtn").onclick = () => {
   if (confirm(t().clearConfirm)) { localStorage.removeItem(FIX_KEY); renderMistakes(); }
 };
 $("micBtn").onclick = () => listen();
+document.querySelectorAll("[data-sos]").forEach((b) =>
+  b.onclick = () => { if (!S.busy) send(b.dataset.sos); });
 $("freeBtn").onclick = () => { S.handsFree = !S.handsFree; renderCall(); };
 $("repeatBtn").onclick = () => {
   for (let i = S.turns.length - 1; i >= 0; i--) if (!S.turns[i].me) { speak(S.turns[i].text, true); break; }
