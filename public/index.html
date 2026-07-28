@@ -133,6 +133,9 @@
   }
   .tag.me { color: var(--green); }
   .said { font-size: 15.5px; line-height: 1.5; }
+  .w { cursor: pointer; border-radius: 4px; }
+  .w:active { background: rgba(245,197,49,.4); }
+  .wsave { margin-top: 6px; font: 600 12.5px Archivo, sans-serif; color: var(--green); }
   .sub { font-size: 13px; color: var(--muted); margin-top: 4px; }
   .fix { font-size: 12.5px; color: var(--red); margin-top: 4px; }
   .mini {
@@ -293,6 +296,7 @@
       <button class="hang" id="hangBtn"></button>
     </div>
     <div class="log" id="log"></div>
+    <p class="note hidden" id="tapHint" style="margin:8px 2px 0"></p>
     <div class="row">
       <button class="ghost" id="repeatBtn"></button>
       <button class="ghost" id="hintBtn"></button>
@@ -456,7 +460,8 @@ const T = {
     sayWord:"Pronúncialo 🎤", heardYou:"Escuché:", wellSaid:"¡Muy bien dicho!",
     almost:"Casi — escucha y repite", next:"Siguiente",
     vocabLoading:"Creando tu vocabulario…", vocabFail:"No se pudo crear la lista. Inténtalo de nuevo.",
-    vocabDone:"¡Vocabulario repasado!", forCall:"Para esta llamada" },
+    vocabDone:"¡Vocabulario repasado!", forCall:"Para esta llamada",
+    myWords:"Mis palabras", tapWordHint:"💡 Toca una palabra que no conozcas para guardarla" },
   en:{ tagline:"Practise German phone calls. You speak, the other person answers.",
     pick:"Choose the situation", level:"Level", helpLang:"Language for corrections", call:"CALL",
     hangUp:"HANG UP", speak:"Tap and speak", listening:"Listening…", repeat:"Repeat slowly",
@@ -480,7 +485,8 @@ const T = {
     sayWord:"Say it out loud 🎤", heardYou:"I heard:", wellSaid:"Well said!",
     almost:"Almost — listen and repeat", next:"Next",
     vocabLoading:"Building your vocabulary…", vocabFail:"Could not create the list. Try again.",
-    vocabDone:"Vocabulary done!", forCall:"For this call" },
+    vocabDone:"Vocabulary done!", forCall:"For this call",
+    myWords:"My words", tapWordHint:"💡 Tap any word you don't know to save it" },
 };
 
 /* ---------- additional help languages ---------- */
@@ -507,7 +513,8 @@ T.tr = { tagline:"Almanca telefon görüşmeleri pratiği yap. Sen konuş, karş
   sayWord:"Yüksek sesle söyle 🎤", heardYou:"Duyduğum:", wellSaid:"Çok iyi söyledin!",
   almost:"Neredeyse — dinle ve tekrarla", next:"İleri",
   vocabLoading:"Kelime listen hazırlanıyor…", vocabFail:"Liste oluşturulamadı. Tekrar dene.",
-  vocabDone:"Kelimeler tamamlandı!", forCall:"Bu arama için" };
+  vocabDone:"Kelimeler tamamlandı!", forCall:"Bu arama için",
+  myWords:"Kelimelerim", tapWordHint:"💡 Bilmediğin bir kelimeye dokun, kaydedilsin" };
 T.ar = { tagline:"تدرّب على المكالمات الهاتفية بالألمانية. أنت تتكلم والطرف الآخر يجيب.",
   pick:"اختر الموقف", level:"المستوى", helpLang:"لغة التصحيحات", call:"اتصل",
   hangUp:"إنهاء", speak:"اضغط وتكلّم", listening:"يستمع…", repeat:"إعادة ببطء",
@@ -531,7 +538,8 @@ T.ar = { tagline:"تدرّب على المكالمات الهاتفية بالأ
   sayWord:"قلها بصوت عالٍ 🎤", heardYou:"سمعت:", wellSaid:"أحسنت النطق!",
   almost:"تقريبًا — استمع وكرر", next:"التالي",
   vocabLoading:"جارٍ إنشاء مفرداتك…", vocabFail:"تعذّر إنشاء القائمة. حاول مجددًا.",
-  vocabDone:"انتهت المفردات!", forCall:"لهذه المكالمة" };
+  vocabDone:"انتهت المفردات!", forCall:"لهذه المكالمة",
+  myWords:"كلماتي", tapWordHint:"💡 المس أي كلمة لا تعرفها لحفظها" };
 T.uk = { tagline:"Тренуй телефонні розмови німецькою. Ти говориш — співрозмовник відповідає.",
   pick:"Обери ситуацію", level:"Рівень", helpLang:"Мова пояснень", call:"ДЗВОНИТИ",
   hangUp:"ПОКЛАСТИ", speak:"Натисни і говори", listening:"Слухаю…", repeat:"Повторити повільно",
@@ -555,7 +563,8 @@ T.uk = { tagline:"Тренуй телефонні розмови німецьк�
   sayWord:"Скажи вголос 🎤", heardYou:"Я почув:", wellSaid:"Чудово сказано!",
   almost:"Майже — послухай і повтори", next:"Далі",
   vocabLoading:"Створюю твій словник…", vocabFail:"Не вдалося створити список. Спробуй ще.",
-  vocabDone:"Словник пройдено!", forCall:"Для цього дзвінка" };
+  vocabDone:"Словник пройдено!", forCall:"Для цього дзвінка",
+  myWords:"Мої слова", tapWordHint:"💡 Торкнись незнайомого слова, щоб зберегти його" };
 
 T.it = { tagline:"Allenati con le telefonate in tedesco. Tu parli, l'altra persona risponde.",
   pick:"Scegli la situazione", level:"Livello", helpLang:"Lingua delle correzioni", call:"CHIAMA",
@@ -580,7 +589,8 @@ T.it = { tagline:"Allenati con le telefonate in tedesco. Tu parli, l'altra perso
   sayWord:"Pronuncialo 🎤", heardYou:"Ho sentito:", wellSaid:"Ben detto!",
   almost:"Quasi — ascolta e ripeti", next:"Avanti",
   vocabLoading:"Sto creando il tuo vocabolario…", vocabFail:"Impossibile creare la lista. Riprova.",
-  vocabDone:"Vocabolario completato!", forCall:"Per questa chiamata" };
+  vocabDone:"Vocabolario completato!", forCall:"Per questa chiamata",
+  myWords:"Le mie parole", tapWordHint:"💡 Tocca una parola che non conosci per salvarla" };
 
 const HELP_LANG = { es:"Spanish", en:"English", tr:"Turkish", ar:"Arabic", uk:"Ukrainian", it:"Italian" };
 
@@ -710,6 +720,15 @@ function saveFix(text, fix, corrected) {
 }
 function saveFixes(arr) {
   try { localStorage.setItem(FIX_KEY, JSON.stringify(arr)); } catch (e) {}
+}
+
+/* ---------- saved words (tapped during calls) ---------- */
+const WORD_KEY = "telefontrainer.words";
+function loadWords() {
+  try { return JSON.parse(localStorage.getItem(WORD_KEY)) || []; } catch (e) { return []; }
+}
+function saveWordsList(arr) {
+  try { localStorage.setItem(WORD_KEY, JSON.stringify(arr.slice(-200))); } catch (e) {}
 }
 
 /* ---------- API calls (with optional PIN when hosted) ---------- */
@@ -1123,6 +1142,12 @@ async function openDeck(kind) {
     renderVocab();
     try { V.deck = await loadDeck(); } catch (e) { V.failed = true; }
     renderVocab();
+  } else if (kind === "mywords") {
+    const L = t();
+    V.mywords = true;
+    $("vocabSub").textContent = `⭐ ${L.myWords}`;
+    V.deck = loadWords().slice().reverse().slice(0, 20).map((w) => ({ de: w.de, tr: w.tr, ex: w.ex || "" }));
+    renderVocab();
   } else {
     const d = BASIC_DECKS.find((x) => x.id === kind);
     $("vocabSub").textContent = `${d.icon} ${d.de} · ${d[S.lang] || d.en}`;
@@ -1135,9 +1160,12 @@ function renderVocab() {
   const L = t();
   if (V.stage === "pick") {
     const scOK = !(S.scenario.id === "random" || (S.scenario.id === "custom" && !(S.customTopic || "").trim()));
+    const nw = loadWords().length;
     $("vocabBody").innerHTML = `<div class="list">
       <button class="item" data-vd="call" ${scOK ? "" : "disabled"}>
         <b>📞 ${esc(L.forCall)}</b><small>${esc(S.scenario.id === "custom" ? (S.customTopic || "—") : S.scenario.de)}</small></button>
+      <button class="item" data-vd="mywords" ${nw ? "" : "disabled"}>
+        <b>⭐ ${esc(L.myWords)}</b><small>${nw ? `${nw} ${esc(L.saved)}` : esc(L.tapWordHint)}</small></button>
       ${BASIC_DECKS.map((d) => `<button class="item" data-vd="${d.id}">
         <b>${d.icon} ${esc(d.de)}</b><small>${esc(d[S.lang] || d.en)}</small></button>`).join("")}
     </div>`;
@@ -1152,6 +1180,7 @@ function renderVocab() {
   } else if (!V.deck) {
     $("vocabBody").innerHTML = `<p class="note">${esc(L.vocabLoading)}</p>`;
   } else if (V.i >= V.deck.length) {
+    if (!V.deck.length) { $("vocabBody").innerHTML = `<p class="note">—</p>`; return; }
     addXp(12);
     confettiBurst();
     $("vocabBody").innerHTML =
@@ -1164,7 +1193,7 @@ function renderVocab() {
        <div class="v-card" data-va="flip" style="margin-top:10px">
          <div class="v-de">${esc(c.de)}</div>
          ${V.flipped
-           ? `<div class="v-tr">${esc(c.tr)}</div>${c.ex ? `<div class="v-ex">„${esc(c.ex)}“</div>` : ""}`
+           ? `<div class="v-tr">${esc(c.tr)}</div>${c.ex ? `<div class="v-ex">„${esc(c.ex)}“</div>` : ""}${V.mywords ? `<div><button class="mini" data-va="del">🗑</button></div>` : ""}`
            : `<div class="v-flip">${esc(L.vocabFlip)}</div>`}
        </div>
        ${V.verdict ? `<div class="v-verdict ${V.verdict}">${V.verdict === "ok" ? "✅ " + esc(L.wellSaid) : "🔁 " + esc(L.almost)}${V.heard ? `<br><span style="font-weight:400">${esc(L.heardYou)} „${esc(V.heard)}“</span>` : ""}</div>` : ""}
@@ -1176,10 +1205,19 @@ function renderVocab() {
          <button class="ghost" data-va="next">${esc(L.next)} &rsaquo;</button>
        </div>`;
   }
-  $("vocabBody").querySelectorAll("[data-va]").forEach((b) => b.onclick = () => {
+  $("vocabBody").querySelectorAll("[data-va]").forEach((b) => b.onclick = (ev) => {
+    if (ev && ev.stopPropagation) ev.stopPropagation();
     const c = V.deck && V.deck[V.i];
     switch (b.dataset.va) {
       case "reload": openDeck("call"); break;
+      case "del":
+        if (c) {
+          saveWordsList(loadWords().filter((w) => w.de !== c.de));
+          V.deck.splice(V.i, 1);
+          V.flipped = false; V.heard = null; V.verdict = null;
+          renderVocab();
+        }
+        break;
       case "flip":
         V.flipped = !V.flipped; renderVocab();
         if (V.flipped && c && c.ex) speak(c.ex, true);
@@ -1338,6 +1376,46 @@ async function listen() {
   catch (e) { S.listening = false; alertMsg(t().micErr + ": " + e.message); renderCall(); }
 }
 
+/* tap a word in the other person's line -> look it up and save it */
+async function saveWordTap(ti, raw) {
+  const turn = S.turns[ti];
+  if (!turn || (turn.wsave && turn.wsave.pending)) return;
+  const clean = normDe(raw);
+  if (!clean) return;
+  const existing = loadWords().find((w) => normDe(w.raw) === clean || normDe(w.de).split(" ").includes(clean));
+  if (existing) { turn.wsave = { de: existing.de, tr: existing.tr }; renderCall(); return; }
+  turn.wsave = { pending: true };
+  renderCall();
+  try {
+    const help = HELP_LANG[S.lang] || "English";
+    const res = await chatFetch({
+      system: `Return ONLY a JSON object, no markdown: {"de":"...","tr":"..."}. "de": the dictionary form of the tapped German word (nouns capitalized with their article, verbs in the infinitive). "tr": a short translation in ${help} that fits this context.`,
+      messages: [{ role: "user", content: `Tapped word: "${raw}"\nSentence: "${turn.text}"` }],
+    });
+    const data = await res.json();
+    const rawTxt = (data.content || []).filter((b) => b.type === "text").map((b) => b.text).join("");
+    const cleanTxt = rawTxt.replace(/```json|```/g, "").trim();
+    const p = JSON.parse(cleanTxt.slice(cleanTxt.indexOf("{"), cleanTxt.lastIndexOf("}") + 1));
+    if (!p.de || !p.tr) throw new Error("bad lookup");
+    const words = loadWords();
+    words.push({ de: p.de, tr: p.tr, raw, ex: turn.text, lang: S.lang, date: new Date().toISOString().slice(0, 10) });
+    saveWordsList(words);
+    turn.wsave = { de: p.de, tr: p.tr };
+  } catch (e) {
+    turn.wsave = null;
+  }
+  renderCall();
+}
+
+function tappable(text, ti) {
+  return String(text).split(/(\s+)/).map((tok) => {
+    const clean = tok.replace(/[^A-Za-zÄÖÜäöüß-]/g, "");
+    return clean.length > 1
+      ? `<span class="w" data-w="${esc(clean)}" data-ti="${ti}">${esc(tok)}</span>`
+      : esc(tok);
+  }).join("");
+}
+
 function mmss() {
   const m = String(Math.floor(S.seconds / 60)).padStart(2, "0");
   const s = String(S.seconds % 60).padStart(2, "0");
@@ -1369,7 +1447,8 @@ function renderCall() {
     <div class="turn">
       <div class="tag ${x.me ? "me" : ""}">${x.me ? L.you : esc(A.tag)}</div>
       <div style="flex:1">
-        <div class="said">${esc(x.text)}</div>
+        <div class="said">${x.me ? esc(x.text) : tappable(x.text, i)}</div>
+        ${!x.me && x.wsave ? `<div class="wsave">${x.wsave.pending ? "…" : `⭐ ${esc(x.wsave.de)} — ${esc(x.wsave.tr)}`}</div>` : ""}
         ${x.me ? "" : `<div style="margin-top:5px">
             <button class="mini" data-play="${i}">&#9834;</button>
             <button class="mini" data-tr="${i}">${L.show}</button></div>`}
@@ -1378,6 +1457,12 @@ function renderCall() {
       </div>
     </div>`).join("") + (S.busy ? '<div class="turn" style="opacity:.5">· · ·</div>' : "");
 
+  const showTapHint = S.turns.some((x) => !x.me) && loadWords().length < 5;
+  $("tapHint").textContent = L.tapWordHint;
+  $("tapHint").classList.toggle("hidden", !showTapHint);
+
+  $("log").querySelectorAll("[data-w]").forEach((b) =>
+    b.onclick = () => saveWordTap(+b.dataset.ti, b.dataset.w));
   $("log").querySelectorAll("[data-play]").forEach((b) =>
     b.onclick = () => speak(S.turns[+b.dataset.play].text, true));
   $("log").querySelectorAll("[data-say]").forEach((b) =>
