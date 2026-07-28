@@ -1197,6 +1197,7 @@ function renderVocab() {
            ? `<div class="v-tr">${esc(c.tr)}</div>${c.ex ? `<div class="v-ex">„${esc(c.ex)}“${c.exTr ? `<br><span style="font-style:italic;opacity:.85">${esc(c.exTr)}</span>` : ""}</div>` : ""}${V.mywords ? `<div><button class="mini" data-va="del">🗑</button></div>` : ""}`
            : `<div class="v-flip">${esc(L.vocabFlip)}</div>`}
        </div>
+       ${V.err ? `<div class="v-verdict bad">${esc(V.err)}</div>` : ""}
        ${V.verdict ? `<div class="v-verdict ${V.verdict}">${V.verdict === "ok" ? "✅ " + esc(L.wellSaid) : "🔁 " + esc(L.almost)}${V.heard ? `<br><span style="font-weight:400">${esc(L.heardYou)} „${esc(V.heard)}“</span>` : ""}</div>` : ""}
        <div class="row">
          <button class="ghost" data-va="hear">&#9834; ${esc(L.sayIt)}</button>
@@ -1215,7 +1216,7 @@ function renderVocab() {
         if (c) {
           saveWordsList(loadWords().filter((w) => w.de !== c.de));
           V.deck.splice(V.i, 1);
-          V.flipped = false; V.heard = null; V.verdict = null;
+          V.flipped = false; V.heard = null; V.verdict = null; V.err = null;
           renderVocab();
         }
         break;
@@ -1227,19 +1228,26 @@ function renderVocab() {
       case "say": if (c) vocabListen(c.de); break;
       case "next":
         stopAudio(); speechSynthesis.cancel();
-        V.i++; V.flipped = false; V.heard = null; V.verdict = null;
+        V.i++; V.flipped = false; V.heard = null; V.verdict = null; V.err = null;
         renderVocab();
         break;
     }
   });
 }
 
-function vocabListen(target) {
+async function vocabListen(target) {
+  const L = t();
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR) { V.verdict = "bad"; V.heard = t().noMic; renderVocab(); return; }
+  if (!SR) { V.err = L.noMic; renderVocab(); return; }
+  if (V.listening) return;
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    stream.getTracks().forEach((tr) => tr.stop());
+  } catch (e) { V.err = L.micBlocked; renderVocab(); return; }
   speechSynthesis.cancel(); stopAudio();
+  V.err = null; V.verdict = null; V.heard = null;
   const r = new SR();
-  r.lang = "de-DE"; r.interimResults = false; r.maxAlternatives = 3;
+  r.lang = "de-DE"; r.interimResults = false; r.maxAlternatives = 5;
   r.onresult = (e) => {
     const alts = Array.from(e.results[0]).map((a) => a.transcript);
     const ok = alts.some((a) => saidWord(a, target));
@@ -1247,9 +1255,18 @@ function vocabListen(target) {
     renderVocab();
     if (!ok) speak(target, true);
   };
-  r.onerror = () => { V.listening = false; renderVocab(); };
+  r.onerror = (e) => {
+    V.listening = false;
+    const c = e && e.error;
+    if (c === "no-speech") V.err = L.noSpeech;
+    else if (c === "not-allowed" || c === "service-not-allowed") V.err = L.micBlocked;
+    else if (c === "audio-capture") V.err = L.noDevice;
+    else if (c !== "aborted") V.err = L.micErr + ": " + c;
+    renderVocab();
+  };
   r.onend = () => { V.listening = false; renderVocab(); };
-  try { r.start(); V.listening = true; renderVocab(); } catch (e) { V.listening = false; }
+  try { r.start(); V.listening = true; renderVocab(); }
+  catch (e) { V.listening = false; V.err = L.micErr; renderVocab(); }
 }
 
 /* ---------- celebration ---------- */
