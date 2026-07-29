@@ -212,6 +212,25 @@ function readBody(req) {
 }
 
 const server = http.createServer(async (req, res) => {
+  // Digital Asset Links: lets the Android (TWA) app open this site full-screen.
+  // Set TWA_PACKAGE_NAME + TWA_SHA256_FINGERPRINT (from Play Console ->
+  // App integrity -> App signing) after the first upload.
+  if (req.method === "GET" && req.url === "/.well-known/assetlinks.json") {
+    const pkg = process.env.TWA_PACKAGE_NAME || "";
+    const fp = process.env.TWA_SHA256_FINGERPRINT || "";
+    if (!pkg || !fp) {
+      res.writeHead(404, { "content-type": "application/json" });
+      res.end(JSON.stringify({ error: "not_configured" }));
+      return;
+    }
+    res.writeHead(200, { "content-type": "application/json", "cache-control": "public, max-age=3600" });
+    res.end(JSON.stringify([{
+      relation: ["delegate_permission/common.handle_all_urls"],
+      target: { namespace: "android_app", package_name: pkg, sha256_cert_fingerprints: [fp] },
+    }]));
+    return;
+  }
+
   if (req.method === "POST" && req.url === "/api/chat") {
     if (PIN && req.headers["x-trainer-pin"] !== PIN) {
       res.writeHead(401, { "content-type": "application/json" });
