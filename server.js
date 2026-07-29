@@ -82,6 +82,82 @@ const AVATARS = {
   dtz32: "a German language exam co-examiner, man in his 40s",
 };
 
+// Talking clips: pre-rendered lip-sync videos for fixed sentences, built from
+// a character portrait + our own TTS audio via an open lip-sync model on
+// Replicate. Rendered once per (character, sentence), cached on disk.
+// Without REPLICATE_API_TOKEN the feature stays off (client hides it).
+const crypto = require("crypto");
+const REPLICATE_TOKEN = process.env.REPLICATE_API_TOKEN || "";
+const CLIP_MODEL = process.env.CLIP_MODEL || "cjwbw/sadtalker";
+const CLIP_IMAGE_KEY = process.env.CLIP_IMAGE_KEY || "source_image";
+const CLIP_AUDIO_KEY = process.env.CLIP_AUDIO_KEY || "driven_audio";
+const CLIP_DAILY_LIMIT = parseInt(process.env.CLIP_DAILY_LIMIT || "60", 10);
+const CLIP_DIR = path.join(os.tmpdir(), "telefontrainer-clips");
+let clipDay = "", clipCount = 0;
+
+/* shared builders (used by /api/tts, /api/avatar and /api/clip) */
+const VOICES = ["alloy", "ash", "ballad", "coral", "echo", "fable", "nova", "onyx", "sage", "shimmer"];
+function ttsRequestBody(text, voice, pace, char) {
+  const useVoice = VOICES.includes(voice) ? voice : TTS_VOICE;
+  const body = { model: TTS_MODEL, voice: useVoice, input: text, response_format: "mp3" };
+  if (TTS_MODEL.startsWith("gpt-")) {
+    // slow speech is asked from the model (natural pauses, real prosody)
+    // instead of time-stretching the audio afterwards, which sounds robotic
+    const PACE = {
+      slow: "Speak VERY slowly and extra clearly, like a warm, patient native German speaker talking to a beginner: unhurried, clearly articulated, with small natural pauses between phrases. Keep the intonation lively and human - slow must never mean flat or robotic.",
+      fast: "Speak briskly, like a busy native German employee in a hurry - quick natural conversational pace, but still clearly articulated.",
+      normal: "Speak at a relaxed natural conversational pace.",
+    };
+    const cleanChar = typeof char === "string" ? char.replace(/[^a-z0-9]/g, "") : "";
+    const persona = AVATARS[cleanChar]
+      ? " You are " + AVATARS[cleanChar] + " - let age, gender and personality come through in the voice." : "";
+    body.instructions = "You are a friendly German native speaker in a real conversation. Natural, warm, human intonation - never monotone." +
+      persona + " " + (PACE[pace] || PACE.normal);
+  }
+  return body;
+}
+async function synthesizeTts(text, voice, pace, char) {
+  const upstream = await fetch("https://api.openai.com/v1/audio/speech", {
+    method: "POST",
+    headers: { authorization: `Bearer ${TTS_KEY}`, "content-type": "application/json" },
+    body: JSON.stringify(ttsRequestBody(text, voice, pace, char)),
+  });
+  if (!upstream.ok) {
+    console.error("TTS failed:", upstream.status, (await upstream.text()).slice(0, 200));
+    return null;
+  }
+  return Buffer.from(await upstream.arrayBuffer());
+}
+async function getAvatarBuffer(id) {
+  const desc = AVATARS[id];
+  if (!desc || !TTS_KEY) return null;
+  const file = path.join(AVATAR_DIR, id + "-v2.png");
+  try { return fs.readFileSync(file); } catch (e) { /* generate below */ }
+  // gpt-image-1 is cheapest but needs a verified OpenAI org;
+  // DALL-E 3 works on every account, so fall back to it.
+  for (const model of ["gpt-image-1", "dall-e-3"]) {
+    const body = model === "gpt-image-1"
+      ? { model, prompt: AVATAR_STYLE + desc, size: "1024x1024", quality: "low", n: 1 }
+      : { model, prompt: AVATAR_STYLE + desc, size: "1024x1024", response_format: "b64_json", n: 1 };
+    const upstream = await fetch("https://api.openai.com/v1/images/generations", {
+      method: "POST",
+      headers: { authorization: `Bearer ${TTS_KEY}`, "content-type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (!upstream.ok) {
+      console.error("Avatar gen failed:", model, upstream.status, (await upstream.text()).slice(0, 200));
+      continue;
+    }
+    const data = await upstream.json();
+    if (data.data && data.data[0] && data.data[0].b64_json) {
+      const buf = Buffer.from(data.data[0].b64_json, "base64");
+      try { fs.mkdirSync(AVATAR_DIR, { recursive: true }); fs.writeFileSync(file, buf); } catch (e) {}
+      return buf;
+    }
+  }
+  return null;
+}
+
 // Free-tier protection: daily request caps (global + per IP) so a public
 // link can never drain the API credits. Counters reset at midnight UTC.
 const DAILY_LIMIT = parseInt(process.env.TRAINER_DAILY_LIMIT || "500", 10);
@@ -186,41 +262,84 @@ const server = http.createServer(async (req, res) => {
       res.end(buf);
     };
     try {
-      serve(fs.readFileSync(file));
-      return;
-    } catch (e) { /* not cached yet - generate */ }
-    try {
-      // gpt-image-1 is cheapest but needs a verified OpenAI org;
-      // DALL-E 3 works on every account, so fall back to it.
-      let buf = null;
-      for (const model of ["gpt-image-1", "dall-e-3"]) {
-        const body = model === "gpt-image-1"
-          ? { model, prompt: AVATAR_STYLE + desc, size: "1024x1024", quality: "low", n: 1 }
-          : { model, prompt: AVATAR_STYLE + desc, size: "1024x1024", response_format: "b64_json", n: 1 };
-        const upstream = await fetch("https://api.openai.com/v1/images/generations", {
-          method: "POST",
-          headers: { authorization: `Bearer ${TTS_KEY}`, "content-type": "application/json" },
-          body: JSON.stringify(body),
-        });
-        if (!upstream.ok) {
-          console.error("Avatar gen failed:", model, upstream.status, (await upstream.text()).slice(0, 200));
-          continue;
-        }
-        const data = await upstream.json();
-        if (data.data && data.data[0] && data.data[0].b64_json) {
-          buf = Buffer.from(data.data[0].b64_json, "base64");
-          break;
-        }
-      }
+      const buf = await getAvatarBuffer(id);
       if (!buf) {
         res.writeHead(502, { "content-type": "application/json" });
         res.end(JSON.stringify({ error: "avatar_failed" }));
         return;
       }
-      try { fs.mkdirSync(AVATAR_DIR, { recursive: true }); fs.writeFileSync(file, buf); } catch (e) {}
       serve(buf);
     } catch (err) {
       console.error("Avatar proxy failed:", err.message);
+      res.writeHead(502, { "content-type": "application/json" });
+      res.end(JSON.stringify({ error: err.message }));
+    }
+    return;
+  }
+
+  if (req.method === "GET" && req.url.startsWith("/api/clip")) {
+    const params = new URLSearchParams((req.url.split("?")[1]) || "");
+    if (PIN && params.get("pin") !== PIN) {
+      res.writeHead(401, { "content-type": "application/json" });
+      res.end(JSON.stringify({ error: "pin_required" }));
+      return;
+    }
+    if (!REPLICATE_TOKEN || !TTS_KEY) {
+      res.writeHead(501, { "content-type": "application/json" });
+      res.end(JSON.stringify({ error: "clips_unconfigured" }));
+      return;
+    }
+    const char = (params.get("char") || "").replace(/[^a-z0-9]/g, "");
+    const voice = params.get("voice") || "";
+    const text = (params.get("text") || "").trim();
+    if (!AVATARS[char] || !text || text.length > 140) {
+      res.writeHead(400, { "content-type": "application/json" });
+      res.end(JSON.stringify({ error: "bad_request" }));
+      return;
+    }
+    const hash = crypto.createHash("sha1").update(char + "|" + voice + "|" + text).digest("hex");
+    const file = path.join(CLIP_DIR, hash + ".mp4");
+    const serve = (buf) => {
+      res.writeHead(200, { "content-type": "video/mp4", "content-length": buf.length, "cache-control": "public, max-age=2592000" });
+      res.end(buf);
+    };
+    try { serve(fs.readFileSync(file)); return; } catch (e) { /* render below */ }
+    const today = new Date().toISOString().slice(0, 10);
+    if (clipDay !== today) { clipDay = today; clipCount = 0; }
+    if (++clipCount > CLIP_DAILY_LIMIT) {
+      res.writeHead(429, { "content-type": "application/json" });
+      res.end(JSON.stringify({ error: "limit" }));
+      return;
+    }
+    try {
+      const [imgBuf, audioBuf] = [await getAvatarBuffer(char), await synthesizeTts(text, voice, "slow", char)];
+      if (!imgBuf || !audioBuf) throw new Error("assets_failed");
+      const input = {};
+      input[CLIP_IMAGE_KEY] = "data:image/png;base64," + imgBuf.toString("base64");
+      input[CLIP_AUDIO_KEY] = "data:audio/mpeg;base64," + audioBuf.toString("base64");
+      let pred = await (await fetch(`https://api.replicate.com/v1/models/${CLIP_MODEL}/predictions`, {
+        method: "POST",
+        headers: { authorization: `Bearer ${REPLICATE_TOKEN}`, "content-type": "application/json", prefer: "wait=60" },
+        body: JSON.stringify({ input }),
+      })).json();
+      const started = Date.now();
+      while (pred && pred.status && !["succeeded", "failed", "canceled"].includes(pred.status) && Date.now() - started < 120000) {
+        await new Promise((r) => setTimeout(r, 3000));
+        pred = await (await fetch(pred.urls.get, { headers: { authorization: `Bearer ${REPLICATE_TOKEN}` } })).json();
+      }
+      let out = pred && pred.output;
+      if (Array.isArray(out)) out = out.find((x) => typeof x === "string" && x.includes(".mp4")) || out[out.length - 1];
+      if (!pred || pred.status !== "succeeded" || typeof out !== "string") {
+        console.error("Clip gen failed:", pred && pred.status, pred && JSON.stringify(pred.error || "").slice(0, 200));
+        res.writeHead(502, { "content-type": "application/json" });
+        res.end(JSON.stringify({ error: "clip_failed" }));
+        return;
+      }
+      const video = Buffer.from(await (await fetch(out)).arrayBuffer());
+      try { fs.mkdirSync(CLIP_DIR, { recursive: true }); fs.writeFileSync(file, video); } catch (e) {}
+      serve(video);
+    } catch (err) {
+      console.error("Clip proxy failed:", err.message);
       res.writeHead(502, { "content-type": "application/json" });
       res.end(JSON.stringify({ error: err.message }));
     }
@@ -250,36 +369,12 @@ const server = http.createServer(async (req, res) => {
         res.end(JSON.stringify({ error: "bad_text" }));
         return;
       }
-      // per-character voices from the client, whitelisted
-      const VOICES = ["alloy", "ash", "ballad", "coral", "echo", "fable", "nova", "onyx", "sage", "shimmer"];
-      const useVoice = VOICES.includes(voice) ? voice : TTS_VOICE;
-      const body = { model: TTS_MODEL, voice: useVoice, input: text, response_format: "mp3" };
-      if (TTS_MODEL.startsWith("gpt-")) {
-        // slow speech is asked from the model (natural pauses, real prosody)
-        // instead of time-stretching the audio afterwards, which sounds robotic
-        const PACE = {
-          slow: "Speak VERY slowly and extra clearly, like a warm, patient native German speaker talking to a beginner: unhurried, clearly articulated, with small natural pauses between phrases. Keep the intonation lively and human - slow must never mean flat or robotic.",
-          fast: "Speak briskly, like a busy native German employee in a hurry - quick natural conversational pace, but still clearly articulated.",
-          normal: "Speak at a relaxed natural conversational pace.",
-        };
-        // voice-act the person whose portrait is on screen
-        const persona = typeof char === "string" && AVATARS[char.replace(/[^a-z0-9]/g, "")]
-          ? " You are " + AVATARS[char.replace(/[^a-z0-9]/g, "")] + " - let age, gender and personality come through in the voice." : "";
-        body.instructions = "You are a friendly German native speaker in a real conversation. Natural, warm, human intonation - never monotone." +
-          persona + " " + (PACE[pace] || PACE.normal);
-      }
-      const upstream = await fetch("https://api.openai.com/v1/audio/speech", {
-        method: "POST",
-        headers: { authorization: `Bearer ${TTS_KEY}`, "content-type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      if (!upstream.ok) {
-        console.error("TTS failed:", upstream.status, (await upstream.text()).slice(0, 200));
+      const buf = await synthesizeTts(text, voice, pace, char);
+      if (!buf) {
         res.writeHead(502, { "content-type": "application/json" });
         res.end(JSON.stringify({ error: "tts_failed" }));
         return;
       }
-      const buf = Buffer.from(await upstream.arrayBuffer());
       res.writeHead(200, { "content-type": "audio/mpeg", "content-length": buf.length });
       res.end(buf);
     } catch (err) {

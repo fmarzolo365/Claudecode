@@ -153,6 +153,11 @@ https://docs.claude.com/en/docs/about-claude/models
   speaking exam (introduce yourself, talk about a topic, plan together) with a
   realistic examiner character — the B1 exam every integration-course student
   faces.
+- **Talking clips (optional)**: set `REPLICATE_API_TOKEN` (replicate.com, ~$5
+  credit) and vocabulary/preparation cards gain a "watch it said" button - a
+  lip-synced video of the character speaking the sentence, rendered once via an
+  open-source model (~2-5 cents) and cached on disk. `CLIP_MODEL`,
+  `CLIP_DAILY_LIMIT` tune it.
 - **Backups & legal**: one-tap export/import of all learning data (drawer menu),
   Impressum + Datenschutzerklärung pages (fill in the placeholders before going
   public), daily request caps on the server (`TRAINER_DAILY_LIMIT`,
