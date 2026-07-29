@@ -11,7 +11,9 @@ from `main`).
   Installable PWA (`sw.js`, `manifest.webmanifest`, `icons/`).
 - `server.js` — dependency-free Node server. Serves `./public`, proxies
   `/api/chat` (Anthropic), `/api/tts` (OpenAI speech, per-character voices) and
-  `/api/avatar/<id>` (OpenAI images, lazily generated + disk-cached portraits).
+  `/api/avatar/<id>` (OpenAI images, lazily generated + disk-cached portraits)
+  and `/api/clip` (Replicate lip-sync videos for fixed sentences, disk-cached;
+  501 until `REPLICATE_API_TOKEN` is set).
   Keys live in env / `.env`; optional `TRAINER_PIN` gates all API routes.
 - All learner data (mistakes, saved words, XP, stats, test history, cached
   vocab decks) lives in `localStorage` — there is no database yet.
