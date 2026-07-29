@@ -91,7 +91,7 @@
     font: 600 13px Archivo, sans-serif; letter-spacing: .02em;
     transition: background .15s ease, color .15s ease;
   }
-  .seg button.on { background: var(--ink); color: var(--yellow); }
+  .seg button.on { background: var(--ink); color: #fdfbf5; }
   .seg.wrap { flex-wrap: wrap; }
   .seg.wrap button { flex: 1 1 31%; }
   .note { font-size: 12.5px; margin: 10px 2px 0; color: var(--muted); }
@@ -105,6 +105,8 @@
   .big:hover { filter: brightness(1.08); }
   .big:active { transform: scale(.985); }
   .big[disabled] { opacity: .5; cursor: not-allowed; }
+  .big.cta { background: var(--yellow); color: var(--ink); }
+  .big.cta:hover { filter: brightness(1.03); }
   .big.live { background: var(--red); color: #fff; animation: ring 1.4s infinite; }
   @keyframes ring { 0%,100% { box-shadow: 0 0 0 0 rgba(194,70,52,.45); } 50% { box-shadow: 0 0 0 14px rgba(194,70,52,0); } }
   .bar {
@@ -192,8 +194,27 @@
     letter-spacing: .04em; cursor: pointer; border-radius: 999px;
     box-shadow: 0 1px 2px rgba(22,19,13,.04); transition: background .15s ease;
   }
-  .toggle.on { background: var(--yellow); border-color: transparent; color: var(--ink); }
+  .toggle.on { background: var(--card); border-color: var(--yellow-deep); color: var(--ink); }
   .toggle[disabled] { opacity: .4; cursor: not-allowed; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+  .act {
+    display: flex; align-items: center; gap: 9px; padding: 13px 12px; min-height: 50px;
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+    color: var(--ink); cursor: pointer; font: 600 12.5px Archivo, sans-serif;
+    line-height: 1.3; text-align: left; box-shadow: 0 1px 2px rgba(22,19,13,.04);
+    transition: background .15s ease;
+  }
+  .act:hover { background: rgba(255,111,89,.08); }
+  .act[disabled] { opacity: .4; cursor: not-allowed; }
+  .act .ic { flex: 0 0 auto; color: var(--yellow-deep); }
+  .act.due { border-color: var(--yellow-deep); }
+  .dot-due { width: 7px; height: 7px; border-radius: 50%; background: var(--yellow-deep); margin-left: auto; flex: 0 0 auto; }
+  .ic { vertical-align: -3px; }
+  .hero-streak .ic { color: var(--yellow-deep); }
+  .b { font-weight: 700; }
+  .b-ok { color: var(--green); }
+  .b-mid { color: #a8761f; }
+  .b-no { color: var(--red); }
   .hero {
     border: 1px solid var(--line); background: var(--card); border-radius: var(--radius);
     box-shadow: var(--shadow); padding: 14px 16px; margin: -6px 0 24px;
@@ -327,13 +348,16 @@
     <div class="label" id="lblLang"></div>
     <div class="seg wrap" id="langs"></div>
 
-    <button class="big" id="callBtn"></button>
-    <button class="toggle" id="prepBtn" style="margin-top:14px"></button>
-    <button class="toggle" id="vocabBtn"></button>
-    <button class="toggle" id="drillBtn"></button>
-    <button class="toggle" id="mistakesBtn"></button>
-    <button class="toggle" id="progressBtn"></button>
-    <button class="toggle" id="shareBtn"></button>
+    <button class="big cta" id="callBtn"></button>
+    <div class="label" id="lblTrain"></div>
+    <div class="grid2">
+      <button class="act" id="prepBtn"></button>
+      <button class="act" id="vocabBtn"></button>
+      <button class="act" id="drillBtn"></button>
+      <button class="act" id="mistakesBtn"></button>
+      <button class="act" id="progressBtn"></button>
+      <button class="act" id="shareBtn"></button>
+    </div>
     <p class="note" style="text-align:center;margin-top:24px">
       <a href="/impressum.html" style="color:inherit">Impressum</a> ·
       <a href="/datenschutz.html" style="color:inherit">Datenschutz</a>
@@ -359,9 +383,9 @@
     </div>
     <div id="hintBox" class="hint hidden"><div class="label">VORSCHLAG</div><div id="hintText"></div></div>
     <div class="row sos">
-      <button class="ghost" data-sos="Wie bitte?">🆘 Wie bitte?</button>
-      <button class="ghost" data-sos="Langsamer, bitte.">🐢 Langsamer, bitte</button>
-      <button class="ghost" data-sos="Können Sie das noch einmal sagen?">🔁 Noch einmal, bitte</button>
+      <button class="ghost" data-sos="Wie bitte?">Wie bitte?</button>
+      <button class="ghost" data-sos="Langsamer, bitte.">Langsamer, bitte</button>
+      <button class="ghost" data-sos="Können Sie das noch einmal sagen?">Noch einmal, bitte</button>
     </div>
     <button class="toggle on" id="freeBtn"></button>
     <div id="alert" class="alert hidden"></div>
@@ -538,11 +562,11 @@ const T = {
     reveal:"Mostrar solución", knew:"Lo sabía ✓", retry:"Otra vez ↻", drillDone:"¡Práctica terminada!",
     toNext:"para el siguiente nivel", goalHit:"¡Objetivo conseguido!",
     vocab:"Vocabulario clave", vocabFlip:"Toca la tarjeta para ver el significado",
-    sayWord:"Pronúncialo 🎤", heardYou:"Escuché:", wellSaid:"¡Muy bien dicho!",
+    sayWord:"Pronúncialo", heardYou:"Escuché:", wellSaid:"¡Muy bien dicho!",
     almost:"Casi — escucha y repite", next:"Siguiente",
     vocabLoading:"Creando tu vocabulario…", vocabFail:"No se pudo crear la lista. Inténtalo de nuevo.",
     vocabDone:"¡Vocabulario repasado!", forCall:"Para esta llamada",
-    myWords:"Mis palabras", tapWordHint:"💡 Toca una palabra que no conozcas para guardarla",
+    myWords:"Mis palabras", train:"Entrenamiento", tapWordHint:"Toca una palabra que no conozcas para guardarla",
     talk:"HABLAR", endTalk:"TERMINAR", endedTalk:"CONVERSACIÓN TERMINADA",
     routine:"Rutina de hoy", rCall:"Conversación", rVocab:"Vocabulario", rDrill:"Errores",
     prep:"Preparar la llamada", prepTitle:"PREPARACIÓN", howSay:"¿Cómo se dice en alemán?",
@@ -577,11 +601,11 @@ const T = {
     reveal:"Show solution", knew:"I knew it ✓", retry:"Again ↻", drillDone:"Practice done!",
     toNext:"to the next level", goalHit:"Goal achieved!",
     vocab:"Key vocabulary", vocabFlip:"Tap the card to see the meaning",
-    sayWord:"Say it out loud 🎤", heardYou:"I heard:", wellSaid:"Well said!",
+    sayWord:"Say it out loud", heardYou:"I heard:", wellSaid:"Well said!",
     almost:"Almost — listen and repeat", next:"Next",
     vocabLoading:"Building your vocabulary…", vocabFail:"Could not create the list. Try again.",
     vocabDone:"Vocabulary done!", forCall:"For this call",
-    myWords:"My words", tapWordHint:"💡 Tap any word you don't know to save it",
+    myWords:"My words", train:"Training", tapWordHint:"Tap any word you don't know to save it",
     talk:"TALK", endTalk:"END", endedTalk:"CONVERSATION ENDED",
     routine:"Today's routine", rCall:"Conversation", rVocab:"Vocabulary", rDrill:"Mistakes",
     prep:"Prepare the call", prepTitle:"PREPARATION", howSay:"How do you say it in German?",
@@ -619,11 +643,11 @@ T.tr = { tagline:"Gerçek Almanca aramalar ve konuşmalar pratiği yap. Sen konu
   reveal:"Çözümü göster", knew:"Biliyordum ✓", retry:"Tekrar ↻", drillDone:"Alıştırma bitti!",
   toNext:"sonraki seviyeye", goalHit:"Hedefe ulaşıldı!",
   vocab:"Anahtar kelimeler", vocabFlip:"Anlamı görmek için karta dokun",
-  sayWord:"Yüksek sesle söyle 🎤", heardYou:"Duyduğum:", wellSaid:"Çok iyi söyledin!",
+  sayWord:"Yüksek sesle söyle", heardYou:"Duyduğum:", wellSaid:"Çok iyi söyledin!",
   almost:"Neredeyse — dinle ve tekrarla", next:"İleri",
   vocabLoading:"Kelime listen hazırlanıyor…", vocabFail:"Liste oluşturulamadı. Tekrar dene.",
   vocabDone:"Kelimeler tamamlandı!", forCall:"Bu arama için",
-  myWords:"Kelimelerim", tapWordHint:"💡 Bilmediğin bir kelimeye dokun, kaydedilsin",
+  myWords:"Kelimelerim", train:"Antrenman", tapWordHint:"Bilmediğin bir kelimeye dokun, kaydedilsin",
   talk:"KONUŞ", endTalk:"BİTİR", endedTalk:"KONUŞMA BİTTİ",
   routine:"Bugünkü rutin", rCall:"Konuşma", rVocab:"Kelimeler", rDrill:"Hatalar",
   prep:"Aramaya hazırlan", prepTitle:"HAZIRLIK", howSay:"Almancası nasıl söylenir?",
@@ -658,11 +682,11 @@ T.ar = { tagline:"تدرّب على مكالمات ومحادثات حقيقية
   reveal:"أظهر الحل", knew:"كنت أعرفها ✓", retry:"مرة أخرى ↻", drillDone:"انتهى التدريب!",
   toNext:"للمستوى التالي", goalHit:"تم تحقيق الهدف!",
   vocab:"المفردات الأساسية", vocabFlip:"المس البطاقة لرؤية المعنى",
-  sayWord:"قلها بصوت عالٍ 🎤", heardYou:"سمعت:", wellSaid:"أحسنت النطق!",
+  sayWord:"قلها بصوت عالٍ", heardYou:"سمعت:", wellSaid:"أحسنت النطق!",
   almost:"تقريبًا — استمع وكرر", next:"التالي",
   vocabLoading:"جارٍ إنشاء مفرداتك…", vocabFail:"تعذّر إنشاء القائمة. حاول مجددًا.",
   vocabDone:"انتهت المفردات!", forCall:"لهذه المكالمة",
-  myWords:"كلماتي", tapWordHint:"💡 المس أي كلمة لا تعرفها لحفظها",
+  myWords:"كلماتي", train:"التدريب", tapWordHint:"المس أي كلمة لا تعرفها لحفظها",
   talk:"تحدّث", endTalk:"إنهاء", endedTalk:"انتهت المحادثة",
   routine:"روتين اليوم", rCall:"محادثة", rVocab:"مفردات", rDrill:"أخطاء",
   prep:"التحضير للمكالمة", prepTitle:"التحضير", howSay:"كيف تُقال بالألمانية؟",
@@ -697,11 +721,11 @@ T.uk = { tagline:"Тренуй реальні дзвінки й розмови �
   reveal:"Показати відповідь", knew:"Я це знаю ✓", retry:"Ще раз ↻", drillDone:"Тренування завершено!",
   toNext:"до наступного рівня", goalHit:"Мету досягнуто!",
   vocab:"Ключові слова", vocabFlip:"Торкнись картки, щоб побачити значення",
-  sayWord:"Скажи вголос 🎤", heardYou:"Я почув:", wellSaid:"Чудово сказано!",
+  sayWord:"Скажи вголос", heardYou:"Я почув:", wellSaid:"Чудово сказано!",
   almost:"Майже — послухай і повтори", next:"Далі",
   vocabLoading:"Створюю твій словник…", vocabFail:"Не вдалося створити список. Спробуй ще.",
   vocabDone:"Словник пройдено!", forCall:"Для цього дзвінка",
-  myWords:"Мої слова", tapWordHint:"💡 Торкнись незнайомого слова, щоб зберегти його",
+  myWords:"Мої слова", train:"Тренування", tapWordHint:"Торкнись незнайомого слова, щоб зберегти його",
   talk:"ГОВОРИТИ", endTalk:"ЗАВЕРШИТИ", endedTalk:"РОЗМОВУ ЗАВЕРШЕНО",
   routine:"Рутина на сьогодні", rCall:"Розмова", rVocab:"Слова", rDrill:"Помилки",
   prep:"Підготуватися до дзвінка", prepTitle:"ПІДГОТОВКА", howSay:"Як це сказати німецькою?",
@@ -737,11 +761,11 @@ T.it = { tagline:"Allenati con telefonate e conversazioni reali in tedesco. Tu p
   reveal:"Mostra soluzione", knew:"La sapevo ✓", retry:"Di nuovo ↻", drillDone:"Pratica completata!",
   toNext:"al prossimo livello", goalHit:"Obiettivo raggiunto!",
   vocab:"Vocabolario chiave", vocabFlip:"Tocca la carta per vedere il significato",
-  sayWord:"Pronuncialo 🎤", heardYou:"Ho sentito:", wellSaid:"Ben detto!",
+  sayWord:"Pronuncialo", heardYou:"Ho sentito:", wellSaid:"Ben detto!",
   almost:"Quasi — ascolta e ripeti", next:"Avanti",
   vocabLoading:"Sto creando il tuo vocabolario…", vocabFail:"Impossibile creare la lista. Riprova.",
   vocabDone:"Vocabolario completato!", forCall:"Per questa chiamata",
-  myWords:"Le mie parole", tapWordHint:"💡 Tocca una parola che non conosci per salvarla",
+  myWords:"Le mie parole", train:"Allenamento", tapWordHint:"Tocca una parola che non conosci per salvarla",
   talk:"PARLA", endTalk:"TERMINA", endedTalk:"CONVERSAZIONE TERMINATA",
   routine:"Routine di oggi", rCall:"Conversazione", rVocab:"Vocabolario", rDrill:"Errori",
   prep:"Prepara la chiamata", prepTitle:"PREPARAZIONE", howSay:"Come si dice in tedesco?",
@@ -974,6 +998,28 @@ const $ = (id) => document.getElementById(id);
 const t = () => T[S.lang];
 const esc = (s) => String(s == null ? "" : s).replace(/[&<>"]/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c]));
 
+/* ---------- inline icon set (stroke, currentColor) ---------- */
+const ic = (p, fill, s = 16) =>
+  `<svg class="ic" width="${s}" height="${s}" viewBox="0 0 24 24" ${fill
+    ? 'fill="currentColor"'
+    : 'fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"'}>${p}</svg>`;
+const IC = {
+  phone: (s) => ic('<path d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.02-.24c1.12.37 2.33.57 3.57.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1C10.85 21 3 13.15 3 3.5a1 1 0 0 1 1-1H7.5a1 1 0 0 1 1 1c0 1.24.2 2.45.57 3.57a1 1 0 0 1-.24 1.02z"/>', true, s),
+  chat: (s) => ic('<path d="M20 4H4v12h5l3 4 3-4h5z"/>', false, s),
+  mic: (s) => ic('<rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/>', false, s),
+  flame: (s) => ic('<path d="M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5.67z"/>', true, s),
+  cards: (s) => ic('<rect x="3" y="7" width="13" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/>', false, s),
+  prep: (s) => ic('<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v2M9 13l2 2 4-4"/>', false, s),
+  target: (s) => ic('<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.5"/>', false, s),
+  list: (s) => ic('<path d="M4 6h16M4 12h16M4 18h10"/>', false, s),
+  trend: (s) => ic('<path d="M3 17l6-6 4 4 7-7M14 8h6v6"/>', false, s),
+  share: (s) => ic('<path d="M12 3v11M8 6.5L12 3l4 3.5M5 12v7h14v-7"/>', false, s),
+  star: (s) => ic('<path d="M12 2.7l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.5l-5.8 3.1 1.1-6.5L2.6 9.5l6.5-.9z"/>', true, s),
+  help: (s) => ic('<path d="M9 9.2A3 3 0 1 1 12 12.4v1.6M12 17.5h.01"/><circle cx="12" cy="12" r="9.2" stroke-width="1.6"/>', false, s),
+  clock: (s) => ic('<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>', false, s),
+};
+const deckIc = (name, s) => (IC[name] ? IC[name](s) : "");
+
 /* ---------- saved corrections (localStorage) ---------- */
 const FIX_KEY = "telefontrainer.fixes";
 function loadFixes() {
@@ -1177,7 +1223,7 @@ function renderSetup() {
   const strk = currentStreak(st);
   $("hero").classList.toggle("hidden", !st.calls);
   if (st.calls) {
-    $("heroStreak").innerHTML = `🔥 ${strk} <small>${esc(L.days)}</small>`;
+    $("heroStreak").innerHTML = `${IC.flame(15)} ${strk} <small>${esc(L.days)}</small>`;
     const WD = ["So","Mo","Di","Mi","Do","Fr","Sa"];
     let wk = "";
     for (let i = 6; i >= 0; i--) {
@@ -1192,12 +1238,12 @@ function renderSetup() {
     $("xpFill").style.width = (r.next ? Math.min(100, Math.round(100 * (xp - r.base) / (r.next - r.base))) : 100) + "%";
     $("heroSub").textContent =
       (r.next ? `${r.next - xp} XP ${L.toNext} · ` : "") +
-      `📞 ${st.calls} ${L.calls} · ⏱ ${Math.round((st.seconds || 0) / 60)} ${L.minutes}`;
+      `${st.calls} ${L.calls} · ${Math.round((st.seconds || 0) / 60)} ${L.minutes}`;
     const today = new Date().toISOString().slice(0, 10);
     const steps = [
-      ["📇", L.rVocab, (st.vocabDays || {})[today], "vocab"],
-      ["💬", L.rCall, st.days[today], "call"],
-      ["🎯", L.rDrill, (st.drillDays || {})[today], "drill"],
+      [IC.cards(11), L.rVocab, (st.vocabDays || {})[today], "vocab"],
+      [IC.chat(11), L.rCall, st.days[today], "call"],
+      [IC.target(11), L.rDrill, (st.drillDays || {})[today], "drill"],
     ];
     $("routine").innerHTML = steps.map(([ic, name, done, act]) =>
       `<button class="${done ? "done" : ""}" data-r="${act}">${done ? "✓" : ic} ${esc(name)}</button>`).join("");
@@ -1209,8 +1255,8 @@ function renderSetup() {
     });
   }
   $("callBtn").innerHTML = S.scenario.kind === "face"
-    ? '💬 ' + L.talk
-    : '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M6.6 10.8c1.6 3.1 4.1 5.6 7.2 7.2l2.4-2.4c.3-.3.7-.4 1.1-.3 1.2.4 2.5.6 3.8.6.6 0 1 .4 1 1V21c0 .6-.4 1-1 1C11.6 22 2 12.4 2 1c0-.6.4-1 1-1h3.9c.6 0 1 .4 1 1 0 1.3.2 2.6.6 3.8.1.4 0 .8-.3 1.1L6.6 10.8z"/></svg>' + L.call;
+    ? IC.chat(18) + " " + esc(L.talk)
+    : IC.phone(18) + " " + esc(L.call);
 
   $("scenarios").innerHTML = GROUPS.map((g) =>
     `<div class="label" style="margin:14px 14px 6px">${esc(g[S.lang] || g.en)}</div>` +
@@ -1253,20 +1299,21 @@ function renderSetup() {
   $("langs").querySelectorAll("button").forEach((b) =>
     b.onclick = () => { S.lang = b.dataset.k; saveSettings(); renderSetup(); });
 
+  $("lblTrain").textContent = L.train;
   const n = loadFixes().length;
-  $("mistakesBtn").textContent = `${L.mistakes}${n ? ` (${n} ${L.saved})` : ""}`;
+  $("mistakesBtn").innerHTML = IC.list() + `<span>${esc(L.mistakes)}${n ? ` (${n})` : ""}</span>`;
   const drillable = loadFixes().filter((f) => f.corrected).length;
-  $("drillBtn").textContent = `🎯 ${L.practice}${drillable ? ` (${Math.min(8, drillable)})` : ""}`;
+  $("drillBtn").innerHTML = IC.target() + `<span>${esc(L.practice)}${drillable ? ` (${Math.min(8, drillable)})` : ""}</span>`;
   $("drillBtn").disabled = !drillable;
-  $("vocabBtn").textContent = `📇 ${L.vocab}`;
-  $("prepBtn").textContent = `🎒 ${L.prep}`;
+  $("vocabBtn").innerHTML = IC.cards() + `<span>${esc(L.vocab)}</span>`;
+  $("prepBtn").innerHTML = IC.prep() + `<span>${esc(L.prep)}</span>`;
   $("prepBtn").disabled = S.scenario.id === "random" || (S.scenario.id === "custom" && !(S.customTopic || "").trim());
   const due = daysSinceTest() >= 7;
-  $("progressBtn").textContent = `📈 ${L.progress}${due ? " ●" : ""}`;
-  $("progressBtn").className = "toggle" + (due ? " on" : "");
-  $("shareBtn").textContent = `📤 ${L.share}`;
-  $("exportBtn").textContent = `⬇ ${L.dataExport}`;
-  $("importBtn").textContent = `⬆ ${L.dataImport}`;
+  $("progressBtn").innerHTML = IC.trend() + `<span>${esc(L.progress)}</span>` + (due ? '<span class="dot-due"></span>' : "");
+  $("progressBtn").className = "act" + (due ? " due" : "");
+  $("shareBtn").innerHTML = IC.share() + `<span>${esc(L.share)}</span>`;
+  $("exportBtn").textContent = `↓ ${L.dataExport}`;
+  $("importBtn").textContent = `↑ ${L.dataImport}`;
 }
 
 /* ---------- mistakes history screen ---------- */
@@ -1414,7 +1461,7 @@ function saidWord(heard, target) {
 
 /* built-in decks: universal words every caller needs, no API required */
 const BASIC_DECKS = [
-  { id:"fragen", de:"W-Fragen", icon:"❓",
+  { id:"fragen", de:"W-Fragen", icon:"help",
     es:"Palabras de pregunta", en:"Question words", it:"Parole interrogative",
     tr:"Soru kelimeleri", ar:"أدوات الاستفهام", uk:"Питальні слова",
     items:[
@@ -1431,7 +1478,7 @@ const BASIC_DECKS = [
       { de:"Wohin?", ex:"Wohin soll ich das Paket schicken?", xl:{"es": "¿Adónde envío el paquete?", "en": "Where should I send the parcel?", "it": "Dove devo spedire il pacco?", "tr": "Paketi nereye göndereyim?", "ar": "إلى أين أرسل الطرد؟", "uk": "Куди надіслати посилку?"}, es:"¿Adónde?", en:"Where to?", it:"Verso dove?", tr:"Nereye?", ar:"إلى أين؟", uk:"Куди?" },
       { de:"Woher?", ex:"Woher bekomme ich das Formular?", xl:{"es": "¿De dónde saco el formulario?", "en": "Where do I get the form from?", "it": "Da dove prendo il modulo?", "tr": "Formu nereden alabilirim?", "ar": "من أين أحصل على الاستمارة؟", "uk": "Звідки взяти формуляр?"}, es:"¿De dónde?", en:"Where from?", it:"Da dove?", tr:"Nereden?", ar:"من أين؟", uk:"Звідки?" },
     ] },
-  { id:"telefon", de:"Am Telefon", icon:"☎️",
+  { id:"telefon", de:"Am Telefon", icon:"phone",
     es:"Frases de supervivencia", en:"Survival phrases", it:"Frasi di sopravvivenza",
     tr:"Hayatta kalma cümleleri", ar:"عبارات أساسية للهاتف", uk:"Фрази виживання",
     items:[
@@ -1448,7 +1495,7 @@ const BASIC_DECKS = [
       { de:"Vielen Dank für Ihre Hilfe.", ex:"", es:"Muchas gracias por su ayuda.", en:"Thank you very much for your help.", it:"Grazie mille per l'aiuto.", tr:"Yardımınız için çok teşekkürler.", ar:"شكرًا جزيلًا لمساعدتك.", uk:"Дуже дякую за допомогу." },
       { de:"Auf Wiederhören!", ex:"", es:"¡Adiós! (solo al teléfono)", en:"Goodbye! (phone only)", it:"Arrivederci! (solo al telefono)", tr:"Hoşça kalın! (telefonda)", ar:"إلى اللقاء (على الهاتف)", uk:"До побачення! (лише телефоном)" },
     ] },
-  { id:"zeit", de:"Zeit & Termine", icon:"🕘",
+  { id:"zeit", de:"Zeit & Termine", icon:"clock",
     es:"Tiempo y citas", en:"Time & appointments", it:"Tempo e appuntamenti",
     tr:"Zaman ve randevular", ar:"الوقت والمواعيد", uk:"Час і записи",
     items:[
@@ -1522,13 +1569,13 @@ async function openDeck(kind) {
     const L = t();
     V.mywords = true;
     V.clipChar = "kollegen"; V.clipVoice = "coral";
-    $("vocabSub").textContent = `⭐ ${L.myWords}`;
+    $("vocabSub").innerHTML = `${IC.star(13)} ${esc(L.myWords)}`;
     V.deck = loadWords().slice().reverse().slice(0, 20).map((w) => ({ de: w.de, tr: w.tr, ex: w.ex || "", exTr: w.exTr || "" }));
     renderVocab();
   } else {
     const d = BASIC_DECKS.find((x) => x.id === kind);
     V.clipChar = "kollegen"; V.clipVoice = "coral";
-    $("vocabSub").textContent = `${d.icon} ${d.de} · ${d[S.lang] || d.en}`;
+    $("vocabSub").innerHTML = `${deckIc(d.icon, 13)} ${esc(d.de)} · ${esc(d[S.lang] || d.en)}`;
     V.deck = d.items.map((it) => ({ de: it.de, tr: it[S.lang] || it.en, ex: it.ex || "", exTr: (it.xl || {})[S.lang] || (it.xl || {}).en || "" }));
     renderVocab();
   }
@@ -1541,11 +1588,11 @@ function renderVocab() {
     const nw = loadWords().length;
     $("vocabBody").innerHTML = `<div class="list">
       <button class="item" data-vd="call" ${scOK ? "" : "disabled"}>
-        <b>📞 ${esc(L.forCall)}</b><small>${esc(S.scenario.id === "custom" ? (S.customTopic || "—") : S.scenario.de)}</small></button>
+        <b>${IC.phone(14)} ${esc(L.forCall)}</b><small>${esc(S.scenario.id === "custom" ? (S.customTopic || "—") : S.scenario.de)}</small></button>
       <button class="item" data-vd="mywords" ${nw ? "" : "disabled"}>
-        <b>⭐ ${esc(L.myWords)}</b><small>${nw ? `${nw} ${esc(L.saved)}` : esc(L.tapWordHint)}</small></button>
+        <b>${IC.star(14)} ${esc(L.myWords)}</b><small>${nw ? `${nw} ${esc(L.saved)}` : esc(L.tapWordHint)}</small></button>
       ${BASIC_DECKS.map((d) => `<button class="item" data-vd="${d.id}">
-        <b>${d.icon} ${esc(d.de)}</b><small>${esc(d[S.lang] || d.en)}</small></button>`).join("")}
+        <b>${deckIc(d.icon, 14)} ${esc(d.de)}</b><small>${esc(d[S.lang] || d.en)}</small></button>`).join("")}
     </div>`;
     $("vocabBody").querySelectorAll("[data-vd]").forEach((b) =>
       b.onclick = () => { if (!b.disabled) openDeck(b.dataset.vd); });
@@ -1572,10 +1619,10 @@ function renderVocab() {
        <div class="v-card" data-va="flip" style="margin-top:10px">
          <div class="v-de">${esc(c.de)}</div>
          ${V.flipped
-           ? `<div class="v-tr">${esc(c.tr)}</div>${c.ex ? `<div class="v-ex">„${esc(c.ex)}“${c.exTr ? `<br><span style="font-style:italic;opacity:.85">${esc(c.exTr)}</span>` : ""}</div>` : ""}${V.mywords ? `<div><button class="mini" data-va="del">🗑</button></div>` : ""}`
+           ? `<div class="v-tr">${esc(c.tr)}</div>${c.ex ? `<div class="v-ex">„${esc(c.ex)}“${c.exTr ? `<br><span style="font-style:italic;opacity:.85">${esc(c.exTr)}</span>` : ""}</div>` : ""}${V.mywords ? `<div><button class="mini" data-va="del">✕</button></div>` : ""}`
            : `<div class="v-flip">${esc(L.vocabFlip)}</div>`}
        </div>
-       ${V.flipped && clipsOK && V.clipChar ? `<div class="row"><button class="ghost" data-va="watch">👄 ${esc(L.watchIt)}</button></div>` : ""}
+       ${V.flipped && clipsOK && V.clipChar ? `<div class="row"><button class="ghost" data-va="watch">▶ ${esc(L.watchIt)}</button></div>` : ""}
        ${clipHTML(V, L)}
        ${verdictHTML(V, L)}
        <div class="row">
@@ -1679,12 +1726,12 @@ function clipHTML(st, L) {
   if (!st.clip) return "";
   return st.clipUrl
     ? `<video src="${st.clipUrl}" autoplay playsinline controls style="width:100%;border-radius:12px;margin-top:10px"></video>`
-    : `<p class="note" style="margin-top:10px">🎬 ${esc(L.clipLoading)}</p>`;
+    : `<p class="note" style="margin-top:10px">${esc(L.clipLoading)}</p>`;
 }
 /* small verdict box shared by vocab cards and the mistake drill */
 function verdictHTML(st, L) {
   return (st.err ? `<div class="v-verdict bad">${esc(st.err)}</div>` : "") +
-    (st.verdict ? `<div class="v-verdict ${st.verdict}">${st.verdict === "ok" ? "✅ " + esc(L.wellSaid) : "🔁 " + esc(L.almost)}${st.heard ? `<br><span style="font-weight:400">${esc(L.heardYou)} „${esc(st.heard)}“</span>` : ""}</div>` : "");
+    (st.verdict ? `<div class="v-verdict ${st.verdict}">${st.verdict === "ok" ? "✓ " + esc(L.wellSaid) : "↻ " + esc(L.almost)}${st.heard ? `<br><span style="font-weight:400">${esc(L.heardYou)} „${esc(st.heard)}“</span>` : ""}</div>` : "");
 }
 
 /* ---------- celebration ---------- */
@@ -1908,7 +1955,7 @@ function renderCall() {
   $("sendBtn").textContent = L.send;
   $("freeBtn").textContent = (S.handsFree ? "\u25CF " : "\u25CB ") + L.handsFree;
   $("freeBtn").className = "toggle" + (S.handsFree ? " on" : "");
-  $("micBtn").textContent = S.listening ? L.listening : L.speak;
+  $("micBtn").innerHTML = IC.mic(18) + " " + esc(S.listening ? L.listening : L.speak);
   $("micBtn").className = "big" + (S.listening ? " live" : "");
   $("micBtn").disabled = S.busy;
   $("hintBtn").disabled = !S.hint;
@@ -1922,7 +1969,7 @@ function renderCall() {
       <div class="tag ${x.me ? "me" : ""}">${x.me ? L.you : esc(A.tag)}</div>
       <div style="flex:1">
         <div class="said">${x.me ? esc(x.text) : tappable(x.text, i)}</div>
-        ${!x.me && x.wsave ? `<div class="wsave">${x.wsave.pending ? "…" : `⭐ ${esc(x.wsave.de)} — ${esc(x.wsave.tr)}`}</div>` : ""}
+        ${!x.me && x.wsave ? `<div class="wsave">${x.wsave.pending ? "…" : `★ ${esc(x.wsave.de)} — ${esc(x.wsave.tr)}`}</div>` : ""}
         ${x.me ? "" : `<div style="margin-top:5px">
             <button class="mini" data-play="${i}">&#9834;</button>
             <button class="mini" data-tr="${i}">${L.show}</button></div>`}
@@ -1972,7 +2019,7 @@ async function evaluateCall() {
     const raw = (data.content || []).filter((b) => b.type === "text").map((b) => b.text).join("");
     const clean = raw.replace(/```json|```/g, "").trim();
     const p = JSON.parse(clean.slice(clean.indexOf("{"), clean.lastIndexOf("}") + 1));
-    const badge = p.achieved === true ? "✅" : p.achieved === "partial" ? "🟡" : "❌";
+    const badge = p.achieved === true ? '<span class="b b-ok">✓</span>' : p.achieved === "partial" ? '<span class="b b-mid">~</span>' : '<span class="b b-no">✗</span>';
     if (p.achieved === true) { addXp(25); confettiBurst(); }
     const vocab = (Array.isArray(p.vocab) ? p.vocab : []).filter((w) => w && w.de && w.tr).slice(0, 5);
     const ul = (arr) => `<ul style="margin:4px 0 0;padding-left:20px">${arr.map((x) => `<li style="font-size:13.5px;line-height:1.5;margin-top:4px">${esc(x)}</li>`).join("")}</ul>`;
@@ -1981,13 +2028,13 @@ async function evaluateCall() {
       `<div class="label" style="margin:0">${esc(L.evalTitle)} ${badge}</div>` +
       `<p style="font-size:14.5px;line-height:1.5;margin:10px 0 6px">${esc(p.comment)}</p>` +
       (Array.isArray(p.good) && p.good.length
-        ? `<div class="label" style="margin:14px 0 0">✅ ${esc(L.didWell)}</div>` + ul(p.good) : "") +
+        ? `<div class="label" style="margin:14px 0 0"><span class="b b-ok">✓</span> ${esc(L.didWell)}</div>` + ul(p.good) : "") +
       (Array.isArray(p.tips) && p.tips.length
-        ? `<div class="label" style="margin:14px 0 0">🔧 ${esc(L.toImprove)}</div>` + ul(p.tips) : "") +
+        ? `<div class="label" style="margin:14px 0 0">${esc(L.toImprove)}</div>` + ul(p.tips) : "") +
       (vocab.length
-        ? `<div class="label" style="margin:14px 0 0">📚 ${esc(L.learnWords)}</div>` +
+        ? `<div class="label" style="margin:14px 0 0">${esc(L.learnWords)}</div>` +
           `<ul style="margin:4px 0 0;padding-left:20px">${vocab.map((w) => `<li style="font-size:13.5px;line-height:1.5;margin-top:4px"><b>${esc(w.de)}</b> — ${esc(w.tr)}</li>`).join("")}</ul>` +
-          `<button class="toggle" data-addw style="margin-top:12px">⭐ ${esc(L.addWords)}</button>`
+          `<button class="toggle" data-addw style="margin-top:12px">${IC.star(13)} ${esc(L.addWords)}</button>`
         : "");
     const addBtn = $("evalBox").querySelector("[data-addw]");
     if (addBtn) addBtn.onclick = () => {
@@ -2176,7 +2223,7 @@ function renderTest() {
          <p style="font-size:14px;line-height:1.55;margin:10px 0 0">${esc(TST.comment)}</p>
        </div>
        ${tests.length >= 2 ? chartSVG(tests) : `<p class="note">${esc(L.firstPoint)}</p>`}
-       ${tests.length >= 2 ? `<p class="note" style="margin-top:6px">🟢 ${esc(L.projected)}</p>` : ""}`;
+       ${tests.length >= 2 ? `<p class="note" style="margin-top:6px">${esc(L.projected)}</p>` : ""}`;
   } else { // home
     $("testBody").innerHTML =
       (TST.err ? `<div class="v-verdict bad">${esc(TST.err)}</div>` : "") +
@@ -2188,10 +2235,10 @@ function renderTest() {
                <span class="drill-prog">${esc(new Date(tests[tests.length - 1].date).toISOString().slice(0, 10))}</span>
              </div>
            </div>
-           ${tests.length >= 2 ? chartSVG(tests) + `<p class="note" style="margin-top:6px">🟢 ${esc(L.projected)}</p>` : `<p class="note">${esc(L.firstPoint)}</p>`}
-           ${daysSinceTest() >= 7 ? `<p class="note" style="margin-top:10px">📈 ${esc(L.weeklyHint)}</p>` : ""}`
+           ${tests.length >= 2 ? chartSVG(tests) + `<p class="note" style="margin-top:6px">${esc(L.projected)}</p>` : `<p class="note">${esc(L.firstPoint)}</p>`}
+           ${daysSinceTest() >= 7 ? `<p class="note" style="margin-top:10px">${esc(L.weeklyHint)}</p>` : ""}`
         : `<p class="note">${esc(L.pretestHint)}</p>`) +
-      `<button class="big" data-ta="begin" style="margin-top:18px">📈 ${esc(L.takeTest)}</button>`;
+      `<button class="big cta" data-ta="begin" style="margin-top:18px">${esc(L.takeTest)}</button>`;
   }
   $("testBody").querySelectorAll("[data-ta]").forEach((b) => b.onclick = () => {
     switch (b.dataset.ta) {
@@ -2294,14 +2341,14 @@ function renderPrep() {
     }
     $("prepBody").innerHTML =
       `<div class="said" style="font-family:'Space Grotesk',sans-serif;font-size:19px;font-weight:700">🎉 ${esc(L.ready)}</div>
-       <div style="margin-top:10px"><span class="chip">+${P.batch * 10} XP</span> <span class="drill-prog" style="margin-left:8px">${P.learned.length} 🧠</span></div>
+       <div style="margin-top:10px"><span class="chip">+${P.batch * 10} XP</span> <span class="drill-prog" style="margin-left:8px">${P.learned.length} ✓</span></div>
        ${P.loadingMore
          ? `<p class="note" style="margin-top:14px">${esc(L.vocabLoading)}</p>`
          : P.batch < PREP_MAX_BATCH
            ? `<p class="note" style="margin-top:14px">${esc(L.wantMore)}</p>
-              <button class="ghost" data-pa="more" style="width:100%;margin-top:8px">📚 ${esc(L.moreWords)}</button>`
+              <button class="ghost" data-pa="more" style="width:100%;margin-top:8px">${esc(L.moreWords)}</button>`
            : ""}
-       <button class="big" data-pa="go" style="margin-top:20px">${S.scenario.kind === "face" ? "💬 " + esc(L.startNow) : "📞 " + esc(L.startNow)}</button>`;
+       <button class="big cta" data-pa="go" style="margin-top:20px">${S.scenario.kind === "face" ? IC.chat(16) + " " + esc(L.startNow) : IC.phone(16) + " " + esc(L.startNow)}</button>`;
   } else {
     const st = P.steps[P.i];
     $("prepBody").innerHTML =
@@ -2311,7 +2358,7 @@ function renderPrep() {
            ? `<div class="v-de">${esc(st.de)}</div><div class="v-tr">${esc(st.tr)}</div><div class="v-flip">&#9834;</div>`
            : `<div class="v-flip">${esc(L.howSay)}</div><div class="v-de">${esc(st.tr)}</div><div class="v-flip">${esc(L.dontKnow)} &darr;</div>`}
        </div>
-       ${P.revealed && clipsOK && S.scenario.id !== "custom" && S.scenario.id !== "random" ? `<div class="row"><button class="ghost" data-pa="watch">👄 ${esc(L.watchIt)}</button></div>` : ""}
+       ${P.revealed && clipsOK && S.scenario.id !== "custom" && S.scenario.id !== "random" ? `<div class="row"><button class="ghost" data-pa="watch">▶ ${esc(L.watchIt)}</button></div>` : ""}
        ${clipHTML(P, L)}
        ${verdictHTML(P, L)}
        <div class="row">
