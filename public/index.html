@@ -227,7 +227,17 @@
   .week .dot { width: 9px; height: 9px; margin: 3px auto 0; border-radius: 50%; background: #f0d8cf; }
   .week .dot.on { background: var(--yellow-deep); }
   .week .today .dot { box-shadow: 0 0 0 2px rgba(22,19,13,.3); }
+  .marzi-row { display: flex; align-items: center; gap: 12px; margin-top: 10px; }
+  .marzi { width: 74px; height: 74px; flex: 0 0 74px; }
+  .marzi svg { width: 100%; height: 100%; animation: mbob 3.4s ease-in-out infinite; }
+  @keyframes mbob { 0%, 100% { transform: translateY(0) rotate(-.5deg); } 50% { transform: translateY(-2.5px) rotate(.5deg); } }
+  .marzi .mblink { transform-box: fill-box; transform-origin: center; animation: mblink 5.2s infinite; }
+  @keyframes mblink { 0%, 93%, 100% { transform: scaleY(1); } 95.5%, 97.5% { transform: scaleY(.08); } }
+  .marzi.evolve svg { animation: mpop 1s cubic-bezier(.3, 1.7, .4, 1); }
+  @keyframes mpop { 0% { transform: scale(.4) rotate(-10deg); } 55% { transform: scale(1.18) rotate(4deg); } 100% { transform: scale(1) rotate(0); } }
+  .marzi-col { flex: 1; min-width: 0; }
   .hero-lv { display: flex; justify-content: space-between; align-items: baseline; margin-top: 13px; }
+  .marzi-col .hero-lv { margin-top: 0; }
   .hero-lv .ttl { font-family: 'Space Grotesk', sans-serif; font-size: 14px; font-weight: 700; }
   .hero-lv .hero-xp { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: .08em; color: var(--muted); }
   .xpbar { height: 7px; background: #f3ddd5; border-radius: 99px; margin-top: 7px; overflow: hidden; }
@@ -327,9 +337,14 @@
         <div class="hero-streak" id="heroStreak"></div>
         <div class="week" id="heroWeek"></div>
       </div>
-      <div class="hero-lv"><span class="ttl" id="heroLv"></span><span class="hero-xp" id="heroXp"></span></div>
-      <div class="xpbar"><div id="xpFill" style="width:0%"></div></div>
-      <div class="hero-sub" id="heroSub"></div>
+      <div class="marzi-row">
+        <div class="marzi" id="marzi"></div>
+        <div class="marzi-col">
+          <div class="hero-lv"><span class="ttl" id="heroLv"></span><span class="hero-xp" id="heroXp"></span></div>
+          <div class="xpbar"><div id="xpFill" style="width:0%"></div></div>
+          <div class="hero-sub" id="heroSub"></div>
+        </div>
+      </div>
       <div class="routine" id="routine"></div>
     </div>
 
@@ -458,7 +473,8 @@
   <div class="row hidden" id="customRow" style="margin-top:12px">
     <input type="text" id="customTopic" />
   </div>
-  <div class="row" style="margin-top:20px">
+  <button class="toggle" id="soundBtn" style="margin-top:20px"></button>
+  <div class="row" style="margin-top:10px">
     <button class="ghost" id="exportBtn"></button>
     <button class="ghost" id="importBtn"></button>
   </div>
@@ -566,7 +582,7 @@ const T = {
     almost:"Casi — escucha y repite", next:"Siguiente",
     vocabLoading:"Creando tu vocabulario…", vocabFail:"No se pudo crear la lista. Inténtalo de nuevo.",
     vocabDone:"¡Vocabulario repasado!", forCall:"Para esta llamada",
-    myWords:"Mis palabras", train:"Entrenamiento", tapWordHint:"Toca una palabra que no conozcas para guardarla",
+    myWords:"Mis palabras", train:"Entrenamiento", sound:"Sonido", tapWordHint:"Toca una palabra que no conozcas para guardarla",
     talk:"HABLAR", endTalk:"TERMINAR", endedTalk:"CONVERSACIÓN TERMINADA",
     routine:"Rutina de hoy", rCall:"Conversación", rVocab:"Vocabulario", rDrill:"Errores",
     prep:"Preparar la llamada", prepTitle:"PREPARACIÓN", howSay:"¿Cómo se dice en alemán?",
@@ -605,7 +621,7 @@ const T = {
     almost:"Almost — listen and repeat", next:"Next",
     vocabLoading:"Building your vocabulary…", vocabFail:"Could not create the list. Try again.",
     vocabDone:"Vocabulary done!", forCall:"For this call",
-    myWords:"My words", train:"Training", tapWordHint:"Tap any word you don't know to save it",
+    myWords:"My words", train:"Training", sound:"Sound", tapWordHint:"Tap any word you don't know to save it",
     talk:"TALK", endTalk:"END", endedTalk:"CONVERSATION ENDED",
     routine:"Today's routine", rCall:"Conversation", rVocab:"Vocabulary", rDrill:"Mistakes",
     prep:"Prepare the call", prepTitle:"PREPARATION", howSay:"How do you say it in German?",
@@ -647,7 +663,7 @@ T.tr = { tagline:"Gerçek Almanca aramalar ve konuşmalar pratiği yap. Sen konu
   almost:"Neredeyse — dinle ve tekrarla", next:"İleri",
   vocabLoading:"Kelime listen hazırlanıyor…", vocabFail:"Liste oluşturulamadı. Tekrar dene.",
   vocabDone:"Kelimeler tamamlandı!", forCall:"Bu arama için",
-  myWords:"Kelimelerim", train:"Antrenman", tapWordHint:"Bilmediğin bir kelimeye dokun, kaydedilsin",
+  myWords:"Kelimelerim", train:"Antrenman", sound:"Ses", tapWordHint:"Bilmediğin bir kelimeye dokun, kaydedilsin",
   talk:"KONUŞ", endTalk:"BİTİR", endedTalk:"KONUŞMA BİTTİ",
   routine:"Bugünkü rutin", rCall:"Konuşma", rVocab:"Kelimeler", rDrill:"Hatalar",
   prep:"Aramaya hazırlan", prepTitle:"HAZIRLIK", howSay:"Almancası nasıl söylenir?",
@@ -686,7 +702,7 @@ T.ar = { tagline:"تدرّب على مكالمات ومحادثات حقيقية
   almost:"تقريبًا — استمع وكرر", next:"التالي",
   vocabLoading:"جارٍ إنشاء مفرداتك…", vocabFail:"تعذّر إنشاء القائمة. حاول مجددًا.",
   vocabDone:"انتهت المفردات!", forCall:"لهذه المكالمة",
-  myWords:"كلماتي", train:"التدريب", tapWordHint:"المس أي كلمة لا تعرفها لحفظها",
+  myWords:"كلماتي", train:"التدريب", sound:"الصوت", tapWordHint:"المس أي كلمة لا تعرفها لحفظها",
   talk:"تحدّث", endTalk:"إنهاء", endedTalk:"انتهت المحادثة",
   routine:"روتين اليوم", rCall:"محادثة", rVocab:"مفردات", rDrill:"أخطاء",
   prep:"التحضير للمكالمة", prepTitle:"التحضير", howSay:"كيف تُقال بالألمانية؟",
@@ -725,7 +741,7 @@ T.uk = { tagline:"Тренуй реальні дзвінки й розмови �
   almost:"Майже — послухай і повтори", next:"Далі",
   vocabLoading:"Створюю твій словник…", vocabFail:"Не вдалося створити список. Спробуй ще.",
   vocabDone:"Словник пройдено!", forCall:"Для цього дзвінка",
-  myWords:"Мої слова", train:"Тренування", tapWordHint:"Торкнись незнайомого слова, щоб зберегти його",
+  myWords:"Мої слова", train:"Тренування", sound:"Звук", tapWordHint:"Торкнись незнайомого слова, щоб зберегти його",
   talk:"ГОВОРИТИ", endTalk:"ЗАВЕРШИТИ", endedTalk:"РОЗМОВУ ЗАВЕРШЕНО",
   routine:"Рутина на сьогодні", rCall:"Розмова", rVocab:"Слова", rDrill:"Помилки",
   prep:"Підготуватися до дзвінка", prepTitle:"ПІДГОТОВКА", howSay:"Як це сказати німецькою?",
@@ -765,7 +781,7 @@ T.it = { tagline:"Allenati con telefonate e conversazioni reali in tedesco. Tu p
   almost:"Quasi — ascolta e ripeti", next:"Avanti",
   vocabLoading:"Sto creando il tuo vocabolario…", vocabFail:"Impossibile creare la lista. Riprova.",
   vocabDone:"Vocabolario completato!", forCall:"Per questa chiamata",
-  myWords:"Le mie parole", train:"Allenamento", tapWordHint:"Tocca una parola che non conosci per salvarla",
+  myWords:"Le mie parole", train:"Allenamento", sound:"Suono", tapWordHint:"Tocca una parola che non conosci per salvarla",
   talk:"PARLA", endTalk:"TERMINA", endedTalk:"CONVERSAZIONE TERMINATA",
   routine:"Routine di oggi", rCall:"Conversazione", rVocab:"Vocabolario", rDrill:"Errori",
   prep:"Prepara la chiamata", prepTitle:"PREPARAZIONE", howSay:"Come si dice in tedesco?",
@@ -929,7 +945,7 @@ const S = { scenario:SCENARIOS[0], level:"A1", lang:"es", speed:"normal", turns:
 const SET_KEY = "telefontrainer.settings";
 function saveSettings() {
   try {
-    localStorage.setItem(SET_KEY, JSON.stringify({ scenario:S.scenario.id, level:S.level, lang:S.lang, speed:S.speed, customTopic:S.customTopic }));
+    localStorage.setItem(SET_KEY, JSON.stringify({ scenario:S.scenario.id, level:S.level, lang:S.lang, speed:S.speed, customTopic:S.customTopic, sound:S.sound !== false }));
   } catch (e) {}
 }
 (function loadSettings() {
@@ -941,6 +957,7 @@ function saveSettings() {
     if (T[s.lang]) S.lang = s.lang;
     if (SPEEDS[s.speed]) S.speed = s.speed;
     if (typeof s.customTopic === "string") S.customTopic = s.customTopic;
+    if (s.sound === false) S.sound = false;
     // first run: preselect the correction language from the phone's language
     if (!localStorage.getItem(SET_KEY)) {
       const nav2 = ((typeof navigator !== "undefined" && navigator.language) || "").slice(0, 2).toLowerCase();
@@ -1019,6 +1036,100 @@ const IC = {
   clock: (s) => ic('<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>', false, s),
 };
 const deckIc = (name, s) => (IC[name] ? IC[name](s) : "");
+
+/* ---------- Marzi, the learning companion frog ----------
+   Seven stages mapped 1:1 onto the XP ranks. Designed by the family,
+   drawn as layered SVG so outfits can be added later. */
+const MARZI_NAMES = ["Ei", "Kaulquappe", "Kaulquappe mit Beinen", "Junger Frosch", "Schulfrosch", "Bücherfrosch", "Meisterfrosch"];
+function marziSVG(stage) {
+  const g1 = "#79a94c", g2 = "#97c162", belly = "#f4ecd6", dark = "#33461f", lens = "#4a3423";
+  const eyes = (cy, r, pr) => `<g class="mblink">
+     <circle cx="45" cy="${cy}" r="${r}" fill="#fff" stroke="${dark}" stroke-width="1.4"/>
+     <circle cx="75" cy="${cy}" r="${r}" fill="#fff" stroke="${dark}" stroke-width="1.4"/>
+     <circle cx="46.5" cy="${cy + 1}" r="${pr}" fill="${dark}"/><circle cx="73.5" cy="${cy + 1}" r="${pr}" fill="${dark}"/>
+     <circle cx="48" cy="${cy - 2}" r="${pr * .35}" fill="#fff"/><circle cx="75" cy="${cy - 2}" r="${pr * .35}" fill="#fff"/></g>`;
+  let body = "";
+  if (stage <= 1) {
+    body = `<ellipse cx="60" cy="96" rx="30" ry="7" fill="${g2}" opacity=".35"/>
+      <circle cx="60" cy="66" r="30" fill="#fff" opacity=".75" stroke="${g2}" stroke-width="2.5"/>
+      <circle cx="55" cy="70" r="8" fill="${dark}"/>
+      <path d="M62 66 Q74 60 71 74" fill="none" stroke="${dark}" stroke-width="5" stroke-linecap="round"/>
+      <path d="M30 98 q4 -12 9 -2 M84 98 q3 -10 8 -1" fill="none" stroke="${g1}" stroke-width="3" stroke-linecap="round"/>`;
+  } else if (stage <= 3) {
+    const legs = stage === 3 ? `<path d="M46 88 q-4 10 6 10 M74 88 q4 10 -6 10" fill="none" stroke="${g1}" stroke-width="6" stroke-linecap="round"/>` : "";
+    body = `<path d="M78 64 Q106 52 97 78 Q90 92 72 74" fill="${g2}"/>
+      ${legs}
+      <ellipse cx="56" cy="66" rx="26" ry="22" fill="${g1}"/>
+      <ellipse cx="54" cy="74" rx="14" ry="9" fill="${belly}"/>
+      ${eyes(48, 8.5, 4)}
+      <path d="M46 62 Q56 68 66 62" fill="none" stroke="${dark}" stroke-width="2.6" stroke-linecap="round"/>
+      <circle cx="86" cy="34" r="3.5" fill="none" stroke="${g2}" stroke-width="2"/>
+      <circle cx="93" cy="24" r="2.2" fill="none" stroke="${g2}" stroke-width="2"/>`;
+  } else {
+    const glasses = stage >= 5 ? `<circle cx="45" cy="34" r="12.5" fill="none" stroke="${lens}" stroke-width="3"/>
+      <circle cx="75" cy="34" r="12.5" fill="none" stroke="${lens}" stroke-width="3"/>
+      <path d="M57.5 34 h5 M32.5 33 l-6 -3 M87.5 33 l6 -3" stroke="${lens}" stroke-width="3" stroke-linecap="round"/>` : "";
+    const book = stage === 6 ? `<path d="M36 76 L58 70 L58 96 L36 101 Z" fill="#3b6ea5"/>
+      <path d="M84 76 L62 70 L62 96 L84 101 Z" fill="#4a7fb8"/>
+      <path d="M58 70 h4 v26 h-4 Z" fill="#2c567f"/>
+      <path d="M40 79 L54 75 M40 84 L54 80 M66 75 L80 79 M66 80 L80 84" stroke="#e8eef5" stroke-width="1.6"/>` : "";
+    const cap = stage === 7 ? `<path d="M60 4 L94 17 L60 30 L26 17 Z" fill="#3d3d3d"/>
+      <path d="M60 12 v0" /><rect x="56" y="20" width="8" height="6" rx="2" fill="#2c2c2c"/>
+      <path d="M92 18 v12" stroke="#3d3d3d" stroke-width="2.5"/><circle cx="92" cy="33" r="3.2" fill="#ff6f59"/>` : "";
+    const pencil = stage === 7 ? `<g transform="rotate(-18 92 74)"><rect x="88" y="52" width="8" height="32" rx="1.5" fill="#eab54e"/>
+      <path d="M88 84 L92 93 L96 84 Z" fill="#e8ceA0"/><path d="M90.6 89.5 L92 93 L93.4 89.5 Z" fill="${dark}"/>
+      <rect x="88" y="46" width="8" height="6" rx="2" fill="#ff6f59"/></g>` : "";
+    body = `<ellipse cx="60" cy="97" rx="34" ry="7" fill="${g2}" opacity=".35"/>
+      <path d="M27 76 Q22 100 42 100 L78 100 Q98 100 93 76 Q88 46 60 46 Q32 46 27 76 Z" fill="${g1}"/>
+      <ellipse cx="60" cy="84" rx="19" ry="14" fill="${belly}"/>
+      <circle cx="45" cy="34" r="14" fill="${g1}"/><circle cx="75" cy="34" r="14" fill="${g1}"/>
+      ${eyes(34, 9.5, 4.5)}
+      ${glasses}
+      <circle cx="42" cy="58" r="4" fill="#e9a08b" opacity=".55"/><circle cx="78" cy="58" r="4" fill="#e9a08b" opacity=".55"/>
+      <path d="M47 58 Q60 67 73 58" fill="none" stroke="${dark}" stroke-width="2.8" stroke-linecap="round"/>
+      <circle cx="56" cy="50" r="1.4" fill="${dark}"/><circle cx="64" cy="50" r="1.4" fill="${dark}"/>
+      <ellipse cx="42" cy="99" rx="9" ry="4.5" fill="${g2}"/><ellipse cx="78" cy="99" rx="9" ry="4.5" fill="${g2}"/>
+      ${book}${cap}${pencil}`;
+  }
+  return `<svg viewBox="0 0 120 120" role="img" aria-label="Marzi">${body}</svg>`;
+}
+const MARZI_KEY = "telefontrainer.marzi";
+
+/* ---------- tiny synth: jingle, coin, fanfare, German ringback ---------- */
+const SFX = (() => {
+  let ctx = null, ringT = null, jingled = false;
+  const on = () => S.sound !== false;
+  function ac() {
+    if (!ctx) { const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return null; ctx = new AC(); }
+    if (ctx.state === "suspended") ctx.resume().catch(() => {});
+    return ctx;
+  }
+  function note(c, f, t, d, type, g) {
+    const o = c.createOscillator(), v = c.createGain();
+    o.type = type; o.frequency.value = f;
+    v.gain.setValueAtTime(0.0001, t);
+    v.gain.linearRampToValueAtTime(g, t + 0.015);
+    v.gain.exponentialRampToValueAtTime(0.0008, t + d);
+    o.connect(v); v.connect(c.destination); o.start(t); o.stop(t + d + 0.05);
+  }
+  function melody(notes, type, g) {
+    if (!on()) return; const c = ac(); if (!c) return;
+    const t0 = c.currentTime + 0.03;
+    notes.forEach(([f, at, d]) => note(c, f, t0 + at, d, type, g));
+  }
+  return {
+    jingle() { if (jingled) return; jingled = true; melody([[523.25, 0, .45], [659.25, .13, .45], [783.99, .26, .45], [1046.5, .39, .85]], "triangle", .05); },
+    coin() { melody([[987.77, 0, .1], [1318.5, .09, .22]], "square", .035); },
+    fanfare() { melody([[523.25, 0, .16], [659.25, .13, .16], [783.99, .26, .16], [659.25, .42, .4], [783.99, .42, .4], [1046.5, .42, .55]], "triangle", .055); },
+    ringStart() {
+      this.ringStop(); if (!on()) return; const c = ac(); if (!c) return;
+      const beep = () => { if (!on() || !ctx) return; note(ctx, 425, ctx.currentTime, 0.95, "sine", 0.04); };
+      beep(); ringT = setInterval(beep, 4500);
+    },
+    ringStop() { clearInterval(ringT); ringT = null; },
+  };
+})();
+document.addEventListener("pointerdown", () => SFX.jingle(), { once: true });
 
 /* ---------- saved corrections (localStorage) ---------- */
 const FIX_KEY = "telefontrainer.fixes";
@@ -1199,6 +1310,7 @@ function deviceSpeak(text, rate, done) {
 
 function speak(text, slow, done, sp) {
   if (!text) { if (done) done(); return; }
+  SFX.ringStop();
   speechSynthesis.cancel();
   stopAudio();
   const rate = slow ? 0.6 : LEVELS[S.level].rate * (SPEEDS[S.speed] || 1);
@@ -1233,6 +1345,17 @@ function renderSetup() {
     }
     $("heroWeek").innerHTML = wk;
     const xp = st.xp || 0, r = rankFor(xp);
+    const stage = Math.min(r.n, MARZI_NAMES.length);
+    $("marzi").innerHTML = marziSVG(stage);
+    $("marzi").title = `Marzi · ${MARZI_NAMES[stage - 1]}`;
+    const prevStage = +(localStorage.getItem(MARZI_KEY) || 0);
+    if (prevStage && stage > prevStage) {
+      $("marzi").classList.remove("evolve");
+      void $("marzi").offsetWidth;
+      $("marzi").classList.add("evolve");
+      SFX.fanfare(); confettiBurst();
+    }
+    try { localStorage.setItem(MARZI_KEY, String(stage)); } catch (e) {}
     $("heroLv").textContent = `Lv. ${r.n} · ${r.title}`;
     $("heroXp").textContent = xp + " XP";
     $("xpFill").style.width = (r.next ? Math.min(100, Math.round(100 * (xp - r.base) / (r.next - r.base))) : 100) + "%";
@@ -1314,6 +1437,13 @@ function renderSetup() {
   $("shareBtn").innerHTML = IC.share() + `<span>${esc(L.share)}</span>`;
   $("exportBtn").textContent = `↓ ${L.dataExport}`;
   $("importBtn").textContent = `↑ ${L.dataImport}`;
+  $("soundBtn").textContent = (S.sound !== false ? "♪ " : "○ ") + L.sound + (S.sound !== false ? ": ON" : ": OFF");
+  $("soundBtn").className = "toggle" + (S.sound !== false ? " on" : "");
+  $("soundBtn").onclick = () => {
+    S.sound = S.sound === false;
+    if (S.sound === false) SFX.ringStop();
+    saveSettings(); renderSetup();
+  };
 }
 
 /* ---------- mistakes history screen ---------- */
@@ -2417,6 +2547,7 @@ function startConversation() {
   const g = S.active.goals;
   S.currentGoal = g[Math.floor(Math.random() * g.length)];
   show("call"); alertMsg(null); renderCall();
+  if (S.active.kind !== "face") SFX.ringStart();
   acquireWakeLock();
   clearInterval(S.timerId);
   S.timerId = setInterval(() => { S.seconds++; $("timer").textContent = timerText(); }, 1000);
@@ -2436,6 +2567,7 @@ function goCall() {
 $("callBtn").onclick = goCall;
 $("hangBtn").onclick = () => {
   S.handsFree = false;
+  SFX.ringStop();
   clearInterval(S.timerId);
   S.timerId = null;
   releaseWakeLock();
@@ -2456,6 +2588,7 @@ $("hangBtn").onclick = () => {
   const gained = recordCall();
   $("xpChip").textContent = "+" + gained + " XP";
   $("xpChip").classList.toggle("hidden", !gained);
+  if (gained) SFX.coin();
   show("done");
   evaluateCall();
 };
