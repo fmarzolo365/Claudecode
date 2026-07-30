@@ -67,7 +67,7 @@ const html = fs.readFileSync(path.join(__dirname, "..", "public", "index.html"),
 const m = html.match(/<script>([\s\S]*)<\/script>/);
 if (!m) { console.error("FAIL  could not extract app script"); process.exit(1); }
 let src = m[1];
-src += `\n;globalThis.__t = { T, LEVELS, LEVEL_ORDER, SCENARIOS, GROUPS, BASIC_DECKS, HELP_LANG,
+src += `\n;globalThis.__t = { T, TARGET, LEVELS, LEVEL_ORDER, SCENARIOS, GROUPS, BASIC_DECKS, HELP_LANG,
   saidWord, normDe, lev, rankFor, recordCall, addXp, loadStats, loadFixes, saveFixes,
   voiceOf, timerText, systemPrompt, S, chartSVG, loadTests, saveTestResult };`;
 eval(src);
@@ -210,6 +210,21 @@ check("system prompt: face register, in-character correction, speaker contract",
   if (!p.includes("Man sagt übrigens")) throw new Error("in-character correction missing");
   tt.S.active = tt.SCENARIOS.find((x) => x.id === "arzt");
   if (!tt.systemPrompt().includes("Answer the phone")) throw new Error("phone register regressed");
+});
+
+check("TARGET drives the taught language: shape, prompt language, recognition locale", () => {
+  const tg = tt.TARGET;
+  if (!tg) throw new Error("TARGET object missing");
+  for (const k of ["code", "locale", "name", "nativeName", "exam"]) {
+    if (!tg[k] || typeof tg[k] !== "string") throw new Error("TARGET." + k + " missing");
+  }
+  // this build teaches German - a future target swap must consciously update this
+  if (tg.locale !== "de-DE") throw new Error("recognition locale is " + tg.locale + ", expected de-DE");
+  tt.S.active = tt.SCENARIOS.find((x) => x.id === "arzt");
+  tt.S.currentGoal = "x";
+  if (!tt.systemPrompt().includes("German")) throw new Error("role-play prompt lost the target language name");
+  // the locale must come from TARGET, never be hardcoded at the recognition sites
+  if (/\.lang = "de-DE"/.test(src)) throw new Error('speech recognition/TTS locale hardcoded as "de-DE" instead of TARGET.locale');
 });
 
 check("progress chart renders points, CEFR bands and a projection", () => {

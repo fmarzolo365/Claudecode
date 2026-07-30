@@ -502,6 +502,12 @@
 </aside>
 
 <script>
+/* The language being TAUGHT. All logic (recognition locale, prompt templates,
+   voice picking) reads from this; scenario/deck text is a separate content
+   pack per target language. UI help-languages (T, es/en/it/tr/ar/uk) are an
+   independent axis. See docs/EXPANSION.md before adding a new target. */
+const TARGET = { code:"de", locale:"de-DE", name:"German", nativeName:"Deutsch", exam:"DTZ" };
+
 const SCENARIOS = [
   { id:"arzt", avatar:"👩‍⚕️", voice:"coral", voice2:"onyx", de:"Beim Hausarzt anrufen", es:"Pedir cita en el médico de cabecera", en:"Book a doctor's appointment",
     who:"Praxis Dr. Wagner", tag:"PRAXIS", role:"a receptionist at a family doctor's practice",
@@ -572,7 +578,7 @@ const LEVELS = {
   A2:{ words:28, rate:.88, es:"Lenguaje cotidiano, ritmo normal", en:"Everyday language, normal pace",
        guide:"Elementary. Simple everyday language, occasional subordinate clause with weil or dass. Normal politeness formulas." },
   B1:{ words:40, rate:1.0, es:"Alemán natural, con imprevistos", en:"Natural German, with complications",
-       guide:"Intermediate. Natural office German at normal speed, with fillers, follow-up questions and small complications such as a fully booked day." },
+       guide:`Intermediate. Natural office ${TARGET.name} at normal speed, with fillers, follow-up questions and small complications such as a fully booked day.` },
   B2:{ words:55, rate:1.06, es:"Rápido y con complicaciones reales", en:"Fast, with real complications",
        guide:"Upper intermediate. Fast natural speech with colloquialisms and fillers. Introduce a real complication the caller must solve (fully booked, wrong department, missing information, a counter-offer). Occasionally transfer the caller to a colleague with a different voice of the same kind. Do not simplify unless asked." },
 };
@@ -832,7 +838,7 @@ LEVELS.A0 = { words:12, rate:.65,
   es:"Primerísimas palabras, súper lento", en:"Very first words, super slow",
   tr:"İlk kelimeler, çok yavaş", ar:"أول الكلمات، بطيء جدًا",
   uk:"Найперші слова, дуже повільно", it:"Primissime parole, super lento",
-  guide:"Absolute zero beginner (pre-A1). Prefer 5-8 words per reply, never more than 12. Present tense only, only the few hundred most common German words. Speak in short simple chunks and naturally repeat the key word of your reply. Ask only yes/no questions or offer two simple options ('Montag oder Dienstag?'). Be extremely patient and warm; if the learner says even one correct German word, make the conversation move forward." };
+  guide:`Absolute zero beginner (pre-A1). Prefer 5-8 words per reply, never more than 12. Present tense only, only the few hundred most common ${TARGET.name} words. Speak in short simple chunks and naturally repeat the key word of your reply. Ask only yes/no questions or offer two simple options ('Montag oder Dienstag?'). Be extremely patient and warm; if the learner says even one correct ${TARGET.name} word, make the conversation move forward.` };
 const LEVEL_ORDER = ["A0","A1","A2","B1","B2","C1"];
 
 const LEVEL_L10N = {
@@ -1215,9 +1221,9 @@ document.addEventListener("visibilitychange", () => {
 /* ---------- voices ---------- */
 function loadVoices() {
   const v = speechSynthesis.getVoices() || [];
-  S.voice = v.find((x) => x.lang === "de-DE" && /google|deutsch|anna|katja/i.test(x.name))
-         || v.find((x) => x.lang === "de-DE")
-         || v.find((x) => (x.lang || "").startsWith("de")) || null;
+  S.voice = v.find((x) => x.lang === TARGET.locale && /google|deutsch|anna|katja/i.test(x.name))
+         || v.find((x) => x.lang === TARGET.locale)
+         || v.find((x) => (x.lang || "").startsWith(TARGET.code)) || null;
 }
 loadVoices();
 speechSynthesis.onvoiceschanged = loadVoices;
@@ -1321,7 +1327,7 @@ async function neuralSpeak(text, rate, done, voice, pace, char) {
 
 function deviceSpeak(text, rate, done) {
   const u = new SpeechSynthesisUtterance(text);
-  u.lang = "de-DE";
+  u.lang = TARGET.locale;
   if (S.voice) u.voice = S.voice;
   u.rate = rate;
   u.onstart = () => setSpeaking(true);
@@ -1679,10 +1685,10 @@ async function loadDeck() {
     : sc.kind === "face" ? `${sc.de} - an in-person conversation at ${sc.place}`
     : `${sc.de} - calling ${sc.place}`;
   const res = await chatFetch({
-    system: `You create a vocabulary deck for a German learner at CEFR level ${S.level} preparing for ${what}.
+    system: `You create a vocabulary deck for a ${TARGET.name} learner at CEFR level ${S.level} preparing for ${what}.
 Return ONLY a JSON array, no markdown, of exactly 12 items:
 [{"de":"...","tr":"...","ex":"...","xt":"..."}]
-"de": the German word with its article (for nouns) or a short key phrase. "tr": its translation in ${help}. "ex": one short natural German sentence using it, something the learner could actually say or hear in this phone call, at level ${S.level}. "xt": the translation of "ex" in ${help}.
+"de": the ${TARGET.name} word with its article (for nouns) or a short key phrase. "tr": its translation in ${help}. "ex": one short natural ${TARGET.name} sentence using it, something the learner could actually say or hear in this phone call, at level ${S.level}. "xt": the translation of "ex" in ${help}.
 Pick what is genuinely most useful for THIS call: core nouns, key verbs, and 2-3 fixed telephone phrases.`,
     messages: [{ role: "user", content: "Create the deck." }],
   });
@@ -1830,7 +1836,7 @@ async function listenFor(target, st, rerender) {
   speechSynthesis.cancel(); stopAudio();
   st.err = null; st.verdict = null; st.heard = null;
   const r = new SR();
-  r.lang = "de-DE"; r.interimResults = false; r.maxAlternatives = 5;
+  r.lang = TARGET.locale; r.interimResults = false; r.maxAlternatives = 5;
   r.onresult = (e) => {
     const alts = Array.from(e.results[0]).map((a) => a.transcript);
     const ok = alts.some((a) => saidWord(a, target));
@@ -1909,34 +1915,34 @@ function systemPrompt() {
   const L = LEVELS[S.level], help = HELP_LANG[S.lang] || "English", s = S.active || S.scenario;
   const face = s.kind === "face";
   const custom = s.id === "custom"
-    ? `\nThe learner described the situation in their own words (possibly not in German): interpret it, decide what kind of business or office would be called, and play that role realistically.\n`
+    ? `\nThe learner described the situation in their own words (possibly not in ${TARGET.name}): interpret it, decide what kind of business or office would be called, and play that role realistically.\n`
     : "";
   const recent = loadFixes().slice(-8);
   const weakSpots = recent.length
     ? `\nThe learner's recent recurring mistakes (from earlier calls):\n${recent.map((f) => `- said "${f.text}" -> better: ${f.fix}`).join("\n")}\nWhen natural, steer the conversation so the learner gets a chance to practise these patterns again. Never mention that you are doing this.\n`
     : "";
-  return `You are running a German-language ${face ? "face-to-face" : "telephone"} role-play for a learner at CEFR level ${S.level}.
+  return `You are running a ${TARGET.name}-language ${face ? "face-to-face" : "telephone"} role-play for a learner at CEFR level ${S.level}.
 Your role: ${s.role} at ${s.place}. The learner ${face ? "approaches you in person" : "is calling"} to ${S.currentGoal}.
 ${custom}${weakSpots}
 Rules:
-- The "reply" field is ONLY German. Stay in character for the whole ${face ? "conversation" : "call"}. Never mention that this is practice.
+- The "reply" field is ONLY ${TARGET.name}. Stay in character for the whole ${face ? "conversation" : "call"}. Never mention that this is practice.
 - Level guidance: ${L.guide}
 - At most ${L.words} words per reply, at most one question per turn.
 ${face
   ? `- Open the conversation as this person naturally would in this place (a simple "Guten Tag" / "Hallo" / "Was darf's sein?"), never with telephone formulas.
 - This is spoken in person: casual register where natural, react to the situation around you (queue, weather, noise), small human touches.`
-  : `- Answer the phone first with a realistic German greeting for this kind of business.`}
+  : `- Answer the phone first with a realistic ${TARGET.name} greeting for this kind of business.`}
 - Drive the ${face ? "conversation" : "call"} to a real conclusion: ${face ? "resolve the learner's concern concretely, then part naturally" : "offer concrete dates and times, confirm the learner's name, then say goodbye"}.
-- You are a warm real person who notices the learner is not a native speaker. When they make a clear mistake, OCCASIONALLY (at most every third turn, not always) react the way a kind German would: show you understood, then naturally model the correct phrase inside your German reply - e.g. "Ach, ich verstehe schon! Man sagt übrigens: 'Ich hätte gern einen Termin.' Also, wann passt es Ihnen?". Keep it brief and encouraging, never lecture, then continue the conversation.
+- You are a warm real person who notices the learner is not a native speaker. When they make a clear mistake, OCCASIONALLY (at most every third turn, not always) react the way a kind ${TARGET.name} would: show you understood, then naturally model the correct phrase inside your ${TARGET.name} reply - e.g. "Ach, ich verstehe schon! Man sagt übrigens: 'Ich hätte gern einen Termin.' Also, wann passt es Ihnen?". Keep it brief and encouraging, never lecture, then continue the conversation.
 - Sometimes, when natural (especially at B1 and above, or when the learner's request needs it), hand the learner over to a SECOND person - the doctor, a supervisor, a colleague, a spouse. That person introduces themselves and continues the conversation in their own manner. From that reply on set "speaker":"second"; if the first person takes the call back, set "speaker":"main" again.
-- If the learner speaks English or Spanish, still answer in German, and make "suggestion" easier.
+- If the learner speaks English or Spanish, still answer in ${TARGET.name}, and make "suggestion" easier.
 
 Return ONLY a JSON object. No markdown, no code fences. Keys:
-"reply": your German line.
+"reply": your ${TARGET.name} line.
 "translation": that same line in ${help}.
-"feedback": at most 25 words in ${help} about the learner's last German line - what was wrong and the natural way to say it. Empty string if the learner has not spoken yet or the line was fine.
-"corrected": the learner's last line rewritten as one natural, correct German sentence. Empty string if the learner has not spoken yet or the line was fine.
-"suggestion": one natural German sentence the learner could say next, at level ${S.level}.
+"feedback": at most 25 words in ${help} about the learner's last ${TARGET.name} line - what was wrong and the natural way to say it. Empty string if the learner has not spoken yet or the line was fine.
+"corrected": the learner's last line rewritten as one natural, correct ${TARGET.name} sentence. Empty string if the learner has not spoken yet or the line was fine.
+"suggestion": one natural ${TARGET.name} sentence the learner could say next, at level ${S.level}.
 "speaker": "main" while the usual contact person is speaking, "second" while a different person (doctor, supervisor, colleague, spouse) has the conversation.
 "done": true only after you have said goodbye.`;
 }
@@ -2002,7 +2008,7 @@ async function listen() {
   stopAudio();
   alertMsg(null);
   const r = new SR();
-  r.lang = "de-DE"; r.interimResults = false; r.maxAlternatives = 1;
+  r.lang = TARGET.locale; r.interimResults = false; r.maxAlternatives = 1;
   r.onresult = (e) => send(e.results[0][0].transcript);
   r.onerror = (e) => {
     S.listening = false;
@@ -2032,7 +2038,7 @@ async function saveWordTap(ti, raw) {
   try {
     const help = HELP_LANG[S.lang] || "English";
     const res = await chatFetch({
-      system: `Return ONLY a JSON object, no markdown: {"de":"...","tr":"..."}. "de": the dictionary form of the tapped German word (nouns capitalized with their article, verbs in the infinitive). "tr": a short translation in ${help} that fits this context.`,
+      system: `Return ONLY a JSON object, no markdown: {"de":"...","tr":"..."}. "de": the dictionary form of the tapped ${TARGET.name} word (nouns capitalized with their article, verbs in the infinitive). "tr": a short translation in ${help} that fits this context.`,
       messages: [{ role: "user", content: `Tapped word: "${raw}"\nSentence: "${turn.text}"` }],
     });
     const data = await res.json();
@@ -2159,12 +2165,12 @@ async function evaluateCall() {
   const transcript = S.turns.map((x) => `${x.me ? "LEARNER" : "OTHER"}: ${x.text}`).join("\n");
   try {
     const res = await chatFetch({
-      system: `You evaluate a German ${(S.active || S.scenario).kind === "face" ? "face-to-face" : "phone-call"} role-play by a learner at CEFR level ${S.level}. The learner's goal was: ${S.currentGoal}. Return ONLY a JSON object, no markdown, with keys:
+      system: `You evaluate a ${TARGET.name} ${(S.active || S.scenario).kind === "face" ? "face-to-face" : "phone-call"} role-play by a learner at CEFR level ${S.level}. The learner's goal was: ${S.currentGoal}. Return ONLY a JSON object, no markdown, with keys:
 "achieved" (true/false/"partial" - did the learner reach the goal),
 "comment" (2 sentences in ${help}: overall impression),
 "good" (array of at most 3 short points in ${help}: concrete things the learner did WELL in this conversation),
 "tips" (array of at most 3 short concrete tips in ${help} to improve, most important first),
-"vocab" (array of at most 5 objects {"de":"...","tr":"..."} - German words or short phrases the learner clearly lacked, misused or avoided in this conversation, with the translation in ${help}; empty array if none).`,
+"vocab" (array of at most 5 objects {"de":"...","tr":"..."} - ${TARGET.name} words or short phrases the learner clearly lacked, misused or avoided in this conversation, with the translation in ${help}; empty array if none).`,
       messages: [{ role: "user", content: `Transcript of the call:\n${transcript}` }],
     });
     const data = await res.json();
@@ -2274,8 +2280,8 @@ async function beginTest() {
   try {
     const help = HELP_LANG[S.lang] || "English";
     const res = await chatFetch({
-      system: `You create a short German speaking test. Return ONLY a JSON array, no markdown, of exactly 6 items: [{"tr":"...","ref":"..."}]
-"tr": a sentence in ${help} that the learner must say in German. "ref": a natural, correct German version.
+      system: `You create a short ${TARGET.name} speaking test. Return ONLY a JSON array, no markdown, of exactly 6 items: [{"tr":"...","ref":"..."}]
+"tr": a sentence in ${help} that the learner must say in ${TARGET.name}. "ref": a natural, correct ${TARGET.name} version.
 Difficulty ladder: items 1-2 very easy (greeting, name, a simple need - A0/A1), items 3-4 everyday A2 (appointment, time, buying something), items 5-6 B1 (politely declining a date, explaining a problem, a request with a subordinate clause).
 Each sentence 4-12 words, everyday phone/errand situations, fresh content every time.`,
       messages: [{ role: "user", content: "Create the test." }],
@@ -2298,7 +2304,7 @@ function testListen() {
   if (!SR || TST.listening) return;
   speechSynthesis.cancel(); stopAudio();
   const r = new SR();
-  r.lang = "de-DE"; r.interimResults = false; r.maxAlternatives = 1;
+  r.lang = TARGET.locale; r.interimResults = false; r.maxAlternatives = 1;
   r.onresult = (e) => {
     TST.answers[TST.i] = e.results[0][0].transcript;
     nextTestItem();
@@ -2324,11 +2330,11 @@ async function scoreTest() {
   try {
     const help = HELP_LANG[S.lang] || "English";
     const lines = TST.items.map((it, i) =>
-      `${i + 1}. target (${help}): "${it.tr}" | reference German: "${it.ref}" | learner said: "${TST.answers[i] || "(nothing)"}"`).join("\n");
+      `${i + 1}. target (${help}): "${it.tr}" | reference ${TARGET.name}: "${it.ref}" | learner said: "${TST.answers[i] || "(nothing)"}"`).join("\n");
     const res = await chatFetch({
-      system: `You grade a German speaking test. The learner's answers come from speech recognition, so minor transcription noise is normal - grade the communication, not the transcription.
+      system: `You grade a ${TARGET.name} speaking test. The learner's answers come from speech recognition, so minor transcription noise is normal - grade the communication, not the transcription.
 Return ONLY a JSON object: {"score": <0-100 holistic speaking score>, "cefr": "<A0|A1|A2|B1|B2|C1>", "comment": "<2 short encouraging sentences in ${help}: one strength, one concrete thing to improve>"}
-Scoring guide: 0-19 barely any German yet, 20-39 A1 basics, 40-54 simple everyday A2, 55-69 solid B1, 70-84 confident B2, 85+ C1.`,
+Scoring guide: 0-19 barely any ${TARGET.name} yet, 20-39 A1 basics, 40-54 simple everyday A2, 55-69 solid B1, 70-84 confident B2, 85+ C1.`,
       messages: [{ role: "user", content: `Test answers:\n${lines}` }],
     });
     const data = await res.json();
@@ -2445,9 +2451,9 @@ async function loadPrepBatch(batchNo) {
     : sc.kind === "face" ? `${sc.de} - an in-person conversation at ${sc.place}`
     : `${sc.de} - calling ${sc.place}`;
   const res = await chatFetch({
-    system: `You create extra preparation batch ${batchNo} for a German learner at CEFR level ${S.level} preparing for ${what}.
+    system: `You create extra preparation batch ${batchNo} for a ${TARGET.name} learner at CEFR level ${S.level} preparing for ${what}.
 Return ONLY a JSON array, no markdown, of exactly 10 items: [{"de":"...","tr":"..."}]
-"de": a short useful German word or a very short sentence (3-7 words). "tr": its translation in ${help}.
+"de": a short useful ${TARGET.name} word or a very short sentence (3-7 words). "tr": its translation in ${help}.
 Focus on REACTING inside this conversation: saying a day or time does not work ("An dem Tag kann ich nicht."), proposing or asking for alternatives, confirming and declining politely, numbers, dates and times, thanking and closing. Order from easiest to hardest.
 Do not repeat any of these already-learned items: ${P.learned.slice(-40).join(" | ")}`,
     messages: [{ role: "user", content: "Create the batch." }],
