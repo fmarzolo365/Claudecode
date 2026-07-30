@@ -338,6 +338,16 @@
   }
   .menu-btn span { width: 16px; height: 2px; background: var(--ink); border-radius: 2px; display: block; }
   .drawer-back { position: fixed; inset: 0; background: rgba(22,19,13,.45); z-index: 40; }
+  .evo-strip { display: flex; gap: 8px; overflow-x: auto; padding: 10px 2px 6px; scrollbar-width: none; }
+  .evo-strip::-webkit-scrollbar { display: none; }
+  .evo-step { flex: 0 0 84px; text-align: center; background: var(--card); border: 1.5px solid var(--line); border-radius: 14px; padding: 10px 4px 8px; }
+  .evo-step .n { font: 700 10px 'JetBrains Mono', monospace; color: var(--yellow-deep); }
+  .evo-step svg { width: 58px; height: 58px; }
+  .evo-step .nm { font: 600 10.5px Archivo, sans-serif; line-height: 1.25; color: var(--muted); }
+  .evo-step.future svg { filter: grayscale(1) opacity(.38); }
+  .evo-step.now { border-color: var(--yellow-deep); border-width: 2px; background: #f4f8ea; }
+  .evo-step.now .nm { color: var(--ink); font-weight: 700; }
+  .evo-here { display: block; font: 700 9px 'JetBrains Mono', monospace; letter-spacing: .08em; color: var(--yellow-deep); margin-top: 2px; }
   .limit {
     position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%);
     width: min(320px, 88vw); z-index: 61; background: var(--card);
@@ -462,6 +472,7 @@
     <div class="label" id="obLearnLbl"></div>
     <div class="grid2" id="obTargets"></div>
     <p class="note hidden" id="obWishNote"></p>
+    <div id="obEvo"></div>
     <button class="big cta" id="obStartBtn"></button>
   </section>
 
@@ -732,7 +743,7 @@ const T = {
     limitMsg:"Se alcanzó el límite diario gratuito. ¡Vuelve mañana! 🙏", share:"Recomendar la app",
     shareText:"Estoy practicando alemán hablado con Telefontrainer. ¡Pruébalo!", copied:"Enlace copiado ✓",
     watchIt:"Ver cómo se dice", clipLoading:"Creando el video… (solo la primera vez, ~1 min)",
-    obIntro:"Hablo…", obLearn:"Quiero aprender…", obStart:"¡EMPEZAR!", obSoon:"Muy pronto",
+    evoTitle:"La evolución de Marzi", evoHere:"Estás aquí", obIntro:"Hablo…", obLearn:"Quiero aprender…", obStart:"¡EMPEZAR!", obSoon:"Muy pronto",
     obWish:"¡Apuntado! Te avisaremos. Mientras tanto, sigue seleccionado el idioma actual 💪", obPair:"Idiomas: hablo / aprendo" },
   en:{ tagline:"Practise real German calls and conversations. You speak, the other person answers.",
     pick:"Choose the situation", level:"Level", helpLang:"Language for corrections", call:"CALL",
@@ -773,7 +784,7 @@ const T = {
     limitMsg:"The free daily limit is reached. Come back tomorrow! 🙏", share:"Recommend the app",
     shareText:"I'm practising spoken German with Telefontrainer. Try it!", copied:"Link copied ✓",
     watchIt:"Watch it said", clipLoading:"Creating the video… (first time only, ~1 min)",
-    obIntro:"I speak…", obLearn:"I want to learn…", obStart:"LET'S GO!", obSoon:"Coming soon",
+    evoTitle:"Marzi's evolution", evoHere:"You are here", obIntro:"I speak…", obLearn:"I want to learn…", obStart:"LET'S GO!", obSoon:"Coming soon",
     obWish:"Noted! We'll let you know. Until then, your current language stays selected 💪", obPair:"Languages: I speak / I learn" },
 };
 
@@ -817,7 +828,7 @@ T.tr = { tagline:"Gerçek Almanca aramalar ve konuşmalar pratiği yap. Sen konu
   limitMsg:"Günlük ücretsiz sınıra ulaşıldı. Yarın tekrar gel! 🙏", share:"Uygulamayı öner",
   shareText:"Telefontrainer ile Almanca konuşma pratiği yapıyorum. Dene!", copied:"Bağlantı kopyalandı ✓",
   watchIt:"Nasıl söylendiğini izle", clipLoading:"Video oluşturuluyor… (sadece ilk sefer, ~1 dk)",
-  obIntro:"Konuştuğum dil…", obLearn:"Öğrenmek istiyorum…", obStart:"BAŞLAYALIM!", obSoon:"Çok yakında",
+  evoTitle:"Marzi'nin evrimi", evoHere:"Buradasın", obIntro:"Konuştuğum dil…", obLearn:"Öğrenmek istiyorum…", obStart:"BAŞLAYALIM!", obSoon:"Çok yakında",
   obWish:"Not aldık! Haber vereceğiz. O zamana kadar mevcut dil seçili kalıyor 💪", obPair:"Diller: konuşurum / öğrenirim" };
 T.ar = { tagline:"تدرّب على مكالمات ومحادثات حقيقية بالألمانية. أنت تتكلم والطرف الآخر يجيب.",
   pick:"اختر الموقف", level:"المستوى", helpLang:"لغة التصحيحات", call:"اتصل",
@@ -858,7 +869,7 @@ T.ar = { tagline:"تدرّب على مكالمات ومحادثات حقيقية
   limitMsg:"تم بلوغ الحد اليومي المجاني. عد غدًا! 🙏", share:"أوصِ بالتطبيق",
   shareText:"أتدرب على التحدث بالألمانية مع Telefontrainer. جربه!", copied:"تم نسخ الرابط ✓",
   watchIt:"شاهد كيف تُقال", clipLoading:"جارٍ إنشاء الفيديو… (المرة الأولى فقط، حوالي دقيقة)",
-  obIntro:"أتحدث…", obLearn:"أريد أن أتعلم…", obStart:"هيا نبدأ!", obSoon:"قريبًا",
+  evoTitle:"تطوّر مارزي", evoHere:"أنت هنا", obIntro:"أتحدث…", obLearn:"أريد أن أتعلم…", obStart:"هيا نبدأ!", obSoon:"قريبًا",
   obWish:"سجلنا رغبتك! سنخبرك عندما تتوفر. حتى ذلك الحين تبقى اللغة الحالية مختارة 💪", obPair:"اللغات: أتحدث / أتعلم" };
 T.uk = { tagline:"Тренуй реальні дзвінки й розмови німецькою. Ти говориш — співрозмовник відповідає.",
   pick:"Обери ситуацію", level:"Рівень", helpLang:"Мова пояснень", call:"ДЗВОНИТИ",
@@ -899,7 +910,7 @@ T.uk = { tagline:"Тренуй реальні дзвінки й розмови �
   limitMsg:"Досягнуто безкоштовний денний ліміт. Повертайся завтра! 🙏", share:"Порадити застосунок",
   shareText:"Я треную розмовну німецьку з Telefontrainer. Спробуй!", copied:"Посилання скопійовано ✓",
   watchIt:"Подивись, як це сказати", clipLoading:"Створюю відео… (лише вперше, ~1 хв)",
-  obIntro:"Я розмовляю…", obLearn:"Хочу вивчати…", obStart:"ПОЧНІМО!", obSoon:"Скоро",
+  evoTitle:"Еволюція Марзі", evoHere:"Ти тут", obIntro:"Я розмовляю…", obLearn:"Хочу вивчати…", obStart:"ПОЧНІМО!", obSoon:"Скоро",
   obWish:"Записали! Повідомимо, щойно зʼявиться. А поки лишається поточна мова 💪", obPair:"Мови: розмовляю / вивчаю" };
 
 T.it = { tagline:"Allenati con telefonate e conversazioni reali in tedesco. Tu parli, l'altra persona risponde.",
@@ -941,7 +952,7 @@ T.it = { tagline:"Allenati con telefonate e conversazioni reali in tedesco. Tu p
   limitMsg:"Limite giornaliero gratuito raggiunto. Torna domani! 🙏", share:"Consiglia l'app",
   shareText:"Sto praticando il tedesco parlato con Telefontrainer. Provalo!", copied:"Link copiato ✓",
   watchIt:"Guarda come si dice", clipLoading:"Creo il video… (solo la prima volta, ~1 min)",
-  obIntro:"Parlo…", obLearn:"Voglio imparare…", obStart:"INIZIAMO!", obSoon:"Prossimamente",
+  evoTitle:"L'evoluzione di Marzi", evoHere:"Sei qui", obIntro:"Parlo…", obLearn:"Voglio imparare…", obStart:"INIZIAMO!", obSoon:"Prossimamente",
   obWish:"Segnato! Ti avviseremo. Nel frattempo resta selezionata la lingua attuale 💪", obPair:"Lingue: parlo / imparo" };
 
 const HELP_LANG = { es:"Spanish", en:"English", tr:"Turkish", ar:"Arabic", uk:"Ukrainian", it:"Italian" };
@@ -1322,6 +1333,16 @@ const IC = {
 };
 const deckIc = (name, s) => (IC[name] ? IC[name](s) : "");
 
+/* ---------- Marzi's evolution strip (family lamina, never changes) ---------- */
+function evolutionHTML(current) {
+  return `<div class="label" style="margin:18px 0 2px">${esc(t().evoTitle)}</div><div class="evo-strip">` +
+    MARZI_NAMES.map((nm, i) => {
+      const st = i + 1;
+      const cls = st === current ? "now" : st > current ? "future" : "";
+      return `<div class="evo-step ${cls}"><div class="n">${st}</div>${marziSVG(st)}<div class="nm">${esc(nm)}</div>${st === current ? `<span class="evo-here">${esc(t().evoHere)}</span>` : ""}</div>`;
+    }).join("") + `</div>`;
+}
+
 /* ---------- Marzi, the learning companion frog ----------
    Seven stages mapped 1:1 onto the XP ranks. Designed by the family,
    drawn as layered SVG so outfits can be added later. */
@@ -1635,6 +1656,16 @@ function renderSetup() {
     const stage = Math.min(r.n, MARZI_NAMES.length);
     $("marzi").innerHTML = marziSVG(stage);
     $("marzi").title = `Marzi · ${MARZI_NAMES[stage - 1]}`;
+    $("marzi").style.cursor = "pointer";
+    $("marzi").onclick = () => {
+      $("limitMarzi").innerHTML = "";
+      $("limitTitle").textContent = t().evoTitle;
+      $("limitBody").innerHTML = evolutionHTML(stage);
+      $("limitReset").textContent = "";
+      $("limitOk").textContent = t().ok;
+      $("limitBack").classList.remove("hidden");
+      $("limitBox").classList.remove("hidden");
+    };
     const prevStage = +(localStorage.getItem(MARZI_KEY) || 0);
     if (prevStage && stage > prevStage) {
       $("marzi").classList.remove("evolve");
@@ -3098,6 +3129,7 @@ function renderOnboard() {
   const L = t();
   $("obMarzi").innerHTML = marziSVG(5);
   $("obIntroLbl").textContent = L.obIntro;
+  $("obEvo").innerHTML = evolutionHTML(Math.min(rankFor(loadStats().xp || 0).n, MARZI_NAMES.length));
   $("obLearnLbl").textContent = L.obLearn;
   $("obHelp").innerHTML = LANG_CHIPS.map(([k, n]) =>
     `<button class="${k === S.lang ? "on" : ""}" data-k="${k}">${n}</button>`).join("");
