@@ -117,11 +117,11 @@ function ttsRequestBody(text, voice, pace, char) {
   return body;
 }
 async function synthesizeTts(text, voice, pace, char) {
-  const upstream = await fetch("https://api.openai.com/v1/audio/speech", {
+  const upstream = await fetchT("https://api.openai.com/v1/audio/speech", {
     method: "POST",
     headers: { authorization: `Bearer ${TTS_KEY}`, "content-type": "application/json" },
     body: JSON.stringify(ttsRequestBody(text, voice, pace, char)),
-  });
+  }, 60000);
   if (!upstream.ok) {
     console.error("TTS failed:", upstream.status, (await upstream.text()).slice(0, 200));
     return null;
@@ -139,11 +139,11 @@ async function getAvatarBuffer(id) {
     const body = model === "gpt-image-1"
       ? { model, prompt: AVATAR_STYLE + desc, size: "1024x1024", quality: "low", n: 1 }
       : { model, prompt: AVATAR_STYLE + desc, size: "1024x1024", response_format: "b64_json", n: 1 };
-    const upstream = await fetch("https://api.openai.com/v1/images/generations", {
+    const upstream = await fetchT("https://api.openai.com/v1/images/generations", {
       method: "POST",
       headers: { authorization: `Bearer ${TTS_KEY}`, "content-type": "application/json" },
       body: JSON.stringify(body),
-    });
+    }, 120000);
     if (!upstream.ok) {
       console.error("Avatar gen failed:", model, upstream.status, (await upstream.text()).slice(0, 200));
       continue;
@@ -160,16 +160,39 @@ async function getAvatarBuffer(id) {
 
 // Free-tier protection: daily request caps (global + per IP) so a public
 // link can never drain the API credits. Counters reset at midnight UTC.
+// A Map (not a plain object) so header-controlled keys like "__proto__"
+// can't collide with the prototype and dodge the limit.
 const DAILY_LIMIT = parseInt(process.env.TRAINER_DAILY_LIMIT || "500", 10);
 const IP_LIMIT = parseInt(process.env.TRAINER_IP_LIMIT || "150", 10);
-let usageDay = "", usageTotal = 0, usageByIp = {};
+let usageDay = "", usageTotal = 0, usageByIp = new Map();
+function clientIp(req) {
+  // Behind Render's proxy the RIGHTMOST x-forwarded-for entry is the one the
+  // proxy itself appended (the IP that actually connected). Leftmost entries
+  // are client-supplied and trivially spoofable — never trust them for limits.
+  const xff = String(req.headers["x-forwarded-for"] || "").split(",").map((s) => s.trim()).filter(Boolean);
+  return (xff.length ? xff[xff.length - 1] : req.socket.remoteAddress || "?").slice(0, 64);
+}
 function overLimit(req) {
   const today = new Date().toISOString().slice(0, 10);
-  if (usageDay !== today) { usageDay = today; usageTotal = 0; usageByIp = {}; }
-  const ip = String(req.headers["x-forwarded-for"] || req.socket.remoteAddress || "?").split(",")[0].trim();
+  if (usageDay !== today) { usageDay = today; usageTotal = 0; usageByIp = new Map(); }
+  const ip = clientIp(req);
   usageTotal++;
-  usageByIp[ip] = (usageByIp[ip] || 0) + 1;
-  return usageTotal > DAILY_LIMIT || usageByIp[ip] > IP_LIMIT;
+  usageByIp.set(ip, (usageByIp.get(ip) || 0) + 1);
+  return usageTotal > DAILY_LIMIT || usageByIp.get(ip) > IP_LIMIT;
+}
+
+// Constant-time PIN check: a plain !== comparison leaks length/prefix timing.
+function pinOk(supplied) {
+  if (!PIN) return true;
+  const a = Buffer.from(String(supplied || ""));
+  const b = Buffer.from(PIN);
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
+}
+
+// All upstream calls get a hard deadline so a hung provider can never pin
+// this connection (and its rate-limit slot) open forever.
+function fetchT(url, opts, ms) {
+  return fetch(url, { ...opts, signal: AbortSignal.timeout(ms) });
 }
 
 if (!AUTH_TOKEN && !API_KEY) {
@@ -199,19 +222,39 @@ function authHeaders() {
   return h;
 }
 
+const BODY_LIMIT = 2e6;
 function readBody(req) {
   return new Promise((resolve, reject) => {
-    let data = "";
+    const declared = parseInt(req.headers["content-length"] || "0", 10);
+    if (declared > BODY_LIMIT) {
+      // no destroy here: the route still gets to send a clean 413 (with
+      // connection: close, so the unread body is discarded with the socket)
+      reject(Object.assign(new Error("body_too_large"), { status: 413 }));
+      return;
+    }
+    let data = "", done = false;
+    const fail = (err) => { if (!done) { done = true; reject(err); } };
     req.on("data", (c) => {
       data += c;
-      if (data.length > 2e6) req.destroy();
+      if (data.length > BODY_LIMIT) {
+        fail(Object.assign(new Error("body_too_large"), { status: 413 }));
+        req.destroy();
+      }
     });
-    req.on("end", () => resolve(data));
-    req.on("error", reject);
+    req.on("end", () => { if (!done) { done = true; resolve(data); } });
+    req.on("error", fail);
+    req.on("close", () => fail(new Error("connection_closed")));
   });
 }
 
+const PUBLIC_DIR = path.join(__dirname, "public");
+
 const server = http.createServer(async (req, res) => {
+  // baseline security headers on every response (no CSP — the app is an
+  // inline-script single file and must keep working unchanged)
+  res.setHeader("x-content-type-options", "nosniff");
+  res.setHeader("referrer-policy", "strict-origin-when-cross-origin");
+
   // Digital Asset Links: lets the Android (TWA) app open this site full-screen.
   // Set TWA_PACKAGE_NAME + TWA_SHA256_FINGERPRINT (from Play Console ->
   // App integrity -> App signing) after the first upload.
@@ -232,7 +275,7 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (req.method === "POST" && req.url === "/api/chat") {
-    if (PIN && req.headers["x-trainer-pin"] !== PIN) {
+    if (!pinOk(req.headers["x-trainer-pin"])) {
       res.writeHead(401, { "content-type": "application/json" });
       res.end(JSON.stringify({ error: "pin_required" }));
       return;
@@ -242,20 +285,32 @@ const server = http.createServer(async (req, res) => {
       res.end(JSON.stringify({ error: "limit" }));
       return;
     }
+    let parsed;
     try {
-      const { system, messages } = JSON.parse(await readBody(req));
-      const upstream = await fetch(`${BASE}/v1/messages`, {
+      parsed = JSON.parse(await readBody(req));
+    } catch (err) {
+      const code = err.status === 413 ? 413 : 400;
+      const headers = { "content-type": "application/json" };
+      if (code === 413) headers.connection = "close";
+      res.writeHead(code, headers);
+      res.end(JSON.stringify({ error: code === 413 ? "too_large" : "bad_json" }));
+      return;
+    }
+    try {
+      const { system, messages } = parsed;
+      const upstream = await fetchT(`${BASE}/v1/messages`, {
         method: "POST",
         headers: authHeaders(),
         body: JSON.stringify({ model: MODEL, max_tokens: 1000, system, messages }),
-      });
+      }, 120000);
       const text = await upstream.text();
       res.writeHead(upstream.status, { "content-type": "application/json; charset=utf-8" });
       res.end(text);
     } catch (err) {
+      // never echo err.message: fetch errors can carry internal URLs/details
       console.error("Proxy failed:", err.message);
       res.writeHead(502, { "content-type": "application/json" });
-      res.end(JSON.stringify({ error: err.message }));
+      res.end(JSON.stringify({ error: "upstream_failed" }));
     }
     return;
   }
@@ -264,7 +319,7 @@ const server = http.createServer(async (req, res) => {
     const [p, q] = req.url.split("?");
     const id = p.slice("/api/avatar/".length).replace(/[^a-z0-9]/g, "");
     const params = new URLSearchParams(q || "");
-    if (PIN && params.get("pin") !== PIN) {
+    if (!pinOk(params.get("pin"))) {
       res.writeHead(401, { "content-type": "application/json" });
       res.end(JSON.stringify({ error: "pin_required" }));
       return;
@@ -291,14 +346,14 @@ const server = http.createServer(async (req, res) => {
     } catch (err) {
       console.error("Avatar proxy failed:", err.message);
       res.writeHead(502, { "content-type": "application/json" });
-      res.end(JSON.stringify({ error: err.message }));
+      res.end(JSON.stringify({ error: "avatar_failed" }));
     }
     return;
   }
 
   if (req.method === "GET" && req.url.startsWith("/api/clip")) {
     const params = new URLSearchParams((req.url.split("?")[1]) || "");
-    if (PIN && params.get("pin") !== PIN) {
+    if (!pinOk(params.get("pin"))) {
       res.writeHead(401, { "content-type": "application/json" });
       res.end(JSON.stringify({ error: "pin_required" }));
       return;
@@ -309,7 +364,9 @@ const server = http.createServer(async (req, res) => {
       return;
     }
     const char = (params.get("char") || "").replace(/[^a-z0-9]/g, "");
-    const voice = params.get("voice") || "";
+    // normalize the voice to the whitelist BEFORE hashing, so unknown voice
+    // strings can't mint unlimited distinct cache files for the same audio
+    const voice = VOICES.includes(params.get("voice")) ? params.get("voice") : "";
     const text = (params.get("text") || "").trim();
     if (!AVATARS[char] || !text || text.length > 140) {
       res.writeHead(400, { "content-type": "application/json" });
@@ -336,15 +393,15 @@ const server = http.createServer(async (req, res) => {
       const input = {};
       input[CLIP_IMAGE_KEY] = "data:image/png;base64," + imgBuf.toString("base64");
       input[CLIP_AUDIO_KEY] = "data:audio/mpeg;base64," + audioBuf.toString("base64");
-      let pred = await (await fetch(`https://api.replicate.com/v1/models/${CLIP_MODEL}/predictions`, {
+      let pred = await (await fetchT(`https://api.replicate.com/v1/models/${CLIP_MODEL}/predictions`, {
         method: "POST",
         headers: { authorization: `Bearer ${REPLICATE_TOKEN}`, "content-type": "application/json", prefer: "wait=60" },
         body: JSON.stringify({ input }),
-      })).json();
+      }, 90000)).json();
       const started = Date.now();
       while (pred && pred.status && !["succeeded", "failed", "canceled"].includes(pred.status) && Date.now() - started < 120000) {
         await new Promise((r) => setTimeout(r, 3000));
-        pred = await (await fetch(pred.urls.get, { headers: { authorization: `Bearer ${REPLICATE_TOKEN}` } })).json();
+        pred = await (await fetchT(pred.urls.get, { headers: { authorization: `Bearer ${REPLICATE_TOKEN}` } }, 30000)).json();
       }
       let out = pred && pred.output;
       if (Array.isArray(out)) out = out.find((x) => typeof x === "string" && x.includes(".mp4")) || out[out.length - 1];
@@ -354,19 +411,19 @@ const server = http.createServer(async (req, res) => {
         res.end(JSON.stringify({ error: "clip_failed" }));
         return;
       }
-      const video = Buffer.from(await (await fetch(out)).arrayBuffer());
+      const video = Buffer.from(await (await fetchT(out, {}, 60000)).arrayBuffer());
       try { fs.mkdirSync(CLIP_DIR, { recursive: true }); fs.writeFileSync(file, video); } catch (e) {}
       serve(video);
     } catch (err) {
       console.error("Clip proxy failed:", err.message);
       res.writeHead(502, { "content-type": "application/json" });
-      res.end(JSON.stringify({ error: err.message }));
+      res.end(JSON.stringify({ error: "clip_failed" }));
     }
     return;
   }
 
   if (req.method === "POST" && req.url === "/api/tts") {
-    if (PIN && req.headers["x-trainer-pin"] !== PIN) {
+    if (!pinOk(req.headers["x-trainer-pin"])) {
       res.writeHead(401, { "content-type": "application/json" });
       res.end(JSON.stringify({ error: "pin_required" }));
       return;
@@ -381,8 +438,19 @@ const server = http.createServer(async (req, res) => {
       res.end(JSON.stringify({ error: "tts_unconfigured" }));
       return;
     }
+    let parsed;
     try {
-      const { text, voice, pace, char } = JSON.parse(await readBody(req));
+      parsed = JSON.parse(await readBody(req));
+    } catch (err) {
+      const code = err.status === 413 ? 413 : 400;
+      const headers = { "content-type": "application/json" };
+      if (code === 413) headers.connection = "close";
+      res.writeHead(code, headers);
+      res.end(JSON.stringify({ error: code === 413 ? "too_large" : "bad_json" }));
+      return;
+    }
+    try {
+      const { text, voice, pace, char } = parsed;
       if (!text || typeof text !== "string" || text.length > 1200) {
         res.writeHead(400, { "content-type": "application/json" });
         res.end(JSON.stringify({ error: "bad_text" }));
@@ -399,13 +467,22 @@ const server = http.createServer(async (req, res) => {
     } catch (err) {
       console.error("TTS proxy failed:", err.message);
       res.writeHead(502, { "content-type": "application/json" });
-      res.end(JSON.stringify({ error: err.message }));
+      res.end(JSON.stringify({ error: "tts_failed" }));
     }
     return;
   }
 
   const rel = req.url === "/" ? "/index.html" : req.url.split("?")[0];
-  const file = path.join(__dirname, "public", path.normalize(rel).replace(/^(\.\.[/\\])+/, ""));
+  let dec;
+  try { dec = decodeURIComponent(rel); } catch (e) { dec = rel; }
+  const file = path.normalize(path.join(PUBLIC_DIR, dec));
+  // containment check: whatever the URL games (.., %2e%2e, backslashes, NUL),
+  // the resolved path must stay inside ./public
+  if (dec.includes("\0") || (file !== PUBLIC_DIR && !file.startsWith(PUBLIC_DIR + path.sep))) {
+    res.writeHead(404, { "content-type": "text/plain" });
+    res.end("Not found");
+    return;
+  }
   fs.readFile(file, (err, buf) => {
     if (err) {
       res.writeHead(404, { "content-type": "text/plain" });
@@ -416,6 +493,10 @@ const server = http.createServer(async (req, res) => {
     res.end(buf);
   });
 });
+
+// Slowloris hardening: drop clients that trickle headers/bodies for minutes.
+server.headersTimeout = 15000;
+server.requestTimeout = 60000;
 
 server.listen(PORT, () => {
   console.log(`Telefontrainer on http://localhost:${PORT}`);
