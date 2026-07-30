@@ -1,0 +1,54 @@
+# Architecture Decision Records — Telefontrainer / Marzi
+
+Short log of the decisions that shape this codebase. New entries go on top.
+
+## ADR-9 · Blueprint adoption strategy (2026-07-30)
+An external "Enterprise Blueprint" (React/Firebase monorepo) was evaluated.
+Decision: **graft its ideas, do not migrate.** The shipped, in-review app
+stays on its stack; we adopt incrementally: this ADR log (now),
+server-validated rewards + idempotency (with the Play Billing phase),
+accounts/sync (with monetization). Full rewrite rejected: months of cost,
+zero user-visible value, launch freeze.
+
+## ADR-8 · Progress lives on-device until money exists (2026-07-30)
+XP, streaks, coins-to-be live in localStorage. Cheating only defrauds the
+cheater until purchases exist. When Play Billing ships, rewards move to
+server-validated with idempotent transactions (Blueprint pattern). Privacy
+("your data never leaves your device") stays a marketing advantage.
+
+## ADR-7 · Two-axis language model (2026-07-30)
+`TARGETS` registry = language being learned (de live, en pilot; fr/es/it/pt/nl
+planned). `T` object = the six help/correction languages, i18n-parity-enforced
+by the test suite. The axes never mix; German prompts are byte-frozen by test.
+
+## ADR-6 · Cartoon world, no fake mouths (2026-07-30)
+Character portraits are AI-generated flat-cartoon in Marzi's visual family
+(server AVATAR_STYLE). Lip-sync/mouth overlays were tried and rejected by the
+family ("totally fake"); the /api/clip pipeline stays dormant behind env vars.
+
+## ADR-5 · Marzi is the product's soul (2026-07-30)
+Family-designed frog, 7 evolution stages mapped 1:1 to XP ranks, drawn as
+layered inline SVG (outfits become overlays later). Marzi's artwork changes
+only with family sign-off. In calls she always renders ≥ stage 5 so she is
+recognisable; evolution stages show on home and in the evolution showcase.
+
+## ADR-4 · Usage caps as a phone plan (2026-07-30)
+30 free call-minutes/day client-side + server daily/IP caps (429). Framed in
+the UI as a mobile tariff — thematically native to a phone-training app and
+the natural seam for coins/Premium later.
+
+## ADR-3 · Dependency-free single-file app (2026-07)
+`public/index.html` is the entire frontend; `server.js` the entire backend.
+No frameworks, no build step. Rationale: one-person maintainability, instant
+deploys, the test suite evals the real inline script. Revisit only if the
+file's size starts hurting contributor velocity.
+
+## ADR-2 · PWA + TWA distribution (2026-07)
+The web app is the product; Google Play ships a TWA wrapper (package
+`de.marzolo.telefontrainer`, permanent). Content updates deploy via Render
+with no store review; only launcher icon/name changes need a new .aab.
+
+## ADR-1 · Strict-JSON AI contracts (2026-07)
+Role-play, evaluation, vocab and test prompts return strict JSON; parsing
+slices first `{`/`[` to last. The server proxies providers (Anthropic chat,
+OpenAI voice/images) and owns all keys; the client never sees them.
