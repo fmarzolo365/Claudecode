@@ -35,13 +35,15 @@ const TTS_KEY = process.env.TTS_API_KEY || "";
 const TTS_MODEL = process.env.TTS_MODEL || "gpt-4o-mini-tts";
 const TTS_VOICE = process.env.TTS_VOICE || "coral";
 
-// AI portrait photos for the call characters. Generated once per character
+// AI portraits for the call characters. Generated once per character
 // with the same OpenAI key as TTS (~1 cent each, cached on disk), served
 // from /api/avatar/<id>. Without TTS_API_KEY the client keeps emoji avatars.
 const os = require("os");
 const AVATAR_DIR = path.join(os.tmpdir(), "telefontrainer-avatars");
-// v2 framing: tight, centered face so the animated mouth overlay lands right
-const AVATAR_STYLE = "Warm friendly close-up face portrait photo, head centered and filling most of the frame, looking straight at the camera, mouth closed with a slight natural smile, soft light, plain warm beige background, photorealistic, natural skin, no text, no watermark: ";
+// v3 look: warm flat-cartoon illustrations that harmonize with Marzi, the
+// app's cute flat-design green frog mascot (no photo-realism - the family
+// wants nice cartoon people next to the frog)
+const AVATAR_STYLE = "Warm friendly flat cartoon illustration of a person, in the same cute children's-book flat-design style as a cute flat-design green frog mascot: rounded simple shapes, big friendly eyes, gentle smile, clean thin outlines, soft flat colors in a warm cream and green palette, head and shoulders centered and filling most of the frame, looking straight ahead, plain warm cream background, kind and welcoming mood, not photorealistic, no photo, no 3D render, no text, no watermark. The person is: ";
 const AVATARS = {
   arzt: "a German medical practice receptionist, woman in her 30s, white polo shirt",
   amt: "a municipal citizens' office clerk, man in his 40s, light shirt",
@@ -157,7 +159,7 @@ async function synthesizeTts(text, voice, pace, char, lang) {
 async function getAvatarBuffer(id) {
   const desc = AVATARS[id];
   if (!desc || !TTS_KEY) return null;
-  const file = path.join(AVATAR_DIR, id + "-v2.png");
+  const file = path.join(AVATAR_DIR, id + "-v3.png");
   try { return fs.readFileSync(file); } catch (e) { /* generate below */ }
   // gpt-image-1 is cheapest but needs a verified OpenAI org;
   // DALL-E 3 works on every account, so fall back to it.
@@ -356,7 +358,7 @@ const server = http.createServer(async (req, res) => {
       res.end(JSON.stringify({ error: "no_avatar" }));
       return;
     }
-    const file = path.join(AVATAR_DIR, id + "-v2.png");
+    const file = path.join(AVATAR_DIR, id + "-v3.png");
     const serve = (buf) => {
       res.writeHead(200, { "content-type": "image/png", "content-length": buf.length, "cache-control": "public, max-age=604800" });
       res.end(buf);

@@ -40,23 +40,29 @@
     -webkit-font-smoothing: antialiased;
   }
   main { width: 100%; max-width: 560px; }
-  .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
+  .brand-card {
+    background: linear-gradient(150deg, #fdfbf2, #f1f3de);
+    border: 1.5px solid #dde3c6; border-radius: 22px;
+    box-shadow: var(--shadow); padding: 14px 16px 15px; margin-bottom: 22px;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; }
   .brand .mark {
-    width: 42px; height: 42px; flex: 0 0 42px;
-    background: #f2ead1; border: 2px solid var(--yellow); border-radius: 13px;
+    width: 54px; height: 54px; flex: 0 0 54px;
+    background: #edf2d9; border: 2px solid #bdd28f; border-radius: 18px;
     display: inline-flex; align-items: center; justify-content: center;
-    box-shadow: var(--shadow);
+    box-shadow: inset 0 -3px 0 rgba(85,122,50,.10), 0 1px 2px rgba(22,19,13,.06);
   }
   .brand .word {
     font-family: 'Space Grotesk', sans-serif;
-    font-size: 21px; font-weight: 700; letter-spacing: -.01em;
+    font-size: 23px; font-weight: 700; letter-spacing: -.01em;
+    color: var(--yellow-deep);
   }
   .plate { display: inline-flex; align-items: center; gap: 10px; }
   .plate span {
     font-family: 'Space Grotesk', sans-serif;
     font-size: 22px; font-weight: 700; letter-spacing: -.01em;
   }
-  .tagline { font-size: 15px; line-height: 1.55; color: var(--muted); margin: 10px 0 26px; max-width: 460px; }
+  .tagline { font-size: 14.5px; line-height: 1.55; color: var(--muted); margin: 10px 2px 0; max-width: 460px; }
   .label {
     font-family: 'JetBrains Mono', monospace;
     font-size: 10.5px; letter-spacing: .18em; color: var(--muted);
@@ -122,12 +128,14 @@
     border-radius: 999px; transition: filter .15s ease;
   }
   .vcbar {
-    background: var(--ink); color: #fdfbf5; padding: 10px; position: relative;
+    background: var(--card); border: 1px solid var(--line); border-bottom: none;
+    padding: 10px; position: relative;
     border-radius: var(--radius) var(--radius) 0 0;
   }
   .vc-stage {
-    position: relative; width: 100%; aspect-ratio: 4 / 3; border-radius: 12px;
-    overflow: hidden; background: #332d1f;
+    position: relative; width: 100%; aspect-ratio: 4 / 3; border-radius: 18px;
+    overflow: hidden; background: linear-gradient(160deg, #f7f2df, #e7edd2);
+    border: 2.5px solid #d9e0bd;
     display: flex; align-items: center; justify-content: center;
   }
   .vc-stage .vc-emoji { font-size: 92px; }
@@ -136,7 +144,13 @@
     display: none; will-change: transform;
   }
   .vc-stage img.ok { display: block; }
-  .vc-stage.speaking { animation: stageglow 1.3s ease-in-out infinite; }
+  /* speaking glow lives on an overlay so it stays visible over the portrait;
+     under prefers-reduced-motion the animation stops but the ring remains */
+  .vc-stage::after { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none; border-radius: 15px; }
+  .vc-stage.speaking::after {
+    box-shadow: inset 0 0 0 3px rgba(111,157,67,.6);
+    animation: stageglow 1.3s ease-in-out infinite;
+  }
   @keyframes stageglow {
     0%, 100% { box-shadow: inset 0 0 0 2.5px rgba(111,157,67,.35); }
     50% { box-shadow: inset 0 0 0 4px rgba(111,157,67,.9); }
@@ -144,13 +158,16 @@
   .vc-timer {
     position: absolute; top: 10px; left: 12px; z-index: 2;
     font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: .16em;
-    color: var(--yellow); background: rgba(22,19,13,.55); padding: 5px 9px; border-radius: 8px;
+    color: var(--yellow-deep); background: rgba(253,251,242,.9);
+    border: 1px solid rgba(85,122,50,.2); padding: 5px 10px; border-radius: 999px;
   }
   .vc-who {
-    position: absolute; left: 12px; bottom: 10px; z-index: 2;
-    font-family: 'Space Grotesk', sans-serif; font-size: 16px; font-weight: 600;
-    color: #fff; text-shadow: 0 1px 8px rgba(0,0,0,.75);
-    background: rgba(22,19,13,.45); padding: 5px 10px; border-radius: 8px;
+    position: absolute; left: 12px; bottom: 12px; z-index: 2;
+    font-family: 'Space Grotesk', sans-serif; font-size: 15.5px; font-weight: 600;
+    color: var(--ink); background: rgba(253,251,242,.92);
+    border: 1.5px solid #d9e0bd; padding: 6px 12px; border-radius: 999px;
+    box-shadow: 0 2px 8px rgba(22,19,13,.08); max-width: 55%;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
   .vc-stage .hang { position: absolute; top: 10px; right: 10px; z-index: 2; }
   .hang:hover { filter: brightness(1.1); }
@@ -330,8 +347,29 @@
   .limit-marzi { width: 96px; height: 96px; margin: 0 auto; }
   .limit-marzi svg { width: 100%; height: 100%; }
   .limit-title { font-family: 'Space Grotesk', sans-serif; font-size: 19px; font-weight: 700; margin-top: 10px; }
-  .vc-marzi { position: absolute; right: 10px; bottom: 10px; width: 54px; height: 54px; z-index: 2; pointer-events: none; filter: drop-shadow(0 2px 6px rgba(0,0,0,.45)); }
+  .vc-marzi {
+    position: absolute; right: 10px; bottom: 10px; width: 80px; height: 80px; z-index: 2;
+    pointer-events: none; padding: 8px 8px 3px;
+    background: linear-gradient(180deg, #fdfbf2, #f1edd6);
+    border: 2px solid #d9e0bd; border-radius: 20px;
+    box-shadow: 0 3px 10px rgba(22,19,13,.16);
+  }
   .vc-marzi svg { width: 100%; height: 100%; }
+  .vc-bubble {
+    position: absolute; right: 16px; bottom: 100px; z-index: 3; max-width: 62%;
+    background: #fffdf6; color: var(--ink); border: 1.5px solid #d9e0bd;
+    border-radius: 14px 14px 4px 14px; padding: 8px 12px;
+    font: 600 12.5px Archivo, sans-serif; line-height: 1.35; text-align: left;
+    cursor: pointer; box-shadow: 0 3px 10px rgba(22,19,13,.14);
+    transition: opacity .25s ease; animation: bubblein .35s cubic-bezier(.3, 1.4, .5, 1);
+  }
+  .vc-bubble::after {
+    content: ""; position: absolute; right: 14px; bottom: -6.5px; width: 11px; height: 11px;
+    background: #fffdf6; border-right: 1.5px solid #d9e0bd; border-bottom: 1.5px solid #d9e0bd;
+    transform: rotate(45deg); border-bottom-right-radius: 3px;
+  }
+  @keyframes bubblein { 0% { transform: translateY(6px) scale(.92); opacity: 0; } 100% { transform: none; opacity: 1; } }
+  .vc-stage.speaking .vc-bubble { opacity: 0; pointer-events: none; }
   .drawer {
     position: fixed; top: 0; left: 0; bottom: 0; width: min(330px, 86vw);
     background: var(--bg); z-index: 50; transform: translateX(-105%);
@@ -351,8 +389,10 @@
 <main>
   <!-- SETUP -->
   <section id="setup">
-    <header class="brand"><button class="menu-btn" id="menuBtn" aria-label="Menu"><span></span><span></span><span></span></button><span class="mark"><svg width="30" height="26" viewBox="0 0 120 104"><circle cx="60" cy="62" r="38" fill="#79a94c"/><circle cx="38" cy="30" r="15" fill="#79a94c"/><circle cx="82" cy="30" r="15" fill="#79a94c"/><circle cx="38" cy="30" r="10.5" fill="#fff" stroke="#33461f" stroke-width="1.5"/><circle cx="82" cy="30" r="10.5" fill="#fff" stroke="#33461f" stroke-width="1.5"/><circle cx="39.5" cy="31" r="5" fill="#33461f"/><circle cx="80.5" cy="31" r="5" fill="#33461f"/><circle cx="41" cy="28" r="1.8" fill="#fff"/><circle cx="82" cy="28" r="1.8" fill="#fff"/><circle cx="38" cy="30" r="14" fill="none" stroke="#4a3423" stroke-width="3.2"/><circle cx="82" cy="30" r="14" fill="none" stroke="#4a3423" stroke-width="3.2"/><path d="M52 30 h16" stroke="#4a3423" stroke-width="3.2" stroke-linecap="round"/><circle cx="40" cy="70" r="5" fill="#e9a08b" opacity=".55"/><circle cx="80" cy="70" r="5" fill="#e9a08b" opacity=".55"/><circle cx="55" cy="58" r="1.7" fill="#33461f"/><circle cx="65" cy="58" r="1.7" fill="#33461f"/><path d="M44 70 Q60 82 76 70" fill="none" stroke="#33461f" stroke-width="3.4" stroke-linecap="round"/></svg></span><span class="word">Telefontrainer</span></header>
+    <div class="brand-card">
+    <header class="brand"><button class="menu-btn" id="menuBtn" aria-label="Menu"><span></span><span></span><span></span></button><span class="mark"><svg width="38" height="33" viewBox="0 0 120 104"><circle cx="60" cy="62" r="38" fill="#79a94c"/><circle cx="38" cy="30" r="15" fill="#79a94c"/><circle cx="82" cy="30" r="15" fill="#79a94c"/><circle cx="38" cy="30" r="10.5" fill="#fff" stroke="#33461f" stroke-width="1.5"/><circle cx="82" cy="30" r="10.5" fill="#fff" stroke="#33461f" stroke-width="1.5"/><circle cx="39.5" cy="31" r="5" fill="#33461f"/><circle cx="80.5" cy="31" r="5" fill="#33461f"/><circle cx="41" cy="28" r="1.8" fill="#fff"/><circle cx="82" cy="28" r="1.8" fill="#fff"/><circle cx="38" cy="30" r="14" fill="none" stroke="#4a3423" stroke-width="3.2"/><circle cx="82" cy="30" r="14" fill="none" stroke="#4a3423" stroke-width="3.2"/><path d="M52 30 h16" stroke="#4a3423" stroke-width="3.2" stroke-linecap="round"/><circle cx="40" cy="70" r="5" fill="#e9a08b" opacity=".55"/><circle cx="80" cy="70" r="5" fill="#e9a08b" opacity=".55"/><circle cx="55" cy="58" r="1.7" fill="#33461f"/><circle cx="65" cy="58" r="1.7" fill="#33461f"/><path d="M44 70 Q60 82 76 70" fill="none" stroke="#33461f" stroke-width="3.4" stroke-linecap="round"/></svg></span><span class="word">Telefontrainer</span></header>
     <p class="tagline" id="tagline"></p>
+    </div>
     <div class="hero hidden" id="hero">
       <div class="hero-top">
         <div class="hero-streak" id="heroStreak"></div>
@@ -423,6 +463,7 @@
         <div class="vc-timer" id="timer">VERBUNDEN · 00:00</div>
         <div class="vc-who" id="who"></div>
         <div class="vc-marzi" id="vcMarzi"></div>
+        <button class="vc-bubble hidden" id="vcBubble"></button>
         <button class="hang" id="hangBtn"></button>
       </div>
     </div>
@@ -1441,11 +1482,12 @@ const ttsCache = new Map(); // text -> object URL (mp3)
 let currentAudio = null;
 
 /* while the character speaks: glowing frame + a very subtle slow camera
-   drift on the photo (like a live webcam). No facial animation - a good
+   drift on the portrait (like a live webcam). No facial animation - a good
    still portrait beats a fake mouth. */
 let lifeRAF = null;
 function lifeStart() {
   if (lifeRAF) return;
+  if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   const img = $("vcImg");
   if (img) img.style.transition = "";
   const tick = () => {
@@ -2391,6 +2433,12 @@ function renderCall() {
   $("hintBtn").disabled = !S.hint;
   $("repeatBtn").disabled = !S.turns.some((x) => !x.me);
 
+  // Marzi's speech bubble: on the learner's turn Marzi offers the hint;
+  // tapping the bubble opens the same suggestion as the hint button.
+  // While the character speaks the CSS fades it out (.speaking).
+  $("vcBubble").textContent = L.hint;
+  $("vcBubble").classList.toggle("hidden", !(S.hint && !S.hintOpen && !S.busy));
+
   if (S.hint && S.hintOpen) { $("hintText").textContent = S.hint; $("hintBox").classList.remove("hidden"); }
   else $("hintBox").classList.add("hidden");
 
@@ -2971,6 +3019,7 @@ $("repeatBtn").onclick = () => {
   for (let i = S.turns.length - 1; i >= 0; i--) if (!S.turns[i].me) { speak(S.turns[i].text, true, null, S.turns[i].sp); break; }
 };
 $("hintBtn").onclick = () => { S.hintOpen = !S.hintOpen; renderCall(); };
+$("vcBubble").onclick = () => { S.hintOpen = true; renderCall(); };
 $("typeBtn").onclick = () => $("typeRow").classList.toggle("hidden");
 $("sendBtn").onclick = () => send($("draft").value);
 $("customTopic").oninput = (e) => { S.customTopic = e.target.value; };
