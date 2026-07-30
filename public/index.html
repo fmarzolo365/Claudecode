@@ -255,13 +255,15 @@
   .week .dot.on { background: var(--yellow-deep); }
   .week .today .dot { box-shadow: 0 0 0 2px rgba(22,19,13,.3); }
   .marzi-row { display: flex; align-items: center; gap: 12px; margin-top: 10px; }
-  .marzi { width: 74px; height: 74px; flex: 0 0 74px; }
+  .marzi { width: 74px; height: 74px; margin: 0 auto; }
   .marzi svg { width: 100%; height: 100%; animation: mbob 3.4s ease-in-out infinite; }
   @keyframes mbob { 0%, 100% { transform: translateY(0) rotate(-.5deg); } 50% { transform: translateY(-2.5px) rotate(.5deg); } }
   .marzi .mblink { transform-box: fill-box; transform-origin: center; animation: mblink 5.2s infinite; }
   @keyframes mblink { 0%, 93%, 100% { transform: scaleY(1); } 95.5%, 97.5% { transform: scaleY(.08); } }
   .marzi.evolve svg { animation: mpop 1s cubic-bezier(.3, 1.7, .4, 1); }
   @keyframes mpop { 0% { transform: scale(.4) rotate(-10deg); } 55% { transform: scale(1.18) rotate(4deg); } 100% { transform: scale(1) rotate(0); } }
+  .marzi-wrap { flex: 0 0 78px; text-align: center; }
+  .marzi-cap { font: 700 8.5px 'JetBrains Mono', monospace; letter-spacing: .04em; color: var(--yellow-deep); margin-top: 1px; cursor: pointer; }
   .marzi-col { flex: 1; min-width: 0; }
   .hero-lv { display: flex; justify-content: space-between; align-items: baseline; margin-top: 13px; }
   .marzi-col .hero-lv { margin-top: 0; }
@@ -420,7 +422,7 @@
         <div class="week" id="heroWeek"></div>
       </div>
       <div class="marzi-row">
-        <div class="marzi" id="marzi"></div>
+        <div class="marzi-wrap"><div class="marzi" id="marzi"></div><div class="marzi-cap" id="marziCap"></div></div>
         <div class="marzi-col">
           <div class="hero-lv"><span class="ttl" id="heroLv"></span><span class="hero-xp" id="heroXp"></span></div>
           <div class="xpbar"><div id="xpFill" style="width:0%"></div></div>
@@ -1656,6 +1658,7 @@ function renderSetup() {
     const stage = Math.min(r.n, MARZI_NAMES.length);
     $("marzi").innerHTML = marziSVG(stage);
     $("marzi").title = `Marzi · ${MARZI_NAMES[stage - 1]}`;
+    $("marziCap").textContent = `Marzi · ${MARZI_NAMES[stage - 1]} · ${stage}/${MARZI_NAMES.length}`;
     $("marzi").style.cursor = "pointer";
     $("marzi").onclick = () => {
       $("limitMarzi").innerHTML = "";
@@ -1666,6 +1669,7 @@ function renderSetup() {
       $("limitBack").classList.remove("hidden");
       $("limitBox").classList.remove("hidden");
     };
+    $("marziCap").onclick = $("marzi").onclick;
     const prevStage = +(localStorage.getItem(MARZI_KEY) || 0);
     if (prevStage && stage > prevStage) {
       $("marzi").classList.remove("evolve");
@@ -2439,7 +2443,7 @@ function renderCall() {
   $("vcEmoji").textContent = A.avatar || "🎧";
   const img = $("vcImg");
   const src = A.id && A.id !== "custom" && A.id !== "random"
-    ? `/api/avatar/${A.id}${S.speaker === 2 ? "2" : ""}?pin=${encodeURIComponent(localStorage.getItem(PIN_KEY) || "")}`
+    ? `/api/avatar/${A.id}${S.speaker === 2 ? "2" : ""}?v=3&pin=${encodeURIComponent(localStorage.getItem(PIN_KEY) || "")}`
     : "";
   if (img.dataset.src !== src) {
     img.dataset.src = src;
