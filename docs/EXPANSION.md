@@ -79,3 +79,16 @@ Two independent axes — do not mix them up:
 5. **IT** — mid-size, citizenship B1 exam niche.
 6. **PT** — smallest of the six in learner volume; do last unless Brazil
    focus emerges.
+
+## Deferred: layered-SVG dialogue characters (pose/mouth system)
+
+The family's "Dialogue Characters Add-on" (2026-07, ChatGPT-produced React
+concept) proposed per-character layered SVG assets — body poses, facial
+expressions and mouth-closed/mouth-speaking overlays animated while audio
+plays (see its `DIALOGUE_CHARACTER_ART_SPEC.md`). **Deferred**: the SVG
+assets do not exist yet, and mouth animation was rejected by the family
+(ADR-6 "cartoon world, no fake mouths"). The guided-dialogue mode
+(`DIALOGUES` in `public/index.html`, entry card "Guided dialogue") instead
+ships with the existing AI cartoon portrait pipeline (`/api/avatar/<id>` +
+speaking glow). Revisit only with family-approved layered art and sign-off
+on mouth animation.
