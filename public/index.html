@@ -209,6 +209,16 @@
   .act .ic { flex: 0 0 auto; color: var(--yellow-deep); }
   .act.due { border-color: var(--yellow-deep); }
   .dot-due { width: 7px; height: 7px; border-radius: 50%; background: var(--yellow-deep); margin-left: auto; flex: 0 0 auto; }
+  .act.on { border-color: var(--yellow-deep); box-shadow: inset 0 0 0 1.5px var(--yellow-deep); background: rgba(111,157,67,.12); }
+  .act.soon { opacity: .45; }
+  .soon-badge {
+    margin-left: auto; flex: 0 0 auto; font: 700 8.5px 'JetBrains Mono', monospace;
+    letter-spacing: .08em; text-transform: uppercase; background: #eae4cd;
+    color: var(--muted); border-radius: 99px; padding: 3px 7px; white-space: nowrap;
+  }
+  .ob-head { display: flex; flex-direction: column; align-items: center; gap: 8px; margin: 14px 0 4px; text-align: center; }
+  .ob-marzi { width: 104px; height: 104px; }
+  .ob-marzi svg { width: 100%; height: 100%; animation: mbob 3.4s ease-in-out infinite; }
   .ic { vertical-align: -3px; }
   .hero-streak .ic { color: var(--yellow-deep); }
   .b { font-weight: 700; }
@@ -390,6 +400,20 @@
     </p>
   </section>
 
+  <!-- FIRST-RUN ONBOARDING: language pair picker -->
+  <section id="onboard" class="hidden">
+    <div class="ob-head">
+      <div class="ob-marzi" id="obMarzi"></div>
+      <span class="word">Telefontrainer</span>
+    </div>
+    <div class="label" id="obIntroLbl"></div>
+    <div class="seg wrap" id="obHelp"></div>
+    <div class="label" id="obLearnLbl"></div>
+    <div class="grid2" id="obTargets"></div>
+    <p class="note hidden" id="obWishNote"></p>
+    <button class="big cta" id="obStartBtn"></button>
+  </section>
+
   <!-- CALL -->
   <section id="call" class="hidden">
     <div class="vcbar">
@@ -409,7 +433,7 @@
       <button class="ghost" id="hintBtn"></button>
     </div>
     <div id="hintBox" class="hint hidden"><div class="label">VORSCHLAG</div><div id="hintText"></div></div>
-    <div class="row sos">
+    <div class="row sos" id="sosRow">
       <button class="ghost" data-sos="Wie bitte?">Wie bitte?</button>
       <button class="ghost" data-sos="Langsamer, bitte.">Langsamer, bitte</button>
       <button class="ghost" data-sos="Können Sie das noch einmal sagen?">Noch einmal, bitte</button>
@@ -494,6 +518,7 @@
     <input type="text" id="customTopic" />
   </div>
   <button class="toggle" id="soundBtn" style="margin-top:20px"></button>
+  <button class="toggle" id="pairBtn"></button>
   <div class="row" style="margin-top:10px">
     <button class="ghost" id="exportBtn"></button>
     <button class="ghost" id="importBtn"></button>
@@ -502,11 +527,42 @@
 </aside>
 
 <script>
-/* The language being TAUGHT. All logic (recognition locale, prompt templates,
-   voice picking) reads from this; scenario/deck text is a separate content
-   pack per target language. UI help-languages (T, es/en/it/tr/ar/uk) are an
-   independent axis. See docs/EXPANSION.md before adding a new target. */
-const TARGET = { code:"de", locale:"de-DE", name:"German", nativeName:"Deutsch", exam:"DTZ" };
+/* The languages being TAUGHT. All logic (recognition locale, prompt templates,
+   voice picking) reads from TARGET; scenario/deck text is a separate content
+   pack per target language (refs wired below as TARGETS.<code>.scenarios/
+   groups/decks). UI help-languages (T, es/en/it/tr/ar/uk) are an independent
+   axis. TARGET resolves from the persisted settings ONCE at load; German is
+   the default and its prompts must stay byte-identical.
+   See docs/EXPANSION.md before adding a new target. */
+const TARGETS = {
+  de: { code:"de", locale:"de-DE", name:"German", nativeName:"Deutsch", exam:"DTZ",
+        charset:"a-zäöüß", seed:"[Das Telefon klingelt. Nimm ab.]",
+        fixEx:`"Ach, ich verstehe schon! Man sagt übrigens: 'Ich hätte gern einen Termin.' Also, wann passt es Ihnen?"`,
+        faceEx:`"Guten Tag" / "Hallo" / "Was darf's sein?"`,
+        optEx:"'Montag oder Dienstag?'", slipLangs:"English or Spanish",
+        timerCall:"VERBUNDEN", timerFace:"IM GESPRÄCH",
+        skip:["der","die","das","den","dem","des","ein","eine","einen","einem","einer"],
+        deckChar:"kollegen", deckVoice:"coral", voiceHint:"google|deutsch|anna|katja",
+        sos:[["Wie bitte?","Wie bitte?"],["Langsamer, bitte.","Langsamer, bitte"],["Können Sie das noch einmal sagen?","Noch einmal, bitte"]],
+        draftPH:"Guten Tag, ich möchte…" },
+  en: { code:"en", locale:"en-US", name:"English", nativeName:"English", exam:"IELTS",
+        charset:"a-z", seed:"[The phone rings. Pick up.]",
+        fixEx:`"Oh, I see what you mean! By the way, we'd usually say: 'I'd like to make an appointment.' So, when suits you best?"`,
+        faceEx:`"Hi there" / "Hello" / "What can I get you?"`,
+        optEx:"'Monday or Tuesday?'", slipLangs:"their native language instead of English",
+        timerCall:"ON CALL", timerFace:"IN PERSON",
+        skip:["the","a","an"],
+        deckChar:"enjob", deckVoice:"sage", voiceHint:"google|english|samantha|allison|ava",
+        sos:[["Sorry?","Sorry?"],["Slower, please.","Slower, please"],["Could you say that again?","Again, please"]],
+        draftPH:"Hello, I'd like to…" },
+};
+const TARGET = (() => {
+  try {
+    const s = JSON.parse(localStorage.getItem("telefontrainer.settings")) || {};
+    if (TARGETS[s.targetLang]) return TARGETS[s.targetLang];
+  } catch (e) {}
+  return TARGETS.de;
+})();
 
 const SCENARIOS = [
   { id:"arzt", avatar:"👩‍⚕️", voice:"coral", voice2:"onyx", de:"Beim Hausarzt anrufen", es:"Pedir cita en el médico de cabecera", en:"Book a doctor's appointment",
@@ -622,7 +678,9 @@ const T = {
     dataExport:"Guardar copia de mis datos", dataImport:"Restaurar copia", importedOk:"Datos restaurados ✓",
     limitMsg:"Se alcanzó el límite diario gratuito. ¡Vuelve mañana! 🙏", share:"Recomendar la app",
     shareText:"Estoy practicando alemán hablado con Telefontrainer. ¡Pruébalo!", copied:"Enlace copiado ✓",
-    watchIt:"Ver cómo se dice", clipLoading:"Creando el video… (solo la primera vez, ~1 min)" },
+    watchIt:"Ver cómo se dice", clipLoading:"Creando el video… (solo la primera vez, ~1 min)",
+    obIntro:"Hablo…", obLearn:"Quiero aprender…", obStart:"¡EMPEZAR!", obSoon:"Muy pronto",
+    obWish:"¡Apuntado! Te avisaremos. Mientras tanto, sigue seleccionado el idioma actual 💪", obPair:"Idiomas: hablo / aprendo" },
   en:{ tagline:"Practise real German calls and conversations. You speak, the other person answers.",
     pick:"Choose the situation", level:"Level", helpLang:"Language for corrections", call:"CALL",
     hangUp:"HANG UP", speak:"Tap and speak", listening:"Listening…", repeat:"Repeat slowly",
@@ -661,7 +719,9 @@ const T = {
     dataExport:"Back up my data", dataImport:"Restore backup", importedOk:"Data restored ✓",
     limitMsg:"The free daily limit is reached. Come back tomorrow! 🙏", share:"Recommend the app",
     shareText:"I'm practising spoken German with Telefontrainer. Try it!", copied:"Link copied ✓",
-    watchIt:"Watch it said", clipLoading:"Creating the video… (first time only, ~1 min)" },
+    watchIt:"Watch it said", clipLoading:"Creating the video… (first time only, ~1 min)",
+    obIntro:"I speak…", obLearn:"I want to learn…", obStart:"LET'S GO!", obSoon:"Coming soon",
+    obWish:"Noted! We'll let you know. Until then, your current language stays selected 💪", obPair:"Languages: I speak / I learn" },
 };
 
 /* ---------- additional help languages ---------- */
@@ -703,7 +763,9 @@ T.tr = { tagline:"Gerçek Almanca aramalar ve konuşmalar pratiği yap. Sen konu
   dataExport:"Verilerimi yedekle", dataImport:"Yedeği geri yükle", importedOk:"Veriler geri yüklendi ✓",
   limitMsg:"Günlük ücretsiz sınıra ulaşıldı. Yarın tekrar gel! 🙏", share:"Uygulamayı öner",
   shareText:"Telefontrainer ile Almanca konuşma pratiği yapıyorum. Dene!", copied:"Bağlantı kopyalandı ✓",
-  watchIt:"Nasıl söylendiğini izle", clipLoading:"Video oluşturuluyor… (sadece ilk sefer, ~1 dk)" };
+  watchIt:"Nasıl söylendiğini izle", clipLoading:"Video oluşturuluyor… (sadece ilk sefer, ~1 dk)",
+  obIntro:"Konuştuğum dil…", obLearn:"Öğrenmek istiyorum…", obStart:"BAŞLAYALIM!", obSoon:"Çok yakında",
+  obWish:"Not aldık! Haber vereceğiz. O zamana kadar mevcut dil seçili kalıyor 💪", obPair:"Diller: konuşurum / öğrenirim" };
 T.ar = { tagline:"تدرّب على مكالمات ومحادثات حقيقية بالألمانية. أنت تتكلم والطرف الآخر يجيب.",
   pick:"اختر الموقف", level:"المستوى", helpLang:"لغة التصحيحات", call:"اتصل",
   hangUp:"إنهاء", speak:"اضغط وتكلّم", listening:"يستمع…", repeat:"إعادة ببطء",
@@ -742,7 +804,9 @@ T.ar = { tagline:"تدرّب على مكالمات ومحادثات حقيقية
   dataExport:"احفظ نسخة من بياناتي", dataImport:"استعادة النسخة", importedOk:"تمت استعادة البيانات ✓",
   limitMsg:"تم بلوغ الحد اليومي المجاني. عد غدًا! 🙏", share:"أوصِ بالتطبيق",
   shareText:"أتدرب على التحدث بالألمانية مع Telefontrainer. جربه!", copied:"تم نسخ الرابط ✓",
-  watchIt:"شاهد كيف تُقال", clipLoading:"جارٍ إنشاء الفيديو… (المرة الأولى فقط، حوالي دقيقة)" };
+  watchIt:"شاهد كيف تُقال", clipLoading:"جارٍ إنشاء الفيديو… (المرة الأولى فقط، حوالي دقيقة)",
+  obIntro:"أتحدث…", obLearn:"أريد أن أتعلم…", obStart:"هيا نبدأ!", obSoon:"قريبًا",
+  obWish:"سجلنا رغبتك! سنخبرك عندما تتوفر. حتى ذلك الحين تبقى اللغة الحالية مختارة 💪", obPair:"اللغات: أتحدث / أتعلم" };
 T.uk = { tagline:"Тренуй реальні дзвінки й розмови німецькою. Ти говориш — співрозмовник відповідає.",
   pick:"Обери ситуацію", level:"Рівень", helpLang:"Мова пояснень", call:"ДЗВОНИТИ",
   hangUp:"ПОКЛАСТИ", speak:"Натисни і говори", listening:"Слухаю…", repeat:"Повторити повільно",
@@ -781,7 +845,9 @@ T.uk = { tagline:"Тренуй реальні дзвінки й розмови �
   dataExport:"Зберегти копію моїх даних", dataImport:"Відновити копію", importedOk:"Дані відновлено ✓",
   limitMsg:"Досягнуто безкоштовний денний ліміт. Повертайся завтра! 🙏", share:"Порадити застосунок",
   shareText:"Я треную розмовну німецьку з Telefontrainer. Спробуй!", copied:"Посилання скопійовано ✓",
-  watchIt:"Подивись, як це сказати", clipLoading:"Створюю відео… (лише вперше, ~1 хв)" };
+  watchIt:"Подивись, як це сказати", clipLoading:"Створюю відео… (лише вперше, ~1 хв)",
+  obIntro:"Я розмовляю…", obLearn:"Хочу вивчати…", obStart:"ПОЧНІМО!", obSoon:"Скоро",
+  obWish:"Записали! Повідомимо, щойно зʼявиться. А поки лишається поточна мова 💪", obPair:"Мови: розмовляю / вивчаю" };
 
 T.it = { tagline:"Allenati con telefonate e conversazioni reali in tedesco. Tu parli, l'altra persona risponde.",
   pick:"Scegli la situazione", level:"Livello", helpLang:"Lingua delle correzioni", call:"CHIAMA",
@@ -821,9 +887,12 @@ T.it = { tagline:"Allenati con telefonate e conversazioni reali in tedesco. Tu p
   dataExport:"Salva una copia dei miei dati", dataImport:"Ripristina copia", importedOk:"Dati ripristinati ✓",
   limitMsg:"Limite giornaliero gratuito raggiunto. Torna domani! 🙏", share:"Consiglia l'app",
   shareText:"Sto praticando il tedesco parlato con Telefontrainer. Provalo!", copied:"Link copiato ✓",
-  watchIt:"Guarda come si dice", clipLoading:"Creo il video… (solo la prima volta, ~1 min)" };
+  watchIt:"Guarda come si dice", clipLoading:"Creo il video… (solo la prima volta, ~1 min)",
+  obIntro:"Parlo…", obLearn:"Voglio imparare…", obStart:"INIZIAMO!", obSoon:"Prossimamente",
+  obWish:"Segnato! Ti avviseremo. Nel frattempo resta selezionata la lingua attuale 💪", obPair:"Lingue: parlo / imparo" };
 
 const HELP_LANG = { es:"Spanish", en:"English", tr:"Turkish", ar:"Arabic", uk:"Ukrainian", it:"Italian" };
+const LANG_CHIPS = [["es","Español"],["en","English"],["it","Italiano"],["tr","Türkçe"],["ar","العربية"],["uk","Українська"]];
 
 /* ---------- C1 level + scenario/level translations ---------- */
 LEVELS.C1 = { words:70, rate:1.12,
@@ -838,7 +907,7 @@ LEVELS.A0 = { words:12, rate:.65,
   es:"Primerísimas palabras, súper lento", en:"Very first words, super slow",
   tr:"İlk kelimeler, çok yavaş", ar:"أول الكلمات، بطيء جدًا",
   uk:"Найперші слова, дуже повільно", it:"Primissime parole, super lento",
-  guide:`Absolute zero beginner (pre-A1). Prefer 5-8 words per reply, never more than 12. Present tense only, only the few hundred most common ${TARGET.name} words. Speak in short simple chunks and naturally repeat the key word of your reply. Ask only yes/no questions or offer two simple options ('Montag oder Dienstag?'). Be extremely patient and warm; if the learner says even one correct ${TARGET.name} word, make the conversation move forward.` };
+  guide:`Absolute zero beginner (pre-A1). Prefer 5-8 words per reply, never more than 12. Present tense only, only the few hundred most common ${TARGET.name} words. Speak in short simple chunks and naturally repeat the key word of your reply. Ask only yes/no questions or offer two simple options (${TARGET.optEx}). Be extremely patient and warm; if the learner says even one correct ${TARGET.name} word, make the conversation move forward.` };
 const LEVEL_ORDER = ["A0","A1","A2","B1","B2","C1"];
 
 const LEVEL_L10N = {
@@ -961,9 +1030,141 @@ const GROUPS = [
   { es:"Modo libre", en:"Free mode", tr:"Serbest mod", ar:"وضع حر", uk:"Вільний режим", it:"Modalità libera", ids:["random","custom"] },
 ];
 
+/* ---------- EN target pack (pilot) ----------
+   The `de:` field name is historical: it always holds the TARGET-language
+   title. Ids are `en`-prefixed so avatar/vocab caches never collide with
+   the German pack. */
+const EN_SCENARIOS = [
+  { id:"endoctor", avatar:"👩‍⚕️", voice:"nova", voice2:"onyx", de:"Call the doctor's office", es:"Pedir cita con el médico", en:"Call the doctor's office",
+    it:"Chiamare l'ambulatorio medico", tr:"Doktor muayenehanesini ara", ar:"اتصل بعيادة الطبيب", uk:"Подзвонити в кабінет лікаря",
+    who:"Riverside Family Practice", tag:"PRACTICE", role:"a receptionist at a family doctor's practice",
+    place:"Riverside Family Practice",
+    goals:["book an appointment because of a persistent cough",
+           "book an appointment because of strong back pain",
+           "ask for a repeat prescription and whether you need to come in",
+           "reschedule an existing appointment because something came up"] },
+  { id:"enbank", avatar:"👨‍💼", voice:"ash", voice2:"sage", de:"Call the bank", es:"Llamar al banco", en:"Call the bank",
+    it:"Chiamare la banca", tr:"Bankayı ara", ar:"اتصل بالبنك", uk:"Подзвонити в банк",
+    who:"First Union Bank", tag:"BANK", role:"a bank employee on the customer hotline",
+    place:"the customer hotline of First Union Bank",
+    goals:["report a lost debit card and ask to block it",
+           "ask about a charge on your account you do not recognize",
+           "make an appointment to open a checking account"] },
+  { id:"enlandlord", avatar:"🧔", voice:"onyx", voice2:"coral", de:"Call the landlord", es:"Llamar al casero", en:"Call the landlord",
+    it:"Chiamare il padrone di casa", tr:"Ev sahibini ara", ar:"اتصل بمالك الشقة", uk:"Подзвонити орендодавцю",
+    who:"Hillview Property Management", tag:"LANDLORD", role:"a property manager taking tenant calls",
+    place:"Hillview Property Management",
+    goals:["report that the heating is not working and ask for a repair",
+           "report a dripping tap in the bathroom and arrange a visit",
+           "ask a question about this month's rent statement"] },
+  { id:"endelivery", avatar:"🎧", voice:"echo", voice2:"shimmer", de:"Missing package", es:"Paquete que no llega", en:"Missing package",
+    it:"Pacco mai arrivato", tr:"Gelmeyen kargo", ar:"طرد لم يصل", uk:"Посилка не прийшла",
+    who:"SwiftShip Customer Care", tag:"COURIER", role:"a customer service agent at a package delivery company",
+    place:"the customer care line of SwiftShip, a package delivery company",
+    goals:["report that a package marked as delivered never arrived",
+           "arrange a new delivery date because you were not at home",
+           "ask where a package is that has been in transit for two weeks"] },
+  { id:"enrestaurant", avatar:"🤵", voice:"ballad", voice2:"nova", de:"Reserve a table", es:"Reservar mesa", en:"Reserve a table",
+    it:"Prenotare un tavolo", tr:"Masa ayırt", ar:"احجز طاولة", uk:"Забронювати столик",
+    who:"The Olive Tree", tag:"BOOKINGS", role:"a host taking table reservations",
+    place:"The Olive Tree restaurant",
+    goals:["reserve a table for four people on Friday evening",
+           "reserve a table for two on Saturday and ask about vegetarian options",
+           "cancel a reservation and apologize, ask to rebook next week"] },
+  { id:"enhair", avatar:"💇‍♀️", voice:"shimmer", voice2:"alloy", de:"Book at the hair salon", es:"Reservar en la peluquería", en:"Book at the hair salon",
+    it:"Prenotare dal parrucchiere", tr:"Kuaförden randevu al", ar:"احجز موعدًا عند الحلاق", uk:"Запис до перукаря",
+    who:"Shear Bliss Salon", tag:"SALON", role:"a hairdresser taking bookings",
+    place:"Shear Bliss Salon",
+    goals:["book a haircut for Saturday morning",
+           "book a haircut after work this week, you can only come after 5 pm",
+           "move your existing appointment to another day"] },
+  { id:"enjob", avatar:"💼", voice:"sage", voice2:"echo", de:"Phone job interview", es:"Entrevista de trabajo por teléfono", en:"Phone job interview",
+    it:"Colloquio di lavoro al telefono", tr:"Telefonda iş görüşmesi", ar:"مقابلة عمل عبر الهاتف", uk:"Телефонна співбесіда",
+    who:"Brightside Recruiting", tag:"INTERVIEW", role:"a friendly HR recruiter conducting a short screening call for a job the learner applied to",
+    place:"Brightside Recruiting",
+    goals:["introduce yourself and describe your experience for a warehouse job",
+           "answer questions about your availability and when you can start",
+           "ask about the salary, the working hours and the next steps"] },
+  { id:"enservice", avatar:"📱", voice:"alloy", voice2:"coral", de:"Call customer service", es:"Llamar a atención al cliente", en:"Call customer service",
+    it:"Chiamare il servizio clienti", tr:"Müşteri hizmetlerini ara", ar:"اتصل بخدمة العملاء", uk:"Подзвонити в службу підтримки",
+    who:"ConnectMobile Support", tag:"SUPPORT", role:"a support agent at a mobile phone provider",
+    place:"the support line of ConnectMobile, a mobile phone provider",
+    goals:["your internet is not working, ask them to fix it",
+           "a bill is much higher than usual, ask why",
+           "cancel your contract politely and ask about the notice period"] },
+  { id:"enneighbor", avatar:"👵", voice:"coral", voice2:"onyx", kind:"face", de:"Talk to your neighbour", es:"Hablar con la vecina", en:"Talk to your neighbour",
+    it:"Parlare con la vicina", tr:"Komşuyla konuşmak", ar:"التحدث مع الجارة", uk:"Поговорити з сусідкою",
+    who:"Mrs. Miller (neighbour)", tag:"NEIGHBOUR", role:"the learner's neighbour Mrs. Miller, a friendly but chatty retired lady",
+    place:"the hallway of the learner's apartment building",
+    goals:["ask her to accept a package for you tomorrow",
+           "politely mention that the music was very loud last night and ask her to keep it down",
+           "ask to borrow a ladder for the weekend",
+           "make small talk about the weather and the new neighbours moving in downstairs",
+           "tell her you are having a small party on Saturday and apologise in advance for the noise"] },
+  { id:"encafe", avatar:"☕", voice:"fable", voice2:"nova", kind:"face", de:"Order at the café", es:"Pedir en la cafetería", en:"Order at the café",
+    it:"Ordinare al bar", tr:"Kafede sipariş ver", ar:"اطلب في المقهى", uk:"Замовити в кафе",
+    who:"Corner Café", tag:"CAFÉ", role:"a cheerful barista taking orders at the counter",
+    place:"the counter of the Corner Café",
+    goals:["order a coffee and a sandwich to take away",
+           "ask what they recommend and order a slice of cake",
+           "your order came out wrong - politely ask them to fix it"] },
+  { id:"random", avatar:"🎲", de:"🎲 Surprise call", es:"Una llamada al azar", en:"A random call",
+    tr:"Rastgele bir arama", ar:"مكالمة عشوائية", uk:"Випадковий дзвінок", it:"Una chiamata a sorpresa", who:"???", tag:"???" },
+  { id:"custom", avatar:"🎭", de:"✏️ Your own topic", es:"Describe tu propia situación", en:"Describe your own situation",
+    tr:"Kendi durumunu anlat", ar:"صف موقفك الخاص", uk:"Опиши власну ситуацію", it:"Descrivi la tua situazione", who:"Open conversation", tag:"FREE" },
+];
+
+const EN_GROUPS = [
+  { es:"Salud y dinero", en:"Health & money", tr:"Sağlık ve para", ar:"الصحة والمال", uk:"Здоровʼя та гроші", it:"Salute e soldi", ids:["endoctor","enbank"] },
+  { es:"Casa y día a día", en:"Home & daily life", tr:"Ev ve günlük hayat", ar:"البيت والحياة اليومية", uk:"Дім і побут", it:"Casa e vita quotidiana", ids:["enlandlord","endelivery","enservice"] },
+  { es:"Ocio y reservas", en:"Leisure & bookings", tr:"Boş zaman ve rezervasyon", ar:"ترفيه وحجوزات", uk:"Дозвілля та бронювання", it:"Tempo libero e prenotazioni", ids:["enrestaurant","enhair"] },
+  { es:"Trabajo", en:"Work", tr:"İş", ar:"العمل", uk:"Робота", it:"Lavoro", ids:["enjob"] },
+  { es:"Cara a cara", en:"Face to face", tr:"Yüz yüze", ar:"وجهًا لوجه", uk:"Віч-на-віч", it:"Faccia a faccia", ids:["enneighbor","encafe"] },
+  { es:"Modo libre", en:"Free mode", tr:"Serbest mod", ar:"وضع حر", uk:"Вільний режим", it:"Modalità libera", ids:["random","custom"] },
+];
+
+/* wire the content refs and swap the active pack in (German stays untouched
+   when TARGET is de — the arrays above only replace the live ones for en) */
+TARGETS.de.scenarios = SCENARIOS.slice();
+TARGETS.de.groups = GROUPS.slice();
+TARGETS.en.scenarios = EN_SCENARIOS;
+TARGETS.en.groups = EN_GROUPS;
+if (TARGET.code !== "de") {
+  SCENARIOS.length = 0; SCENARIOS.push(...TARGET.scenarios);
+  GROUPS.length = 0; GROUPS.push(...TARGET.groups);
+}
+
+/* UI strings that name the taught language (values only — key parity stays) */
+const T_TARGET_EN = {
+  es:{ tagline:"Practica llamadas y conversaciones reales en inglés. Tú hablas, la otra persona responde.",
+       howSay:"¿Cómo se dice en inglés?", testSay:"Di esto en inglés:",
+       shareText:"Estoy practicando inglés hablado con Telefontrainer. ¡Pruébalo!" },
+  en:{ tagline:"Practise real English calls and conversations. You speak, the other person answers.",
+       howSay:"How do you say it in English?", testSay:"Say this in English:",
+       shareText:"I'm practising spoken English with Telefontrainer. Try it!" },
+  it:{ tagline:"Allenati con telefonate e conversazioni reali in inglese. Tu parli, l'altra persona risponde.",
+       howSay:"Come si dice in inglese?", testSay:"Dillo in inglese:",
+       shareText:"Sto praticando l'inglese parlato con Telefontrainer. Provalo!" },
+  tr:{ tagline:"Gerçek İngilizce aramalar ve konuşmalar pratiği yap. Sen konuş, karşı taraf cevap versin.",
+       howSay:"İngilizcesi nasıl söylenir?", testSay:"Bunu İngilizce söyle:",
+       shareText:"Telefontrainer ile İngilizce konuşma pratiği yapıyorum. Dene!" },
+  ar:{ tagline:"تدرّب على مكالمات ومحادثات حقيقية بالإنجليزية. أنت تتكلم والطرف الآخر يجيب.",
+       howSay:"كيف تُقال بالإنجليزية؟", testSay:"قل هذا بالإنجليزية:",
+       shareText:"أتدرب على التحدث بالإنجليزية مع Telefontrainer. جربه!" },
+  uk:{ tagline:"Тренуй реальні дзвінки й розмови англійською. Ти говориш — співрозмовник відповідає.",
+       howSay:"Як це сказати англійською?", testSay:"Скажи це англійською:",
+       shareText:"Я треную розмовну англійську з Telefontrainer. Спробуй!" },
+};
+if (TARGET.code === "en") {
+  for (const l of Object.keys(T_TARGET_EN)) Object.assign(T[l], T_TARGET_EN[l]);
+  Object.assign(LEVELS.B1, { es:"Inglés natural, con imprevistos", en:"Natural English, with complications",
+    it:"Inglese naturale, con imprevisti", tr:"Doğal İngilizce, sürprizlerle",
+    ar:"إنجليزية طبيعية مع مفاجآت", uk:"Природна англійська з несподіванками" });
+}
+
 const SPEEDS = { slow:0.8, normal:1, fast:1.2 };
 
-const S = { scenario:SCENARIOS[0], level:"A1", lang:"es", speed:"normal", turns:[], busy:false,
+const S = { scenario:SCENARIOS[0], level:"A1", lang:"es", targetLang:TARGET.code, speed:"normal", turns:[], busy:false,
             listening:false, handsFree:true, seconds:0, timerId:null, hint:null, voice:null, rec:null,
             currentGoal:null, wakeLock:null, active:null, customTopic:"", speaker:1 };
 
@@ -971,7 +1172,7 @@ const S = { scenario:SCENARIOS[0], level:"A1", lang:"es", speed:"normal", turns:
 const SET_KEY = "telefontrainer.settings";
 function saveSettings() {
   try {
-    localStorage.setItem(SET_KEY, JSON.stringify({ scenario:S.scenario.id, level:S.level, lang:S.lang, speed:S.speed, customTopic:S.customTopic, sound:S.sound !== false }));
+    localStorage.setItem(SET_KEY, JSON.stringify({ scenario:S.scenario.id, level:S.level, lang:S.lang, targetLang:S.targetLang, speed:S.speed, customTopic:S.customTopic, sound:S.sound !== false }));
   } catch (e) {}
 }
 (function loadSettings() {
@@ -981,11 +1182,14 @@ function saveSettings() {
     if (sc) S.scenario = sc;
     if (LEVELS[s.level]) S.level = s.level;
     if (T[s.lang]) S.lang = s.lang;
+    if (TARGETS[s.targetLang]) S.targetLang = s.targetLang;
     if (SPEEDS[s.speed]) S.speed = s.speed;
     if (typeof s.customTopic === "string") S.customTopic = s.customTopic;
     if (s.sound === false) S.sound = false;
     // first run: preselect the correction language from the phone's language
+    // and remember to show the onboarding (language pair picker)
     if (!localStorage.getItem(SET_KEY)) {
+      S.firstRun = true;
       const nav2 = ((typeof navigator !== "undefined" && navigator.language) || "").slice(0, 2).toLowerCase();
       if (T[nav2]) S.lang = nav2;
     }
@@ -1221,7 +1425,8 @@ document.addEventListener("visibilitychange", () => {
 /* ---------- voices ---------- */
 function loadVoices() {
   const v = speechSynthesis.getVoices() || [];
-  S.voice = v.find((x) => x.lang === TARGET.locale && /google|deutsch|anna|katja/i.test(x.name))
+  const hint = new RegExp(TARGET.voiceHint, "i");
+  S.voice = v.find((x) => x.lang === TARGET.locale && hint.test(x.name))
          || v.find((x) => x.lang === TARGET.locale)
          || v.find((x) => (x.lang || "").startsWith(TARGET.code)) || null;
 }
@@ -1299,7 +1504,7 @@ async function neuralSpeak(text, rate, done, voice, pace, char) {
     const res = await fetch("/api/tts", {
       method: "POST",
       headers: { "content-type": "application/json", "x-trainer-pin": localStorage.getItem(PIN_KEY) || "" },
-      body: JSON.stringify({ text, voice, pace, char }),
+      body: JSON.stringify({ text, voice, pace, char, lang: TARGET.code }),
     });
     if (res.status === 501) { neuralOK = false; throw new Error("unconfigured"); }
     if (!res.ok) throw new Error("tts " + res.status);
@@ -1413,8 +1618,9 @@ function renderSetup() {
     `<div class="label" style="margin:14px 14px 6px">${esc(g[S.lang] || g.en)}</div>` +
     g.ids.map((id) => {
       const s = SCENARIOS.find((x) => x.id === id);
+      const sub = (s[S.lang] || s.en) === s.de ? s.who : `${s[S.lang] || s.en} · ${s.who}`;
       return `<button class="item ${s.id === S.scenario.id ? "on" : ""}" data-id="${s.id}">
-       <b>${esc(s.de)}</b><small>${esc(s[S.lang] || s.en)} · ${esc(s.who)}</small></button>`;
+       <b>${esc(s.de)}</b><small>${esc(sub)}</small></button>`;
     }).join("")
   ).join("");
   $("scenarios").querySelectorAll(".item").forEach((b) =>
@@ -1428,7 +1634,9 @@ function renderSetup() {
   $("pickedTitle").textContent = S.scenario.de;
   $("pickedSub").textContent = S.scenario.id === "custom" && S.customTopic
     ? S.customTopic
-    : `${S.scenario[S.lang] || S.scenario.en} · ${S.scenario.who}`;
+    : (S.scenario[S.lang] || S.scenario.en) === S.scenario.de
+      ? S.scenario.who
+      : `${S.scenario[S.lang] || S.scenario.en} · ${S.scenario.who}`;
 
   $("customRow").classList.toggle("hidden", S.scenario.id !== "custom");
   $("customTopic").placeholder = L.customPH;
@@ -1445,7 +1653,7 @@ function renderSetup() {
   $("speeds").querySelectorAll("button").forEach((b) =>
     b.onclick = () => { S.speed = b.dataset.k; saveSettings(); renderSetup(); });
 
-  $("langs").innerHTML = [["es","Español"],["en","English"],["it","Italiano"],["tr","Türkçe"],["ar","العربية"],["uk","Українська"]].map(([k, n]) =>
+  $("langs").innerHTML = LANG_CHIPS.map(([k, n]) =>
     `<button class="${k === S.lang ? "on" : ""}" data-k="${k}">${n}</button>`).join("");
   $("langs").querySelectorAll("button").forEach((b) =>
     b.onclick = () => { S.lang = b.dataset.k; saveSettings(); renderSetup(); });
@@ -1472,6 +1680,8 @@ function renderSetup() {
     if (S.sound === false) SFX.ringStop();
     saveSettings(); renderSetup();
   };
+  $("pairBtn").textContent = "🌐 " + L.obPair + " · " + TARGET.nativeName;
+  $("pairBtn").onclick = () => { closeDrawer(); showOnboarding(); };
 }
 
 /* ---------- mistakes history screen ---------- */
@@ -1578,8 +1788,10 @@ function renderDrill() {
 let V = null;
 const VOCAB_NS = "telefontrainer.vocab.";
 
+/* normalize to the TARGET language's letters (historical name: was German-only) */
+const NORM_RE = new RegExp("[^" + TARGET.charset + " ]", "g");
 function normDe(s) {
-  return String(s || "").toLowerCase().replace(/[^a-zäöüß ]/g, " ").replace(/\s+/g, " ").trim();
+  return String(s || "").toLowerCase().replace(NORM_RE, " ").replace(/\s+/g, " ").trim();
 }
 function lev(a, b) {
   const m = a.length, n = b.length;
@@ -1597,7 +1809,7 @@ function lev(a, b) {
 /* the learner said the word if every content word of the target appears
    (fuzzily) in what the recognizer heard - articles don't count */
 function saidWord(heard, target) {
-  const SKIP = ["der","die","das","den","dem","des","ein","eine","einen","einem","einer"];
+  const SKIP = TARGET.skip;
   const H = normDe(heard).split(" ").filter(Boolean);
   const Hjoin = H.join("");
   const all = normDe(target).split(" ").filter((w) => w && !SKIP.includes(w));
@@ -1672,6 +1884,66 @@ const BASIC_DECKS = [
     ] },
 ];
 
+/* EN target basics decks (pilot). Same shape; `de` holds the English text. */
+const EN_BASIC_DECKS = [
+  { id:"enq", de:"Question words", icon:"help",
+    es:"Palabras de pregunta", en:"Question words", it:"Parole interrogative",
+    tr:"Soru kelimeleri", ar:"أدوات الاستفهام", uk:"Питальні слова",
+    items:[
+      { de:"When?", ex:"When are you open?", xl:{es:"¿Cuándo abren?", en:"When are you open?", it:"Quando siete aperti?", tr:"Ne zaman açıksınız?", ar:"متى تفتحون؟", uk:"Коли ви працюєте?"}, es:"¿Cuándo?", en:"When?", it:"Quando?", tr:"Ne zaman?", ar:"متى؟", uk:"Коли?" },
+      { de:"Where?", ex:"Where is your office?", xl:{es:"¿Dónde está su oficina?", en:"Where is your office?", it:"Dov'è il vostro ufficio?", tr:"Ofisiniz nerede?", ar:"أين مكتبكم؟", uk:"Де ваш офіс?"}, es:"¿Dónde?", en:"Where?", it:"Dove?", tr:"Nerede?", ar:"أين؟", uk:"Де?" },
+      { de:"Who?", ex:"Who am I speaking with?", xl:{es:"¿Con quién hablo?", en:"Who am I speaking with?", it:"Con chi parlo?", tr:"Kiminle görüşüyorum?", ar:"مع من أتحدث؟", uk:"З ким я розмовляю?"}, es:"¿Quién?", en:"Who?", it:"Chi?", tr:"Kim?", ar:"من؟", uk:"Хто?" },
+      { de:"What?", ex:"What does it cost?", xl:{es:"¿Cuánto cuesta?", en:"What does it cost?", it:"Quanto costa?", tr:"Ücreti ne kadar?", ar:"كم يكلف؟", uk:"Скільки це коштує?"}, es:"¿Qué?", en:"What?", it:"Che cosa?", tr:"Ne?", ar:"ماذا؟", uk:"Що?" },
+      { de:"How?", ex:"How does it work?", xl:{es:"¿Cómo funciona?", en:"How does it work?", it:"Come funziona?", tr:"Nasıl çalışıyor?", ar:"كيف يعمل؟", uk:"Як це працює?"}, es:"¿Cómo?", en:"How?", it:"Come?", tr:"Nasıl?", ar:"كيف؟", uk:"Як?" },
+      { de:"Why?", ex:"Why is it closed today?", xl:{es:"¿Por qué está cerrado hoy?", en:"Why is it closed today?", it:"Perché oggi è chiuso?", tr:"Bugün neden kapalı?", ar:"لماذا مغلق اليوم؟", uk:"Чому сьогодні зачинено?"}, es:"¿Por qué?", en:"Why?", it:"Perché?", tr:"Neden?", ar:"لماذا؟", uk:"Чому?" },
+      { de:"Which?", ex:"Which documents do I need?", xl:{es:"¿Qué documentos necesito?", en:"Which documents do I need?", it:"Quali documenti mi servono?", tr:"Hangi belgeler gerekli?", ar:"ما المستندات التي أحتاجها؟", uk:"Які документи мені потрібні?"}, es:"¿Cuál?", en:"Which?", it:"Quale?", tr:"Hangi?", ar:"أي؟", uk:"Який? / Яка?" },
+      { de:"How much?", ex:"How much does the repair cost?", xl:{es:"¿Cuánto cuesta la reparación?", en:"How much does the repair cost?", it:"Quanto costa la riparazione?", tr:"Tamir ne kadar tutar?", ar:"كم يكلف الإصلاح؟", uk:"Скільки коштує ремонт?"}, es:"¿Cuánto?", en:"How much?", it:"Quanto?", tr:"Ne kadar?", ar:"كم؟", uk:"Скільки?" },
+      { de:"How many?", ex:"How many people are coming?", xl:{es:"¿Cuántas personas vienen?", en:"How many people are coming?", it:"Quante persone vengono?", tr:"Kaç kişi geliyor?", ar:"كم شخصًا سيأتي؟", uk:"Скільки людей прийде?"}, es:"¿Cuántos?", en:"How many?", it:"Quanti?", tr:"Kaç tane?", ar:"كم عددهم؟", uk:"Скільки (людей)?" },
+      { de:"How long?", ex:"How long does it take?", xl:{es:"¿Cuánto tiempo tarda?", en:"How long does it take?", it:"Quanto tempo ci vuole?", tr:"Ne kadar sürer?", ar:"كم يستغرق؟", uk:"Скільки це триває?"}, es:"¿Cuánto tiempo?", en:"How long?", it:"Quanto tempo?", tr:"Ne kadar süre?", ar:"كم من الوقت؟", uk:"Як довго?" },
+      { de:"What time?", ex:"What time should I come?", xl:{es:"¿A qué hora debo venir?", en:"What time should I come?", it:"A che ora devo venire?", tr:"Saat kaçta gelmeliyim?", ar:"في أي ساعة يجب أن آتي؟", uk:"О котрій мені прийти?"}, es:"¿A qué hora?", en:"What time?", it:"A che ora?", tr:"Saat kaçta?", ar:"في أي ساعة؟", uk:"О котрій годині?" },
+      { de:"How often?", ex:"How often does the bus run?", xl:{es:"¿Con qué frecuencia pasa el autobús?", en:"How often does the bus run?", it:"Ogni quanto passa l'autobus?", tr:"Otobüs ne sıklıkla geçiyor?", ar:"كم مرة يمر الباص؟", uk:"Як часто ходить автобус?"}, es:"¿Con qué frecuencia?", en:"How often?", it:"Ogni quanto?", tr:"Ne sıklıkla?", ar:"كم مرة؟", uk:"Як часто?" },
+    ] },
+  { id:"enphone", de:"On the phone", icon:"phone",
+    es:"Frases de supervivencia", en:"Survival phrases", it:"Frasi di sopravvivenza",
+    tr:"Hayatta kalma cümleleri", ar:"عبارات أساسية للهاتف", uk:"Фрази виживання",
+    items:[
+      { de:"Sorry?", ex:"Sorry? I didn't catch that.", xl:{es:"¿Cómo? No lo he entendido.", en:"Sorry? I didn't catch that.", it:"Come? Non ho capito.", tr:"Efendim? Anlayamadım.", ar:"عفوًا؟ لم أفهم ذلك.", uk:"Перепрошую? Я не розчув."}, es:"¿Cómo dice?", en:"Pardon?", it:"Come, scusi?", tr:"Efendim?", ar:"عفوًا؟", uk:"Перепрошую?" },
+      { de:"Could you repeat that, please?", ex:"", es:"¿Puede repetirlo, por favor?", en:"Could you repeat that, please?", it:"Può ripetere, per favore?", tr:"Tekrar eder misiniz lütfen?", ar:"هل يمكنك التكرار من فضلك؟", uk:"Можете повторити, будь ласка?" },
+      { de:"Could you speak more slowly, please?", ex:"", es:"¿Puede hablar más despacio, por favor?", en:"Could you speak more slowly, please?", it:"Può parlare più lentamente, per favore?", tr:"Daha yavaş konuşabilir misiniz lütfen?", ar:"هل يمكنك التحدث ببطء أكثر من فضلك؟", uk:"Говоріть повільніше, будь ласка." },
+      { de:"I don't understand.", ex:"", es:"No entiendo.", en:"I don't understand.", it:"Non capisco.", tr:"Anlamıyorum.", ar:"لا أفهم.", uk:"Я не розумію." },
+      { de:"Could you spell that, please?", ex:"", es:"¿Puede deletrearlo?", en:"Could you spell that, please?", it:"Può fare lo spelling?", tr:"Harf harf söyler misiniz?", ar:"هل يمكنك تهجئتها؟", uk:"Можете сказати по літерах?" },
+      { de:"Just a moment, please.", ex:"", es:"Un momento, por favor.", en:"Just a moment, please.", it:"Un attimo, prego.", tr:"Bir dakika lütfen.", ar:"لحظة من فضلك.", uk:"Хвилинку, будь ласка." },
+      { de:"I'm calling about …", ex:"I'm calling about my appointment.", xl:{es:"Llamo por mi cita.", en:"I'm calling about my appointment.", it:"Chiamo per il mio appuntamento.", tr:"Randevum için arıyorum.", ar:"أتصل بخصوص موعدي.", uk:"Я телефоную щодо свого запису."}, es:"Llamo por…", en:"I'm calling about…", it:"Chiamo per…", tr:"… için arıyorum.", ar:"أتصل بخصوص…", uk:"Я телефоную щодо…" },
+      { de:"I'd like to make an appointment.", ex:"", es:"Quisiera pedir una cita.", en:"I'd like to make an appointment.", it:"Vorrei un appuntamento.", tr:"Randevu almak istiyorum.", ar:"أود حجز موعد.", uk:"Я хочу записатися на прийом." },
+      { de:"Does Monday work for you?", ex:"", es:"¿Le viene bien el lunes?", en:"Does Monday work for you?", it:"Va bene lunedì?", tr:"Pazartesi uygun mu?", ar:"هل يناسبك يوم الاثنين؟", uk:"Чи підходить понеділок?" },
+      { de:"That works for me.", ex:"", es:"Me viene bien.", en:"That works for me.", it:"Mi va bene.", tr:"Bana uyar.", ar:"هذا يناسبني.", uk:"Мені це підходить." },
+      { de:"Thank you so much for your help.", ex:"", es:"Muchas gracias por su ayuda.", en:"Thank you so much for your help.", it:"Grazie mille per l'aiuto.", tr:"Yardımınız için çok teşekkürler.", ar:"شكرًا جزيلًا لمساعدتك.", uk:"Дуже дякую за допомогу." },
+      { de:"Have a nice day! Goodbye!", ex:"", es:"¡Que tenga un buen día! ¡Adiós!", en:"Have a nice day! Goodbye!", it:"Buona giornata! Arrivederci!", tr:"İyi günler! Hoşça kalın!", ar:"أتمنى لك يومًا سعيدًا! إلى اللقاء!", uk:"Гарного дня! До побачення!" },
+    ] },
+  { id:"entime", de:"Time & appointments", icon:"clock",
+    es:"Tiempo y citas", en:"Time & appointments", it:"Tempo e appuntamenti",
+    tr:"Zaman ve randevular", ar:"الوقت والمواعيد", uk:"Час і записи",
+    items:[
+      { de:"today", ex:"Do you have anything available today?", xl:{es:"¿Tienen algo disponible hoy?", en:"Do you have anything available today?", it:"Avete qualcosa di libero oggi?", tr:"Bugün için boş yeriniz var mı?", ar:"هل لديكم موعد متاح اليوم؟", uk:"Чи є у вас щось вільне сьогодні?"}, es:"hoy", en:"today", it:"oggi", tr:"bugün", ar:"اليوم", uk:"сьогодні" },
+      { de:"tomorrow", ex:"I can come by tomorrow.", xl:{es:"Puedo pasarme mañana.", en:"I can come by tomorrow.", it:"Posso passare domani.", tr:"Yarın uğrayabilirim.", ar:"أستطيع المرور غدًا.", uk:"Я можу зайти завтра."}, es:"mañana", en:"tomorrow", it:"domani", tr:"yarın", ar:"غدًا", uk:"завтра" },
+      { de:"the day after tomorrow", ex:"The day after tomorrow suits me better.", xl:{es:"Pasado mañana me viene mejor.", en:"The day after tomorrow suits me better.", it:"Dopodomani mi va meglio.", tr:"Öbür gün bana daha uygun.", ar:"بعد غد أنسب لي.", uk:"Післязавтра мені зручніше."}, es:"pasado mañana", en:"the day after tomorrow", it:"dopodomani", tr:"öbür gün", ar:"بعد غد", uk:"післязавтра" },
+      { de:"in the morning", ex:"I can only do mornings.", xl:{es:"Solo puedo por la mañana.", en:"I can only do mornings.", it:"Posso solo di mattina.", tr:"Sadece sabahları müsaitim.", ar:"أستطيع فقط في الصباح.", uk:"Я можу лише вранці."}, es:"por la mañana", en:"in the morning", it:"di mattina", tr:"sabahleyin", ar:"في الصباح", uk:"вранці" },
+      { de:"in the afternoon", ex:"In the afternoon I'm at home.", xl:{es:"Por la tarde estoy en casa.", en:"In the afternoon I'm at home.", it:"Di pomeriggio sono a casa.", tr:"Öğleden sonra evdeyim.", ar:"بعد الظهر أكون في البيت.", uk:"Після обіду я вдома."}, es:"por la tarde", en:"in the afternoon", it:"di pomeriggio", tr:"öğleden sonra", ar:"بعد الظهر", uk:"після обіду" },
+      { de:"next week", ex:"Would next week also work?", xl:{es:"¿Puede ser también la semana que viene?", en:"Would next week also work?", it:"Va bene anche la settimana prossima?", tr:"Gelecek hafta da olur mu?", ar:"هل يمكن الأسبوع القادم أيضًا؟", uk:"Чи можна наступного тижня?"}, es:"la semana que viene", en:"next week", it:"la settimana prossima", tr:"gelecek hafta", ar:"الأسبوع القادم", uk:"наступного тижня" },
+      { de:"at half past nine", ex:"The appointment is at half past nine.", xl:{es:"La cita es a las nueve y media.", en:"The appointment is at half past nine.", it:"L'appuntamento è alle nove e mezza.", tr:"Randevu dokuz buçukta.", ar:"الموعد في التاسعة والنصف.", uk:"Запис о пів на десяту."}, es:"a las nueve y media", en:"at half past nine", it:"alle nove e mezza", tr:"dokuz buçukta", ar:"في التاسعة والنصف", uk:"о пів на десяту" },
+      { de:"at a quarter past eight", ex:"Come at a quarter past eight.", xl:{es:"Venga a las ocho y cuarto.", en:"Come at a quarter past eight.", it:"Venga alle otto e un quarto.", tr:"Sekizi çeyrek geçe gelin.", ar:"تعال في الثامنة والربع.", uk:"Приходьте о чверть на девʼяту."}, es:"a las ocho y cuarto", en:"at a quarter past eight", it:"alle otto e un quarto", tr:"sekizi çeyrek geçe", ar:"في الثامنة والربع", uk:"о чверть на девʼяту" },
+      { de:"the weekend", ex:"We are closed at the weekend.", xl:{es:"El fin de semana cerramos.", en:"We are closed at the weekend.", it:"Nel fine settimana siamo chiusi.", tr:"Hafta sonu kapalıyız.", ar:"في عطلة نهاية الأسبوع نحن مغلقون.", uk:"У вихідні ми зачинені."}, es:"el fin de semana", en:"the weekend", it:"il fine settimana", tr:"hafta sonu", ar:"عطلة نهاية الأسبوع", uk:"вихідні" },
+      { de:"a public holiday", ex:"Monday is a public holiday.", xl:{es:"El lunes es festivo.", en:"Monday is a public holiday.", it:"Lunedì è festivo.", tr:"Pazartesi resmi tatil.", ar:"الاثنين يوم عطلة رسمية.", uk:"У понеділок святковий день."}, es:"el día festivo", en:"a public holiday", it:"il giorno festivo", tr:"resmi tatil", ar:"يوم عطلة رسمية", uk:"святковий день" },
+      { de:"to reschedule", ex:"Can I reschedule the appointment?", xl:{es:"¿Puedo cambiar la cita?", en:"Can I reschedule the appointment?", it:"Posso spostare l'appuntamento?", tr:"Randevuyu erteleyebilir miyim?", ar:"هل يمكنني تأجيل الموعد؟", uk:"Чи можу я перенести запис?"}, es:"cambiar la fecha", en:"to reschedule", it:"rimandare", tr:"ertelemek", ar:"تأجيل", uk:"перенести" },
+      { de:"to cancel", ex:"Unfortunately I have to cancel the appointment.", xl:{es:"Lo siento, tengo que cancelar la cita.", en:"Unfortunately I have to cancel the appointment.", it:"Purtroppo devo disdire l'appuntamento.", tr:"Maalesef randevuyu iptal etmem gerekiyor.", ar:"للأسف يجب أن ألغي الموعد.", uk:"На жаль, мушу скасувати запис."}, es:"cancelar", en:"to cancel", it:"disdire", tr:"iptal etmek", ar:"إلغاء", uk:"скасувати" },
+    ] },
+];
+TARGETS.de.decks = BASIC_DECKS.slice();
+TARGETS.en.decks = EN_BASIC_DECKS;
+if (TARGET.code !== "de") {
+  BASIC_DECKS.length = 0; BASIC_DECKS.push(...TARGET.decks);
+}
+
 async function loadDeck() {
   const sc = S.scenario;
   const topic = sc.id === "custom" ? (S.customTopic || "").trim() : "";
@@ -1726,13 +1998,13 @@ async function openDeck(kind) {
   } else if (kind === "mywords") {
     const L = t();
     V.mywords = true;
-    V.clipChar = "kollegen"; V.clipVoice = "coral";
+    V.clipChar = TARGET.deckChar; V.clipVoice = TARGET.deckVoice;
     $("vocabSub").innerHTML = `${IC.star(13)} ${esc(L.myWords)}`;
     V.deck = loadWords().slice().reverse().slice(0, 20).map((w) => ({ de: w.de, tr: w.tr, ex: w.ex || "", exTr: w.exTr || "" }));
     renderVocab();
   } else {
     const d = BASIC_DECKS.find((x) => x.id === kind);
-    V.clipChar = "kollegen"; V.clipVoice = "coral";
+    V.clipChar = TARGET.deckChar; V.clipVoice = TARGET.deckVoice;
     $("vocabSub").innerHTML = `${deckIc(d.icon, 13)} ${esc(d.de)} · ${esc(d[S.lang] || d.en)}`;
     V.deck = d.items.map((it) => ({ de: it.de, tr: it[S.lang] || it.en, ex: it.ex || "", exTr: (it.xl || {})[S.lang] || (it.xl || {}).en || "" }));
     renderVocab();
@@ -1870,7 +2142,7 @@ async function loadClip(st, text, char, voice, rerender) {
   rerender();
   if (st.clipUrl) return;
   try {
-    const res = await fetch(`/api/clip?char=${encodeURIComponent(char)}&voice=${encodeURIComponent(voice)}&text=${encodeURIComponent(text)}&pin=${encodeURIComponent(localStorage.getItem(PIN_KEY) || "")}`);
+    const res = await fetch(`/api/clip?char=${encodeURIComponent(char)}&voice=${encodeURIComponent(voice)}&text=${encodeURIComponent(text)}&lang=${TARGET.code}&pin=${encodeURIComponent(localStorage.getItem(PIN_KEY) || "")}`);
     if (res.status === 501) { clipsOK = false; st.clip = null; rerender(); return; }
     if (!res.ok) throw new Error("clip " + res.status);
     const url = URL.createObjectURL(await res.blob());
@@ -1929,13 +2201,13 @@ Rules:
 - Level guidance: ${L.guide}
 - At most ${L.words} words per reply, at most one question per turn.
 ${face
-  ? `- Open the conversation as this person naturally would in this place (a simple "Guten Tag" / "Hallo" / "Was darf's sein?"), never with telephone formulas.
+  ? `- Open the conversation as this person naturally would in this place (a simple ${TARGET.faceEx}), never with telephone formulas.
 - This is spoken in person: casual register where natural, react to the situation around you (queue, weather, noise), small human touches.`
   : `- Answer the phone first with a realistic ${TARGET.name} greeting for this kind of business.`}
 - Drive the ${face ? "conversation" : "call"} to a real conclusion: ${face ? "resolve the learner's concern concretely, then part naturally" : "offer concrete dates and times, confirm the learner's name, then say goodbye"}.
-- You are a warm real person who notices the learner is not a native speaker. When they make a clear mistake, OCCASIONALLY (at most every third turn, not always) react the way a kind ${TARGET.name} would: show you understood, then naturally model the correct phrase inside your ${TARGET.name} reply - e.g. "Ach, ich verstehe schon! Man sagt übrigens: 'Ich hätte gern einen Termin.' Also, wann passt es Ihnen?". Keep it brief and encouraging, never lecture, then continue the conversation.
+- You are a warm real person who notices the learner is not a native speaker. When they make a clear mistake, OCCASIONALLY (at most every third turn, not always) react the way a kind ${TARGET.name} would: show you understood, then naturally model the correct phrase inside your ${TARGET.name} reply - e.g. ${TARGET.fixEx}. Keep it brief and encouraging, never lecture, then continue the conversation.
 - Sometimes, when natural (especially at B1 and above, or when the learner's request needs it), hand the learner over to a SECOND person - the doctor, a supervisor, a colleague, a spouse. That person introduces themselves and continues the conversation in their own manner. From that reply on set "speaker":"second"; if the first person takes the call back, set "speaker":"main" again.
-- If the learner speaks English or Spanish, still answer in ${TARGET.name}, and make "suggestion" easier.
+- If the learner speaks ${TARGET.slipLangs}, still answer in ${TARGET.name}, and make "suggestion" easier.
 
 Return ONLY a JSON object. No markdown, no code fences. Keys:
 "reply": your ${TARGET.name} line.
@@ -1948,7 +2220,7 @@ Return ONLY a JSON object. No markdown, no code fences. Keys:
 }
 
 function history() {
-  return [{ role:"user", content:"[Das Telefon klingelt. Nimm ab.]" }]
+  return [{ role:"user", content:TARGET.seed }]
     .concat(S.turns.map((x) => ({ role: x.me ? "user" : "assistant", content: x.text })));
 }
 
@@ -2072,7 +2344,7 @@ function mmss() {
 }
 function timerText() {
   const A = S.active || S.scenario;
-  return (A.kind === "face" ? "IM GESPRÄCH · " : "VERBUNDEN · ") + mmss();
+  return (A.kind === "face" ? TARGET.timerFace + " · " : TARGET.timerCall + " · ") + mmss();
 }
 
 function renderCall() {
@@ -2152,7 +2424,7 @@ function renderCall() {
 }
 
 function show(which) {
-  ["setup","call","done","mistakes","drill","vocab","prep","test"].forEach((id) => $(id).classList.toggle("hidden", id !== which));
+  ["setup","onboard","call","done","mistakes","drill","vocab","prep","test"].forEach((id) => $(id).classList.toggle("hidden", id !== which));
 }
 
 /* ---------- end-of-call evaluation ---------- */
@@ -2562,7 +2834,7 @@ function startConversation() {
     const topic = ($("customTopic").value || "").trim();
     if (!topic) { $("customTopic").focus(); return; }
     S.customTopic = topic; saveSettings();
-    S.active = { id:"custom", avatar:"🎭", who:"Freies Gespräch", tag:"FREI",
+    S.active = { id:"custom", avatar:"🎭", who:S.scenario.who, tag:S.scenario.tag,
       role:"the person who would naturally answer the phone for the situation the learner describes",
       place:"the appropriate business, office or organisation",
       goals:[topic] };
@@ -2686,6 +2958,12 @@ $("clearBtn").onclick = () => {
   if (confirm(t().clearConfirm)) { localStorage.removeItem(FIX_KEY); renderMistakes(); }
 };
 $("micBtn").onclick = () => listen();
+// SOS phrases are German in the static markup; other targets swap them in
+if (TARGET.code !== "de") {
+  $("sosRow").innerHTML = TARGET.sos.map(([say, label]) =>
+    `<button class="ghost" data-sos="${esc(say)}">${esc(label)}</button>`).join("");
+  $("draft").placeholder = TARGET.draftPH;
+}
 document.querySelectorAll("[data-sos]").forEach((b) =>
   b.onclick = () => { if (!S.busy) send(b.dataset.sos); });
 $("freeBtn").onclick = () => { S.handsFree = !S.handsFree; renderCall(); };
@@ -2737,7 +3015,50 @@ $("importFile").onchange = (e) => {
 };
 $("draft").onkeydown = (e) => { if (e.key === "Enter") send($("draft").value); };
 
+/* ---------- first-run onboarding: language pair picker ---------- */
+const WISH_KEY = "telefontrainer.wish";
+const LEARN_TARGETS = [["de","Deutsch"],["en","English"],["fr","Français"],["es","Español"],["it","Italiano"],["pt","Português"],["nl","Nederlands"]];
+let OB = null;
+function showOnboarding() {
+  OB = { target: TARGETS[S.targetLang] ? S.targetLang : "de", wish: false };
+  renderOnboard();
+  show("onboard");
+}
+function renderOnboard() {
+  const L = t();
+  $("obMarzi").innerHTML = marziSVG(5);
+  $("obIntroLbl").textContent = L.obIntro;
+  $("obLearnLbl").textContent = L.obLearn;
+  $("obHelp").innerHTML = LANG_CHIPS.map(([k, n]) =>
+    `<button class="${k === S.lang ? "on" : ""}" data-k="${k}">${n}</button>`).join("");
+  $("obHelp").querySelectorAll("button").forEach((b) =>
+    b.onclick = () => { S.lang = b.dataset.k; renderOnboard(); });
+  $("obTargets").innerHTML = LEARN_TARGETS.map(([k, n]) => {
+    const open = !!TARGETS[k];
+    return `<button class="act${open ? "" : " soon"}${k === OB.target ? " on" : ""}" data-k="${k}">
+      <span>${n}</span>${open ? "" : `<span class="soon-badge">${esc(L.obSoon)}</span>`}</button>`;
+  }).join("");
+  $("obTargets").querySelectorAll("[data-k]").forEach((b) => b.onclick = () => {
+    const k = b.dataset.k;
+    if (TARGETS[k]) { OB.target = k; OB.wish = false; }
+    else { try { localStorage.setItem(WISH_KEY, k); } catch (e) {} OB.wish = true; }
+    renderOnboard();
+  });
+  $("obWishNote").textContent = L.obWish;
+  $("obWishNote").classList.toggle("hidden", !OB.wish);
+  $("obStartBtn").innerHTML = IC.phone(16) + " " + esc(L.obStart);
+}
+$("obStartBtn").onclick = () => {
+  if (!OB) return;
+  const changed = OB.target !== TARGET.code;
+  S.targetLang = OB.target;
+  saveSettings();
+  if (changed) { location.reload(); return; }
+  show("setup"); renderSetup();
+};
+
 renderSetup();
+if (S.firstRun) showOnboarding();
 
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js").catch(() => {});
 </script>

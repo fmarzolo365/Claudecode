@@ -80,6 +80,28 @@ const AVATARS = {
   dtz12: "a German language exam co-examiner, man in his 50s, glasses",
   dtz22: "a German language exam co-examiner, man in his 50s, jacket",
   dtz32: "a German language exam co-examiner, man in his 40s",
+  // English target pack (pilot) — ids are en-prefixed, see EN_SCENARIOS
+  endoctor: "a medical practice receptionist, warm woman in her 30s, teal polo shirt",
+  enbank: "a bank call-center employee, man in his 30s, shirt and tie, headset",
+  enlandlord: "a property manager, man in his 50s, short beard, casual jacket",
+  endelivery: "a package courier call-center agent, young man with a headset",
+  enrestaurant: "a restaurant host, man in his 30s, white shirt and dark apron",
+  enhair: "a hairdresser, stylish woman in her 20s",
+  enjob: "an HR recruiter, friendly woman in her 30s, smart casual blouse",
+  enservice: "a mobile provider support agent, man in his 20s, headset, company t-shirt",
+  enneighbor: "a friendly retired woman in her 70s, grey hair, floral blouse, kind smile",
+  encafe: "a barista, cheerful man in his 20s, apron",
+  // second person who may take over the English conversation mid-call
+  endoctor2: "a family doctor, man in his 50s, white coat, stethoscope",
+  enbank2: "a senior bank advisor, woman in her 40s, business blazer",
+  enlandlord2: "a lettings office manager, woman in her 40s, smart blouse",
+  endelivery2: "a customer service shift supervisor, woman in her 40s, headset",
+  enrestaurant2: "a restaurant manager, woman in her 40s, dark blazer",
+  enhair2: "a salon owner, man in his 40s, fashionable shirt",
+  enjob2: "a hiring manager, man in his 40s, shirt without tie",
+  enservice2: "a technical support supervisor, woman in her 30s, headset",
+  enneighbor2: "a retired man in his 70s, grey hair, cardigan, warm smile",
+  encafe2: "a café manager, woman in her 30s, apron, friendly",
 };
 
 // Talking clips: pre-rendered lip-sync videos for fixed sentences, built from
@@ -97,30 +119,34 @@ let clipDay = "", clipCount = 0;
 
 /* shared builders (used by /api/tts, /api/avatar and /api/clip) */
 const VOICES = ["alloy", "ash", "ballad", "coral", "echo", "fable", "nova", "onyx", "sage", "shimmer"];
-function ttsRequestBody(text, voice, pace, char) {
+// `lang` is the TAUGHT language ("de" default, "en" for the English pilot):
+// it only changes the nationality in the speaking instructions.
+const TTS_NATIONALITY = { de: "German", en: "English" };
+function ttsRequestBody(text, voice, pace, char, lang) {
   const useVoice = VOICES.includes(voice) ? voice : TTS_VOICE;
   const body = { model: TTS_MODEL, voice: useVoice, input: text, response_format: "mp3" };
   if (TTS_MODEL.startsWith("gpt-")) {
+    const nat = TTS_NATIONALITY[lang] || "German";
     // slow speech is asked from the model (natural pauses, real prosody)
     // instead of time-stretching the audio afterwards, which sounds robotic
     const PACE = {
-      slow: "Speak VERY slowly and extra clearly, like a warm, patient native German speaker talking to a beginner: unhurried, clearly articulated, with small natural pauses between phrases. Keep the intonation lively and human - slow must never mean flat or robotic.",
-      fast: "Speak briskly, like a busy native German employee in a hurry - quick natural conversational pace, but still clearly articulated.",
+      slow: `Speak VERY slowly and extra clearly, like a warm, patient native ${nat} speaker talking to a beginner: unhurried, clearly articulated, with small natural pauses between phrases. Keep the intonation lively and human - slow must never mean flat or robotic.`,
+      fast: `Speak briskly, like a busy native ${nat} employee in a hurry - quick natural conversational pace, but still clearly articulated.`,
       normal: "Speak at a relaxed natural conversational pace.",
     };
     const cleanChar = typeof char === "string" ? char.replace(/[^a-z0-9]/g, "") : "";
     const persona = AVATARS[cleanChar]
       ? " You are " + AVATARS[cleanChar] + " - let age, gender and personality come through in the voice." : "";
-    body.instructions = "You are a friendly German native speaker in a real conversation. Natural, warm, human intonation - never monotone." +
+    body.instructions = `You are a friendly ${nat} native speaker in a real conversation. Natural, warm, human intonation - never monotone.` +
       persona + " " + (PACE[pace] || PACE.normal);
   }
   return body;
 }
-async function synthesizeTts(text, voice, pace, char) {
+async function synthesizeTts(text, voice, pace, char, lang) {
   const upstream = await fetchT("https://api.openai.com/v1/audio/speech", {
     method: "POST",
     headers: { authorization: `Bearer ${TTS_KEY}`, "content-type": "application/json" },
-    body: JSON.stringify(ttsRequestBody(text, voice, pace, char)),
+    body: JSON.stringify(ttsRequestBody(text, voice, pace, char, lang)),
   }, 60000);
   if (!upstream.ok) {
     console.error("TTS failed:", upstream.status, (await upstream.text()).slice(0, 200));
@@ -388,7 +414,8 @@ const server = http.createServer(async (req, res) => {
       return;
     }
     try {
-      const [imgBuf, audioBuf] = [await getAvatarBuffer(char), await synthesizeTts(text, voice, "slow", char)];
+      const clipLang = params.get("lang") === "en" ? "en" : "de";
+      const [imgBuf, audioBuf] = [await getAvatarBuffer(char), await synthesizeTts(text, voice, "slow", char, clipLang)];
       if (!imgBuf || !audioBuf) throw new Error("assets_failed");
       const input = {};
       input[CLIP_IMAGE_KEY] = "data:image/png;base64," + imgBuf.toString("base64");
@@ -450,13 +477,13 @@ const server = http.createServer(async (req, res) => {
       return;
     }
     try {
-      const { text, voice, pace, char } = parsed;
+      const { text, voice, pace, char, lang } = parsed;
       if (!text || typeof text !== "string" || text.length > 1200) {
         res.writeHead(400, { "content-type": "application/json" });
         res.end(JSON.stringify({ error: "bad_text" }));
         return;
       }
-      const buf = await synthesizeTts(text, voice, pace, char);
+      const buf = await synthesizeTts(text, voice, pace, char, lang === "en" ? "en" : "de");
       if (!buf) {
         res.writeHead(502, { "content-type": "application/json" });
         res.end(JSON.stringify({ error: "tts_failed" }));
