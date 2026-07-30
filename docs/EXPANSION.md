@@ -1,5 +1,6 @@
 # Launching a new target language (sister app)
 
+<<<<<<< HEAD
 ## Status
 
 | Target | Status | Notes |
@@ -19,6 +20,15 @@ Two independent axes — do not mix them up:
   recognition locale, device-TTS locale, voice picking, every AI prompt —
   reads from `TARGET`. `test/run.js` asserts this stays true for both
   registry entries.
+=======
+Two independent axes — do not mix them up:
+
+- **Target language** = the language being TAUGHT (today: German). Driven by
+  the single `TARGET` object at the top of the script in `public/index.html`
+  (`code`, `locale`, `name`, `nativeName`, `exam`). All logic — speech
+  recognition locale, device-TTS locale, voice picking, every AI prompt —
+  reads from it. `test/run.js` asserts this stays true.
+>>>>>>> origin/main
 - **Help languages** = the 6 UI/correction languages (es, en, it, tr, ar, uk)
   in the `T` object. A French sister app keeps the same 6 help languages
   unless the market says otherwise. Changing one axis never touches the other.
