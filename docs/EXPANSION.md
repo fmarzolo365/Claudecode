@@ -1,12 +1,24 @@
 # Launching a new target language (sister app)
 
+## Status
+
+| Target | Status | Notes |
+| --- | --- | --- |
+| DE (Deutsch) | **live** | default experience; full scenario pack, DTZ module. Prompts must stay byte-identical (suite-guarded). |
+| EN (English) | **pilot** | feature-flagged via `S.targetLang` (set in the onboarding language-pair picker); 10 scenarios (8 phone + 2 face), 3 basics decks, `exam:"IELTS"` field. No exam module yet. |
+| FR / ES / IT / PT / NL | planned | shown as "coming soon" chips in onboarding; a tap stores the wish in `localStorage` (`telefontrainer.wish`). |
+
 Two independent axes — do not mix them up:
 
-- **Target language** = the language being TAUGHT (today: German). Driven by
-  the single `TARGET` object at the top of the script in `public/index.html`
-  (`code`, `locale`, `name`, `nativeName`, `exam`). All logic — speech
+- **Target language** = the language being TAUGHT. Driven by the `TARGETS`
+  registry at the top of the script in `public/index.html` (`code`, `locale`,
+  `name`, `nativeName`, `exam`, plus per-target charset, seed message, prompt
+  snippets and content refs `scenarios`/`groups`/`decks`). `const TARGET =
+  TARGETS[S.targetLang || "de"]` resolves ONCE at load from the persisted
+  settings; switching targets saves and reloads. All logic — speech
   recognition locale, device-TTS locale, voice picking, every AI prompt —
-  reads from it. `test/run.js` asserts this stays true.
+  reads from `TARGET`. `test/run.js` asserts this stays true for both
+  registry entries.
 - **Help languages** = the 6 UI/correction languages (es, en, it, tr, ar, uk)
   in the `T` object. A French sister app keeps the same 6 help languages
   unless the market says otherwise. Changing one axis never touches the other.

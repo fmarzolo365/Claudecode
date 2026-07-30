@@ -23,6 +23,10 @@ from `main`).
 - **Every user-facing string exists in all 6 languages** (es, en, it, tr, ar,
   uk) in the `T` object. The test suite fails if any language's key set
   diverges. Scenario/level/deck data also carries per-language fields.
+- **Taught languages live in the `TARGETS` registry** (`de` live, `en` pilot):
+  `TARGET = TARGETS[S.targetLang || "de"]` resolves once at load and swaps in
+  that target's scenario/group/deck pack; German stays the default and its
+  prompts must remain byte-identical (suite-guarded). See docs/EXPANSION.md.
 - Scenarios: `SCENARIOS` entries with `goals` are playable; `kind:"face"`
   marks in-person conversations (different prompt register, HABLAR/TERMINAR
   labels, IM GESPRÄCH timer). Each has `avatar` (emoji fallback), `voice` and

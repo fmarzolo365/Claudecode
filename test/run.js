@@ -67,13 +67,57 @@ const html = fs.readFileSync(path.join(__dirname, "..", "public", "index.html"),
 const m = html.match(/<script>([\s\S]*)<\/script>/);
 if (!m) { console.error("FAIL  could not extract app script"); process.exit(1); }
 let src = m[1];
-src += `\n;globalThis.__t = { T, TARGET, LEVELS, LEVEL_ORDER, SCENARIOS, GROUPS, BASIC_DECKS, HELP_LANG,
+src += `\n;globalThis.__t = { T, TARGET, TARGETS, LEVELS, LEVEL_ORDER, SCENARIOS, GROUPS, BASIC_DECKS, HELP_LANG,
   saidWord, normDe, lev, rankFor, recordCall, addXp, loadStats, loadFixes, saveFixes,
   voiceOf, timerText, systemPrompt, S, chartSVG, loadTests, saveTestResult };`;
 eval(src);
 const tt = globalThis.__t;
 
 const LANGS = ["es", "en", "it", "tr", "ar", "uk"];
+
+/* voice/portrait gender helpers shared by the character checks */
+const FEMALE = new Set(["coral", "nova", "sage", "shimmer"]);
+const MALE = new Set(["alloy", "ash", "ballad", "echo", "onyx", "fable"]);
+const genderOf = (v) => (FEMALE.has(v) ? "F" : MALE.has(v) ? "M" : "?");
+function parsePortraits() {
+  const server = fs.readFileSync(path.join(__dirname, "..", "server.js"), "utf8");
+  const block = server.slice(server.indexOf("const AVATARS"), server.indexOf("};", server.indexOf("const AVATARS")));
+  const portraits = {};
+  for (const m2 of block.matchAll(/^\s{2}(\w+): "([^"]+)"/gm)) {
+    portraits[m2[1]] = /\bwoman\b/.test(m2[2]) ? "F" : /\bman\b/.test(m2[2]) ? "M" : "?";
+  }
+  if (Object.keys(portraits).length < 30) throw new Error("could not parse AVATARS from server.js");
+  return portraits;
+}
+function checkPack(scenarios, groups, portraits, label) {
+  const VOICES = ["alloy", "ash", "ballad", "coral", "echo", "fable", "nova", "onyx", "sage", "shimmer"];
+  const ids = new Set(scenarios.map((s) => s.id));
+  const grouped = new Set();
+  for (const g of groups) {
+    for (const l of LANGS) if (!g[l]) throw new Error(label + " group missing " + l);
+    for (const id of g.ids) {
+      if (!ids.has(id)) throw new Error(label + " group references unknown " + id);
+      grouped.add(id);
+    }
+  }
+  for (const sc of scenarios) {
+    if (!sc.avatar) throw new Error(label + " " + sc.id + " no avatar");
+    if (!grouped.has(sc.id)) throw new Error(label + " " + sc.id + " not in any group");
+    if (!sc.goals) continue;
+    if (!VOICES.includes(sc.voice)) throw new Error(sc.id + " voice " + sc.voice);
+    if (!VOICES.includes(sc.voice2)) throw new Error(sc.id + " voice2 " + sc.voice2);
+    if (sc.voice === sc.voice2) throw new Error(sc.id + " voice == voice2");
+    if (!sc.who || !sc.tag || !sc.role || !sc.place) throw new Error(sc.id + " incomplete");
+    for (const l of LANGS) if (!sc[l]) throw new Error(sc.id + " missing " + l);
+    for (const [key, voice] of [[sc.id, sc.voice], [sc.id + "2", sc.voice2]]) {
+      const pg = portraits[key];
+      if (!pg) throw new Error("no portrait for " + key);
+      if (pg !== "?" && genderOf(voice) !== pg) {
+        throw new Error(key + ": portrait is " + pg + " but voice " + voice + " is " + genderOf(voice));
+      }
+    }
+  }
+}
 
 /* ---------- checks ---------- */
 check("all languages share the exact same i18n key set", () => {
@@ -172,16 +216,7 @@ check("speaker voices: main and second differ where defined", () => {
 });
 
 check("voice gender matches the portrait gender for every character", () => {
-  const FEMALE = new Set(["coral", "nova", "sage", "shimmer"]);
-  const MALE = new Set(["alloy", "ash", "ballad", "echo", "onyx", "fable"]);
-  const server = fs.readFileSync(path.join(__dirname, "..", "server.js"), "utf8");
-  const block = server.slice(server.indexOf("const AVATARS"), server.indexOf("};", server.indexOf("const AVATARS")));
-  const portraits = {};
-  for (const m2 of block.matchAll(/^\s{2}(\w+): "([^"]+)"/gm)) {
-    portraits[m2[1]] = /\bwoman\b/.test(m2[2]) ? "F" : /\bman\b/.test(m2[2]) ? "M" : "?";
-  }
-  if (Object.keys(portraits).length < 30) throw new Error("could not parse AVATARS from server.js");
-  const genderOf = (v) => (FEMALE.has(v) ? "F" : MALE.has(v) ? "M" : "?");
+  const portraits = parsePortraits();
   for (const sc of tt.SCENARIOS) {
     if (!sc.goals) continue;
     for (const [key, voice] of [[sc.id, sc.voice], [sc.id + "2", sc.voice2]]) {
@@ -212,19 +247,49 @@ check("system prompt: face register, in-character correction, speaker contract",
   if (!tt.systemPrompt().includes("Answer the phone")) throw new Error("phone register regressed");
 });
 
-check("TARGET drives the taught language: shape, prompt language, recognition locale", () => {
-  const tg = tt.TARGET;
-  if (!tg) throw new Error("TARGET object missing");
-  for (const k of ["code", "locale", "name", "nativeName", "exam"]) {
-    if (!tg[k] || typeof tg[k] !== "string") throw new Error("TARGET." + k + " missing");
+check("TARGET drives the taught language: registry shape, prompt language, recognition locale", () => {
+  const R = tt.TARGETS;
+  if (!R || !R.de || !R.en) throw new Error("TARGETS registry missing de/en");
+  for (const code of ["de", "en"]) {
+    const tg = R[code];
+    for (const k of ["code", "locale", "name", "nativeName", "exam", "charset", "seed"]) {
+      if (!tg[k] || typeof tg[k] !== "string") throw new Error(code + ": TARGET." + k + " missing");
+    }
+    if (tg.code !== code) throw new Error(code + ": code mismatch");
+    if (!Array.isArray(tg.scenarios) || !Array.isArray(tg.groups) || !Array.isArray(tg.decks)) {
+      throw new Error(code + ": content refs (scenarios/groups/decks) missing");
+    }
   }
-  // this build teaches German - a future target swap must consciously update this
-  if (tg.locale !== "de-DE") throw new Error("recognition locale is " + tg.locale + ", expected de-DE");
+  if (R.de.locale !== "de-DE") throw new Error("de recognition locale is " + R.de.locale);
+  if (R.en.locale !== "en-US") throw new Error("en recognition locale is " + R.en.locale);
+  if (R.en.exam !== "IELTS") throw new Error("en exam is " + R.en.exam);
+  // the default build teaches German - switching stays an explicit user choice
+  if (tt.TARGET !== R.de) throw new Error("default TARGET must resolve to de");
   tt.S.active = tt.SCENARIOS.find((x) => x.id === "arzt");
   tt.S.currentGoal = "x";
-  if (!tt.systemPrompt().includes("German")) throw new Error("role-play prompt lost the target language name");
+  const p = tt.systemPrompt();
+  if (!p.includes("German")) throw new Error("role-play prompt lost the target language name");
+  // German prompt content must not drift when targets are added
+  if (!p.includes("Man sagt übrigens: 'Ich hätte gern einen Termin.'")) throw new Error("German correction example changed");
   // the locale must come from TARGET, never be hardcoded at the recognition sites
   if (/\.lang = "de-DE"/.test(src)) throw new Error('speech recognition/TTS locale hardcoded as "de-DE" instead of TARGET.locale');
+
+  // the EN pilot pack obeys the same rules as the German one
+  const portraits = parsePortraits();
+  checkPack(R.en.scenarios, R.en.groups, portraits, "en");
+  const playable = R.en.scenarios.filter((s) => s.goals);
+  if (playable.length !== 10) throw new Error("en pack has " + playable.length + " playable scenarios, expected 10");
+  if (playable.filter((s) => s.kind === "face").length !== 2) throw new Error("en pack needs exactly 2 face-to-face scenarios");
+  if (R.en.decks.length !== 3) throw new Error("en deck count " + R.en.decks.length);
+  for (const d of R.en.decks) {
+    if (d.items.length !== 12) throw new Error(d.id + " has " + d.items.length);
+    for (const l of LANGS) if (!d[l]) throw new Error(d.id + " title missing " + l);
+    for (const it of d.items) {
+      if (!it.de) throw new Error(d.id + " item missing target text");
+      for (const l of LANGS) if (!it[l]) throw new Error(d.id + "/" + it.de + " missing " + l);
+      if (it.ex) for (const l of LANGS) if (!it.xl || !it.xl[l]) throw new Error(d.id + "/" + it.de + " example missing " + l);
+    }
+  }
 });
 
 check("progress chart renders points, CEFR bands and a projection", () => {
