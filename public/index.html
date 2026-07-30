@@ -16,13 +16,13 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Archivo:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 <style>
   :root {
-    --bg: #faf0ec;
+    --bg: #f7f3e6;
     --card: #ffffff;
     --ink: #16130d;
     --muted: #6f6858;
     --line: rgba(22, 19, 13, .12);
-    --yellow: #ff6f59;
-    --yellow-deep: #e0523c;
+    --yellow: #6f9d43;
+    --yellow-deep: #557a32;
     --red: #c24634;
     --green: #2e7d5b;
     --radius: 16px;
@@ -43,7 +43,7 @@
   .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
   .brand .mark {
     width: 42px; height: 42px; flex: 0 0 42px;
-    background: var(--yellow); border-radius: 13px;
+    background: #f2ead1; border: 2px solid var(--yellow); border-radius: 13px;
     display: inline-flex; align-items: center; justify-content: center;
     box-shadow: var(--shadow);
   }
@@ -74,7 +74,7 @@
     transition: background .15s ease;
   }
   .item:first-child, .list .label + .item { border-top: none; }
-  .item:hover { background: rgba(255,111,89,.08); }
+  .item:hover { background: rgba(111,157,67,.10); }
   .item.on { background: var(--ink); color: #fdfbf5; }
   .item b { font-family: 'Space Grotesk', sans-serif; font-size: 16px; font-weight: 600; display: block; letter-spacing: 0; }
   .item small { font-size: 12.5px; color: var(--muted); }
@@ -83,7 +83,7 @@
   .list .label { margin: 14px 16px 6px; }
   .seg {
     display: flex; gap: 4px; padding: 4px;
-    background: #f3ddd5; border-radius: 999px;
+    background: #eae4cd; border-radius: 999px;
   }
   .seg button {
     flex: 1; padding: 9px 6px; border: none; border-radius: 999px;
@@ -138,8 +138,8 @@
   .vc-stage img.ok { display: block; }
   .vc-stage.speaking { animation: stageglow 1.3s ease-in-out infinite; }
   @keyframes stageglow {
-    0%, 100% { box-shadow: inset 0 0 0 2.5px rgba(255,111,89,.35); }
-    50% { box-shadow: inset 0 0 0 4px rgba(255,111,89,.9); }
+    0%, 100% { box-shadow: inset 0 0 0 2.5px rgba(111,157,67,.35); }
+    50% { box-shadow: inset 0 0 0 4px rgba(111,157,67,.9); }
   }
   .vc-timer {
     position: absolute; top: 10px; left: 12px; z-index: 2;
@@ -168,7 +168,7 @@
   .tag.me { color: var(--green); }
   .said { font-size: 15.5px; line-height: 1.5; }
   .w { cursor: pointer; border-radius: 4px; }
-  .w:active { background: rgba(255,111,89,.4); }
+  .w:active { background: rgba(111,157,67,.35); }
   .wsave { margin-top: 6px; font: 600 12.5px Archivo, sans-serif; color: var(--green); }
   .sub { font-size: 13px; color: var(--muted); margin-top: 4px; }
   .fix { font-size: 12.5px; color: var(--red); margin-top: 4px; }
@@ -186,7 +186,7 @@
     border-radius: 999px; box-shadow: 0 1px 2px rgba(22,19,13,.04);
     transition: background .15s ease;
   }
-  .ghost:hover { background: rgba(255,111,89,.1); }
+  .ghost:hover { background: rgba(111,157,67,.12); }
   .ghost[disabled] { opacity: .4; cursor: not-allowed; }
   .toggle {
     width: 100%; margin-top: 10px; padding: 11px; border: 1px solid var(--line);
@@ -204,7 +204,7 @@
     line-height: 1.3; text-align: left; box-shadow: 0 1px 2px rgba(22,19,13,.04);
     transition: background .15s ease;
   }
-  .act:hover { background: rgba(255,111,89,.08); }
+  .act:hover { background: rgba(111,157,67,.10); }
   .act[disabled] { opacity: .4; cursor: not-allowed; }
   .act .ic { flex: 0 0 auto; color: var(--yellow-deep); }
   .act.due { border-color: var(--yellow-deep); }
@@ -224,7 +224,7 @@
   .hero-streak small { font-size: 12px; color: var(--muted); font-family: Archivo, sans-serif; font-weight: 500; }
   .week { display: flex; gap: 5px; }
   .week .d { width: 21px; text-align: center; font: 500 9px 'JetBrains Mono', monospace; color: var(--muted); }
-  .week .dot { width: 9px; height: 9px; margin: 3px auto 0; border-radius: 50%; background: #f0d8cf; }
+  .week .dot { width: 9px; height: 9px; margin: 3px auto 0; border-radius: 50%; background: #e6dfc8; }
   .week .dot.on { background: var(--yellow-deep); }
   .week .today .dot { box-shadow: 0 0 0 2px rgba(22,19,13,.3); }
   .marzi-row { display: flex; align-items: center; gap: 12px; margin-top: 10px; }
@@ -240,13 +240,13 @@
   .marzi-col .hero-lv { margin-top: 0; }
   .hero-lv .ttl { font-family: 'Space Grotesk', sans-serif; font-size: 14px; font-weight: 700; }
   .hero-lv .hero-xp { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: .08em; color: var(--muted); }
-  .xpbar { height: 7px; background: #f3ddd5; border-radius: 99px; margin-top: 7px; overflow: hidden; }
+  .xpbar { height: 7px; background: #eae4cd; border-radius: 99px; margin-top: 7px; overflow: hidden; }
   .xpbar div { height: 100%; background: linear-gradient(90deg, var(--yellow), var(--yellow-deep)); border-radius: 99px; transition: width .6s ease; }
   .hero-sub { margin-top: 9px; font-size: 11.5px; color: var(--muted); }
   .routine { display: flex; gap: 6px; margin-top: 10px; }
   .routine button {
     flex: 1; text-align: center; font: 600 11px Archivo, sans-serif; border: none; cursor: pointer;
-    padding: 7px 4px; border-radius: 99px; background: #f3ddd5; color: var(--muted);
+    padding: 7px 4px; border-radius: 99px; background: #eae4cd; color: var(--muted);
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     transition: filter .15s ease;
   }
@@ -279,7 +279,7 @@
   .confetti i { position: absolute; top: -14px; width: 8px; height: 12px; border-radius: 2px; animation: fall linear forwards; }
   @keyframes fall { to { transform: translateY(105vh) rotate(720deg); opacity: .9; } }
   .hint {
-    margin-top: 12px; border: 1.5px dashed var(--yellow-deep); background: #fff7f4;
+    margin-top: 12px; border: 1.5px dashed var(--yellow-deep); background: #f9f7ec;
     padding: 12px 14px; font-size: 15px; border-radius: 12px;
   }
   .hint .label { margin: 0 0 4px; }
@@ -299,7 +299,7 @@
     cursor: pointer; font: inherit; display: flex; flex-direction: column; gap: 2px; position: relative;
     transition: background .15s ease;
   }
-  .picked:hover { background: rgba(255,111,89,.08); }
+  .picked:hover { background: rgba(111,157,67,.10); }
   .picked b { font-family: 'Space Grotesk', sans-serif; font-size: 16px; font-weight: 600; }
   .picked small { font-size: 12.5px; color: var(--muted); }
   .picked .chev { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); font-size: 24px; color: var(--muted); }
@@ -311,6 +311,17 @@
   }
   .menu-btn span { width: 16px; height: 2px; background: var(--ink); border-radius: 2px; display: block; }
   .drawer-back { position: fixed; inset: 0; background: rgba(22,19,13,.45); z-index: 40; }
+  .limit {
+    position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    width: min(320px, 88vw); z-index: 61; background: var(--card);
+    border-radius: 20px; box-shadow: 0 20px 70px rgba(22,19,13,.35);
+    padding: 24px 20px; text-align: center;
+  }
+  .limit-marzi { width: 96px; height: 96px; margin: 0 auto; }
+  .limit-marzi svg { width: 100%; height: 100%; }
+  .limit-title { font-family: 'Space Grotesk', sans-serif; font-size: 19px; font-weight: 700; margin-top: 10px; }
+  .vc-marzi { position: absolute; right: 10px; bottom: 10px; width: 54px; height: 54px; z-index: 2; pointer-events: none; filter: drop-shadow(0 2px 6px rgba(0,0,0,.45)); }
+  .vc-marzi svg { width: 100%; height: 100%; }
   .drawer {
     position: fixed; top: 0; left: 0; bottom: 0; width: min(330px, 86vw);
     background: var(--bg); z-index: 50; transform: translateX(-105%);
@@ -330,7 +341,7 @@
 <main>
   <!-- SETUP -->
   <section id="setup">
-    <header class="brand"><button class="menu-btn" id="menuBtn" aria-label="Menu"><span></span><span></span><span></span></button><span class="mark"><svg width="28" height="28" viewBox="0 0 512 512"><path d="M150 208 A108 108 0 0 1 362 208" fill="none" stroke="#5c2314" stroke-width="30"/><rect x="122" y="176" width="268" height="212" rx="52" fill="#fff3e6"/><circle cx="132" cy="230" r="36" fill="#5c2314"/><circle cx="380" cy="230" r="36" fill="#5c2314"/><path d="M380 262 Q392 334 316 344" fill="none" stroke="#5c2314" stroke-width="20" stroke-linecap="round"/><circle cx="306" cy="346" r="15" fill="#5c2314"/><circle cx="206" cy="262" r="17" fill="#5c2314"/><circle cx="296" cy="262" r="17" fill="#5c2314"/><path d="M196 312 Q248 348 300 312" fill="none" stroke="#5c2314" stroke-width="16" stroke-linecap="round"/></svg></span><span class="word">Telefontrainer</span></header>
+    <header class="brand"><button class="menu-btn" id="menuBtn" aria-label="Menu"><span></span><span></span><span></span></button><span class="mark"><svg width="30" height="26" viewBox="0 0 120 104"><circle cx="60" cy="62" r="38" fill="#79a94c"/><circle cx="38" cy="30" r="15" fill="#79a94c"/><circle cx="82" cy="30" r="15" fill="#79a94c"/><circle cx="38" cy="30" r="10.5" fill="#fff" stroke="#33461f" stroke-width="1.5"/><circle cx="82" cy="30" r="10.5" fill="#fff" stroke="#33461f" stroke-width="1.5"/><circle cx="39.5" cy="31" r="5" fill="#33461f"/><circle cx="80.5" cy="31" r="5" fill="#33461f"/><circle cx="41" cy="28" r="1.8" fill="#fff"/><circle cx="82" cy="28" r="1.8" fill="#fff"/><circle cx="38" cy="30" r="14" fill="none" stroke="#4a3423" stroke-width="3.2"/><circle cx="82" cy="30" r="14" fill="none" stroke="#4a3423" stroke-width="3.2"/><path d="M52 30 h16" stroke="#4a3423" stroke-width="3.2" stroke-linecap="round"/><circle cx="40" cy="70" r="5" fill="#e9a08b" opacity=".55"/><circle cx="80" cy="70" r="5" fill="#e9a08b" opacity=".55"/><circle cx="55" cy="58" r="1.7" fill="#33461f"/><circle cx="65" cy="58" r="1.7" fill="#33461f"/><path d="M44 70 Q60 82 76 70" fill="none" stroke="#33461f" stroke-width="3.4" stroke-linecap="round"/></svg></span><span class="word">Telefontrainer</span></header>
     <p class="tagline" id="tagline"></p>
     <div class="hero hidden" id="hero">
       <div class="hero-top">
@@ -387,6 +398,7 @@
         <img id="vcImg" alt="" />
         <div class="vc-timer" id="timer">VERBUNDEN · 00:00</div>
         <div class="vc-who" id="who"></div>
+        <div class="vc-marzi" id="vcMarzi"></div>
         <button class="hang" id="hangBtn"></button>
       </div>
     </div>
@@ -463,6 +475,14 @@
   </section>
 </main>
 
+<div id="limitBack" class="drawer-back hidden" style="z-index:60"></div>
+<div id="limitBox" class="limit hidden">
+  <div class="limit-marzi" id="limitMarzi"></div>
+  <div class="limit-title" id="limitTitle"></div>
+  <p class="note" id="limitBody" style="margin-top:8px"></p>
+  <p class="note" id="limitReset" style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em"></p>
+  <button class="big cta" id="limitOk" style="margin-top:18px;padding:13px"></button>
+</div>
 <div id="drawerBack" class="drawer-back hidden"></div>
 <aside id="drawer" class="drawer">
   <div class="drawer-head">
@@ -582,7 +602,7 @@ const T = {
     almost:"Casi — escucha y repite", next:"Siguiente",
     vocabLoading:"Creando tu vocabulario…", vocabFail:"No se pudo crear la lista. Inténtalo de nuevo.",
     vocabDone:"¡Vocabulario repasado!", forCall:"Para esta llamada",
-    myWords:"Mis palabras", train:"Entrenamiento", sound:"Sonido", tapWordHint:"Toca una palabra que no conozcas para guardarla",
+    myWords:"Mis palabras", train:"Entrenamiento", sound:"Sonido", limitTitle:"¡Ups! Tu tiempo se acabó", ok:"Entendido", resetsIn:"Se reinicia en", today:"hoy", tapWordHint:"Toca una palabra que no conozcas para guardarla",
     talk:"HABLAR", endTalk:"TERMINAR", endedTalk:"CONVERSACIÓN TERMINADA",
     routine:"Rutina de hoy", rCall:"Conversación", rVocab:"Vocabulario", rDrill:"Errores",
     prep:"Preparar la llamada", prepTitle:"PREPARACIÓN", howSay:"¿Cómo se dice en alemán?",
@@ -621,7 +641,7 @@ const T = {
     almost:"Almost — listen and repeat", next:"Next",
     vocabLoading:"Building your vocabulary…", vocabFail:"Could not create the list. Try again.",
     vocabDone:"Vocabulary done!", forCall:"For this call",
-    myWords:"My words", train:"Training", sound:"Sound", tapWordHint:"Tap any word you don't know to save it",
+    myWords:"My words", train:"Training", sound:"Sound", limitTitle:"Oops! Time's up for today", ok:"Got it", resetsIn:"Resets in", today:"today", tapWordHint:"Tap any word you don't know to save it",
     talk:"TALK", endTalk:"END", endedTalk:"CONVERSATION ENDED",
     routine:"Today's routine", rCall:"Conversation", rVocab:"Vocabulary", rDrill:"Mistakes",
     prep:"Prepare the call", prepTitle:"PREPARATION", howSay:"How do you say it in German?",
@@ -663,7 +683,7 @@ T.tr = { tagline:"Gerçek Almanca aramalar ve konuşmalar pratiği yap. Sen konu
   almost:"Neredeyse — dinle ve tekrarla", next:"İleri",
   vocabLoading:"Kelime listen hazırlanıyor…", vocabFail:"Liste oluşturulamadı. Tekrar dene.",
   vocabDone:"Kelimeler tamamlandı!", forCall:"Bu arama için",
-  myWords:"Kelimelerim", train:"Antrenman", sound:"Ses", tapWordHint:"Bilmediğin bir kelimeye dokun, kaydedilsin",
+  myWords:"Kelimelerim", train:"Antrenman", sound:"Ses", limitTitle:"Ups! Bugünlük süren doldu", ok:"Tamam", resetsIn:"Sıfırlanır:", today:"bugün", tapWordHint:"Bilmediğin bir kelimeye dokun, kaydedilsin",
   talk:"KONUŞ", endTalk:"BİTİR", endedTalk:"KONUŞMA BİTTİ",
   routine:"Bugünkü rutin", rCall:"Konuşma", rVocab:"Kelimeler", rDrill:"Hatalar",
   prep:"Aramaya hazırlan", prepTitle:"HAZIRLIK", howSay:"Almancası nasıl söylenir?",
@@ -702,7 +722,7 @@ T.ar = { tagline:"تدرّب على مكالمات ومحادثات حقيقية
   almost:"تقريبًا — استمع وكرر", next:"التالي",
   vocabLoading:"جارٍ إنشاء مفرداتك…", vocabFail:"تعذّر إنشاء القائمة. حاول مجددًا.",
   vocabDone:"انتهت المفردات!", forCall:"لهذه المكالمة",
-  myWords:"كلماتي", train:"التدريب", sound:"الصوت", tapWordHint:"المس أي كلمة لا تعرفها لحفظها",
+  myWords:"كلماتي", train:"التدريب", sound:"الصوت", limitTitle:"أوبس! انتهى وقتك اليوم", ok:"حسنًا", resetsIn:"يُعاد الضبط بعد", today:"اليوم", tapWordHint:"المس أي كلمة لا تعرفها لحفظها",
   talk:"تحدّث", endTalk:"إنهاء", endedTalk:"انتهت المحادثة",
   routine:"روتين اليوم", rCall:"محادثة", rVocab:"مفردات", rDrill:"أخطاء",
   prep:"التحضير للمكالمة", prepTitle:"التحضير", howSay:"كيف تُقال بالألمانية؟",
@@ -741,7 +761,7 @@ T.uk = { tagline:"Тренуй реальні дзвінки й розмови �
   almost:"Майже — послухай і повтори", next:"Далі",
   vocabLoading:"Створюю твій словник…", vocabFail:"Не вдалося створити список. Спробуй ще.",
   vocabDone:"Словник пройдено!", forCall:"Для цього дзвінка",
-  myWords:"Мої слова", train:"Тренування", sound:"Звук", tapWordHint:"Торкнись незнайомого слова, щоб зберегти його",
+  myWords:"Мої слова", train:"Тренування", sound:"Звук", limitTitle:"Упс! Час на сьогодні вичерпано", ok:"Зрозуміло", resetsIn:"Скидання через", today:"сьогодні", tapWordHint:"Торкнись незнайомого слова, щоб зберегти його",
   talk:"ГОВОРИТИ", endTalk:"ЗАВЕРШИТИ", endedTalk:"РОЗМОВУ ЗАВЕРШЕНО",
   routine:"Рутина на сьогодні", rCall:"Розмова", rVocab:"Слова", rDrill:"Помилки",
   prep:"Підготуватися до дзвінка", prepTitle:"ПІДГОТОВКА", howSay:"Як це сказати німецькою?",
@@ -781,7 +801,7 @@ T.it = { tagline:"Allenati con telefonate e conversazioni reali in tedesco. Tu p
   almost:"Quasi — ascolta e ripeti", next:"Avanti",
   vocabLoading:"Sto creando il tuo vocabolario…", vocabFail:"Impossibile creare la lista. Riprova.",
   vocabDone:"Vocabolario completato!", forCall:"Per questa chiamata",
-  myWords:"Le mie parole", train:"Allenamento", sound:"Suono", tapWordHint:"Tocca una parola che non conosci per salvarla",
+  myWords:"Le mie parole", train:"Allenamento", sound:"Suono", limitTitle:"Ops! Il tempo di oggi è finito", ok:"Va bene", resetsIn:"Si azzera tra", today:"oggi", tapWordHint:"Tocca una parola che non conosci per salvarla",
   talk:"PARLA", endTalk:"TERMINA", endedTalk:"CONVERSAZIONE TERMINATA",
   routine:"Routine di oggi", rCall:"Conversazione", rVocab:"Vocabolario", rDrill:"Errori",
   prep:"Prepara la chiamata", prepTitle:"PREPARAZIONE", howSay:"Come si dice in tedesco?",
@@ -979,6 +999,8 @@ function recordCall() {
   st.days[d] = (st.days[d] || 0) + 1;
   st.calls = (st.calls || 0) + 1;
   st.seconds = (st.seconds || 0) + S.seconds;
+  st.secDays = st.secDays || {};
+  st.secDays[d] = (st.secDays[d] || 0) + S.seconds;
   const gained = 15 + Math.min(20, S.turns.filter((x) => x.me).length * 2);
   st.xp = (st.xp || 0) + gained;
   try { localStorage.setItem(STAT_KEY, JSON.stringify(st)); } catch (e) {}
@@ -1041,7 +1063,7 @@ const deckIc = (name, s) => (IC[name] ? IC[name](s) : "");
    Seven stages mapped 1:1 onto the XP ranks. Designed by the family,
    drawn as layered SVG so outfits can be added later. */
 const MARZI_NAMES = ["Ei", "Kaulquappe", "Kaulquappe mit Beinen", "Junger Frosch", "Schulfrosch", "Bücherfrosch", "Meisterfrosch"];
-function marziSVG(stage) {
+function marziSVG(stage, mood) {
   const g1 = "#79a94c", g2 = "#97c162", belly = "#f4ecd6", dark = "#33461f", lens = "#4a3423";
   const eyes = (cy, r, pr) => `<g class="mblink">
      <circle cx="45" cy="${cy}" r="${r}" fill="#fff" stroke="${dark}" stroke-width="1.4"/>
@@ -1062,7 +1084,7 @@ function marziSVG(stage) {
       <ellipse cx="56" cy="66" rx="26" ry="22" fill="${g1}"/>
       <ellipse cx="54" cy="74" rx="14" ry="9" fill="${belly}"/>
       ${eyes(48, 8.5, 4)}
-      <path d="M46 62 Q56 68 66 62" fill="none" stroke="${dark}" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="${mood === "sad" ? "M46 66 Q56 60 66 66" : "M46 62 Q56 68 66 62"}" fill="none" stroke="${dark}" stroke-width="2.6" stroke-linecap="round"/>
       <circle cx="86" cy="34" r="3.5" fill="none" stroke="${g2}" stroke-width="2"/>
       <circle cx="93" cy="24" r="2.2" fill="none" stroke="${g2}" stroke-width="2"/>`;
   } else {
@@ -1086,7 +1108,7 @@ function marziSVG(stage) {
       ${eyes(34, 9.5, 4.5)}
       ${glasses}
       <circle cx="42" cy="58" r="4" fill="#e9a08b" opacity=".55"/><circle cx="78" cy="58" r="4" fill="#e9a08b" opacity=".55"/>
-      <path d="M47 58 Q60 67 73 58" fill="none" stroke="${dark}" stroke-width="2.8" stroke-linecap="round"/>
+      <path d="${mood === "sad" ? "M47 64 Q60 55 73 64" : "M47 58 Q60 67 73 58"}" fill="none" stroke="${dark}" stroke-width="2.8" stroke-linecap="round"/>
       <circle cx="56" cy="50" r="1.4" fill="${dark}"/><circle cx="64" cy="50" r="1.4" fill="${dark}"/>
       <ellipse cx="42" cy="99" rx="9" ry="4.5" fill="${g2}"/><ellipse cx="78" cy="99" rx="9" ry="4.5" fill="${g2}"/>
       ${book}${cap}${pencil}`;
@@ -1173,7 +1195,7 @@ async function chatFetch(payload) {
   }
   if (res.status === 429 && !S.limitShown) {
     S.limitShown = true;
-    alert(t().limitMsg);
+    showLimit();
   }
   return res;
 }
@@ -1361,7 +1383,7 @@ function renderSetup() {
     $("xpFill").style.width = (r.next ? Math.min(100, Math.round(100 * (xp - r.base) / (r.next - r.base))) : 100) + "%";
     $("heroSub").textContent =
       (r.next ? `${r.next - xp} XP ${L.toNext} · ` : "") +
-      `${st.calls} ${L.calls} · ${Math.round((st.seconds || 0) / 60)} ${L.minutes}`;
+      `${st.calls} ${L.calls} · ${Math.min(30, Math.round(planUsedToday() / 60))}/30 ${L.minutes} ${L.today}`;
     const today = new Date().toISOString().slice(0, 10);
     const steps = [
       [IC.cards(11), L.rVocab, (st.vocabDays || {})[today], "vocab"],
@@ -1869,7 +1891,7 @@ function confettiBurst() {
   if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   const c = document.createElement("div");
   c.className = "confetti";
-  const cols = ["#ff6f59", "#c24634", "#2e7d5b", "#16130d", "#e0523c"];
+  const cols = ["#6f9d43", "#eab54e", "#2e7d5b", "#16130d", "#ff6f59"];
   for (let i = 0; i < 70; i++) {
     const p = document.createElement("i");
     p.style.left = Math.random() * 100 + "vw";
@@ -2226,11 +2248,11 @@ function chartSVG(tests) {
   if (proj.length) {
     const start = `${x(pts.length - 1)},${y(pts[pts.length - 1].score)}`;
     svg += `<polyline fill="none" stroke="#2e7d5b" stroke-width="2" stroke-dasharray="5 5" points="${start} ${proj.map((s, k) => `${x(pts.length + k)},${y(s)}`).join(" ")}"/>`;
-    proj.forEach((s, k) => svg += `<circle cx="${x(pts.length + k)}" cy="${y(s)}" r="4" fill="#faf0ec" stroke="#2e7d5b" stroke-width="2"/>`);
+    proj.forEach((s, k) => svg += `<circle cx="${x(pts.length + k)}" cy="${y(s)}" r="4" fill="#f7f3e6" stroke="#2e7d5b" stroke-width="2"/>`);
     svg += `<text x="${x(total - 1)}" y="${y(proj[proj.length - 1]) - 10}" font-size="10" font-weight="700" fill="#2e7d5b" text-anchor="end" font-family="sans-serif">${Math.round(proj[proj.length - 1])}</text>`;
   }
   pts.forEach((p, i) => {
-    svg += `<circle cx="${x(i)}" cy="${y(p.score)}" r="4.5" fill="#ff6f59" stroke="#16130d" stroke-width="2"/>`;
+    svg += `<circle cx="${x(i)}" cy="${y(p.score)}" r="4.5" fill="#6f9d43" stroke="#16130d" stroke-width="2"/>`;
     svg += `<text x="${x(i)}" y="${y(p.score) - 10}" font-size="10" font-weight="700" fill="#16130d" text-anchor="middle" font-family="sans-serif">${p.score}</text>`;
   });
   return svg + "</svg>";
@@ -2547,6 +2569,7 @@ function startConversation() {
   const g = S.active.goals;
   S.currentGoal = g[Math.floor(Math.random() * g.length)];
   show("call"); alertMsg(null); renderCall();
+  $("vcMarzi").innerHTML = marziSVG(Math.min(rankFor(loadStats().xp || 0).n, MARZI_NAMES.length));
   if (S.active.kind !== "face") SFX.ringStart();
   acquireWakeLock();
   clearInterval(S.timerId);
@@ -2560,7 +2583,32 @@ const PREPPED = new Set();
 function canPrep() {
   return S.scenario.id !== "random" && !(S.scenario.id === "custom" && !(S.customTopic || "").trim());
 }
+/* ---------- daily "phone plan": 30 free call minutes, like a real tariff ---------- */
+const PLAN_SECONDS = 30 * 60;
+function planUsedToday() {
+  const st = loadStats();
+  return ((st.secDays || {})[new Date().toISOString().slice(0, 10)]) || 0;
+}
+function showLimit() {
+  const L = t();
+  const st = loadStats();
+  const stage = Math.min(rankFor(st.xp || 0).n, MARZI_NAMES.length);
+  $("limitMarzi").innerHTML = marziSVG(stage, "sad");
+  $("limitTitle").textContent = L.limitTitle;
+  $("limitBody").textContent = L.limitMsg;
+  const now = new Date(), mid = new Date(now); mid.setHours(24, 0, 0, 0);
+  const mins = Math.round((mid - now) / 60000);
+  $("limitReset").textContent = `${L.resetsIn} ${Math.floor(mins / 60)} h ${String(mins % 60).padStart(2, "0")} min`;
+  $("limitOk").textContent = L.ok;
+  $("limitBack").classList.remove("hidden");
+  $("limitBox").classList.remove("hidden");
+}
+$("limitOk").onclick = $("limitBack").onclick = () => {
+  $("limitBack").classList.add("hidden");
+  $("limitBox").classList.add("hidden");
+};
 function goCall() {
+  if (planUsedToday() >= PLAN_SECONDS) { showLimit(); return; }
   if (S.level === "A0" && canPrep() && !PREPPED.has(S.scenario.id)) startPrep();
   else startConversation();
 }
