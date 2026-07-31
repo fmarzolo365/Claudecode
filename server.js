@@ -60,6 +60,7 @@ const AVATARS = {
   supermarkt: "a supermarket employee, young woman in a store vest",
   kollegen: "a friendly office colleague, woman in her 30s, casual smart clothes",
   empfang: "a doctor's practice front-desk receptionist, woman in her 20s",
+  einkaufen: "a clothes shop assistant (Jonas), friendly young man with warm brown side-parted hair, beige short-sleeved shirt, dark green shop apron",
   // second person who may take over the conversation mid-call
   arzt2: "a German family doctor, man in his 50s, white coat, glasses",
   amt2: "a senior municipal office supervisor, woman in her 50s, blazer",
@@ -76,6 +77,7 @@ const AVATARS = {
   supermarkt2: "a supermarket store manager, man in his 40s, shirt with name badge",
   kollegen2: "a department boss, man in his 50s, shirt and tie",
   empfang2: "a German doctor, man in his 50s, white coat, stethoscope",
+  einkaufen2: "a clothing shop owner, elegant woman in her 40s, measuring tape around her neck",
   dtz1: "a warm professional German language exam examiner, woman in her 40s, glasses, cardigan",
   dtz2: "a friendly German language exam examiner, woman in her 40s, blazer",
   dtz3: "an encouraging German language exam examiner, woman in her 30s",
