@@ -50,6 +50,12 @@ globalThis.document = {
   body: { appendChild() {} }, querySelectorAll: () => [],
 };
 globalThis.window = globalThis;
+globalThis.addEventListener = () => {};
+globalThis.location = { hash: "", reload() {} };
+globalThis.history = {
+  replaceState: (_s, _t, url) => { globalThis.location.hash = String(url); },
+  pushState() {},
+};
 globalThis.speechSynthesis = { getVoices: () => [], cancel() {}, speak() {}, onvoiceschanged: null };
 globalThis.SpeechSynthesisUtterance = function () {};
 globalThis.webkitSpeechRecognition = function () { this.start = () => {}; };
@@ -74,7 +80,8 @@ src += `\n;globalThis.__t = { T, TARGET, TARGETS, LEVELS, LEVEL_ORDER, SCENARIOS
   saidWord, normDe, lev, rankFor, recordCall, addXp, loadStats, loadFixes, saveFixes,
   voiceOf, timerText, systemPrompt, S, chartSVG, loadTests, saveTestResult,
   MARZI_NAMES, marziStageForXp, currentMarziStage, renderCallCompanion, addCoins, COIN_PACKS, buyPack, planLimitToday, planUsedToday, PLAN_SECONDS,
-  normalizeStats, claimReward, newRewardId, migratedName, migrateStorageKeys, micStatusFor, MARZI_KEY };`;
+  normalizeStats, claimReward, newRewardId, migratedName, migrateStorageKeys, micStatusFor, MARZI_KEY,
+  TAB_HASH, tabFromHash, showTab, updateTopbar };`;
 eval(src);
 const tt = globalThis.__t;
 
@@ -366,6 +373,29 @@ check("MARZI-001 corrections: ledger idempotency, per-call ids, hardened storage
   if (tt.micStatusFor({ busy: true, listening: true }) !== "processing") throw new Error("busy should win");
   if (tt.micStatusFor({ busy: false, listening: true }) !== "listening") throw new Error("listening state");
   if (tt.micStatusFor({ busy: false, listening: false }) !== "ready") throw new Error("ready state");
+});
+
+check("MARZI-002 shell: hash routing, top-bar resources, reusable primitives", () => {
+  // the four canonical tabs each own a hash; junk hashes resolve to null
+  if (Object.keys(tt.TAB_HASH).join() !== "learn,talk,store,profile") throw new Error("tab set changed");
+  if (tt.tabFromHash("#store") !== "store" || tt.tabFromHash("store") !== "store") throw new Error("hash not resolved");
+  if (tt.tabFromHash("#nope") !== null || tt.tabFromHash("") !== null || tt.tabFromHash(null) !== null) throw new Error("junk hash not rejected");
+  // navigating writes the hash (back-button support)
+  tt.showTab("store");
+  if (globalThis.location.hash !== "#store") throw new Error("store hash " + globalThis.location.hash);
+  tt.showTab("profile");
+  if (globalThis.location.hash !== "#profile") throw new Error("profile hash " + globalThis.location.hash);
+  // top bar shows coins and the remaining daily call minutes
+  const today = new Date().toISOString().slice(0, 10);
+  localStorage.setItem("marzi.stats.v1", JSON.stringify({ coins: 77, days: {}, secDays: { [today]: 360 } }));
+  tt.updateTopbar();
+  if (!document.getElementById("tbCoins").innerHTML.includes("77")) throw new Error("coins chip");
+  if (!document.getElementById("tbMins").innerHTML.endsWith(" 24")) throw new Error("minutes chip: " + document.getElementById("tbMins").innerHTML);
+  // shell primitives, tokens and chrome exist in the document
+  for (const needle of [".card {", ".btn {", "--space-3:", "--text-sm:", 'id="tbGear"', 'id="tbMins"', "hashchange"]) {
+    if (!html.includes(needle)) throw new Error("shell missing " + needle);
+  }
+  tt.showTab("learn");
 });
 
 check("progress chart renders points, CEFR bands and a projection", () => {

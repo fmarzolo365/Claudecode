@@ -45,6 +45,10 @@
     --shadow: 0 8px 24px rgba(34, 27, 15, .12);
     --shadow-lg: 0 18px 50px rgba(34, 27, 15, .18);
     --safe-bottom: env(safe-area-inset-bottom, 0px);
+    /* MARZI-002 shell scales: spacing + type. New chrome and every future
+       screen use these instead of ad-hoc pixel values. */
+    --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 24px;
+    --text-xs: 11px; --text-sm: 13px; --text-md: 15px; --text-lg: 19px; --text-xl: 26px;
   }
   * { box-sizing: border-box; }
   body {
@@ -71,22 +75,42 @@
     backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
   }
   .topbar-in {
-    width: 100%; max-width: 560px; height: 64px; margin: 0 auto; padding: 0 16px;
-    display: flex; align-items: center; gap: 12px;
+    width: 100%; max-width: 560px; height: 64px; margin: 0 auto; padding: 0 var(--space-3);
+    display: flex; align-items: center; gap: var(--space-2);
   }
   .wordmark {
-    font-family: var(--font-sans); font-size: 26px; font-weight: 800;
+    font-family: var(--font-sans); font-size: var(--text-xl); font-weight: 800;
     letter-spacing: -.04em; color: var(--marzi-dark);
   }
   .topbar .grow { flex: 1; }
   .chip-res {
     display: inline-flex; align-items: center; gap: 5px;
-    font: 800 13px var(--font-sans); color: var(--ink);
+    font: 800 var(--text-sm) var(--font-sans); color: var(--ink); white-space: nowrap;
     background: var(--card); border: 1px solid var(--line); border-radius: 999px;
-    padding: 7px 11px; box-shadow: var(--shadow-sm); cursor: pointer; min-height: 34px;
+    padding: 7px 10px; box-shadow: var(--shadow-sm); cursor: pointer; min-height: 34px;
   }
   .chip-res .ic { color: var(--coin); }
   .chip-res.streak .ic { color: var(--primary); }
+  .chip-res.mins .ic { color: var(--marzi-dark); }
+  .chip-res.gear { padding: 7px 9px; }
+  .chip-res.gear .ic { color: var(--muted); }
+  /* ---- MARZI-002 reusable shell primitives ----
+     .card and .btn are the base components every future screen composes;
+     existing page classes keep their look and migrate onto these over time. */
+  .card {
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: var(--radius); box-shadow: var(--shadow-sm);
+    padding: var(--space-3) var(--space-4);
+  }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2);
+    border: none; cursor: pointer; border-radius: 999px; min-height: 40px;
+    padding: 0 var(--space-4); font: 700 var(--text-sm) var(--font-sans);
+    background: var(--surface-strong); color: var(--ink);
+  }
+  .btn.primary { background: var(--primary); color: #fff; }
+  .btn.primary:hover { background: var(--primary-hover); }
+  .btn.primary:active { background: var(--primary-active); }
   .bottomnav {
     position: fixed; right: 0; bottom: 0; left: 0; z-index: 40;
     border-top: 1px solid var(--line);
@@ -670,6 +694,8 @@
     <span class="grow"></span>
     <button class="chip-res" id="tbCoins" aria-label="Coins"></button>
     <span class="chip-res streak" id="tbStreak"></span>
+    <button class="chip-res mins" id="tbMins" aria-label="Call minutes left today"></button>
+    <button class="chip-res gear" id="tbGear" aria-label="Settings"></button>
   </div>
 </header>
 <main>
@@ -1899,6 +1925,7 @@ const IC = {
   person: (s) => ic('<circle cx="12" cy="7.5" r="4"/><path d="M4.5 20.5a7.5 7.5 0 0 1 15 0"/>', false, s),
   coin: (s) => ic('<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.6"/>', false, s),
   crown: (s) => ic('<path d="M4.5 18.5h15M4.5 18.5L3 8l5 3.5L12 5l4 6.5L21 8l-1.5 10.5z"/>', false, s),
+  gear: (s) => ic('<circle cx="12" cy="12" r="3.4"/><path d="M12 2.6v3.2M12 18.2v3.2M2.6 12h3.2M18.2 12h3.2M5.4 5.4l2.2 2.2M16.4 16.4l2.2 2.2M18.6 5.4l-2.2 2.2M7.6 16.4l-2.2 2.2"/>', false, s),
 };
 const deckIc = (name, s) => (IC[name] ? IC[name](s) : "");
 
@@ -2480,6 +2507,8 @@ function updateTopbar() {
   const st = loadStats();
   $("tbCoins").innerHTML = `${IC.coin(14)} ${st.coins || 0}`;
   $("tbStreak").innerHTML = `${IC.flame(13)} ${currentStreak(st)}`;
+  const minsLeft = Math.max(0, Math.ceil((planLimitToday() - planUsedToday()) / 60));
+  $("tbMins").innerHTML = `${IC.clock(13)} ${minsLeft}`;
 }
 function renderNav() {
   const L = t();
@@ -2487,9 +2516,33 @@ function renderNav() {
    ["nbStore", IC.bag(20), L.tabStore], ["nbProfile", IC.person(20), L.tabProfile]]
     .forEach(([id, icon, label]) => { $(id).innerHTML = icon + `<span>${esc(label)}</span>`; });
 }
-function showTab(tab) {
+/* MARZI-002 shell routing: each tab owns a hash, so the Android back button
+   moves between tabs (and out of a call) instead of closing the app, and
+   every tab is deep-linkable. */
+const TAB_HASH = { learn:"#learn", talk:"#talk", store:"#store", profile:"#profile" };
+function tabFromHash(h) {
+  const tab = String(h || "").replace(/^#/, "");
+  return TAB_HASH[tab] ? tab : null;
+}
+let CURRENT_TAB = null, HASH_SYNCED = false;
+function syncTabHash(tab) {
+  const h = TAB_HASH[tab];
+  if (h) try {
+    if (location.hash !== h) {
+      // the first navigation replaces the entry - back must exit the app,
+      // not bounce through an empty-hash duplicate of the start screen
+      if (HASH_SYNCED) location.hash = h;
+      // window-qualified: the chat transcript helper history() shadows it
+      else window.history.replaceState(null, "", h);
+    }
+  } catch (e) {}
+  HASH_SYNCED = true;
+}
+function showTab(tab, fromHash) {
   stopAudio(); speechSynthesis.cancel();
   STORE_MSG = null;
+  CURRENT_TAB = tab;
+  if (!fromHash) syncTabHash(tab);
   if (tab === "talk") { renderSetup(); show("setup"); }
   else if (tab === "store") { renderStore(); show("store"); }
   else if (tab === "profile") { renderProfile(); show("profile"); }
@@ -4114,10 +4167,17 @@ $("obStartBtn").onclick = () => {
 /* bottom navigation + top-bar resources */
 $("bottomnav").querySelectorAll("[data-tab]").forEach((b) => b.onclick = () => showTab(b.dataset.tab));
 $("tbCoins").onclick = () => showTab("store");
+$("tbMins").onclick = () => showTab("store");
+$("tbGear").innerHTML = IC.gear(15);
+$("tbGear").onclick = () => showTab("profile");
+window.addEventListener("hashchange", () => {
+  const tab = tabFromHash(location.hash);
+  if (tab && tab !== CURRENT_TAB) showTab(tab, true);
+});
 
 renderSetup();
 if (S.firstRun) showOnboarding();
-else showTab("learn");
+else showTab(tabFromHash(location.hash) || "learn");
 
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js").catch(() => {});
 </script>

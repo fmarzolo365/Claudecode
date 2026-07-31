@@ -96,3 +96,50 @@ verified defect, not an interpretation.
 - The family previously requested an always-recognisable Marzi in calls;
   the circular badge + caption is the agreed compromise pending their
   on-device review.
+
+---
+
+# Implementation Report — MARZI-002
+
+**Task:** Application shell (theme, top bar, navigation, routing, primitives)
+**Date:** 2026-07-31 · **Status:** Complete, tests green, NOT merged (awaiting review)
+
+## Scope decision (approved)
+Most of the requested shell already shipped natively in the Marzi 2.0
+redesign (ADR-11): cream/green theme tokens, shared header/main/nav layout,
+four-tab bottom navigation, top bar with wordmark + coins + streak, and
+fully built pages. Per approval, existing pages and business logic were NOT
+touched, tabs keep their names (Learn/Talk/Store/Profile), and only the
+genuine gaps were implemented.
+
+## Implemented
+1. **Hash routing + Android back button** — each tab owns a hash
+   (`#learn/#talk/#store/#profile`); `tabFromHash` validates, `syncTabHash`
+   writes it (first navigation via `history.replaceState` so back exits the
+   app cleanly; later ones push entries), a `hashchange` listener drives
+   `showTab` on back/forward, and boot honors a deep-linked hash.
+   Note: qualified as `window.history` — the app's chat-transcript helper
+   `history()` shadows the global.
+2. **Top bar** — new daily-minutes chip (clock icon + minutes left from the
+   existing plan math, read-only; taps into the Store) and a settings gear
+   (new `IC.gear` stroke icon; taps into Profile). Chips are nowrap and
+   compact; measured on 390px: no overflow (gear right edge at 378px).
+3. **Reusable primitives** — canonical `.card` and `.btn` (+`.btn.primary`)
+   base classes for all future screens; additive, zero visual change to
+   current pages.
+4. **Tokens** — `--space-1..5` and `--text-xs..xl` scales in `:root`;
+   shell chrome (top bar, wordmark, chips) now uses them.
+5. `sw.js` CACHE v20 → v21 (app shell changed).
+
+## Not touched (per approval)
+Tab names and i18n keys, page content, all business logic (XP, evolution,
+economy, store, calls, characters), server, dependencies.
+
+## Tests
+`node --check server.js` — pass. `node test/run.js` — **16/16**, including
+the new MARZI-002 check (hash map + junk-hash rejection, navigation writes
+the hash, top-bar coins/minutes render, `.card`/`.btn`/token/chrome presence
+in the document). Verified live in Chromium at 390×844: deep link `#store`
+renders the Store, gear → `#profile` shows Profile, browser back returns to
+`#store`/Store, top bar does not overflow. Test stub gained
+`location`/`history`/`addEventListener`.
