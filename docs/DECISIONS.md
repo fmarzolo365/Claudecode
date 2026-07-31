@@ -2,7 +2,6 @@
 
 Short log of the decisions that shape this codebase. New entries go on top.
 
-<<<<<<< HEAD
 ## ADR-11 · Marzi product redesign grafted natively (2026-07-31)
 The "Marzi master product spec" (React/TS target) was implemented **natively
 in the single-file app** per ADR-9: design tokens (§6/§17 palette, Nunito
@@ -27,8 +26,6 @@ admin passwords, or runtime SVG injection from user input. Revisit only if
 authenticated accounts + server storage + sanitization exist (see ADR-8).
 Canonical mascot spelling: **Marzi** (from Marzolo) — never "Marzy".
 
-=======
->>>>>>> origin/main
 ## ADR-9 · Blueprint adoption strategy (2026-07-30)
 An external "Enterprise Blueprint" (React/Firebase monorepo) was evaluated.
 Decision: **graft its ideas, do not migrate.** The shipped, in-review app
