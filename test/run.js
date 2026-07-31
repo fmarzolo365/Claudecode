@@ -91,7 +91,7 @@ src += `\n;globalThis.__t = { T, TARGET, TARGETS, LEVELS, LEVEL_ORDER, SCENARIOS
   normalizeStats, claimReward, newRewardId, migratedName, migrateStorageKeys, micStatusFor, MARZI_KEY,
   TAB_HASH, tabFromHash, showTab, updateTopbar,
   ENGINE_CONTRACTS, validateProvider, createProviderRegistry, ScenarioRegistry, CharacterRegistry,
-  createTranscript, PromptBuilder, createConversationSession };`;
+  createTranscript, PromptBuilder, createConversationSession, ENGINE, send, ask };`;
 eval(src);
 const tt = globalThis.__t;
 
@@ -463,6 +463,66 @@ check("MARZI-003 engine: contracts, DI, registries, transcript, lifecycle", asyn
   let endedThrew = false;
   try { await ses.send("noch da?"); } catch (e) { endedThrew = /ended/.test(e.message); }
   if (!endedThrew) throw new Error("send after end accepted");
+});
+
+check("MARZI-004 integration: live call flow runs on the engine, guarded", async () => {
+  // boot registered the three live adapters
+  for (const kind of ["ai", "speech", "voice"]) if (!tt.ENGINE.has(kind)) throw new Error("live adapter missing: " + kind);
+  const sc = tt.ScenarioRegistry.get(tt.ScenarioRegistry.ids()[0]);
+  // -- session-level guards with fake providers --
+  const P = tt.createProviderRegistry();
+  P.register("ai", { complete: async () => ({ text: "Praxis, guten Tag!", raw: { reply: "Praxis, guten Tag!", speaker: "main" } }) });
+  const ses = tt.createConversationSession({ scenario: sc, level: "A1", lang: "en", goal: sc.goals[0], providers: P }).start();
+  const opening = await ses.ask(); // a call opens with the character: no learner turn needed
+  if (opening.text !== "Praxis, guten Tag!" || ses.transcript.list().length !== 1) throw new Error("opening ask");
+  await ses.send("Guten Tag, ich hätte gern einen Termin.");
+  if (ses.transcript.list().length !== 3) throw new Error("send lifecycle");
+  // duplicate turn: same speaker + same text back to back is rejected
+  const tr = tt.createTranscript();
+  tr.add({ speaker: "learner", text: "Wie bitte?" });
+  try { tr.add({ speaker: "learner", text: "Wie bitte?" }); throw new Error("dup accepted"); }
+  catch (e) { if (!/duplicate/.test(e.message)) throw e; }
+  tr.add({ speaker: "character", text: "Gern." }); tr.add({ speaker: "learner", text: "Wie bitte?" }); // legit repeat
+  // concurrent AI requests are rejected while one is in flight
+  let releaseLate;
+  P.register("ai", { complete: () => new Promise((resolve) => { releaseLate = resolve; }) });
+  const pendingReply = ses.ask();
+  let dupRejected = false;
+  try { await ses.ask(); } catch (e) { dupRejected = /duplicate ai request/.test(e.message); }
+  if (!dupRejected) throw new Error("concurrent ask accepted");
+  // call end during pending response: the late reply is dropped, transcript frozen
+  const frozenLen = ses.transcript.list().length;
+  ses.end();
+  releaseLate({ text: "zu spät", raw: {} });
+  if ((await pendingReply) !== null) throw new Error("late reply not dropped");
+  if (ses.transcript.list().length !== frozenLen) throw new Error("late reply mutated ended transcript");
+  // provider failure: session state survives and the next request works
+  const ses2 = tt.createConversationSession({ scenario: sc, level: "A1", lang: "en", goal: sc.goals[0], providers: P }).start();
+  P.register("ai", { complete: async () => { throw new Error("boom"); } });
+  let failed = false;
+  try { await ses2.ask(); } catch (e) { failed = true; }
+  if (!failed || ses2.state !== "active" || ses2.busy) throw new Error("provider error corrupted session state");
+  P.register("ai", { complete: async () => ({ text: "Wieder da.", raw: {} }) });
+  if ((await ses2.ask()).text !== "Wieder da.") throw new Error("no recovery after provider failure");
+  // -- UI-level wiring: send()/ask() route through S.session + ENGINE voice --
+  const spoken = [];
+  tt.ENGINE.register("ai", { complete: async ({ messages }) => {
+    if (messages[0].content !== tt.TARGET.seed) throw new Error("seed missing from canonical history");
+    return { text: "Praxis Dr. Weber, guten Tag!", raw: { reply: "Praxis Dr. Weber, guten Tag!", translation: "tr", suggestion: "Ich möchte einen Termin.", speaker: "second" } };
+  } });
+  tt.ENGINE.register("voice", { speak: async (o) => spoken.push(o.text), stopAll() {} });
+  tt.S.active = sc; tt.S.turns = []; tt.S.handsFree = false; tt.S.busy = false;
+  tt.S.session = tt.createConversationSession({ scenario: sc, level: "A1", lang: "en", goal: sc.goals[0], providers: tt.ENGINE }).start();
+  tt.send("Hallo, ich brauche einen Termin.");
+  tt.send("Hallo, ich brauche einen Termin."); // double submit while busy: ignored
+  await new Promise((r) => setTimeout(r, 0));
+  if (tt.S.turns.length !== 2 || !tt.S.turns[0].me || tt.S.turns[1].me) throw new Error("render model turns: " + tt.S.turns.length);
+  if (tt.S.session.transcript.list().length !== 2) throw new Error("canonical transcript diverged");
+  if (tt.S.speaker !== 2 || tt.S.turns[1].sp !== 2) throw new Error("character handover not applied");
+  if (tt.S.hint !== "Ich möchte einen Termin.") throw new Error("hint not applied");
+  if (spoken.join() !== "Praxis Dr. Weber, guten Tag!") throw new Error("voice provider not used: " + spoken.join());
+  if (tt.S.busy) throw new Error("busy flag stuck");
+  tt.S.session.end(); tt.S.session = null; tt.S.turns = [];
 });
 
 check("progress chart renders points, CEFR bands and a projection", () => {

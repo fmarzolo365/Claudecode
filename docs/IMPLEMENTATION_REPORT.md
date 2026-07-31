@@ -191,3 +191,66 @@ content and S-restoration, and the full session lifecycle with a fake
 injected AI provider (send-before-start, double-start and send-after-end
 all throw; turns recorded; provider receives prompt + seed). The test
 harness now settles async checks before the summary/exit code.
+
+---
+
+# Implementation Report — MARZI-004
+
+**Task:** Migrate the live call flow onto the Conversation Engine
+**Date:** 2026-07-31 · **Status:** Complete, tests green, NOT merged (awaiting review)
+
+## Adapters (existing flows behind the engine contracts)
+- **liveAIProvider.complete** — wraps the existing `chatFetch` (PIN prompt,
+  401 retry, 429 limit modal all preserved) plus the strict-JSON parse.
+  Returns `{text, raw}`; `raw` carries translation/feedback/corrected/
+  suggestion/speaker/done to the UI unchanged.
+- **liveSpeechProvider.start/stop** — wraps the Web Speech recognizer
+  construction; `onResult/onError/onEnd` hand back to the existing UI error
+  handling (mic blocked, no-speech, no-device, aborted) untouched.
+- **liveVoiceProvider.speak/stopAll** — wraps the existing `speak()` chain,
+  keeping neural TTS + cache, device fallback, slow repeat and portrait glow.
+- Registered at boot into `ENGINE = createProviderRegistry()`.
+
+## Single canonical transcript (approval constraint 2)
+`ConversationSession.transcript` is now the ONLY source of prompt history.
+`history()` is retained but no longer called (marked as the rollback path).
+`S.turns` stays a render-only mirror: `send()` writes the canonical
+transcript FIRST and returns early if it is rejected, so the mirror can
+never diverge from it.
+
+## Guards (approval constraint: concurrency + late responses)
+- Concurrent AI requests rejected (`askInFlight`) at the session level.
+- A reply arriving after `end()` is dropped: `ask()` returns null, the
+  transcript is not mutated, the UI adds nothing.
+- Duplicate turns rejected in the transcript (same speaker + same text
+  back to back); a legitimate later repeat is still allowed.
+- Provider errors reset in-flight state in `finally`, so a failed request
+  leaves the session active and the next request succeeds.
+- `hangBtn` calls `session.end()` before teardown.
+
+## Preserved (approval constraint 1)
+All user-facing error handling in `listen()`, `ask()`, `speak()` and hang-up
+is intact — the mic alerts, the generic `t().err` alert, the TTS device
+fallback and the full teardown sequence are unchanged. Call UI, character
+switching, translations, slow repeat, mic modes, timer, rewards, XP and
+end-call review are untouched. The German system prompt is reached only via
+`PromptBuilder` → `systemPrompt()` and stays byte-identical (suite-guarded).
+
+## Tests
+`node --check server.js` — pass. `node test/run.js` — **18/18**.
+New integration check (fake providers): live adapters registered; opening
+`ask()` without a learner turn; full learner → AI → transcript lifecycle;
+duplicate-turn rejection; concurrent-request rejection; call end during a
+pending response (late reply dropped, transcript frozen); provider failure
+leaves state clean and recovers; UI wiring routes through `S.session` and
+the voice provider, applies character handover (`speaker:"second"`), hint
+and translation, and ignores a double submit.
+Verified live in Chromium with stubbed `/api/*`: opening line renders,
+learner turn round-trips (transcript and render model both 3 turns, log
+shows both sides), hang-up mid-flight ends the session, drops the late
+reply, shows the review screen and awards XP (+19).
+
+## Rollback
+Single commit on the development branch — `git revert` restores the
+pre-migration flow; `history()` is still present for that path. `main`
+untouched. Pre-MARZI-004 state: 9d45a0b.

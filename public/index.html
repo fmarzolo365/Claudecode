@@ -3089,6 +3089,9 @@ Return ONLY a JSON object. No markdown, no code fences. Keys:
 "done": true only after you have said goodbye.`;
 }
 
+/* Pre-MARZI-004 prompt history (rollback path). No longer called: the
+   session transcript in ConversationSession is the single canonical source
+   for prompt history now. Delete once the migration has soaked. */
 function history() {
   return [{ role:"user", content:TARGET.seed }]
     .concat(S.turns.map((x) => ({ role: x.me ? "user" : "assistant", content: x.text })));
@@ -3158,6 +3161,8 @@ function createTranscript() {
     add(turn) {
       if (!turn || typeof turn.text !== "string" || !turn.text.trim()) throw new Error("turn needs text");
       if (turn.speaker !== "learner" && turn.speaker !== "character") throw new Error("turn speaker must be learner|character");
+      const prev = turns[turns.length - 1];
+      if (prev && prev.speaker === turn.speaker && prev.text === turn.text) throw new Error("duplicate turn rejected");
       turns.push(Object.freeze({ ...turn, index: turns.length }));
       return turns.length;
     },
@@ -3189,45 +3194,111 @@ const PromptBuilder = {
   },
 };
 
-/* ---- conversation session + lifecycle: created -> active -> ended ---- */
-function createConversationSession({ scenarioId, level, lang, goal, providers }) {
-  const scenario = ScenarioRegistry.get(scenarioId);
+/* ---- conversation session + lifecycle: created -> active -> ended ----
+   MARZI-004: the transcript here is the SINGLE canonical source for prompt
+   history; S.turns stays a render-only mirror. ask() carries the safety
+   guards: no concurrent AI requests, replies landing after end() are
+   dropped, and provider errors never corrupt the session state.
+   Accepts an ad-hoc scenario object (custom-topic calls) or a registry id. */
+function createConversationSession({ scenario, scenarioId, level, lang, goal, providers }) {
+  const sc = scenario || ScenarioRegistry.get(scenarioId);
   const transcript = createTranscript();
-  let state = "created";
+  let state = "created", askInFlight = false;
   const session = {
     get state() { return state; },
-    scenario, transcript,
-    character(n) { return CharacterRegistry.get(scenarioId, n || 1); },
+    get busy() { return askInFlight; },
+    scenario: sc, transcript,
+    character(n) {
+      if (scenarioId) return CharacterRegistry.get(scenarioId, n || 1);
+      const second = n === 2;
+      return Object.freeze({
+        id: (sc.id || "custom") + (second ? "2" : ""), scenarioId: sc.id, speaker: second ? 2 : 1,
+        name: sc.who, avatar: sc.avatar, kind: sc.kind || "phone",
+        voice: second ? (sc.voice2 || sc.voice) : sc.voice,
+      });
+    },
     start() {
       if (state !== "created") throw new Error("cannot start from state: " + state);
       state = "active";
       return session;
     },
+    /* character's next line for the transcript as it stands (a call opens
+       with the character, so this must not require a learner turn) */
+    async ask() {
+      if (state !== "active") throw new Error("session is " + state + ", not active");
+      if (askInFlight) throw new Error("duplicate ai request rejected");
+      askInFlight = true;
+      try {
+        const reply = await providers.get("ai").complete({
+          system: PromptBuilder.rolePlay({ scenario: sc, level, lang, goal }),
+          messages: transcript.forPrompt(TARGET.seed),
+        });
+        if (state !== "active") return null; // ended while waiting: drop the late reply
+        if (!reply || typeof reply.text !== "string") throw new Error("ai provider must return {text}");
+        transcript.add({ speaker: "character", text: reply.text, meta: reply.raw });
+        return reply;
+      } finally { askInFlight = false; }
+    },
     async send(learnerText) {
       if (state !== "active") throw new Error("session is " + state + ", not active");
+      if (askInFlight) throw new Error("duplicate ai request rejected");
       transcript.add({ speaker: "learner", text: learnerText });
-      const reply = await providers.get("ai").complete({
-        system: PromptBuilder.rolePlay({ scenario, level, lang, goal }),
-        messages: transcript.forPrompt(TARGET.seed),
-      });
-      if (!reply || typeof reply.text !== "string") throw new Error("ai provider must return {text}");
-      transcript.add({ speaker: "character", text: reply.text });
-      return reply;
+      return session.ask();
     },
     end() { state = "ended"; return session; },
   };
   return session;
 }
+
+/* ---- MARZI-004: the live app behind the engine contracts ----
+   Adapters wrap the EXISTING flows unchanged - chatFetch (429/PIN handling
+   included), the Web Speech API recognizer, and the neural-with-device-
+   fallback speak() chain - so the engine stays provider-agnostic while the
+   user experience is byte-identical. */
+const liveAIProvider = {
+  async complete({ system, messages }) {
+    const res = await chatFetch({ system, messages });
+    const data = await res.json();
+    const rawTxt = (data.content || []).filter((b) => b.type === "text").map((b) => b.text).join("");
+    const clean = rawTxt.replace(/```json|```/g, "").trim();
+    const p = JSON.parse(clean.slice(clean.indexOf("{"), clean.lastIndexOf("}") + 1));
+    return { text: p.reply, raw: p }; // the strict-JSON payload rides along for the UI
+  },
+};
+const liveSpeechProvider = {
+  start({ lang, onResult, onError, onEnd }) {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const r = new SR();
+    r.lang = lang; r.interimResults = false; r.maxAlternatives = 1;
+    r.onresult = (e) => onResult(e.results[0][0].transcript);
+    r.onerror = (e) => onError && onError(e && e.error);
+    r.onend = () => onEnd && onEnd();
+    r.start();
+    return r;
+  },
+  stop() { try { S.rec && S.rec.stop(); } catch (e) {} },
+};
+const liveVoiceProvider = {
+  async speak({ text, slow, speaker, done }) { speak(text, slow, done, speaker); },
+  stopAll() { speechSynthesis.cancel(); stopAudio(); },
+};
+const ENGINE = createProviderRegistry();
+ENGINE.register("ai", liveAIProvider);
+ENGINE.register("speech", liveSpeechProvider);
+ENGINE.register("voice", liveVoiceProvider);
 /* =============== end MARZI-003 Conversation Engine =============== */
 
+/* UI layer over ConversationSession.ask(): the session owns prompt history
+   and the safety guards; this function owns rendering, feedback attachment,
+   speaker switching and voice output - unchanged user experience. */
 async function ask() {
+  const ses = S.session;
+  if (!ses || ses.state !== "active" || ses.busy) return;
   S.busy = true; renderCall();
   try {
-    const res = await chatFetch({ system: systemPrompt(), messages: history() });
-    const data = await res.json();
-    const raw = (data.content || []).filter((b) => b.type === "text").map((b) => b.text).join("");
-    const clean = raw.replace(/```json|```/g, "").trim();
-    const p = JSON.parse(clean.slice(clean.indexOf("{"), clean.lastIndexOf("}") + 1));
+    const reply = await ses.ask();
+    if (!reply) { S.busy = false; return; } // call ended while waiting: drop silently
+    const p = reply.raw || {};
     if (p.feedback) {
       for (let i = S.turns.length - 1; i >= 0; i--) {
         if (S.turns[i].me) {
@@ -3239,10 +3310,11 @@ async function ask() {
       }
     }
     S.speaker = p.speaker === "second" ? 2 : 1;
-    S.turns.push({ me:false, text:p.reply, tr:p.translation, sp:S.speaker });
+    S.turns.push({ me:false, text:reply.text, tr:p.translation, sp:S.speaker });
     S.hint = p.suggestion || null;
     S.busy = false; renderCall();
-    speak(p.reply, false, () => { if (S.handsFree && !p.done) listen(); }, S.speaker);
+    ENGINE.get("voice").speak({ text: reply.text, slow: false, speaker: S.speaker,
+      done: () => { if (S.handsFree && !p.done) listen(); } });
   } catch (e) {
     S.busy = false; alertMsg(t().err); renderCall();
   }
@@ -3251,6 +3323,12 @@ async function ask() {
 function send(text) {
   const clean = (text || "").trim();
   if (!clean || S.busy) return;
+  const ses = S.session;
+  if (!ses || ses.state !== "active" || ses.busy) return;
+  // canonical transcript first: a double submit is rejected there and never
+  // reaches the render model or the provider
+  try { ses.transcript.add({ speaker: "learner", text: clean }); }
+  catch (e) { return; }
   S.turns.push({ me:true, text:clean });
   S.hint = null;
   $("draft").value = "";
@@ -3272,25 +3350,24 @@ async function listen() {
     stream.getTracks().forEach((tr) => tr.stop());
   } catch (e) { alertMsg(t().micBlocked); $("typeRow").classList.remove("hidden"); return; }
 
-  speechSynthesis.cancel();
-  stopAudio();
+  ENGINE.get("voice").stopAll();
   alertMsg(null);
-  const r = new SR();
-  r.lang = TARGET.locale; r.interimResults = false; r.maxAlternatives = 1;
-  r.onresult = (e) => send(e.results[0][0].transcript);
-  r.onerror = (e) => {
-    S.listening = false;
-    const c = e && e.error;
-    if (c === "not-allowed" || c === "service-not-allowed") alertMsg(t().micBlocked);
-    else if (c === "no-speech") alertMsg(t().noSpeech);
-    else if (c === "audio-capture") alertMsg(t().noDevice);
-    else if (c !== "aborted") alertMsg(t().micErr + ": " + c);
-    renderCall();
-  };
-  r.onend = () => { S.listening = false; renderCall(); };
-  S.rec = r;
-  try { r.start(); S.listening = true; renderCall(); }
-  catch (e) { S.listening = false; alertMsg(t().micErr + ": " + e.message); renderCall(); }
+  try {
+    S.rec = ENGINE.get("speech").start({
+      lang: TARGET.locale,
+      onResult: (text) => send(text),
+      onError: (c) => {
+        S.listening = false;
+        if (c === "not-allowed" || c === "service-not-allowed") alertMsg(t().micBlocked);
+        else if (c === "no-speech") alertMsg(t().noSpeech);
+        else if (c === "audio-capture") alertMsg(t().noDevice);
+        else if (c !== "aborted") alertMsg(t().micErr + ": " + c);
+        renderCall();
+      },
+      onEnd: () => { S.listening = false; renderCall(); },
+    });
+    S.listening = true; renderCall();
+  } catch (e) { S.listening = false; alertMsg(t().micErr + ": " + e.message); renderCall(); }
 }
 
 /* tap a word in the other person's line -> look it up and save it */
@@ -4040,6 +4117,11 @@ function startConversation() {
   S.callId = newRewardId(); // each call claims its reward under a fresh id
   const g = S.active.goals;
   S.currentGoal = g[Math.floor(Math.random() * g.length)];
+  // the session's transcript is the canonical prompt history for this call
+  S.session = createConversationSession({
+    scenario: S.active, level: S.level, lang: S.lang,
+    goal: S.currentGoal, providers: ENGINE,
+  }).start();
   show("call"); alertMsg(null); renderCall();
   renderCallCompanion();
   if (S.active.kind !== "face") SFX.ringStart();
@@ -4114,6 +4196,7 @@ function goCall() {
 $("callBtn").onclick = goCall;
 $("hangBtn").onclick = () => {
   S.handsFree = false;
+  if (S.session) S.session.end(); // any pending AI reply is dropped by the engine
   SFX.ringStop();
   clearInterval(S.timerId);
   S.timerId = null;
