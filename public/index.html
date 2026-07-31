@@ -13,33 +13,95 @@
 <link rel="apple-touch-icon" href="/icons/icon-192.png" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Archivo:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 <style>
+  /* Marzi design tokens (master spec §6/§17), grafted natively per ADR-9.
+     Legacy variable names stay as aliases so every existing rule keeps working. */
   :root {
-    --bg: #f7f3e6;
-    --card: #ffffff;
-    --ink: #16130d;
-    --muted: #6f6858;
-    --line: rgba(22, 19, 13, .12);
-    --yellow: #6f9d43;
-    --yellow-deep: #557a32;
-    --red: #c24634;
-    --green: #2e7d5b;
-    --radius: 16px;
-    --shadow: 0 1px 2px rgba(22,19,13,.05), 0 10px 30px rgba(22,19,13,.07);
+    --bg: #f7f1e5;
+    --card: #fffdf8;
+    --surface-soft: #f1ead9;
+    --surface-strong: #e8dfc9;
+    --ink: #17140f;
+    --muted: #6e685f;
+    --line: rgba(23, 20, 15, .14);
+    --primary: #5f962d;
+    --primary-hover: #527f28;
+    --primary-active: #456c22;
+    --primary-soft: #e8f1dc;
+    --marzi-dark: #2f5f1c;
+    --coin: #f2b72f;
+    --yellow: var(--primary);             /* legacy alias */
+    --yellow-deep: var(--primary-active); /* legacy alias */
+    --red: #c94638;
+    --green: #4f8a32;
+    --font-sans: "Nunito Sans", Inter, system-ui, -apple-system, sans-serif;
+    --radius-sm: 12px;
+    --radius: 18px;
+    --radius-lg: 26px;
+    --radius-xl: 34px;
+    --shadow-sm: 0 2px 8px rgba(34, 27, 15, .08);
+    --shadow: 0 8px 24px rgba(34, 27, 15, .12);
+    --shadow-lg: 0 18px 50px rgba(34, 27, 15, .18);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
   }
   * { box-sizing: border-box; }
   body {
     margin: 0;
-    background: var(--bg);
+    background:
+      radial-gradient(circle at top, rgba(255, 255, 255, .72), transparent 34%),
+      var(--bg);
     color: var(--ink);
-    font-family: Archivo, Helvetica, sans-serif;
-    padding: 28px 18px 56px;
-    display: flex;
-    justify-content: center;
+    font-family: var(--font-sans);
+    min-height: 100dvh;
     -webkit-font-smoothing: antialiased;
   }
-  main { width: 100%; max-width: 560px; }
+  main {
+    width: 100%; max-width: 560px; margin: 0 auto;
+    padding: 20px 16px calc(110px + var(--safe-bottom));
+  }
+  /* ---------- app shell: sticky top bar + fixed bottom navigation ---------- */
+  .topbar {
+    position: sticky; top: 0; z-index: 30;
+    border-bottom: 1px solid var(--line);
+    background: rgba(247, 241, 229, .92);
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  }
+  .topbar-in {
+    width: 100%; max-width: 560px; height: 64px; margin: 0 auto; padding: 0 16px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .wordmark {
+    font-family: var(--font-sans); font-size: 26px; font-weight: 800;
+    letter-spacing: -.04em; color: var(--marzi-dark);
+  }
+  .topbar .grow { flex: 1; }
+  .chip-res {
+    display: inline-flex; align-items: center; gap: 5px;
+    font: 800 13px var(--font-sans); color: var(--ink);
+    background: var(--card); border: 1px solid var(--line); border-radius: 999px;
+    padding: 7px 11px; box-shadow: var(--shadow-sm); cursor: pointer; min-height: 34px;
+  }
+  .chip-res .ic { color: var(--coin); }
+  .chip-res.streak .ic { color: var(--primary); }
+  .bottomnav {
+    position: fixed; right: 0; bottom: 0; left: 0; z-index: 40;
+    border-top: 1px solid var(--line);
+    background: rgba(255, 253, 248, .96);
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    padding-bottom: var(--safe-bottom);
+  }
+  .bottomnav-in {
+    width: 100%; max-width: 560px; height: 74px; margin: 0 auto;
+    display: grid; grid-template-columns: repeat(4, 1fr);
+  }
+  .bottomnav button {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 3px; border: none; background: none; cursor: pointer;
+    color: var(--muted); font: 700 11.5px var(--font-sans);
+  }
+  .bottomnav button .ic { vertical-align: 0; }
+  .bottomnav button.on { color: var(--primary); }
   .brand-card {
     background: linear-gradient(150deg, #fdfbf2, #f1f3de);
     border: 1.5px solid #dde3c6; border-radius: 22px;
@@ -53,14 +115,14 @@
     box-shadow: inset 0 -3px 0 rgba(85,122,50,.10), 0 1px 2px rgba(22,19,13,.06);
   }
   .brand .word {
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: var(--font-sans);
     font-size: 23px; font-weight: 700; letter-spacing: -.01em;
     color: var(--yellow-deep);
   }
   .plate { display: inline-flex; align-items: center; gap: 10px; }
   .plate span {
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 22px; font-weight: 700; letter-spacing: -.01em;
+    font-family: var(--font-sans);
+    font-size: 22px; font-weight: 800; letter-spacing: -.02em;
   }
   .tagline { font-size: 14.5px; line-height: 1.55; color: var(--muted); margin: 10px 2px 0; max-width: 460px; }
   .label {
@@ -80,9 +142,9 @@
     transition: background .15s ease;
   }
   .item:first-child, .list .label + .item { border-top: none; }
-  .item:hover { background: rgba(111,157,67,.10); }
+  .item:hover { background: rgba(95,150,45,.10); }
   .item.on { background: var(--ink); color: #fdfbf5; }
-  .item b { font-family: 'Space Grotesk', sans-serif; font-size: 16px; font-weight: 600; display: block; letter-spacing: 0; }
+  .item b { font-family: var(--font-sans); font-size: 16px; font-weight: 600; display: block; letter-spacing: 0; }
   .item small { font-size: 12.5px; color: var(--muted); }
   .item.on small { color: rgba(253,251,245,.65); }
   .item[disabled] { opacity: .4; cursor: not-allowed; }
@@ -94,37 +156,38 @@
   .seg button {
     flex: 1; padding: 9px 6px; border: none; border-radius: 999px;
     background: transparent; color: var(--ink); cursor: pointer;
-    font: 600 13px Archivo, sans-serif; letter-spacing: .02em;
+    font: 600 13px var(--font-sans); letter-spacing: .02em;
     transition: background .15s ease, color .15s ease;
   }
   .seg button.on { background: var(--ink); color: #fdfbf5; }
   .seg.wrap { flex-wrap: wrap; }
   .seg.wrap button { flex: 1 1 31%; }
   .note { font-size: 12.5px; margin: 10px 2px 0; color: var(--muted); }
+  /* primary button: green filled, white text (spec §6.4) */
   .big {
-    font-family: 'Space Grotesk', sans-serif; width: 100%; padding: 17px; margin-top: 30px;
-    background: var(--ink); color: var(--yellow); border: none; font-size: 17px; font-weight: 700;
-    letter-spacing: .06em; cursor: pointer; display: flex; align-items: center;
+    font-family: var(--font-sans); width: 100%; min-height: 56px; padding: 15px 17px; margin-top: 30px;
+    background: var(--primary); color: #fff; border: none; font-size: 17px; font-weight: 800;
+    letter-spacing: .04em; cursor: pointer; display: flex; align-items: center;
     justify-content: center; gap: 10px; border-radius: 999px;
-    box-shadow: var(--shadow); transition: transform .1s ease, filter .15s ease;
+    box-shadow: var(--shadow); transition: transform .1s ease, background .15s ease;
   }
-  .big:hover { filter: brightness(1.08); }
-  .big:active { transform: scale(.985); }
-  .big[disabled] { opacity: .5; cursor: not-allowed; }
-  .big.cta { background: var(--yellow); color: var(--ink); }
-  .big.cta:hover { filter: brightness(1.03); }
+  .big:hover { background: var(--primary-hover); }
+  .big:active { transform: translateY(1px); }
+  .big[disabled] { opacity: .52; cursor: not-allowed; }
+  .big.cta { background: var(--primary); color: #fff; }
+  .big.cta:hover { background: var(--primary-hover); }
   .big.live { background: var(--red); color: #fff; animation: ring 1.4s infinite; }
-  @keyframes ring { 0%,100% { box-shadow: 0 0 0 0 rgba(194,70,52,.45); } 50% { box-shadow: 0 0 0 14px rgba(194,70,52,0); } }
+  @keyframes ring { 0%,100% { box-shadow: 0 0 0 0 rgba(201,70,56,.45); } 50% { box-shadow: 0 0 0 14px rgba(201,70,56,0); } }
   .bar {
     background: var(--ink); color: #fdfbf5; padding: 14px 18px;
     display: flex; align-items: center; justify-content: space-between; gap: 10px;
     border-radius: var(--radius) var(--radius) 0 0;
   }
-  .bar .who { font-family: 'Space Grotesk', sans-serif; font-size: 17px; font-weight: 600; }
+  .bar .who { font-family: var(--font-sans); font-size: 17px; font-weight: 600; }
   .bar .meta { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: .16em; color: var(--yellow); opacity: .9; }
   .hang {
     background: var(--red); color: #fff; border: none; padding: 10px 16px;
-    font: 700 12px Archivo, sans-serif; letter-spacing: .06em; cursor: pointer;
+    font: 700 12px var(--font-sans); letter-spacing: .06em; cursor: pointer;
     border-radius: 999px; transition: filter .15s ease;
   }
   .vcbar {
@@ -148,12 +211,12 @@
      under prefers-reduced-motion the animation stops but the ring remains */
   .vc-stage::after { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none; border-radius: 15px; }
   .vc-stage.speaking::after {
-    box-shadow: inset 0 0 0 3px rgba(111,157,67,.6);
+    box-shadow: inset 0 0 0 3px rgba(95,150,45,.6);
     animation: stageglow 1.3s ease-in-out infinite;
   }
   @keyframes stageglow {
-    0%, 100% { box-shadow: inset 0 0 0 2.5px rgba(111,157,67,.35); }
-    50% { box-shadow: inset 0 0 0 4px rgba(111,157,67,.9); }
+    0%, 100% { box-shadow: inset 0 0 0 2.5px rgba(95,150,45,.35); }
+    50% { box-shadow: inset 0 0 0 4px rgba(95,150,45,.9); }
   }
   .vc-timer {
     position: absolute; top: 10px; left: 12px; z-index: 2;
@@ -163,7 +226,7 @@
   }
   .vc-who {
     position: absolute; left: 12px; bottom: 12px; z-index: 2;
-    font-family: 'Space Grotesk', sans-serif; font-size: 15.5px; font-weight: 600;
+    font-family: var(--font-sans); font-size: 15.5px; font-weight: 600;
     color: var(--ink); background: rgba(253,251,242,.92);
     border: 1.5px solid #d9e0bd; padding: 6px 12px; border-radius: 999px;
     box-shadow: 0 2px 8px rgba(22,19,13,.08); max-width: 55%;
@@ -185,48 +248,49 @@
   .tag.me { color: var(--green); }
   .said { font-size: 15.5px; line-height: 1.5; }
   .w { cursor: pointer; border-radius: 4px; }
-  .w:active { background: rgba(111,157,67,.35); }
-  .wsave { margin-top: 6px; font: 600 12.5px Archivo, sans-serif; color: var(--green); }
+  .w:active { background: rgba(95,150,45,.35); }
+  .wsave { margin-top: 6px; font: 600 12.5px var(--font-sans); color: var(--green); }
   .sub { font-size: 13px; color: var(--muted); margin-top: 4px; }
   .fix { font-size: 12.5px; color: var(--red); margin-top: 4px; }
   .mini {
-    background: none; border: none; padding: 0; font: 12px Archivo, sans-serif;
+    background: none; border: none; padding: 0; font: 12px var(--font-sans);
     color: var(--muted); text-decoration: underline; cursor: pointer; margin-right: 12px;
   }
   .mini:hover { color: var(--ink); }
   .row { display: flex; gap: 10px; margin-top: 14px; }
   .row.sos { gap: 6px; margin-top: 10px; }
   .row.sos .ghost { font-size: 11.5px; padding: 9px 4px; }
+  /* secondary button: cream card (spec §6.4), 48px+ touch target */
   .ghost {
-    flex: 1; padding: 12px 10px; background: var(--card); border: 1px solid var(--line);
-    color: var(--ink); font: 600 13px Archivo, sans-serif; cursor: pointer;
-    border-radius: 999px; box-shadow: 0 1px 2px rgba(22,19,13,.04);
+    flex: 1; min-height: 48px; padding: 12px 10px; background: var(--card); border: 1px solid var(--line);
+    color: var(--ink); font: 700 13px var(--font-sans); cursor: pointer;
+    border-radius: 999px; box-shadow: var(--shadow-sm);
     transition: background .15s ease;
   }
-  .ghost:hover { background: rgba(111,157,67,.12); }
+  .ghost:hover { background: rgba(95,150,45,.12); }
   .ghost[disabled] { opacity: .4; cursor: not-allowed; }
   .toggle {
-    width: 100%; margin-top: 10px; padding: 11px; border: 1px solid var(--line);
-    background: var(--card); color: var(--ink); font: 600 12.5px Archivo, sans-serif;
+    width: 100%; min-height: 48px; margin-top: 10px; padding: 11px; border: 1px solid var(--line);
+    background: var(--card); color: var(--ink); font: 700 12.5px var(--font-sans);
     letter-spacing: .04em; cursor: pointer; border-radius: 999px;
-    box-shadow: 0 1px 2px rgba(22,19,13,.04); transition: background .15s ease;
+    box-shadow: var(--shadow-sm); transition: background .15s ease;
   }
   .toggle.on { background: var(--card); border-color: var(--yellow-deep); color: var(--ink); }
   .toggle[disabled] { opacity: .4; cursor: not-allowed; }
   .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
   .act {
-    display: flex; align-items: center; gap: 9px; padding: 13px 12px; min-height: 50px;
-    background: var(--card); border: 1px solid var(--line); border-radius: 14px;
-    color: var(--ink); cursor: pointer; font: 600 12.5px Archivo, sans-serif;
-    line-height: 1.3; text-align: left; box-shadow: 0 1px 2px rgba(22,19,13,.04);
+    display: flex; align-items: center; gap: 9px; padding: 13px 12px; min-height: 52px;
+    background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-sm);
+    color: var(--ink); cursor: pointer; font: 700 12.5px var(--font-sans);
+    line-height: 1.3; text-align: left; box-shadow: var(--shadow-sm);
     transition: background .15s ease;
   }
-  .act:hover { background: rgba(111,157,67,.10); }
+  .act:hover { background: rgba(95,150,45,.10); }
   .act[disabled] { opacity: .4; cursor: not-allowed; }
   .act .ic { flex: 0 0 auto; color: var(--yellow-deep); }
   .act.due { border-color: var(--yellow-deep); }
   .dot-due { width: 7px; height: 7px; border-radius: 50%; background: var(--yellow-deep); margin-left: auto; flex: 0 0 auto; }
-  .act.on { border-color: var(--yellow-deep); box-shadow: inset 0 0 0 1.5px var(--yellow-deep); background: rgba(111,157,67,.12); }
+  .act.on { border-color: var(--yellow-deep); box-shadow: inset 0 0 0 1.5px var(--yellow-deep); background: rgba(95,150,45,.12); }
   .act.soon { opacity: .45; }
   .soon-badge {
     margin-left: auto; flex: 0 0 auto; font: 700 8.5px 'JetBrains Mono', monospace;
@@ -247,8 +311,8 @@
     box-shadow: var(--shadow); padding: 14px 16px; margin: -6px 0 24px;
   }
   .hero-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-  .hero-streak { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 17px; }
-  .hero-streak small { font-size: 12px; color: var(--muted); font-family: Archivo, sans-serif; font-weight: 500; }
+  .hero-streak { font-family: var(--font-sans); font-weight: 700; font-size: 17px; }
+  .hero-streak small { font-size: 12px; color: var(--muted); font-family: var(--font-sans); font-weight: 500; }
   .week { display: flex; gap: 5px; }
   .week .d { width: 21px; text-align: center; font: 500 9px 'JetBrains Mono', monospace; color: var(--muted); }
   .week .dot { width: 9px; height: 9px; margin: 3px auto 0; border-radius: 50%; background: #e6dfc8; }
@@ -267,14 +331,14 @@
   .marzi-col { flex: 1; min-width: 0; }
   .hero-lv { display: flex; justify-content: space-between; align-items: baseline; margin-top: 13px; }
   .marzi-col .hero-lv { margin-top: 0; }
-  .hero-lv .ttl { font-family: 'Space Grotesk', sans-serif; font-size: 14px; font-weight: 700; }
-  .hero-lv .hero-xp { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: .08em; color: var(--muted); }
+  .hero-lv .ttl { font-family: var(--font-sans); font-size: 14px; font-weight: 700; }
+  .hero-lv .hero-xp { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: .08em; color: var(--muted); white-space: nowrap; }
   .xpbar { height: 7px; background: #eae4cd; border-radius: 99px; margin-top: 7px; overflow: hidden; }
   .xpbar div { height: 100%; background: linear-gradient(90deg, var(--yellow), var(--yellow-deep)); border-radius: 99px; transition: width .6s ease; }
   .hero-sub { margin-top: 9px; font-size: 11.5px; color: var(--muted); }
   .routine { display: flex; gap: 6px; margin-top: 10px; }
   .routine button {
-    flex: 1; text-align: center; font: 600 11px Archivo, sans-serif; border: none; cursor: pointer;
+    flex: 1; text-align: center; font: 600 11px var(--font-sans); border: none; cursor: pointer;
     padding: 7px 4px; border-radius: 99px; background: #eae4cd; color: var(--muted);
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     transition: filter .15s ease;
@@ -282,12 +346,13 @@
   .routine button:hover { filter: brightness(.96); }
   .routine button.done { background: rgba(46,125,91,.15); color: var(--green); }
   .chip {
-    font: 700 11px 'JetBrains Mono', monospace; background: var(--yellow); color: var(--ink);
-    border-radius: 99px; padding: 4px 10px; letter-spacing: .06em; white-space: nowrap;
+    font: 700 11px 'JetBrains Mono', monospace; background: var(--primary-soft); color: var(--marzi-dark);
+    border-radius: 99px; padding: 5px 10px; letter-spacing: .06em; white-space: nowrap;
   }
+  .chip.coin { background: var(--coin); color: #4a3208; }
   .goal-hit {
     display: flex; align-items: center; gap: 10px; background: rgba(46,125,91,.12);
-    color: var(--green); font: 700 13px Archivo, sans-serif; padding: 10px 12px;
+    color: var(--green); font: 700 13px var(--font-sans); padding: 10px 12px;
     border-radius: 12px; margin: 0 0 12px;
   }
   .drill-prog { font: 500 10px 'JetBrains Mono', monospace; letter-spacing: .15em; color: var(--muted); }
@@ -296,14 +361,14 @@
     box-shadow: var(--shadow); padding: 28px 18px; text-align: center; cursor: pointer;
     min-height: 180px; display: flex; flex-direction: column; justify-content: center; gap: 10px;
   }
-  .v-de { font-family: 'Space Grotesk', sans-serif; font-size: 26px; font-weight: 700; line-height: 1.25; }
-  .v-tr { font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 600; color: var(--green); line-height: 1.3; }
+  .v-de { font-family: var(--font-sans); font-size: 26px; font-weight: 700; line-height: 1.25; }
+  .v-tr { font-family: var(--font-sans); font-size: 20px; font-weight: 600; color: var(--green); line-height: 1.3; }
   .v-ex { font-size: 14px; color: var(--muted); line-height: 1.5; }
   .v-flip { font-size: 11.5px; color: var(--muted); }
-  .v-verdict { margin-top: 12px; padding: 11px 14px; border-radius: 12px; font: 600 13.5px Archivo, sans-serif; line-height: 1.5; }
+  .v-verdict { margin-top: 12px; padding: 11px 14px; border-radius: 12px; font: 600 13.5px var(--font-sans); line-height: 1.5; }
   .v-verdict.ok { background: rgba(46,125,91,.12); color: var(--green); }
   .v-verdict.bad { background: rgba(194,70,52,.1); color: var(--red); }
-  .drill-ok { font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 600; color: var(--green); margin-top: 12px; line-height: 1.4; }
+  .drill-ok { font-family: var(--font-sans); font-size: 18px; font-weight: 600; color: var(--green); margin-top: 12px; line-height: 1.4; }
   .confetti { position: fixed; inset: 0; pointer-events: none; z-index: 90; overflow: hidden; }
   .confetti i { position: absolute; top: -14px; width: 8px; height: 12px; border-radius: 2px; animation: fall linear forwards; }
   @keyframes fall { to { transform: translateY(105vh) rotate(720deg); opacity: .9; } }
@@ -314,12 +379,12 @@
   .hint .label { margin: 0 0 4px; }
   .alert {
     margin-top: 12px; border: 1px solid rgba(194,70,52,.4); background: #fdf0ee;
-    color: var(--red); padding: 12px 14px; font: 600 12.5px Archivo, sans-serif;
+    color: var(--red); padding: 12px 14px; font: 600 12.5px var(--font-sans);
     line-height: 1.5; border-radius: 12px;
   }
   input[type=text] {
     flex: 1; padding: 12px 14px; border: 1px solid var(--line); background: var(--card);
-    font: 15px Archivo, sans-serif; color: var(--ink); border-radius: 12px;
+    font: 15px var(--font-sans); color: var(--ink); border-radius: 12px;
   }
   input[type=text]::placeholder { color: var(--muted); opacity: .8; }
   .picked {
@@ -328,8 +393,8 @@
     cursor: pointer; font: inherit; display: flex; flex-direction: column; gap: 2px; position: relative;
     transition: background .15s ease;
   }
-  .picked:hover { background: rgba(111,157,67,.10); }
-  .picked b { font-family: 'Space Grotesk', sans-serif; font-size: 16px; font-weight: 600; }
+  .picked:hover { background: rgba(95,150,45,.10); }
+  .picked b { font-family: var(--font-sans); font-size: 16px; font-weight: 600; }
   .picked small { font-size: 12.5px; color: var(--muted); }
   .picked .chev { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); font-size: 24px; color: var(--muted); }
   .menu-btn {
@@ -345,7 +410,7 @@
   .evo-step { flex: 0 0 84px; text-align: center; background: var(--card); border: 1.5px solid var(--line); border-radius: 14px; padding: 10px 4px 8px; }
   .evo-step .n { font: 700 10px 'JetBrains Mono', monospace; color: var(--yellow-deep); }
   .evo-step svg { width: 58px; height: 58px; }
-  .evo-step .nm { font: 600 10.5px Archivo, sans-serif; line-height: 1.25; color: var(--muted); }
+  .evo-step .nm { font: 600 10.5px var(--font-sans); line-height: 1.25; color: var(--muted); }
   .evo-step.future svg { filter: grayscale(.55) opacity(.72); }
   .evo-step.now { border-color: var(--yellow-deep); border-width: 2px; background: #f4f8ea; }
   .evo-step.now .nm { color: var(--ink); font-weight: 700; }
@@ -358,7 +423,7 @@
   }
   .limit-marzi { width: 96px; height: 96px; margin: 0 auto; }
   .limit-marzi svg { width: 100%; height: 100%; }
-  .limit-title { font-family: 'Space Grotesk', sans-serif; font-size: 19px; font-weight: 700; margin-top: 10px; }
+  .limit-title { font-family: var(--font-sans); font-size: 19px; font-weight: 700; margin-top: 10px; }
   .vc-marzi {
     position: absolute; right: 4px; bottom: 2px; width: 128px; height: 128px; z-index: 2;
     pointer-events: none;
@@ -369,7 +434,7 @@
     position: absolute; right: 20px; bottom: 132px; z-index: 3; max-width: 62%;
     background: #fffdf6; color: var(--ink); border: 1.5px solid #d9e0bd;
     border-radius: 14px 14px 4px 14px; padding: 8px 12px;
-    font: 600 12.5px Archivo, sans-serif; line-height: 1.35; text-align: left;
+    font: 600 12.5px var(--font-sans); line-height: 1.35; text-align: left;
     cursor: pointer; box-shadow: 0 3px 10px rgba(22,19,13,.14);
     transition: opacity .25s ease; animation: bubblein .35s cubic-bezier(.3, 1.4, .5, 1);
   }
@@ -387,8 +452,65 @@
     box-shadow: 0 0 60px rgba(22,19,13,.3);
   }
   .drawer.open { transform: none; }
+  /* guided dialogue: flatter portrait, speech bubble, Marzi by the progress */
+  .dlg-stage { aspect-ratio: 16 / 10; }
+  .dlg-bubble {
+    margin-top: 12px; background: var(--card); border: 1.5px solid #d9e0bd;
+    border-radius: 14px 14px 14px 4px; padding: 12px 14px;
+    font-size: 16px; line-height: 1.5; box-shadow: 0 1px 2px rgba(22,19,13,.04);
+  }
+  .dlg-prog { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
+  .dlg-marzi { width: 38px; height: 38px; flex: 0 0 38px; margin-left: auto; }
+  .dlg-marzi svg { width: 100%; height: 100%; }
+  /* ---------- Marzi redesign: Learn home, Store, Profile ---------- */
+  .greet { font: 800 26px var(--font-sans); letter-spacing: -.03em; margin: 4px 2px 2px; }
+  .greet-sub { font-size: 14px; color: var(--muted); margin: 2px 2px 16px; line-height: 1.5; }
+  .hero-xl {
+    position: relative; overflow: hidden; border: 1px solid var(--line);
+    border-radius: var(--radius-lg); box-shadow: var(--shadow);
+    background: linear-gradient(135deg, rgba(255,255,255,.92), rgba(232,241,220,.9));
+    padding: 18px 16px; display: flex; gap: 14px; align-items: center;
+  }
+  .hero-xl .marzi.art { width: 104px; height: 104px; margin: 0; flex: 0 0 104px; }
+  .mission-card, .mini-card {
+    border: 1px solid var(--line); background: var(--card); border-radius: var(--radius);
+    box-shadow: var(--shadow-sm); padding: 14px 16px; margin-top: 12px;
+  }
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .stat {
+    border: 1px solid var(--line); background: var(--card); border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-sm); padding: 12px 14px;
+  }
+  .stat b { display: block; font: 800 19px var(--font-sans); letter-spacing: -.02em; }
+  .stat small { font-size: 11.5px; color: var(--muted); }
+  .store-item { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-top: 1px solid var(--line); }
+  .store-item:first-child { border-top: none; }
+  .store-item .nm { flex: 1; min-width: 0; }
+  .store-item .nm b { font: 800 15px var(--font-sans); display: block; }
+  .store-item .nm small { font-size: 12px; color: var(--muted); }
+  .buy-btn {
+    border: none; border-radius: 999px; background: var(--primary); color: #fff;
+    font: 800 12.5px var(--font-sans); padding: 12px 16px; min-height: 44px; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 6px; box-shadow: var(--shadow-sm); white-space: nowrap;
+  }
+  .buy-btn:hover { background: var(--primary-hover); }
+  .buy-btn[disabled] { opacity: .5; cursor: not-allowed; }
+  .premium-card {
+    border: 1.5px solid rgba(242,187,40,.6); border-radius: var(--radius);
+    background: linear-gradient(135deg, #fffdf4, #fdf3d3);
+    box-shadow: var(--shadow-sm); padding: 16px; margin-top: 14px;
+  }
+  .allow-row { display: flex; gap: 8px; margin-top: 12px; }
+  .allow-chip {
+    flex: 1; display: flex; align-items: center; justify-content: center; gap: 7px;
+    border: 1px solid var(--line); background: var(--card); border-radius: 999px;
+    padding: 10px 8px; font: 700 12.5px var(--font-sans); color: var(--ink);
+    box-shadow: var(--shadow-sm); cursor: pointer; min-height: 44px;
+  }
+  .allow-chip .ic { color: var(--primary); }
+  .allow-chip span .ic { color: inherit; } /* wrapped icons keep their own color (coin) */
   .drawer-head { display: flex; align-items: center; justify-content: space-between; padding: 6px 2px 12px; }
-  .drawer-title { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 18px; }
+  .drawer-title { font-family: var(--font-sans); font-weight: 700; font-size: 18px; }
   .drawer-close { background: none; border: none; font-size: 22px; cursor: pointer; color: var(--muted); padding: 4px 8px; }
   .hidden { display: none; }
   button:focus-visible, input:focus-visible { outline: 2.5px solid var(--yellow-deep); outline-offset: 2px; }
@@ -396,29 +518,45 @@
 </style>
 </head>
 <body>
+<header class="topbar" id="topbar">
+  <div class="topbar-in">
+    <button class="menu-btn" id="menuBtn" aria-label="Menu"><span></span><span></span><span></span></button>
+    <span class="wordmark">Marzi</span>
+    <span class="grow"></span>
+    <button class="chip-res" id="tbCoins" aria-label="Coins"></button>
+    <span class="chip-res streak" id="tbStreak"></span>
+  </div>
+</header>
 <main>
-  <!-- SETUP -->
-  <section id="setup">
-    <div class="brand-card">
-    <header class="brand"><button class="menu-btn" id="menuBtn" aria-label="Menu"><span></span><span></span><span></span></button><span class="mark"><svg width="38" height="33" viewBox="0 0 120 104"><circle cx="60" cy="62" r="38" fill="#79a94c"/><circle cx="38" cy="30" r="15" fill="#79a94c"/><circle cx="82" cy="30" r="15" fill="#79a94c"/><circle cx="38" cy="30" r="10.5" fill="#fff" stroke="#33461f" stroke-width="1.5"/><circle cx="82" cy="30" r="10.5" fill="#fff" stroke="#33461f" stroke-width="1.5"/><circle cx="39.5" cy="31" r="5" fill="#33461f"/><circle cx="80.5" cy="31" r="5" fill="#33461f"/><circle cx="41" cy="28" r="1.8" fill="#fff"/><circle cx="82" cy="28" r="1.8" fill="#fff"/><circle cx="38" cy="30" r="14" fill="none" stroke="#4a3423" stroke-width="3.2"/><circle cx="82" cy="30" r="14" fill="none" stroke="#4a3423" stroke-width="3.2"/><path d="M52 30 h16" stroke="#4a3423" stroke-width="3.2" stroke-linecap="round"/><circle cx="40" cy="70" r="5" fill="#e9a08b" opacity=".55"/><circle cx="80" cy="70" r="5" fill="#e9a08b" opacity=".55"/><circle cx="55" cy="58" r="1.7" fill="#33461f"/><circle cx="65" cy="58" r="1.7" fill="#33461f"/><path d="M44 70 Q60 82 76 70" fill="none" stroke="#33461f" stroke-width="3.4" stroke-linecap="round"/></svg></span><span class="word">Telefontrainer</span></header>
-    <p class="tagline" id="tagline"></p>
+  <!-- LEARN home: greeting, Marzi hero, mission, quick cards (spec §23) -->
+  <section id="learn">
+    <div class="greet" id="learnHi"></div>
+    <p class="greet-sub" id="tagline"></p>
+    <div class="hero-xl">
+      <div class="marzi art" id="marzi"></div>
+      <div style="flex:1;min-width:0">
+        <div class="hero-lv"><span class="ttl" id="heroLv"></span><span class="hero-xp" id="heroXp"></span></div>
+        <div class="xpbar"><div id="xpFill" style="width:0%"></div></div>
+        <div class="hero-sub" id="heroSub"></div>
+        <div class="marzi-cap" id="marziCap" style="margin-top:6px"></div>
+      </div>
     </div>
-    <div class="hero hidden" id="hero">
+    <button class="big cta" id="practiceBtn" style="margin-top:16px"></button>
+    <div class="mission-card">
       <div class="hero-top">
         <div class="hero-streak" id="heroStreak"></div>
         <div class="week" id="heroWeek"></div>
       </div>
-      <div class="marzi-row">
-        <div class="marzi-wrap"><div class="marzi" id="marzi"></div><div class="marzi-cap" id="marziCap"></div></div>
-        <div class="marzi-col">
-          <div class="hero-lv"><span class="ttl" id="heroLv"></span><span class="hero-xp" id="heroXp"></span></div>
-          <div class="xpbar"><div id="xpFill" style="width:0%"></div></div>
-          <div class="hero-sub" id="heroSub"></div>
-        </div>
-      </div>
+      <div class="label" id="missionLbl" style="margin:12px 0 0"></div>
       <div class="routine" id="routine"></div>
     </div>
+    <div class="grid2" style="margin-top:12px" id="learnActs"></div>
+    <div class="mini-card" id="learnMistakes"></div>
+    <div id="learnEvo"></div>
+  </section>
 
+  <!-- TALK: scenario setup (the original Telefontrainer core) -->
+  <section id="setup" class="hidden">
     <div class="label" id="lblPick"></div>
     <button class="picked" id="pickedCard">
       <b id="pickedTitle"></b><small id="pickedSub"></small><span class="chev">&rsaquo;</span>
@@ -435,19 +573,20 @@
     <div class="seg wrap" id="langs"></div>
 
     <button class="big cta" id="callBtn"></button>
+    <div class="allow-row">
+      <span class="allow-chip" id="allowMin"></span>
+      <button class="allow-chip" id="allowBuy"></button>
+    </div>
     <div class="label" id="lblTrain"></div>
     <div class="grid2">
       <button class="act" id="prepBtn"></button>
+      <button class="act" id="dialogBtn"></button>
       <button class="act" id="vocabBtn"></button>
       <button class="act" id="drillBtn"></button>
       <button class="act" id="mistakesBtn"></button>
       <button class="act" id="progressBtn"></button>
       <button class="act" id="shareBtn"></button>
     </div>
-    <p class="note" style="text-align:center;margin-top:24px">
-      <a href="/impressum.html" style="color:inherit">Impressum</a> ·
-      <a href="/datenschutz.html" style="color:inherit">Datenschutz</a>
-    </p>
   </section>
 
   <!-- FIRST-RUN ONBOARDING: language pair picker -->
@@ -502,7 +641,7 @@
 
   <!-- DONE -->
   <section id="done" class="hidden">
-    <div class="plate"><span id="doneTitle"></span><span class="chip hidden" id="xpChip"></span></div>
+    <div class="plate"><span id="doneTitle"></span><span class="chip hidden" id="xpChip"></span><span class="chip coin hidden" id="coinChip"></span></div>
     <button class="ghost hidden" id="replayBtn" style="width:100%;margin-top:16px"></button>
     <div class="list" style="margin-top:14px;padding:16px 14px" id="review"></div>
     <div class="list" style="margin-top:14px;padding:16px 14px" id="evalBox"></div>
@@ -549,6 +688,45 @@
     <div class="list" style="margin-top:22px;padding:18px 16px" id="drillCard"></div>
     <button class="big" id="drillBack"></button>
   </section>
+
+  <!-- GUIDED DIALOGUE (scripted exchanges with a character) -->
+  <section id="dialog" class="hidden">
+    <div class="plate"><span id="dlgTitle"></span></div>
+    <p class="note" id="dlgSub" style="margin-top:8px"></p>
+    <div id="dlgStage" class="hidden" style="margin-top:14px">
+      <div class="vc-stage dlg-stage" id="dlgAv">
+        <span class="vc-emoji" id="dlgEmoji">🎧</span>
+        <img id="dlgImg" alt="" />
+        <div class="vc-who" id="dlgWho"></div>
+      </div>
+    </div>
+    <div id="dlgBody" style="margin-top:14px"></div>
+    <button class="big" id="dlgBack"></button>
+  </section>
+
+  <!-- STORE: coins, minute packages, outfit catalog (data-only, ADR-10) -->
+  <section id="store" class="hidden">
+    <div class="plate"><span id="storeTitle"></span></div>
+    <div id="storeBody" style="margin-top:14px"></div>
+  </section>
+
+  <!-- PROFILE: stats, settings, premium teaser, legal -->
+  <section id="profile" class="hidden">
+    <div class="plate"><span id="profTitle"></span></div>
+    <div id="profBody" style="margin-top:14px"></div>
+    <button class="toggle" id="soundBtn" style="margin-top:16px"></button>
+    <button class="toggle" id="pairBtn"></button>
+    <div class="row" style="margin-top:10px">
+      <button class="ghost" id="exportBtn"></button>
+      <button class="ghost" id="importBtn"></button>
+    </div>
+    <input type="file" id="importFile" accept="application/json" class="hidden" />
+    <div class="premium-card" id="premiumCard"></div>
+    <p class="note" style="text-align:center;margin-top:24px">
+      <a href="/impressum.html" style="color:inherit">Impressum</a> ·
+      <a href="/datenschutz.html" style="color:inherit">Datenschutz</a>
+    </p>
+  </section>
 </main>
 
 <div id="limitBack" class="drawer-back hidden" style="z-index:60"></div>
@@ -557,7 +735,8 @@
   <div class="limit-title" id="limitTitle"></div>
   <p class="note" id="limitBody" style="margin-top:8px"></p>
   <p class="note" id="limitReset" style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em"></p>
-  <button class="big cta" id="limitOk" style="margin-top:18px;padding:13px"></button>
+  <button class="toggle hidden" id="limitStore" style="margin-top:16px"></button>
+  <button class="big cta" id="limitOk" style="margin-top:12px;padding:13px"></button>
 </div>
 <div id="drawerBack" class="drawer-back hidden"></div>
 <aside id="drawer" class="drawer">
@@ -569,14 +748,16 @@
   <div class="row hidden" id="customRow" style="margin-top:12px">
     <input type="text" id="customTopic" />
   </div>
-  <button class="toggle" id="soundBtn" style="margin-top:20px"></button>
-  <button class="toggle" id="pairBtn"></button>
-  <div class="row" style="margin-top:10px">
-    <button class="ghost" id="exportBtn"></button>
-    <button class="ghost" id="importBtn"></button>
-  </div>
-  <input type="file" id="importFile" accept="application/json" class="hidden" />
 </aside>
+
+<nav class="bottomnav" id="bottomnav" aria-label="Primary">
+  <div class="bottomnav-in">
+    <button id="nbLearn" data-tab="learn"></button>
+    <button id="nbTalk" data-tab="talk"></button>
+    <button id="nbStore" data-tab="store"></button>
+    <button id="nbProfile" data-tab="profile"></button>
+  </div>
+</nav>
 
 <script>
 /* The languages being TAUGHT. All logic (recognition locale, prompt templates,
@@ -720,6 +901,12 @@ const T = {
     talk:"HABLAR", endTalk:"TERMINAR", endedTalk:"CONVERSACIÓN TERMINADA",
     routine:"Rutina de hoy", rCall:"Conversación", rVocab:"Vocabulario", rDrill:"Errores",
     prep:"Preparar la llamada", prepTitle:"PREPARACIÓN", howSay:"¿Cómo se dice en alemán?",
+    dialog:"Diálogo guiado",
+    tabLearn:"Aprender", tabTalk:"Hablar", tabStore:"Tienda", tabProfile:"Perfil",
+    hello:"¡Hola!", practiceNow:"PRACTICAR AHORA", mission:"Misión de hoy",
+    coins:"Monedas", buyMinutes:"Comprar minutos", minLeft:"min restantes hoy",
+    outfits:"Trajes de Marzi", notEnough:"No tienes suficientes monedas", bought:"¡Comprado! ✓",
+    premiumText:"Llamadas ilimitadas, más personajes y respuestas más rápidas.",
     dontKnow:"No lo sé, muéstramelo", ready:"¡Listo! Ya tienes lo básico.", startNow:"EMPEZAR YA",
     wantMore:"¿Quieres aprender más palabras?", moreWords:"SÍ, MÁS PALABRAS",
     progress:"Mi progreso", takeTest:"HACER EL TEST (5 min)", pretestHint:"Haz el pretest para saber dónde empiezas",
@@ -761,6 +948,12 @@ const T = {
     talk:"TALK", endTalk:"END", endedTalk:"CONVERSATION ENDED",
     routine:"Today's routine", rCall:"Conversation", rVocab:"Vocabulary", rDrill:"Mistakes",
     prep:"Prepare the call", prepTitle:"PREPARATION", howSay:"How do you say it in German?",
+    dialog:"Guided dialogue",
+    tabLearn:"Learn", tabTalk:"Talk", tabStore:"Store", tabProfile:"Profile",
+    hello:"Hello!", practiceNow:"PRACTISE NOW", mission:"Today's mission",
+    coins:"Coins", buyMinutes:"Buy minutes", minLeft:"min left today",
+    outfits:"Marzi outfits", notEnough:"Not enough coins", bought:"Purchased! ✓",
+    premiumText:"Unlimited calls, more characters and faster replies.",
     dontKnow:"I don't know, show me", ready:"Ready! You have the basics.", startNow:"START NOW",
     wantMore:"Do you want to learn more words?", moreWords:"YES, MORE WORDS",
     progress:"My progress", takeTest:"TAKE THE TEST (5 min)", pretestHint:"Take the pretest to see where you start",
@@ -805,6 +998,12 @@ T.tr = { tagline:"Gerçek Almanca aramalar ve konuşmalar pratiği yap. Sen konu
   talk:"KONUŞ", endTalk:"BİTİR", endedTalk:"KONUŞMA BİTTİ",
   routine:"Bugünkü rutin", rCall:"Konuşma", rVocab:"Kelimeler", rDrill:"Hatalar",
   prep:"Aramaya hazırlan", prepTitle:"HAZIRLIK", howSay:"Almancası nasıl söylenir?",
+  dialog:"Rehberli diyalog",
+  tabLearn:"Öğren", tabTalk:"Konuş", tabStore:"Mağaza", tabProfile:"Profil",
+  hello:"Merhaba!", practiceNow:"ŞİMDİ PRATİK YAP", mission:"Bugünün görevi",
+  coins:"Jetonlar", buyMinutes:"Dakika satın al", minLeft:"dk kaldı bugün",
+  outfits:"Marzi kıyafetleri", notEnough:"Yeterli jeton yok", bought:"Satın alındı! ✓",
+  premiumText:"Sınırsız arama, daha fazla karakter ve daha hızlı yanıtlar.",
   dontKnow:"Bilmiyorum, göster", ready:"Hazırsın! Temeli öğrendin.", startNow:"ŞİMDİ BAŞLA",
   wantMore:"Daha fazla kelime öğrenmek ister misin?", moreWords:"EVET, DAHA FAZLA",
   progress:"İlerlemem", takeTest:"TESTİ YAP (5 dk)", pretestHint:"Nereden başladığını görmek için ön testi yap",
@@ -846,6 +1045,12 @@ T.ar = { tagline:"تدرّب على مكالمات ومحادثات حقيقية
   talk:"تحدّث", endTalk:"إنهاء", endedTalk:"انتهت المحادثة",
   routine:"روتين اليوم", rCall:"محادثة", rVocab:"مفردات", rDrill:"أخطاء",
   prep:"التحضير للمكالمة", prepTitle:"التحضير", howSay:"كيف تُقال بالألمانية؟",
+  dialog:"حوار موجّه",
+  tabLearn:"تعلّم", tabTalk:"تحدث", tabStore:"المتجر", tabProfile:"الملف",
+  hello:"مرحبًا!", practiceNow:"تدرّب الآن", mission:"مهمة اليوم",
+  coins:"عملات", buyMinutes:"شراء دقائق", minLeft:"دقيقة متبقية اليوم",
+  outfits:"أزياء مارزي", notEnough:"لا تملك عملات كافية", bought:"تم الشراء! ✓",
+  premiumText:"مكالمات غير محدودة وشخصيات أكثر وردود أسرع.",
   dontKnow:"لا أعرف، أرني", ready:"جاهز! تعلمت الأساسيات.", startNow:"ابدأ الآن",
   wantMore:"هل تريد تعلم المزيد من الكلمات؟", moreWords:"نعم، المزيد",
   progress:"تقدمي", takeTest:"ابدأ الاختبار (5 دقائق)", pretestHint:"قم بالاختبار الأولي لتعرف من أين تبدأ",
@@ -887,6 +1092,12 @@ T.uk = { tagline:"Тренуй реальні дзвінки й розмови �
   talk:"ГОВОРИТИ", endTalk:"ЗАВЕРШИТИ", endedTalk:"РОЗМОВУ ЗАВЕРШЕНО",
   routine:"Рутина на сьогодні", rCall:"Розмова", rVocab:"Слова", rDrill:"Помилки",
   prep:"Підготуватися до дзвінка", prepTitle:"ПІДГОТОВКА", howSay:"Як це сказати німецькою?",
+  dialog:"Керований діалог",
+  tabLearn:"Навчання", tabTalk:"Розмова", tabStore:"Крамниця", tabProfile:"Профіль",
+  hello:"Привіт!", practiceNow:"ПРАКТИКУВАТИ ЗАРАЗ", mission:"Місія на сьогодні",
+  coins:"Монети", buyMinutes:"Купити хвилини", minLeft:"хв залишилось сьогодні",
+  outfits:"Вбрання Марзі", notEnough:"Недостатньо монет", bought:"Куплено! ✓",
+  premiumText:"Необмежені дзвінки, більше персонажів і швидші відповіді.",
   dontKnow:"Не знаю, покажи", ready:"Готово! Основи є.", startNow:"ПОЧАТИ ЗАРАЗ",
   wantMore:"Хочеш вивчити більше слів?", moreWords:"ТАК, ЩЕ СЛОВА",
   progress:"Мій прогрес", takeTest:"ПРОЙТИ ТЕСТ (5 хв)", pretestHint:"Пройди перший тест, щоб побачити свій старт",
@@ -929,6 +1140,12 @@ T.it = { tagline:"Allenati con telefonate e conversazioni reali in tedesco. Tu p
   talk:"PARLA", endTalk:"TERMINA", endedTalk:"CONVERSAZIONE TERMINATA",
   routine:"Routine di oggi", rCall:"Conversazione", rVocab:"Vocabolario", rDrill:"Errori",
   prep:"Prepara la chiamata", prepTitle:"PREPARAZIONE", howSay:"Come si dice in tedesco?",
+  dialog:"Dialogo guidato",
+  tabLearn:"Impara", tabTalk:"Parla", tabStore:"Negozio", tabProfile:"Profilo",
+  hello:"Ciao!", practiceNow:"PRATICA ORA", mission:"Missione di oggi",
+  coins:"Monete", buyMinutes:"Compra minuti", minLeft:"min rimasti oggi",
+  outfits:"Vestiti di Marzi", notEnough:"Monete insufficienti", bought:"Acquistato! ✓",
+  premiumText:"Chiamate illimitate, più personaggi e risposte più rapide.",
   dontKnow:"Non lo so, mostramelo", ready:"Fatto! Hai le basi.", startNow:"INIZIA ORA",
   wantMore:"Vuoi imparare altre parole?", moreWords:"SÌ, ALTRE PAROLE",
   progress:"I miei progressi", takeTest:"FAI IL TEST (5 min)", pretestHint:"Fai il pretest per vedere da dove parti",
@@ -1029,6 +1246,14 @@ SCENARIOS.push(
     goals:["check in for your appointment and hand over your insurance card",
            "explain that you have no appointment but strong pain, and ask to be seen today",
            "ask for a sick note (Krankschreibung) for your employer"] },
+  { id:"einkaufen", avatar:"👕", voice:"echo", voice2:"coral", kind:"face", de:"Kleidung kaufen", who:"Jonas (Verkäufer)", tag:"LADEN",
+    role:"a friendly young clothes shop assistant called Jonas, helpful and patient",
+    place:"a small clothes shop in town",
+    es:"Comprar ropa", en:"Buy clothes", it:"Comprare vestiti",
+    tr:"Kıyafet almak", ar:"شراء الملابس", uk:"Купити одяг",
+    goals:["buy a T-shirt: ask for your size, a colour you like and the price",
+           "exchange a pullover that is too small and ask for a bigger size",
+           "ask what is on sale and buy a pair of trousers"] },
 );
 
 /* ---------- DTZ speaking exam (B1 integration exam) practice ---------- */
@@ -1076,10 +1301,115 @@ const GROUPS = [
   { es:"Casa y día a día", en:"Home & daily life", tr:"Ev ve günlük hayat", ar:"البيت والحياة اليومية", uk:"Дім і побут", it:"Casa e vita quotidiana", ids:["vermieter","paket","werkstatt","kita"] },
   { es:"Ocio y reservas", en:"Leisure & bookings", tr:"Boş zaman ve rezervasyon", ar:"ترفيه وحجوزات", uk:"Дозвілля та бронювання", it:"Tempo libero e prenotazioni", ids:["friseur","restaurant"] },
   { es:"Cara a cara", en:"Face to face", tr:"Yüz yüze", ar:"وجهًا لوجه", uk:"Віч-на-віч", it:"Faccia a faccia",
-    ids:["nachbar","baecker","supermarkt","kollegen","empfang"] },
+    ids:["nachbar","baecker","supermarkt","kollegen","empfang","einkaufen"] },
   { es:"Examen DTZ (B1)", en:"DTZ exam (B1)", tr:"DTZ sınavı (B1)", ar:"امتحان DTZ (B1)", uk:"Іспит DTZ (B1)", it:"Esame DTZ (B1)",
     ids:["dtz1","dtz2","dtz3"] },
   { es:"Modo libre", en:"Free mode", tr:"Serbest mod", ar:"وضع حر", uk:"Вільний режим", it:"Modalità libera", ids:["random","custom"] },
+];
+
+/* ---------- guided dialogues (Dialog üben) ----------
+   Scripted exchanges ported from the family's "Dialogue Characters Add-on"
+   concept (its layered-SVG pose/mouth system is deferred - see
+   docs/EXPANSION.md; the cartoon portrait pipeline is the visual).
+   Shape per dialogue: `scenario` links the character (portrait, voice, who);
+   each step pairs a character line (`say`) with the target learner answer
+   (`ans`), 1-3 accepted variants (`accept`, matched with saidWord), help-
+   language translations of both sides (`sayXl`/`ansXl`), and a German
+   scaffold `hint` shown after two failed tries. `end` closes the scene. */
+const DIALOGUES = [
+  { id:"jonas", scenario:"einkaufen", de:"Kleidung kaufen",
+    es:"Comprar ropa", en:"Buying clothes", it:"Comprare vestiti",
+    tr:"Kıyafet almak", ar:"شراء الملابس", uk:"Купити одяг",
+    steps:[
+      { say:"Guten Tag! Kann ich Ihnen helfen? Suchen Sie etwas Bestimmtes?",
+        sayXl:{ es:"¡Buenos días! ¿Puedo ayudarle? ¿Busca algo en concreto?", en:"Good day! Can I help you? Are you looking for something specific?", it:"Buongiorno! Posso aiutarla? Cerca qualcosa in particolare?", tr:"İyi günler! Yardımcı olabilir miyim? Belirli bir şey mi arıyorsunuz?", ar:"نهارك سعيد! هل يمكنني مساعدتك؟ هل تبحث عن شيء معين؟", uk:"Добрий день! Чим можу допомогти? Шукаєте щось конкретне?" },
+        ans:"Ich suche ein T-Shirt.",
+        ansXl:{ es:"Busco una camiseta.", en:"I'm looking for a T-shirt.", it:"Cerco una maglietta.", tr:"Bir tişört arıyorum.", ar:"أبحث عن تيشيرت.", uk:"Я шукаю футболку." },
+        accept:["Ich möchte ein T-Shirt","Haben Sie ein T-Shirt"],
+        hint:"Ich suche … · ein T-Shirt" },
+      { say:"Natürlich. Welche Größe brauchen Sie?",
+        sayXl:{ es:"Claro. ¿Qué talla necesita?", en:"Of course. What size do you need?", it:"Certo. Che taglia le serve?", tr:"Tabii. Hangi bedene ihtiyacınız var?", ar:"بالطبع. ما المقاس الذي تحتاجه؟", uk:"Звичайно. Який розмір вам потрібен?" },
+        ans:"Ich brauche Größe M.",
+        ansXl:{ es:"Necesito la talla M.", en:"I need size M.", it:"Mi serve la taglia M.", tr:"M beden lazım.", ar:"أحتاج مقاس M.", uk:"Мені потрібен розмір M." },
+        accept:["Größe M, bitte","M, bitte"],
+        hint:"Ich brauche … · Größe M" },
+      { say:"Welche Farbe möchten Sie?",
+        sayXl:{ es:"¿Qué color quiere?", en:"Which colour would you like?", it:"Che colore desidera?", tr:"Hangi rengi istersiniz?", ar:"أي لون تريد؟", uk:"Який колір ви бажаєте?" },
+        ans:"In Grün, bitte.",
+        ansXl:{ es:"En verde, por favor.", en:"In green, please.", it:"In verde, per favore.", tr:"Yeşil olsun lütfen.", ar:"باللون الأخضر من فضلك.", uk:"Зелений, будь ласка." },
+        accept:["Ich möchte ein grünes","Grün, bitte"],
+        hint:"In … , bitte · grün" },
+      { say:"Hier ist ein grünes T-Shirt in Größe M.",
+        sayXl:{ es:"Aquí tiene una camiseta verde en talla M.", en:"Here is a green T-shirt in size M.", it:"Ecco una maglietta verde in taglia M.", tr:"İşte M beden yeşil bir tişört.", ar:"هذا تيشيرت أخضر بمقاس M.", uk:"Ось зелена футболка розміру M." },
+        ans:"Wie viel kostet es?",
+        ansXl:{ es:"¿Cuánto cuesta?", en:"How much does it cost?", it:"Quanto costa?", tr:"Ne kadar?", ar:"كم سعره؟", uk:"Скільки вона коштує?" },
+        accept:["Was kostet es","Wie viel kostet das"],
+        hint:"Wie viel …? · kostet" },
+    ],
+    end:"Es kostet zwölf Euro. Vielen Dank für Ihren Einkauf!",
+    endXl:{ es:"Cuesta doce euros. ¡Gracias por su compra!", en:"It costs twelve euros. Thank you for your purchase!", it:"Costa dodici euro. Grazie per il suo acquisto!", tr:"On iki avro. Alışverişiniz için teşekkürler!", ar:"سعره اثنا عشر يورو. شكرًا لشرائك!", uk:"Вона коштує дванадцять євро. Дякую за покупку!" } },
+  { id:"termin", scenario:"arzt", de:"Einen Termin vereinbaren",
+    es:"Pedir cita", en:"Book an appointment", it:"Prenotare un appuntamento",
+    tr:"Randevu almak", ar:"حجز موعد", uk:"Записатися на прийом",
+    steps:[
+      { say:"Praxis Dr. Wagner, guten Tag. Was kann ich für Sie tun?",
+        sayXl:{ es:"Consulta del Dr. Wagner, buenos días. ¿Qué puedo hacer por usted?", en:"Dr. Wagner's practice, good day. What can I do for you?", it:"Studio del Dr. Wagner, buongiorno. Cosa posso fare per lei?", tr:"Dr. Wagner muayenehanesi, iyi günler. Sizin için ne yapabilirim?", ar:"عيادة الدكتور فاغنر، نهارك سعيد. ماذا يمكنني أن أفعل لك؟", uk:"Практика доктора Вагнера, добрий день. Чим можу допомогти?" },
+        ans:"Ich hätte gern einen Termin.",
+        ansXl:{ es:"Quisiera una cita.", en:"I'd like an appointment.", it:"Vorrei un appuntamento.", tr:"Randevu almak istiyorum.", ar:"أود حجز موعد.", uk:"Я хочу записатися на прийом." },
+        accept:["Ich möchte einen Termin","Ich brauche einen Termin"],
+        hint:"Ich hätte gern … · einen Termin" },
+      { say:"Gern. Warum brauchen Sie den Termin?",
+        sayXl:{ es:"Con gusto. ¿Por qué necesita la cita?", en:"Gladly. Why do you need the appointment?", it:"Volentieri. Perché le serve l'appuntamento?", tr:"Memnuniyetle. Randevuya neden ihtiyacınız var?", ar:"بكل سرور. لماذا تحتاج الموعد؟", uk:"Залюбки. Чому вам потрібен прийом?" },
+        ans:"Ich habe starke Halsschmerzen.",
+        ansXl:{ es:"Tengo mucho dolor de garganta.", en:"I have a bad sore throat.", it:"Ho un forte mal di gola.", tr:"Boğazım çok ağrıyor.", ar:"أعاني من ألم شديد في الحلق.", uk:"У мене сильно болить горло." },
+        accept:["Ich habe Halsschmerzen","Mein Hals tut weh"],
+        hint:"Ich habe … · Halsschmerzen" },
+      { say:"Das tut mir leid. Passt es Ihnen morgen um zehn Uhr?",
+        sayXl:{ es:"Lo siento. ¿Le viene bien mañana a las diez?", en:"I'm sorry to hear that. Does tomorrow at ten o'clock suit you?", it:"Mi dispiace. Le va bene domani alle dieci?", tr:"Geçmiş olsun. Yarın saat onda uygun mu?", ar:"يؤسفني ذلك. هل يناسبك غدًا الساعة العاشرة؟", uk:"Співчуваю. Чи підходить вам завтра о десятій?" },
+        ans:"Ja, das passt mir gut.",
+        ansXl:{ es:"Sí, me viene bien.", en:"Yes, that works for me.", it:"Sì, mi va bene.", tr:"Evet, bana uyar.", ar:"نعم، هذا يناسبني.", uk:"Так, мені підходить." },
+        accept:["Das passt gut","Ja, das geht"],
+        hint:"Ja, das passt … · mir gut" },
+      { say:"Wunderbar. Wie ist Ihr Name, bitte?",
+        sayXl:{ es:"Estupendo. ¿Su nombre, por favor?", en:"Wonderful. What is your name, please?", it:"Perfetto. Il suo nome, per favore?", tr:"Harika. Adınız nedir lütfen?", ar:"رائع. ما اسمك من فضلك؟", uk:"Чудово. Ваше ім'я, будь ласка?" },
+        ans:"Mein Name ist …",
+        ansXl:{ es:"Mi nombre es… (di tu nombre)", en:"My name is… (say your name)", it:"Il mio nome è… (di' il tuo nome)", tr:"Adım… (adını söyle)", ar:"اسمي… (قل اسمك)", uk:"Мене звати… (назви своє ім'я)" },
+        accept:["Ich heiße"],
+        hint:"Mein Name ist … · Ich heiße …" },
+    ],
+    end:"Alles klar, bis morgen um zehn Uhr. Auf Wiederhören!",
+    endXl:{ es:"Muy bien, hasta mañana a las diez. ¡Adiós!", en:"All right, see you tomorrow at ten. Goodbye!", it:"Va bene, a domani alle dieci. Arrivederci!", tr:"Tamamdır, yarın saat onda görüşürüz. Hoşça kalın!", ar:"حسنًا، إلى الغد الساعة العاشرة. إلى اللقاء!", uk:"Гаразд, до завтра о десятій. До побачення!" } },
+  { id:"tisch", scenario:"restaurant", de:"Einen Tisch reservieren",
+    es:"Reservar una mesa", en:"Reserve a table", it:"Prenotare un tavolo",
+    tr:"Masa ayırtmak", ar:"حجز طاولة", uk:"Забронювати столик",
+    steps:[
+      { say:"Restaurant Alte Mühle, guten Abend. Was kann ich für Sie tun?",
+        sayXl:{ es:"Restaurante Alte Mühle, buenas noches. ¿Qué puedo hacer por usted?", en:"Restaurant Alte Mühle, good evening. What can I do for you?", it:"Ristorante Alte Mühle, buonasera. Cosa posso fare per lei?", tr:"Alte Mühle Restoranı, iyi akşamlar. Sizin için ne yapabilirim?", ar:"مطعم ألته موله، مساء الخير. ماذا يمكنني أن أفعل لك؟", uk:"Ресторан «Альте Мюле», добрий вечір. Чим можу допомогти?" },
+        ans:"Ich möchte einen Tisch reservieren.",
+        ansXl:{ es:"Quisiera reservar una mesa.", en:"I would like to reserve a table.", it:"Vorrei prenotare un tavolo.", tr:"Bir masa ayırtmak istiyorum.", ar:"أود حجز طاولة.", uk:"Я хочу забронювати столик." },
+        accept:["Ich hätte gern einen Tisch","Kann ich einen Tisch reservieren"],
+        hint:"Ich möchte … · einen Tisch reservieren" },
+      { say:"Sehr gern. Für wann möchten Sie reservieren?",
+        sayXl:{ es:"Con mucho gusto. ¿Para cuándo quiere reservar?", en:"With pleasure. For when would you like to reserve?", it:"Molto volentieri. Per quando vuole prenotare?", tr:"Memnuniyetle. Ne zaman için ayırtmak istersiniz?", ar:"بكل سرور. لمتى تريد الحجز؟", uk:"Із задоволенням. На коли ви хочете забронювати?" },
+        ans:"Für Freitag um sieben Uhr.",
+        ansXl:{ es:"Para el viernes a las siete.", en:"For Friday at seven o'clock.", it:"Per venerdì alle sette.", tr:"Cuma günü saat yedi için.", ar:"ليوم الجمعة الساعة السابعة.", uk:"На п'ятницю о сьомій." },
+        accept:["Freitag um sieben","Am Freitag um sieben Uhr"],
+        hint:"Für Freitag · um sieben Uhr" },
+      { say:"Und für wie viele Personen?",
+        sayXl:{ es:"¿Y para cuántas personas?", en:"And for how many people?", it:"E per quante persone?", tr:"Peki kaç kişi için?", ar:"ولكم شخصًا؟", uk:"І на скільки осіб?" },
+        ans:"Für vier Personen, bitte.",
+        ansXl:{ es:"Para cuatro personas, por favor.", en:"For four people, please.", it:"Per quattro persone, per favore.", tr:"Dört kişi için lütfen.", ar:"لأربعة أشخاص من فضلك.", uk:"На чотирьох осіб, будь ласка." },
+        accept:["Vier Personen","Wir sind vier"],
+        hint:"Für … Personen · vier" },
+      { say:"Das geht in Ordnung. Auf welchen Namen, bitte?",
+        sayXl:{ es:"De acuerdo. ¿A qué nombre, por favor?", en:"That's fine. Under what name, please?", it:"Va bene. A che nome, per favore?", tr:"Olur. Hangi isme lütfen?", ar:"حسنًا. باسم من، من فضلك؟", uk:"Добре. На чиє ім'я, будь ласка?" },
+        ans:"Auf den Namen …",
+        ansXl:{ es:"A nombre de… (di tu apellido)", en:"Under the name… (say your name)", it:"A nome… (di' il tuo cognome)", tr:"… adına (soyadını söyle)", ar:"باسم… (قل اسمك)", uk:"На ім'я… (назви своє прізвище)" },
+        accept:["Mein Name ist"],
+        hint:"Auf den Namen … · Mein Name ist …" },
+    ],
+    end:"Perfekt, der Tisch ist reserviert. Bis Freitag, auf Wiederhören!",
+    endXl:{ es:"Perfecto, la mesa está reservada. ¡Hasta el viernes, adiós!", en:"Perfect, the table is reserved. See you Friday, goodbye!", it:"Perfetto, il tavolo è prenotato. A venerdì, arrivederci!", tr:"Mükemmel, masanız ayrıldı. Cuma görüşürüz, hoşça kalın!", ar:"ممتاز، الطاولة محجوزة. إلى يوم الجمعة، إلى اللقاء!", uk:"Чудово, столик заброньовано. До п'ятниці, до побачення!" } },
 ];
 
 /* ---------- EN target pack (pilot) ----------
@@ -1265,6 +1595,7 @@ function recordCall() {
   st.secDays[d] = (st.secDays[d] || 0) + S.seconds;
   const gained = 15 + Math.min(20, S.turns.filter((x) => x.me).length * 2);
   st.xp = (st.xp || 0) + gained;
+  st.coins = (st.coins || 0) + 20; // completed call reward (spec §14)
   try { localStorage.setItem(STAT_KEY, JSON.stringify(st)); } catch (e) {}
   return gained;
 }
@@ -1272,6 +1603,16 @@ function addXp(n) {
   const st = loadStats();
   st.xp = (st.xp || 0) + n;
   try { localStorage.setItem(STAT_KEY, JSON.stringify(st)); } catch (e) {}
+}
+/* coin rewards (spec §14 economy, grafted locally per ADR-8): call 20,
+   vocabulary set 10, preparation batch 10, corrected drill item 2,
+   guided dialogue 10. Coins buy extra call minutes in the Store. */
+function addCoins(n) {
+  const st = loadStats();
+  st.coins = (st.coins || 0) + n;
+  try { localStorage.setItem(STAT_KEY, JSON.stringify(st)); } catch (e) {}
+  SFX.coin();
+  updateTopbar();
 }
 function markDay(kind) { // "vocabDays" | "drillDays" - calls already live in st.days
   const st = loadStats();
@@ -1318,6 +1659,11 @@ const IC = {
   star: (s) => ic('<path d="M12 2.7l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.5l-5.8 3.1 1.1-6.5L2.6 9.5l6.5-.9z"/>', true, s),
   help: (s) => ic('<path d="M9 9.2A3 3 0 1 1 12 12.4v1.6M12 17.5h.01"/><circle cx="12" cy="12" r="9.2" stroke-width="1.6"/>', false, s),
   clock: (s) => ic('<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>', false, s),
+  book: (s) => ic('<path d="M12 6C10.4 4.3 8.2 3.5 4 3.5v14c4.2 0 6.4.8 8 2.5 1.6-1.7 3.8-2.5 8-2.5v-14c-4.2 0-6.4.8-8 2.5zM12 6v14"/>', false, s),
+  bag: (s) => ic('<path d="M5.5 8.5h13L17.5 20.5h-11z"/><path d="M9 11V6.5a3 3 0 0 1 6 0V11"/>', false, s),
+  person: (s) => ic('<circle cx="12" cy="7.5" r="4"/><path d="M4.5 20.5a7.5 7.5 0 0 1 15 0"/>', false, s),
+  coin: (s) => ic('<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.6"/>', false, s),
+  crown: (s) => ic('<path d="M4.5 18.5h15M4.5 18.5L3 8l5 3.5L12 5l4 6.5L21 8l-1.5 10.5z"/>', false, s),
 };
 const deckIc = (name, s) => (IC[name] ? IC[name](s) : "");
 
@@ -1334,7 +1680,14 @@ function evolutionHTML(current) {
 /* ---------- Marzi, the learning companion frog ----------
    Seven stages mapped 1:1 onto the XP ranks. Designed by the family,
    drawn as layered SVG so outfits can be added later. */
-const MARZI_NAMES = ["Ei", "Kaulquappe", "Kaulquappe mit Beinen", "Junger Frosch", "Schulfrosch", "Bücherfrosch", "Meisterfrosch"];
+/* SIX canonical lamina stages (master spec §15): eggs, tadpole, tadpole with
+   legs, young frog, studious frog (glasses + book), expert frog (cap + pencil).
+   The 7 XP ranks map onto them via stageFor (ranks 5 & 6 share the studious
+   stage) - rank titles stay untouched for levels. */
+const MARZI_NAMES = ["Ei", "Kaulquappe", "Kaulquappe mit Beinen", "Junger Frosch", "Bücherfrosch", "Meisterfrosch"];
+function stageFor(rankN) {
+  return rankN <= 4 ? rankN : rankN <= 6 ? 5 : 6;
+}
 function marziSVG(stage, mood) {
   const g1 = "#79a94c", g2 = "#97c162", belly = "#f4ecd6", dark = "#33461f", lens = "#4a3423";
   const eyes = (cy, r, pr) => `<g class="mblink">
@@ -1367,14 +1720,14 @@ function marziSVG(stage, mood) {
     const glasses = stage >= 5 ? `<circle cx="45" cy="34" r="12.5" fill="none" stroke="${lens}" stroke-width="3"/>
       <circle cx="75" cy="34" r="12.5" fill="none" stroke="${lens}" stroke-width="3"/>
       <path d="M57.5 34 h5 M32.5 33 l-6 -3 M87.5 33 l6 -3" stroke="${lens}" stroke-width="3" stroke-linecap="round"/>` : "";
-    const book = stage === 6 ? `<path d="M36 76 L58 70 L58 96 L36 101 Z" fill="#3b6ea5"/>
+    const book = stage === 5 ? `<path d="M36 76 L58 70 L58 96 L36 101 Z" fill="#3b6ea5"/>
       <path d="M84 76 L62 70 L62 96 L84 101 Z" fill="#4a7fb8"/>
       <path d="M58 70 h4 v26 h-4 Z" fill="#2c567f"/>
       <path d="M40 79 L54 75 M40 84 L54 80 M66 75 L80 79 M66 80 L80 84" stroke="#e8eef5" stroke-width="1.6"/>` : "";
-    const cap = stage === 7 ? `<path d="M60 4 L94 17 L60 30 L26 17 Z" fill="#3d3d3d"/>
+    const cap = stage === 6 ? `<path d="M60 4 L94 17 L60 30 L26 17 Z" fill="#3d3d3d"/>
       <path d="M60 12 v0" /><rect x="56" y="20" width="8" height="6" rx="2" fill="#2c2c2c"/>
       <path d="M92 18 v12" stroke="#3d3d3d" stroke-width="2.5"/><circle cx="92" cy="33" r="3.2" fill="#ff6f59"/>` : "";
-    const pencil = stage === 7 ? `<g transform="rotate(-18 92 74)"><rect x="88" y="52" width="8" height="32" rx="1.5" fill="#eab54e"/>
+    const pencil = stage === 6 ? `<g transform="rotate(-18 92 74)"><rect x="88" y="52" width="8" height="32" rx="1.5" fill="#eab54e"/>
       <path d="M88 84 L92 93 L96 84 Z" fill="#e8ceA0"/><path d="M90.6 89.5 L92 93 L93.4 89.5 Z" fill="${dark}"/>
       <rect x="88" y="46" width="8" height="6" rx="2" fill="#ff6f59"/></g>` : "";
     body = `<ellipse cx="60" cy="97" rx="34" ry="7" fill="${g2}" opacity=".35"/>
@@ -1537,6 +1890,8 @@ function lifeStop() {
 function setSpeaking(on) {
   const el = $("vcAv");
   if (el) el.classList.toggle("speaking", !!on);
+  const dl = $("dlgAv"); // the guided-dialogue portrait shares the glow
+  if (dl) dl.classList.toggle("speaking", !!on);
   if (on) lifeStart(); else lifeStop();
 }
 
@@ -1625,73 +1980,20 @@ function speak(text, slow, done, sp) {
 /* ---------- setup screen ---------- */
 function renderSetup() {
   const L = t();
-  $("tagline").textContent = L.tagline;
+  renderNav();
+  updateTopbar();
   $("lblPick").textContent = L.pick;
   $("lblLevel").textContent = L.level;
   $("lblSpeed").textContent = L.speed;
   $("lblLang").textContent = L.helpLang;
 
-  const st = loadStats();
-  const strk = currentStreak(st);
-  $("hero").classList.toggle("hidden", !st.calls);
-  if (st.calls) {
-    $("heroStreak").innerHTML = `${IC.flame(15)} ${strk} <small>${esc(L.days)}</small>`;
-    const WD = ["So","Mo","Di","Mi","Do","Fr","Sa"];
-    let wk = "";
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date(); d.setDate(d.getDate() - i);
-      const key = d.toISOString().slice(0, 10);
-      wk += `<div class="d ${i === 0 ? "today" : ""}">${WD[d.getDay()]}<div class="dot ${st.days[key] ? "on" : ""}"></div></div>`;
-    }
-    $("heroWeek").innerHTML = wk;
-    const xp = st.xp || 0, r = rankFor(xp);
-    const stage = Math.min(r.n, MARZI_NAMES.length);
-    $("marzi").innerHTML = marziSVG(stage);
-    $("marzi").title = `Marzi · ${MARZI_NAMES[stage - 1]}`;
-    $("marziCap").textContent = `Marzi · ${MARZI_NAMES[stage - 1]} · ${stage}/${MARZI_NAMES.length}`;
-    $("marzi").style.cursor = "pointer";
-    $("marzi").onclick = () => {
-      $("limitMarzi").innerHTML = "";
-      $("limitTitle").textContent = t().evoTitle;
-      $("limitBody").innerHTML = evolutionHTML(stage);
-      $("limitReset").textContent = "";
-      $("limitOk").textContent = t().ok;
-      $("limitBack").classList.remove("hidden");
-      $("limitBox").classList.remove("hidden");
-    };
-    $("marziCap").onclick = $("marzi").onclick;
-    const prevStage = +(localStorage.getItem(MARZI_KEY) || 0);
-    if (prevStage && stage > prevStage) {
-      $("marzi").classList.remove("evolve");
-      void $("marzi").offsetWidth;
-      $("marzi").classList.add("evolve");
-      SFX.fanfare(); confettiBurst();
-    }
-    try { localStorage.setItem(MARZI_KEY, String(stage)); } catch (e) {}
-    $("heroLv").textContent = `Lv. ${r.n} · ${r.title}`;
-    $("heroXp").textContent = xp + " XP";
-    $("xpFill").style.width = (r.next ? Math.min(100, Math.round(100 * (xp - r.base) / (r.next - r.base))) : 100) + "%";
-    $("heroSub").textContent =
-      (r.next ? `${r.next - xp} XP ${L.toNext} · ` : "") +
-      `${st.calls} ${L.calls} · ${Math.min(30, Math.round(planUsedToday() / 60))}/30 ${L.minutes} ${L.today}`;
-    const today = new Date().toISOString().slice(0, 10);
-    const steps = [
-      [IC.cards(11), L.rVocab, (st.vocabDays || {})[today], "vocab"],
-      [IC.chat(11), L.rCall, st.days[today], "call"],
-      [IC.target(11), L.rDrill, (st.drillDays || {})[today], "drill"],
-    ];
-    $("routine").innerHTML = steps.map(([ic, name, done, act]) =>
-      `<button class="${done ? "done" : ""}" data-r="${act}">${done ? "✓" : ic} ${esc(name)}</button>`).join("");
-    $("routine").querySelectorAll("[data-r]").forEach((b) => b.onclick = () => {
-      if (b.dataset.r === "vocab") startVocab();
-      else if (b.dataset.r === "call") goCall();
-      else if (loadFixes().some((f) => f.corrected)) startDrill();
-      else { renderMistakes(); show("mistakes"); }
-    });
-  }
   $("callBtn").innerHTML = S.scenario.kind === "face"
     ? IC.chat(18) + " " + esc(L.talk)
     : IC.phone(18) + " " + esc(L.call);
+  const lim = planLimitToday(), used = planUsedToday();
+  $("allowMin").innerHTML = `${IC.clock(14)} ${Math.max(0, Math.round((lim - used) / 60))}/${Math.round(lim / 60)} ${esc(L.minLeft)}`;
+  $("allowBuy").innerHTML = `<span style="display:inline-flex;color:var(--coin)">${IC.coin(14)}</span> ${esc(L.buyMinutes)}`;
+  $("allowBuy").onclick = () => showTab("store");
 
   $("scenarios").innerHTML = GROUPS.map((g) =>
     `<div class="label" style="margin:14px 14px 6px">${esc(g[S.lang] || g.en)}</div>` +
@@ -1744,23 +2046,213 @@ function renderSetup() {
   $("drillBtn").innerHTML = IC.target() + `<span>${esc(L.practice)}${drillable ? ` (${Math.min(8, drillable)})` : ""}</span>`;
   $("drillBtn").disabled = !drillable;
   $("vocabBtn").innerHTML = IC.cards() + `<span>${esc(L.vocab)}</span>`;
+  $("dialogBtn").innerHTML = IC.chat() + `<span>${esc(L.dialog)}</span>`;
+  $("dialogBtn").disabled = !dialogAvailable().length;
   $("prepBtn").innerHTML = IC.prep() + `<span>${esc(L.prep)}</span>`;
   $("prepBtn").disabled = S.scenario.id === "random" || (S.scenario.id === "custom" && !(S.customTopic || "").trim());
   const due = daysSinceTest() >= 7;
   $("progressBtn").innerHTML = IC.trend() + `<span>${esc(L.progress)}</span>` + (due ? '<span class="dot-due"></span>' : "");
   $("progressBtn").className = "act" + (due ? " due" : "");
   $("shareBtn").innerHTML = IC.share() + `<span>${esc(L.share)}</span>`;
-  $("exportBtn").textContent = `↓ ${L.dataExport}`;
-  $("importBtn").textContent = `↑ ${L.dataImport}`;
+}
+
+/* ---------- LEARN home: greeting, Marzi hero, today's mission (spec §23) ---------- */
+function renderLearn() {
+  const L = t();
+  const st = loadStats();
+  const xp = st.xp || 0, r = rankFor(xp);
+  const stage = stageFor(r.n);
+  $("learnHi").textContent = L.hello;
+  $("tagline").textContent = L.tagline;
+  $("marzi").innerHTML = marziSVG(stage);
+  $("marzi").title = `Marzi · ${MARZI_NAMES[stage - 1]}`;
+  $("marziCap").textContent = `Marzi · ${MARZI_NAMES[stage - 1]} · ${stage}/${MARZI_NAMES.length}`;
+  $("marzi").style.cursor = "pointer";
+  $("marzi").onclick = () => {
+    $("limitMarzi").innerHTML = "";
+    $("limitTitle").textContent = t().evoTitle;
+    $("limitBody").innerHTML = evolutionHTML(stage);
+    $("limitReset").textContent = "";
+    $("limitStore").classList.add("hidden");
+    $("limitOk").textContent = t().ok;
+    $("limitBack").classList.remove("hidden");
+    $("limitBox").classList.remove("hidden");
+  };
+  $("marziCap").onclick = $("marzi").onclick;
+  const prevStage = +(localStorage.getItem(MARZI_KEY) || 0);
+  if (prevStage && stage > prevStage) {
+    $("marzi").classList.remove("evolve");
+    void $("marzi").offsetWidth;
+    $("marzi").classList.add("evolve");
+    SFX.fanfare(); confettiBurst();
+  }
+  try { localStorage.setItem(MARZI_KEY, String(stage)); } catch (e) {}
+  $("heroLv").textContent = `Lv. ${r.n} · ${r.title}`;
+  $("heroXp").textContent = xp + " XP";
+  $("xpFill").style.width = (r.next ? Math.min(100, Math.round(100 * (xp - r.base) / (r.next - r.base))) : 100) + "%";
+  $("heroSub").textContent =
+    (r.next ? `${r.next - xp} XP ${L.toNext} · ` : "") +
+    `${st.calls || 0} ${L.calls}`;
+  $("practiceBtn").innerHTML = IC.mic(18) + " " + esc(L.practiceNow);
+  $("practiceBtn").onclick = () => goCall();
+
+  const strk = currentStreak(st);
+  $("heroStreak").innerHTML = `${IC.flame(15)} ${strk} <small>${esc(L.days)}</small>`;
+  const WD = ["So","Mo","Di","Mi","Do","Fr","Sa"];
+  let wk = "";
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const key = d.toISOString().slice(0, 10);
+    wk += `<div class="d ${i === 0 ? "today" : ""}">${WD[d.getDay()]}<div class="dot ${(st.days || {})[key] ? "on" : ""}"></div></div>`;
+  }
+  $("heroWeek").innerHTML = wk;
+  $("missionLbl").textContent = L.mission;
+  const today = new Date().toISOString().slice(0, 10);
+  const steps = [
+    [IC.cards(11), L.rVocab, (st.vocabDays || {})[today], "vocab"],
+    [IC.chat(11), L.rCall, (st.days || {})[today], "call"],
+    [IC.target(11), L.rDrill, (st.drillDays || {})[today], "drill"],
+  ];
+  $("routine").innerHTML = steps.map(([ic, name, done, act]) =>
+    `<button class="${done ? "done" : ""}" data-r="${act}">${done ? "✓" : ic} ${esc(name)}</button>`).join("");
+  $("routine").querySelectorAll("[data-r]").forEach((b) => b.onclick = () => {
+    if (b.dataset.r === "vocab") startVocab();
+    else if (b.dataset.r === "call") goCall();
+    else if (loadFixes().some((f) => f.corrected)) startDrill();
+    else { renderMistakes(); show("mistakes"); }
+  });
+
+  $("learnActs").innerHTML =
+    `<button class="act" data-la="dialog" ${dialogAvailable().length ? "" : "disabled"}>${IC.chat()}<span>${esc(L.dialog)}</span></button>
+     <button class="act" data-la="progress">${IC.trend()}<span>${esc(L.progress)}</span></button>`;
+  $("learnActs").querySelectorAll("[data-la]").forEach((b) => b.onclick = () => {
+    if (b.dataset.la === "dialog") startDialog(); else startProgress();
+  });
+
+  const fixes = loadFixes().slice(-3).reverse();
+  $("learnMistakes").innerHTML =
+    `<div class="label" style="margin:0 0 4px">${esc(L.mistakesTitle)}</div>` +
+    (fixes.length
+      ? fixes.map((f) => `<div style="margin-top:10px"><div class="said" style="font-size:14px">${esc(f.text)}</div><div class="fix">${esc(f.fix)}</div></div>`).join("") +
+        `<button class="toggle" data-lm style="margin-top:14px">${IC.list(13)} ${esc(L.mistakes)}</button>`
+      : `<p class="note" style="margin:6px 0 0">${esc(L.noMistakes)}</p>`);
+  const lm = $("learnMistakes").querySelector("[data-lm]");
+  if (lm) lm.onclick = () => { renderMistakes(); show("mistakes"); };
+
+  $("learnEvo").innerHTML = evolutionHTML(stage);
+  updateTopbar();
+}
+
+/* ---------- STORE: coin balance, minute packages, outfit catalog ---------- */
+let STORE_MSG = null;
+function renderStore() {
+  const L = t();
+  const st = loadStats();
+  const coins = st.coins || 0;
+  $("storeTitle").textContent = L.tabStore.toUpperCase();
+  const lim = planLimitToday(), used = planUsedToday();
+  $("storeBody").innerHTML =
+    `<div class="hero-xl" style="align-items:center">
+       <span style="display:inline-flex;color:var(--coin)">${IC.coin(44)}</span>
+       <div style="flex:1">
+         <div style="font:800 30px var(--font-sans);letter-spacing:-.02em">${coins}</div>
+         <div class="hero-sub" style="margin-top:2px">${esc(L.coins)} · ${Math.max(0, Math.round((lim - used) / 60))} ${esc(L.minLeft)}</div>
+       </div>
+     </div>
+     ${STORE_MSG ? `<div class="v-verdict ${STORE_MSG === L.bought ? "ok" : "bad"}" style="margin-top:12px">${esc(STORE_MSG)}</div>` : ""}
+     <div class="label">${esc(L.buyMinutes)}</div>
+     <div class="list">` +
+    COIN_PACKS.map((p) => `<div class="store-item">
+        <span style="display:inline-flex;color:var(--primary)">${IC.clock(22)}</span>
+        <div class="nm"><b>+${p.minutes} min</b><small>${esc(L.today)}</small></div>
+        <button class="buy-btn" data-pack="${p.id}" ${coins < p.price ? "disabled" : ""}>${IC.coin(13)} ${p.price}</button>
+      </div>`).join("") +
+    `</div>
+     <div class="label">${esc(L.outfits)}</div>
+     <div class="list">` +
+    OUTFITS.map((o) => `<div class="store-item">
+        <span style="display:inline-flex;color:var(--muted)">${IC.bag(22)}</span>
+        <div class="nm"><b>${esc(o.de)}</b><small>${esc(MARZI_NAMES[o.stage - 1])} · ${IC.coin(11)} ${o.price}</small></div>
+        <span class="soon-badge">${esc(L.obSoon)}</span>
+      </div>`).join("") +
+    `</div>`;
+  $("storeBody").querySelectorAll("[data-pack]").forEach((b) => b.onclick = () => buyPack(b.dataset.pack));
+  updateTopbar();
+}
+function buyPack(id) {
+  const p = COIN_PACKS.find((x) => x.id === id);
+  if (!p) return;
+  const st = loadStats();
+  if ((st.coins || 0) < p.price) { STORE_MSG = t().notEnough; renderStore(); return; }
+  st.coins -= p.price;
+  st.extraSecs = st.extraSecs || {};
+  const d = new Date().toISOString().slice(0, 10);
+  st.extraSecs[d] = (st.extraSecs[d] || 0) + p.minutes * 60;
+  try { localStorage.setItem(STAT_KEY, JSON.stringify(st)); } catch (e) {}
+  SFX.fanfare();
+  STORE_MSG = t().bought;
+  renderStore();
+}
+
+/* ---------- PROFILE: stats, settings, premium teaser ---------- */
+function renderProfile() {
+  const L = t();
+  const st = loadStats();
+  const xp = st.xp || 0, r = rankFor(xp), stage = stageFor(r.n);
+  $("profTitle").textContent = L.tabProfile.toUpperCase();
+  const stats = [
+    [`Lv. ${r.n}`, r.title],
+    [`${stage}/${MARZI_NAMES.length}`, `Marzi · ${MARZI_NAMES[stage - 1]}`],
+    [`${xp}`, "XP"],
+    [`${st.coins || 0}`, L.coins],
+    [`${currentStreak(st)}`, L.days],
+    [`${st.calls || 0}`, L.calls],
+    [`${Math.round((st.seconds || 0) / 60)}`, L.minutes],
+    [`${loadWords().length}`, L.myWords],
+  ];
+  $("profBody").innerHTML = `<div class="stat-grid">` +
+    stats.map(([b, s]) => `<div class="stat"><b>${esc(b)}</b><small>${esc(s)}</small></div>`).join("") +
+    `</div>`;
+  $("premiumCard").innerHTML =
+    `<div style="display:flex;align-items:center;gap:10px">
+       <span style="display:inline-flex;color:#c99a12">${IC.crown(22)}</span>
+       <b style="font:800 16px var(--font-sans)">Premium</b>
+       <span class="soon-badge" style="margin-left:auto">${esc(L.obSoon)}</span>
+     </div>
+     <p class="note" style="margin:8px 0 0">${esc(L.premiumText)}</p>`;
   $("soundBtn").textContent = (S.sound !== false ? "♪ " : "○ ") + L.sound + (S.sound !== false ? ": ON" : ": OFF");
   $("soundBtn").className = "toggle" + (S.sound !== false ? " on" : "");
   $("soundBtn").onclick = () => {
     S.sound = S.sound === false;
     if (S.sound === false) SFX.ringStop();
-    saveSettings(); renderSetup();
+    saveSettings(); renderProfile();
   };
   $("pairBtn").textContent = "🌐 " + L.obPair + " · " + TARGET.nativeName;
-  $("pairBtn").onclick = () => { closeDrawer(); showOnboarding(); };
+  $("pairBtn").onclick = () => showOnboarding();
+  $("exportBtn").textContent = `↓ ${L.dataExport}`;
+  $("importBtn").textContent = `↑ ${L.dataImport}`;
+  updateTopbar();
+}
+
+/* ---------- app shell: top bar + bottom navigation ---------- */
+function updateTopbar() {
+  const st = loadStats();
+  $("tbCoins").innerHTML = `${IC.coin(14)} ${st.coins || 0}`;
+  $("tbStreak").innerHTML = `${IC.flame(13)} ${currentStreak(st)}`;
+}
+function renderNav() {
+  const L = t();
+  [["nbLearn", IC.book(20), L.tabLearn], ["nbTalk", IC.chat(20), L.tabTalk],
+   ["nbStore", IC.bag(20), L.tabStore], ["nbProfile", IC.person(20), L.tabProfile]]
+    .forEach(([id, icon, label]) => { $(id).innerHTML = icon + `<span>${esc(label)}</span>`; });
+}
+function showTab(tab) {
+  stopAudio(); speechSynthesis.cancel();
+  STORE_MSG = null;
+  if (tab === "talk") { renderSetup(); show("setup"); }
+  else if (tab === "store") { renderStore(); show("store"); }
+  else if (tab === "profile") { renderProfile(); show("profile"); }
+  else { renderLearn(); show("learn"); }
 }
 
 /* ---------- mistakes history screen ---------- */
@@ -1819,7 +2311,7 @@ function renderDrill() {
     markDay("drillDays");
     confettiBurst();
     $("drillCard").innerHTML =
-      `<div class="said" style="font-family:'Space Grotesk',sans-serif;font-size:19px;font-weight:700">🎉 ${esc(L.drillDone)}</div>
+      `<div class="said" style="font-family:var(--font-sans);font-size:19px;font-weight:700">🎉 ${esc(L.drillDone)}</div>
        <div style="margin-top:10px"><span class="chip">+${xp} XP</span></div>`;
     return;
   }
@@ -1857,6 +2349,7 @@ function renderDrill() {
       rec.drilled = new Date().toISOString().slice(0, 10);
       saveFixes(all);
     }
+    if (act === "knew") addCoins(2); // corrected mistake reward (spec §14)
     if (act === "retry") D.q.push(item);
     D.i++; D.open = false; D.verdict = null; D.heard = null; D.err = null;
     renderDrill();
@@ -2116,11 +2609,12 @@ function renderVocab() {
   } else if (V.i >= V.deck.length) {
     if (!V.deck.length) { $("vocabBody").innerHTML = `<p class="note">—</p>`; return; }
     addXp(12);
+    addCoins(10);
     markDay("vocabDays");
     confettiBurst();
     $("vocabBody").innerHTML =
-      `<div class="said" style="font-family:'Space Grotesk',sans-serif;font-size:19px;font-weight:700">🎉 ${esc(L.vocabDone)}</div>
-       <div style="margin-top:10px"><span class="chip">+12 XP</span></div>`;
+      `<div class="said" style="font-family:var(--font-sans);font-size:19px;font-weight:700">🎉 ${esc(L.vocabDone)}</div>
+       <div style="margin-top:10px"><span class="chip">+12 XP</span> <span class="chip coin">+10 ${IC.coin(11)}</span></div>`;
   } else {
     const c = V.deck[V.i];
     $("vocabBody").innerHTML =
@@ -2174,7 +2668,9 @@ function renderVocab() {
   });
 }
 
-/* shared pronunciation listener: writes listening/verdict/heard/err into st */
+/* shared pronunciation listener: writes listening/verdict/heard/err into st.
+   `target` may be a string or an array of accepted variants (first = model
+   answer, spoken back on a miss - used by the guided dialogues). */
 async function listenFor(target, st, rerender) {
   const L = t();
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -2190,10 +2686,11 @@ async function listenFor(target, st, rerender) {
   r.lang = TARGET.locale; r.interimResults = false; r.maxAlternatives = 5;
   r.onresult = (e) => {
     const alts = Array.from(e.results[0]).map((a) => a.transcript);
-    const ok = alts.some((a) => saidWord(a, target));
+    const targets = Array.isArray(target) ? target : [target];
+    const ok = alts.some((a) => targets.some((tg) => saidWord(a, tg)));
     st.heard = alts[0]; st.verdict = ok ? "ok" : "bad";
     rerender();
-    if (!ok) speak(target, true);
+    if (!ok) speak(targets[0], true);
   };
   r.onerror = (e) => {
     st.listening = false;
@@ -2509,8 +3006,19 @@ function renderCall() {
   $("log").scrollTop = $("log").scrollHeight;
 }
 
+/* which bottom-nav tab each screen belongs to (sub-screens highlight their home tab) */
+const TAB_OF = { learn:"learn", dialog:"learn", mistakes:"learn", drill:"learn", test:"learn",
+  setup:"talk", call:"talk", done:"talk", prep:"talk", vocab:"talk",
+  store:"store", profile:"profile" };
 function show(which) {
-  ["setup","onboard","call","done","mistakes","drill","vocab","prep","test"].forEach((id) => $(id).classList.toggle("hidden", id !== which));
+  ["learn","setup","onboard","call","done","mistakes","drill","vocab","prep","test","dialog","store","profile"]
+    .forEach((id) => $(id).classList.toggle("hidden", id !== which));
+  // the call is immersive; onboarding is chromeless
+  $("bottomnav").classList.toggle("hidden", which === "call" || which === "onboard");
+  $("topbar").classList.toggle("hidden", which === "onboard");
+  const active = TAB_OF[which] || "";
+  [["nbLearn","learn"],["nbTalk","talk"],["nbStore","store"],["nbProfile","profile"]]
+    .forEach(([id, tb]) => $(id).classList.toggle("on", tb === active));
 }
 
 /* ---------- end-of-call evaluation ---------- */
@@ -2733,7 +3241,7 @@ function renderTest() {
     $("testBody").innerHTML =
       `<div class="hero" style="margin:0 0 14px">
          <div style="display:flex;align-items:baseline;gap:12px">
-           <span style="font-family:'Space Grotesk',sans-serif;font-size:44px;font-weight:700">${TST.rec.score}</span>
+           <span style="font-family:var(--font-sans);font-size:44px;font-weight:700">${TST.rec.score}</span>
            <span class="chip">${esc(L.yourLevel)}: ${esc(TST.rec.cefr)}</span>
          </div>
          <p style="font-size:14px;line-height:1.55;margin:10px 0 0">${esc(TST.comment)}</p>
@@ -2746,7 +3254,7 @@ function renderTest() {
       (tests.length
         ? `<div class="hero" style="margin:0 0 14px">
              <div style="display:flex;align-items:baseline;gap:12px">
-               <span style="font-family:'Space Grotesk',sans-serif;font-size:34px;font-weight:700">${tests[tests.length - 1].score}</span>
+               <span style="font-family:var(--font-sans);font-size:34px;font-weight:700">${tests[tests.length - 1].score}</span>
                <span class="chip">${esc(tests[tests.length - 1].cefr)}</span>
                <span class="drill-prog">${esc(new Date(tests[tests.length - 1].date).toISOString().slice(0, 10))}</span>
              </div>
@@ -2852,12 +3360,13 @@ function renderPrep() {
       P.awarded[P.batch] = true;
       PREPPED.add(S.scenario.id);
       addXp(10);
+      addCoins(10);
       if (P.batch === 1) markDay("vocabDays");
       confettiBurst();
     }
     $("prepBody").innerHTML =
-      `<div class="said" style="font-family:'Space Grotesk',sans-serif;font-size:19px;font-weight:700">🎉 ${esc(L.ready)}</div>
-       <div style="margin-top:10px"><span class="chip">+${P.batch * 10} XP</span> <span class="drill-prog" style="margin-left:8px">${P.learned.length} ✓</span></div>
+      `<div class="said" style="font-family:var(--font-sans);font-size:19px;font-weight:700">🎉 ${esc(L.ready)}</div>
+       <div style="margin-top:10px"><span class="chip">+${P.batch * 10} XP</span> <span class="chip coin">+${P.batch * 10} ${IC.coin(11)}</span> <span class="drill-prog" style="margin-left:8px">${P.learned.length} ✓</span></div>
        ${P.loadingMore
          ? `<p class="note" style="margin-top:14px">${esc(L.vocabLoading)}</p>`
          : P.batch < PREP_MAX_BATCH
@@ -2913,6 +3422,178 @@ function renderPrep() {
   });
 }
 
+/* ---------- guided dialogue (Dialog üben) ----------
+   Step machine over DIALOGUES: the character portrait speaks its line
+   (auto-play, like vocab hear mode), the learner sees the answer in the
+   help language and speaks the German. Forgiving match (saidWord over the
+   accepted variants) advances; two misses open the scaffold hint with
+   tap-to-reveal + repeat-after. Completion pays XP and celebrates. */
+const DLG_XP = 15;
+let DG = null;
+function dialogAvailable() {
+  return DIALOGUES.filter((d) => SCENARIOS.some((s) => s.id === d.scenario));
+}
+function dlgMarzi() {
+  // family rule (as in calls): Marzi is always the recognisable frog, min stage 5
+  return marziSVG(Math.max(5, stageFor(rankFor(loadStats().xp || 0).n)));
+}
+function startDialog() {
+  const L = t();
+  DG = { stage:"pick" };
+  S.active = null;
+  $("dlgTitle").textContent = L.dialog.toUpperCase();
+  $("dlgSub").textContent = "";
+  $("dlgBack").textContent = L.back;
+  show("dialog");
+  renderDialog();
+}
+function openDialog(id) {
+  const d = DIALOGUES.find((x) => x.id === id);
+  const sc = SCENARIOS.find((s) => s.id === d.scenario);
+  if (!d || !sc) return;
+  DG = { stage:"scene", d, sc, i:0, tries:0, revealed:false, showTr:false,
+         listening:false, verdict:null, heard:null, err:null, counted:true };
+  S.active = sc; // speak() reads voice + character persona from here
+  $("dlgSub").textContent = `${d.de} · ${sc.who}`;
+  renderDialog();
+  dlgPlayLine();
+}
+function dlgPlayLine() {
+  const step = DG.d.steps[DG.i];
+  if (step) speak(step.say, false);
+}
+function dlgPortrait(sc) {
+  $("dlgEmoji").textContent = sc.avatar || "🎧";
+  $("dlgWho").textContent = sc.who;
+  const img = $("dlgImg");
+  const src = `/api/avatar/${sc.id}?v=3&pin=${encodeURIComponent(localStorage.getItem(PIN_KEY) || "")}`;
+  if (img.dataset.src !== src) {
+    img.dataset.src = src;
+    img.dataset.retried = "";
+    img.classList.remove("ok");
+    img.onload = () => img.classList.add("ok");
+    img.onerror = () => {
+      img.classList.remove("ok");
+      // one delayed retry: generation can take ~10s on the very first view
+      if (!img.dataset.retried) {
+        img.dataset.retried = "1";
+        setTimeout(() => { if (img.dataset.src === src) img.src = src + "&r=" + Date.now(); }, 8000);
+      }
+    };
+    img.src = src;
+  }
+}
+/* rerender hook for listenFor: count misses, auto-advance on a hit */
+function dlgAfterListen() {
+  if (DG && DG.stage === "scene" && DG.verdict && !DG.counted) {
+    DG.counted = true;
+    if (DG.verdict === "ok") {
+      SFX.coin();
+      const d = DG.d, i = DG.i;
+      setTimeout(() => {
+        if (DG && DG.stage === "scene" && DG.d === d && DG.i === i) dlgNext();
+      }, 1100);
+    } else {
+      DG.tries++;
+    }
+  }
+  renderDialog();
+}
+function dlgListen() {
+  const step = DG.d.steps[DG.i];
+  if (!step || DG.listening) return;
+  DG.counted = false;
+  listenFor([step.ans].concat(step.accept || []), DG, dlgAfterListen);
+}
+function dlgNext() {
+  stopAudio(); speechSynthesis.cancel();
+  DG.i++; DG.tries = 0; DG.revealed = false; DG.showTr = false;
+  DG.verdict = null; DG.heard = null; DG.err = null; DG.counted = true;
+  if (DG.i >= DG.d.steps.length) {
+    DG.stage = "done";
+    addXp(DLG_XP);
+    addCoins(10);
+    SFX.fanfare();
+    confettiBurst();
+    renderDialog();
+    if (DG.d.end) speak(DG.d.end, false);
+  } else {
+    renderDialog();
+    dlgPlayLine();
+  }
+}
+function renderDialog() {
+  const L = t();
+  $("dlgStage").classList.toggle("hidden", !(DG && DG.stage === "scene"));
+  if (!DG) return;
+  if (DG.stage === "pick") {
+    const list = dialogAvailable();
+    $("dlgBody").innerHTML = `<div class="list">` +
+      list.map((d) => {
+        const sc = SCENARIOS.find((s) => s.id === d.scenario);
+        return `<button class="item" data-dlg="${d.id}">
+          <b>${sc.avatar ? esc(sc.avatar) + " " : ""}${esc(d.de)}</b>
+          <small>${esc(d[S.lang] || d.en)} · ${esc(sc.who)}</small></button>`;
+      }).join("") + `</div>`;
+    $("dlgBody").querySelectorAll("[data-dlg]").forEach((b) =>
+      b.onclick = () => openDialog(b.dataset.dlg));
+    return;
+  }
+  if (DG.stage === "done") {
+    const d = DG.d;
+    $("dlgBody").innerHTML =
+      (d.end ? `<div class="dlg-bubble">${esc(d.end)}<div class="sub">${esc((d.endXl || {})[S.lang] || (d.endXl || {}).en || "")}</div></div>` : "") +
+      `<div style="text-align:center;margin-top:18px">
+         <div class="marzi" style="width:104px;height:104px">${dlgMarzi()}</div>
+         <div class="said" style="font-family:var(--font-sans);font-size:19px;font-weight:700;margin-top:10px">🎉 ${esc(L.goalHit)}</div>
+         <div style="margin-top:10px"><span class="chip">+${DLG_XP} XP</span> <span class="chip coin">+10 ${IC.coin(11)}</span></div>
+       </div>`;
+    return;
+  }
+  const step = DG.d.steps[DG.i];
+  dlgPortrait(DG.sc);
+  const stuck = DG.tries >= 2;
+  $("dlgBody").innerHTML =
+    `<div class="dlg-prog">
+       <span class="drill-prog">${DG.i + 1} / ${DG.d.steps.length}</span>
+       <div class="dlg-marzi" title="Marzi">${dlgMarzi()}</div>
+     </div>
+     <div class="dlg-bubble">${esc(step.say)}
+       <div style="margin-top:6px">
+         <button class="mini" data-dg="play">&#9834; ${esc(L.repeat)}</button>
+         <button class="mini" data-dg="tr">${esc(L.show)}</button>
+       </div>
+       ${DG.showTr ? `<div class="sub">${esc(step.sayXl[S.lang] || step.sayXl.en)}</div>` : ""}
+     </div>
+     <div class="v-card" style="margin-top:12px;cursor:default;min-height:120px;padding:20px 16px">
+       <div class="v-flip">${esc(L.howSay)}</div>
+       <div class="v-de" style="font-size:21px">${esc(step.ansXl[S.lang] || step.ansXl.en)}</div>
+       ${DG.revealed ? `<div class="v-tr">${esc(step.ans)}</div>` : ""}
+     </div>
+     ${stuck && !DG.revealed ? `<div class="hint"><div class="label">VORSCHLAG</div>${esc(step.hint)}</div>` : ""}
+     ${verdictHTML(DG, L)}
+     <div class="row">
+       ${stuck && !DG.revealed ? `<button class="ghost" data-dg="reveal">${esc(L.reveal)}</button>` : ""}
+       <button class="ghost" data-dg="say" ${DG.listening ? "disabled" : ""}>${IC.mic(13)} ${DG.listening ? esc(L.listening) : esc(L.sayWord)}</button>
+     </div>
+     ${DG.revealed ? `<div class="row"><button class="ghost" data-dg="next">${esc(L.next)} &rsaquo;</button></div>` : ""}`;
+  $("dlgBody").querySelectorAll("[data-dg]").forEach((b) => b.onclick = () => {
+    switch (b.dataset.dg) {
+      case "play": speak(step.say, true); break;
+      case "tr": DG.showTr = !DG.showTr; renderDialog(); break;
+      case "say": dlgListen(); break;
+      case "reveal":
+        DG.revealed = true; renderDialog();
+        // show it, say it, then the mic opens so the learner repeats it
+        speak(step.ans, true, () => {
+          if (DG && DG.stage === "scene" && DG.d.steps[DG.i] === step && DG.revealed && !DG.listening) dlgListen();
+        });
+        break;
+      case "next": dlgNext(); break;
+    }
+  });
+}
+
 /* ---------- wiring ---------- */
 function startConversation() {
   const REAL = SCENARIOS.filter((x) => x.goals);
@@ -2935,7 +3616,7 @@ function startConversation() {
   show("call"); alertMsg(null); renderCall();
   /* In calls Marzi is always the recognisable frog (family rule): at least
      the Schulfrosch with glasses, more only if the learner has evolved past it. */
-  $("vcMarzi").innerHTML = marziSVG(Math.min(Math.max(rankFor(loadStats().xp || 0).n, 5), MARZI_NAMES.length));
+  $("vcMarzi").innerHTML = marziSVG(Math.max(5, stageFor(rankFor(loadStats().xp || 0).n)));
   if (S.active.kind !== "face") SFX.ringStart();
   acquireWakeLock();
   clearInterval(S.timerId);
@@ -2949,22 +3630,49 @@ const PREPPED = new Set();
 function canPrep() {
   return S.scenario.id !== "random" && !(S.scenario.id === "custom" && !(S.customTopic || "").trim());
 }
-/* ---------- daily "phone plan": 30 free call minutes, like a real tariff ---------- */
+/* ---------- daily "phone plan": 30 free call minutes, like a real tariff ----------
+   Coins can extend today's plan with minute packages bought in the Store
+   (spec §14 usage packages, converted from MB to minutes - our metered unit). */
 const PLAN_SECONDS = 30 * 60;
 function planUsedToday() {
   const st = loadStats();
   return ((st.secDays || {})[new Date().toISOString().slice(0, 10)]) || 0;
 }
+function planLimitToday() {
+  const st = loadStats();
+  return PLAN_SECONDS + (((st.extraSecs || {})[new Date().toISOString().slice(0, 10)]) || 0);
+}
+const COIN_PACKS = [
+  { id:"min10", minutes:10, price:200 },
+  { id:"min25", minutes:25, price:450 },
+  { id:"min50", minutes:50, price:800 },
+  { id:"min100", minutes:100, price:1500 },
+];
+/* outfit catalog: identifiers, prices and stage gates only - visuals wait for
+   approved family artwork (ADR-10), shown as "coming soon" in the Store */
+const OUTFITS = [
+  { id:"young-frog-adventurer", de:"Abenteurer", stage:4, price:400 },
+  { id:"studious-frog-reader", de:"Bücherwurm", stage:5, price:650 },
+  { id:"expert-frog-graduate", de:"Absolvent", stage:6, price:1200 },
+];
 function showLimit() {
   const L = t();
   const st = loadStats();
-  const stage = Math.min(rankFor(st.xp || 0).n, MARZI_NAMES.length);
+  const stage = stageFor(rankFor(st.xp || 0).n);
   $("limitMarzi").innerHTML = marziSVG(stage, "sad");
   $("limitTitle").textContent = L.limitTitle;
   $("limitBody").textContent = L.limitMsg;
   const now = new Date(), mid = new Date(now); mid.setHours(24, 0, 0, 0);
   const mins = Math.round((mid - now) / 60000);
   $("limitReset").textContent = `${L.resetsIn} ${Math.floor(mins / 60)} h ${String(mins % 60).padStart(2, "0")} min`;
+  // coins can buy more minutes right away (spec §28: allowance exhausted -> buy usage)
+  $("limitStore").innerHTML = `<span style="display:inline-flex;color:var(--coin)">${IC.coin(15)}</span> ${esc(L.buyMinutes)}`;
+  $("limitStore").classList.remove("hidden");
+  $("limitStore").onclick = () => {
+    $("limitBack").classList.add("hidden");
+    $("limitBox").classList.add("hidden");
+    showTab("store");
+  };
   $("limitOk").textContent = L.ok;
   $("limitBack").classList.remove("hidden");
   $("limitBox").classList.remove("hidden");
@@ -2974,7 +3682,7 @@ $("limitOk").onclick = $("limitBack").onclick = () => {
   $("limitBox").classList.add("hidden");
 };
 function goCall() {
-  if (planUsedToday() >= PLAN_SECONDS) { showLimit(); return; }
+  if (planUsedToday() >= planLimitToday()) { showLimit(); return; }
   if (S.level === "A0" && canPrep() && !PREPPED.has(S.scenario.id)) startPrep();
   else startConversation();
 }
@@ -3002,11 +3710,14 @@ $("hangBtn").onclick = () => {
   const gained = recordCall();
   $("xpChip").textContent = "+" + gained + " XP";
   $("xpChip").classList.toggle("hidden", !gained);
+  $("coinChip").innerHTML = `+20 ${IC.coin(11)}`;
+  $("coinChip").classList.toggle("hidden", !gained);
   if (gained) SFX.coin();
+  updateTopbar();
   show("done");
   evaluateCall();
 };
-$("againBtn").onclick = () => { stopAudio(); speechSynthesis.cancel(); show("setup"); renderSetup(); };
+$("againBtn").onclick = () => { stopAudio(); speechSynthesis.cancel(); showTab("talk"); };
 function openDrawer() { $("drawer").classList.add("open"); $("drawerBack").classList.remove("hidden"); }
 function closeDrawer() { $("drawer").classList.remove("open"); $("drawerBack").classList.add("hidden"); }
 $("menuBtn").onclick = openDrawer;
@@ -3025,22 +3736,29 @@ $("replayBtn").onclick = () => {
 };
 $("mistakesBtn").onclick = () => { renderMistakes(); show("mistakes"); };
 $("drillBtn").onclick = () => startDrill();
-$("drillBack").onclick = () => { stopAudio(); speechSynthesis.cancel(); show("setup"); renderSetup(); };
+$("drillBack").onclick = () => { stopAudio(); speechSynthesis.cancel(); showTab("talk"); };
 $("vocabBtn").onclick = () => startVocab();
+$("dialogBtn").onclick = () => startDialog();
+$("dlgBack").onclick = () => {
+  stopAudio(); speechSynthesis.cancel();
+  S.active = null;
+  if (DG && DG.stage !== "pick") startDialog(); // back to the dialogue picker first
+  else { showTab("talk"); }
+};
 $("prepBtn").onclick = () => startPrep();
 $("progressBtn").onclick = () => startProgress();
-$("testBack").onclick = () => { stopAudio(); speechSynthesis.cancel(); show("setup"); renderSetup(); };
+$("testBack").onclick = () => { stopAudio(); speechSynthesis.cancel(); showTab("talk"); };
 $("prepBack").onclick = () => {
   stopAudio(); speechSynthesis.cancel();
   PREPPED.add(S.scenario.id); // leaving the warm-up counts as "seen it" - don't gate again
-  show("setup"); renderSetup();
+  showTab("talk");
 };
 $("vocabBack").onclick = () => {
   stopAudio(); speechSynthesis.cancel();
   if (V && V.stage === "deck") startVocab();     // back to the deck chooser first
-  else { show("setup"); renderSetup(); }
+  else { showTab("talk"); }
 };
-$("backBtn").onclick = () => { show("setup"); renderSetup(); };
+$("backBtn").onclick = () => { showTab("talk"); };
 $("ankiBtn").onclick = () => exportAnki();
 $("clearBtn").onclick = () => {
   if (confirm(t().clearConfirm)) { localStorage.removeItem(FIX_KEY); renderMistakes(); }
@@ -3117,7 +3835,7 @@ function renderOnboard() {
   const L = t();
   $("obMarzi").innerHTML = marziSVG(5);
   $("obIntroLbl").textContent = L.obIntro;
-  $("obEvo").innerHTML = evolutionHTML(Math.min(rankFor(loadStats().xp || 0).n, MARZI_NAMES.length));
+  $("obEvo").innerHTML = evolutionHTML(stageFor(rankFor(loadStats().xp || 0).n));
   $("obLearnLbl").textContent = L.obLearn;
   $("obHelp").innerHTML = LANG_CHIPS.map(([k, n]) =>
     `<button class="${k === S.lang ? "on" : ""}" data-k="${k}">${n}</button>`).join("");
@@ -3144,11 +3862,16 @@ $("obStartBtn").onclick = () => {
   S.targetLang = OB.target;
   saveSettings();
   if (changed) { location.reload(); return; }
-  show("setup"); renderSetup();
+  showTab("learn");
 };
+
+/* bottom navigation + top-bar resources */
+$("bottomnav").querySelectorAll("[data-tab]").forEach((b) => b.onclick = () => showTab(b.dataset.tab));
+$("tbCoins").onclick = () => showTab("store");
 
 renderSetup();
 if (S.firstRun) showOnboarding();
+else showTab("learn");
 
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js").catch(() => {});
 </script>
