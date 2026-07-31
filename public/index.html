@@ -3,11 +3,12 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<meta name="theme-color" content="#16130d" />
+<meta name="theme-color" content="#f7f1e5" />
+<meta name="application-name" content="Marzi" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-status-bar-style" content="black" />
-<meta name="apple-mobile-web-app-title" content="Telefon" />
-<title>Telefontrainer</title>
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="Marzi" />
+<title>Marzi — Learn German by speaking</title>
 <link rel="manifest" href="/manifest.webmanifest" />
 <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
 <link rel="apple-touch-icon" href="/icons/icon-192.png" />
@@ -185,8 +186,19 @@
   .big[disabled] { opacity: .52; cursor: not-allowed; }
   .big.cta { background: var(--primary); color: #fff; }
   .big.cta:hover { background: var(--primary-hover); }
-  .big.live { background: var(--red); color: #fff; animation: ring 1.4s infinite; }
-  @keyframes ring { 0%,100% { box-shadow: 0 0 0 0 rgba(201,70,56,.45); } 50% { box-shadow: 0 0 0 14px rgba(201,70,56,0); } }
+  /* explicit call states on the mic button (review §7): ready = ink,
+     listening = green + pulse, processing = neutral. Red stays reserved
+     for hang-up and real errors. */
+  .big[data-status] { transition: background .2s ease; }
+  .big[data-status="ready"] { background: var(--ink); color: #fff; }
+  .big[data-status="ready"]:hover { background: #2a251c; }
+  .big[data-status="connecting"],
+  .big[data-status="character-speaking"],
+  .big[data-status="ended"] { background: var(--ink); color: #fff; }
+  .big[data-status="listening"] { background: var(--primary); color: #fff; animation: listeningPulse 1.4s ease-in-out infinite; }
+  .big[data-status="processing"] { background: #d9d2c2; color: var(--ink); }
+  .big[data-status="failed"] { background: var(--red); color: #fff; }
+  @keyframes listeningPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(95,150,45,.45); } 50% { box-shadow: 0 0 0 14px rgba(95,150,45,0); } }
   .bar {
     background: var(--ink); color: #fdfbf5; padding: 14px 18px;
     display: flex; align-items: center; justify-content: space-between; gap: 10px;
@@ -247,8 +259,11 @@
   .log {
     background: var(--card); border: 1px solid var(--line); border-top: none;
     border-radius: 0 0 var(--radius) var(--radius); box-shadow: var(--shadow);
-    min-height: 90px; max-height: 30vh; overflow-y: auto; padding-bottom: 8px;
+    min-height: 90px; max-height: min(30dvh, 30vh); overflow-y: auto;
+    overscroll-behavior: contain; padding-bottom: 8px;
   }
+  /* adaptive: a growing transcript earns more guaranteed room (review §7) */
+  .log:has(.turn:nth-child(3)) { min-height: 148px; }
   .turn { padding: 12px 16px; border-bottom: 1px solid var(--line); display: flex; gap: 10px; }
   .turn:last-child { border-bottom: none; }
   .tag {
@@ -440,11 +455,33 @@
   .limit-marzi svg { width: 100%; height: 100%; }
   .limit-title { font-family: var(--font-sans); font-size: 19px; font-weight: 700; margin-top: 10px; }
   .vc-marzi {
-    position: absolute; right: 4px; bottom: 2px; width: 84px; height: 84px; z-index: 2;
+    position: absolute; right: 4px; bottom: 2px; z-index: 2;
+    display: flex; flex-direction: column; align-items: center; gap: 1px;
     pointer-events: none;
+  }
+  .vc-marzi-art {
+    display: block; width: 84px; height: 84px;
     filter: drop-shadow(0 4px 10px rgba(22,19,13,.30));
   }
-  .vc-marzi svg { width: 100%; height: 100%; }
+  .vc-marzi-art svg { width: 100%; height: 100%; }
+  /* stages 1–3 sit in a circular companion badge beside the transcript
+     (review §1.1): the egg/tadpole never pretends to stand in the scene,
+     but the earned stage stays visible and recognizable via the caption. */
+  .vc-marzi[data-stage="1"], .vc-marzi[data-stage="2"], .vc-marzi[data-stage="3"] { right: 12px; bottom: 10px; }
+  .vc-marzi[data-stage="1"] .vc-marzi-art,
+  .vc-marzi[data-stage="2"] .vc-marzi-art,
+  .vc-marzi[data-stage="3"] .vc-marzi-art {
+    width: 68px; height: 68px; padding: 6px; box-sizing: border-box;
+    border: 2px solid rgba(255, 255, 255, .92); border-radius: 50%;
+    background: rgba(255, 253, 248, .94);
+    filter: none; box-shadow: 0 3px 10px rgba(22,19,13,.20);
+  }
+  .vc-marzi-cap {
+    font: 700 8px 'JetBrains Mono', monospace; letter-spacing: .03em;
+    color: var(--marzi-dark); background: rgba(255,253,248,.92);
+    border: 1px solid rgba(85,122,50,.25); border-radius: 999px;
+    padding: 2px 7px; white-space: nowrap;
+  }
   .vc-bubble {
     position: absolute; right: 16px; bottom: 90px; z-index: 3; max-width: 62%;
     background: #fffdf6; color: var(--ink); border: 1.5px solid #d9e0bd;
@@ -478,26 +515,119 @@
   .dlg-marzi { width: 38px; height: 38px; flex: 0 0 38px; margin-left: auto; }
   .dlg-marzi svg { width: 100%; height: 100%; }
   /* ---------- Marzi redesign: Learn home, Store, Profile ---------- */
-  .greet { font: 800 22px var(--font-sans); letter-spacing: -.03em; margin: 2px 2px 10px; }
-  .greet-sub { font-size: 14px; color: var(--muted); margin: 2px 2px 16px; line-height: 1.5; }
-  .hero-xl {
-    position: relative; overflow: hidden; border: 1px solid var(--line);
+  /* Learn hero: Marzi is the tappable companion hero (review §4) */
+  .learn-hero {
+    position: relative; overflow: hidden; display: grid;
+    grid-template-columns: minmax(0, 1fr) 118px; gap: 10px; align-items: center;
+    padding: 16px 14px 12px; border: 1px solid var(--line);
     border-radius: var(--radius-lg); box-shadow: var(--shadow);
-    background: linear-gradient(135deg, rgba(255,255,255,.92), rgba(232,241,220,.9));
-    padding: 12px 14px; display: flex; gap: 12px; align-items: center;
+    background:
+      radial-gradient(circle at 85% 16%, rgba(255,255,255,.92), transparent 40%),
+      linear-gradient(145deg, #fffdf8 0%, #edf4df 100%);
   }
-  .hero-xl .marzi.art { width: 72px; height: 72px; margin: 0; flex: 0 0 72px; }
+  .learn-hero h1 { margin: 0 0 10px; font: 800 27px var(--font-sans); letter-spacing: -.04em; }
+  .learn-marzi { border: 0; background: transparent; padding: 0; cursor: pointer; text-align: center; font: inherit; }
+  .learn-marzi #marzi { display: block; width: 112px; height: 112px; margin: 0 auto; }
+  .learn-marzi #marzi svg { width: 100%; height: 100%; animation: mbob 3.4s ease-in-out infinite; }
+  .learn-marzi #marzi.evolve svg { animation: mpop 1s cubic-bezier(.3, 1.7, .4, 1); }
+  .learn-marzi .marzi-cap { display: block; margin-top: 1px; }
   .mission-card, .mini-card {
     border: 1px solid var(--line); background: var(--card); border-radius: var(--radius);
-    box-shadow: var(--shadow-sm); padding: 12px 14px; margin-top: 10px;
+    box-shadow: var(--shadow-sm); padding: 10px 14px; margin-top: 10px;
   }
-  .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  .stat {
-    border: 1px solid var(--line); background: var(--card); border-radius: var(--radius-sm);
-    box-shadow: var(--shadow-sm); padding: 9px 12px;
+  /* Store: wallet hero + visual outfit cards (review §5) */
+  .wallet-hero {
+    display: flex; gap: 12px; align-items: center; padding: 12px 14px;
+    border: 1px solid var(--line); border-radius: var(--radius-lg);
+    background: linear-gradient(135deg, #fffdf8, #edf4df); box-shadow: var(--shadow);
   }
-  .stat b { display: block; font: 800 17px var(--font-sans); letter-spacing: -.02em; }
-  .stat small { font-size: 11.5px; color: var(--muted); }
+  .wallet-marzi { width: 64px; height: 64px; flex: 0 0 64px; }
+  .wallet-marzi svg { width: 100%; height: 100%; }
+  .wallet-coins { display: flex; align-items: center; gap: 6px; font: 800 24px var(--font-sans); letter-spacing: -.02em; }
+  .earn-hint {
+    display: inline-flex; align-items: center; gap: 5px; margin-top: 6px;
+    font: 600 11px var(--font-sans); color: var(--marzi-dark);
+    background: var(--primary-soft); border-radius: 99px; padding: 4px 10px;
+  }
+  .outfit-grid {
+    display: grid; grid-auto-flow: column; grid-auto-columns: minmax(148px, 46%);
+    gap: 10px; overflow-x: auto; padding: 2px 2px 6px;
+    scroll-snap-type: x mandatory; scrollbar-width: none;
+  }
+  .outfit-grid::-webkit-scrollbar { display: none; }
+  .outfit-card {
+    scroll-snap-align: start; overflow: hidden; display: flex; flex-direction: column;
+    border: 1px solid var(--line); border-radius: 18px; background: var(--card);
+    box-shadow: var(--shadow-sm);
+  }
+  .outfit-preview {
+    position: relative; display: grid; place-items: center; aspect-ratio: 5 / 3;
+    background: linear-gradient(145deg, #f8f3e8, #eaf2df);
+  }
+  .asset-placeholder {
+    display: grid; place-items: center; width: 56px; height: 56px;
+    border: 1.5px dashed var(--line); border-radius: 16px; color: var(--muted);
+  }
+  .outfit-card[data-state="locked"] .outfit-preview { filter: grayscale(.4); }
+  .outfit-lock { position: absolute; top: 7px; right: 8px; font-size: 14px; }
+  .outfit-copy { padding: 7px 10px 2px; }
+  .outfit-copy small {
+    display: block; font: 700 8px 'JetBrains Mono', monospace; letter-spacing: .06em;
+    color: var(--muted); text-transform: uppercase;
+  }
+  .outfit-copy strong { display: block; font: 800 14px var(--font-sans); margin-top: 2px; }
+  .outfit-copy span { display: inline-flex; align-items: center; gap: 4px; font: 700 12px var(--font-sans); color: var(--yellow-deep); margin-top: 2px; }
+  .outfit-card button {
+    margin: 7px 10px 10px; border: none; border-radius: 999px; min-height: 30px;
+    font: 700 11px var(--font-sans); background: var(--surface-strong); color: var(--muted);
+  }
+  .outfit-card[data-state="available"] button { background: var(--primary); color: #fff; cursor: pointer; }
+  /* Profile: identity card + activity summary + grouped settings (review §6) */
+  .profile-identity {
+    display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 14px; align-items: center;
+    padding: 14px; border: 1px solid var(--line); border-radius: var(--radius-lg);
+    background: linear-gradient(135deg, #fffdf8, #edf5e3); box-shadow: var(--shadow);
+  }
+  .profile-marzi { width: 92px; height: 92px; }
+  .profile-marzi svg { width: 100%; height: 100%; }
+  .profile-summary {
+    display: grid; grid-template-columns: repeat(4, 1fr); margin-top: 10px; overflow: hidden;
+    border: 1px solid var(--line); border-radius: var(--radius); background: var(--card);
+    box-shadow: var(--shadow-sm);
+  }
+  .profile-summary > div { min-width: 0; padding: 9px 4px; text-align: center; }
+  .profile-summary > div + div { border-left: 1px solid var(--line); }
+  .profile-summary strong { display: block; font: 800 18px var(--font-sans); letter-spacing: -.02em; }
+  .profile-summary span {
+    display: block; margin-top: 1px; color: var(--muted); font-size: 10px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .setting-list {
+    margin-top: 12px; overflow: hidden; border: 1px solid var(--line);
+    border-radius: var(--radius); background: var(--card); box-shadow: var(--shadow-sm);
+  }
+  .setting-row {
+    width: 100%; min-height: 52px; display: grid;
+    grid-template-columns: 34px minmax(0, 1fr) 18px; align-items: center; gap: 8px;
+    padding: 7px 12px; border: 0; border-top: 1px solid var(--line);
+    background: transparent; text-align: left; cursor: pointer; font: inherit; color: var(--ink);
+  }
+  .setting-row:first-child { border-top: 0; }
+  .setting-row:hover { background: rgba(95,150,45,.08); }
+  .setting-icon { font-size: 17px; text-align: center; }
+  .setting-main { min-width: 0; }
+  .setting-main strong { display: block; font: 700 13.5px var(--font-sans); }
+  .setting-main small {
+    display: block; margin-top: 1px; color: var(--muted); font-size: 11.5px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .setting-chevron { color: var(--muted); font-size: 18px; text-align: center; }
+  /* screen-reader-only live region (review §12) */
+  .sr-only {
+    position: absolute !important; width: 1px !important; height: 1px !important;
+    padding: 0 !important; margin: -1px !important; overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important; white-space: nowrap !important; border: 0 !important;
+  }
   .store-item { display: flex; align-items: center; gap: 12px; padding: 9px 14px; border-top: 1px solid var(--line); }
   .store-item:first-child { border-top: none; }
   .store-item .nm { flex: 1; min-width: 0; }
@@ -543,19 +673,21 @@
   </div>
 </header>
 <main>
-  <!-- LEARN home: greeting, Marzi hero, mission, quick cards (spec §23) -->
+  <!-- LEARN home: Marzi companion hero, mission, quick cards (spec §23, review §4) -->
   <section id="learn">
-    <div class="greet" id="learnHi"></div>
-    <div class="hero-xl">
-      <div class="marzi art" id="marzi"></div>
-      <div style="flex:1;min-width:0">
+    <div class="learn-hero">
+      <div class="learn-hero-copy" style="min-width:0">
+        <h1 id="learnHi"></h1>
         <div class="hero-lv"><span class="ttl" id="heroLv"></span><span class="hero-xp" id="heroXp"></span></div>
         <div class="xpbar"><div id="xpFill" style="width:0%"></div></div>
         <div class="hero-sub" id="heroSub"></div>
-        <div class="marzi-cap" id="marziCap" style="margin-top:6px"></div>
       </div>
+      <button class="learn-marzi" id="marziBtn" type="button">
+        <span id="marzi"></span>
+        <small class="marzi-cap" id="marziCap"></small>
+      </button>
     </div>
-    <button class="big cta" id="practiceBtn" style="margin-top:12px"></button>
+    <button class="big cta" id="practiceBtn" style="margin-top:10px"></button>
     <div class="mission-card">
       <div class="hero-top">
         <div class="hero-streak" id="heroStreak"></div>
@@ -601,7 +733,7 @@
   <section id="onboard" class="hidden">
     <div class="ob-head">
       <div class="ob-marzi" id="obMarzi"></div>
-      <span class="word">Telefontrainer</span>
+      <span class="word">Marzi</span>
     </div>
     <div class="label" id="obIntroLbl"></div>
     <div class="seg wrap" id="obHelp"></div>
@@ -639,7 +771,8 @@
     </div>
     <button class="toggle on" id="freeBtn"></button>
     <div id="alert" class="alert hidden"></div>
-    <button class="big" id="micBtn"></button>
+    <div id="callStatusLive" class="sr-only" aria-live="polite"></div>
+    <button class="big" id="micBtn" data-status="ready"></button>
     <button class="mini" id="typeBtn" style="margin-top:6px"></button>
     <div class="row hidden" id="typeRow">
       <input type="text" id="draft" placeholder="Guten Tag, ich möchte…" />
@@ -718,15 +851,15 @@
     <div id="storeBody" style="margin-top:10px"></div>
   </section>
 
-  <!-- PROFILE: stats, settings, premium teaser, legal -->
+  <!-- PROFILE: identity + activity summary + grouped settings + premium + legal (review §6) -->
   <section id="profile" class="hidden">
     <div class="plate"><span id="profTitle"></span></div>
     <div id="profBody" style="margin-top:10px"></div>
-    <button class="toggle" id="soundBtn" style="margin-top:12px"></button>
-    <button class="toggle" id="pairBtn"></button>
-    <div class="row" style="margin-top:10px">
-      <button class="ghost" id="exportBtn"></button>
-      <button class="ghost" id="importBtn"></button>
+    <div class="setting-list">
+      <button class="setting-row" id="pairBtn" type="button"></button>
+      <button class="setting-row" id="soundBtn" type="button"></button>
+      <button class="setting-row" id="exportBtn" type="button"></button>
+      <button class="setting-row" id="importBtn" type="button"></button>
     </div>
     <input type="file" id="importFile" accept="application/json" class="hidden" />
     <div class="premium-card" id="premiumCard"></div>
@@ -768,6 +901,40 @@
 </nav>
 
 <script>
+/* ---------- brand migration (review §9): Telefontrainer → Marzi ----------
+   One-time copy of legacy localStorage keys to the new marzi.*.v1 names.
+   Legacy keys stay in place untouched (rollback safety); all reads/writes
+   below go through the new names. Must run before anything reads settings. */
+const STORAGE_MIGRATIONS = [
+  ["telefontrainer.settings", "marzi.settings.v1"],
+  ["telefontrainer.stats", "marzi.stats.v1"],
+  ["telefontrainer.fixes", "marzi.fixes.v1"],
+  ["telefontrainer.words", "marzi.words.v1"],
+  ["telefontrainer.tests", "marzi.tests.v1"],
+  ["telefontrainer.pin", "marzi.pin.v1"],
+  ["telefontrainer.marzi", "marzi.stage.v1"],
+  ["telefontrainer.wish", "marzi.wish.v1"],
+];
+function migratedName(k) {
+  const hit = STORAGE_MIGRATIONS.find(([legacy]) => legacy === k);
+  if (hit) return hit[1];
+  if (k.indexOf("telefontrainer.vocab.") === 0) return "marzi.vocab.v1." + k.slice("telefontrainer.vocab.".length);
+  return null;
+}
+function migrateStorageKeys() {
+  try {
+    const keys = [];
+    for (let i = 0; i < (localStorage.length || 0); i++) keys.push(localStorage.key(i));
+    for (const k of keys) {
+      const next = k && migratedName(k);
+      if (next && localStorage.getItem(next) === null) {
+        localStorage.setItem(next, localStorage.getItem(k));
+      }
+    }
+  } catch (e) {}
+}
+migrateStorageKeys();
+
 /* The languages being TAUGHT. All logic (recognition locale, prompt templates,
    voice picking) reads from TARGET; scenario/deck text is a separate content
    pack per target language (refs wired below as TARGETS.<code>.scenarios/
@@ -799,7 +966,7 @@ const TARGETS = {
 };
 const TARGET = (() => {
   try {
-    const s = JSON.parse(localStorage.getItem("telefontrainer.settings")) || {};
+    const s = JSON.parse(localStorage.getItem("marzi.settings.v1")) || {};
     if (TARGETS[s.targetLang]) return TARGETS[s.targetLang];
   } catch (e) {}
   return TARGETS.de;
@@ -1556,10 +1723,11 @@ const SPEEDS = { slow:0.8, normal:1, fast:1.2 };
 
 const S = { scenario:SCENARIOS[0], level:"A1", lang:"es", targetLang:TARGET.code, speed:"normal", turns:[], busy:false,
             listening:false, handsFree:true, seconds:0, timerId:null, hint:null, voice:null, rec:null,
-            currentGoal:null, wakeLock:null, active:null, customTopic:"", speaker:1 };
+            currentGoal:null, wakeLock:null, active:null, customTopic:"", speaker:1,
+            callStatus:"ready", callId:null };
 
 /* ---------- settings persistence ---------- */
-const SET_KEY = "telefontrainer.settings";
+const SET_KEY = "marzi.settings.v1";
 function saveSettings() {
   try {
     localStorage.setItem(SET_KEY, JSON.stringify({ scenario:S.scenario.id, level:S.level, lang:S.lang, targetLang:S.targetLang, speed:S.speed, customTopic:S.customTopic, sound:S.sound !== false }));
@@ -1586,24 +1754,85 @@ function saveSettings() {
   } catch (e) {}
 })();
 
-/* ---------- practice stats (streak, totals) ---------- */
-const STAT_KEY = "telefontrainer.stats";
-function loadStats() {
-  try { return JSON.parse(localStorage.getItem(STAT_KEY)) || { days:{}, calls:0, seconds:0 }; }
-  catch (e) { return { days:{}, calls:0, seconds:0 }; }
+/* ---------- practice stats (streak, totals) ----------
+   loadStats() always returns a normalized shape (review §11): corrupt or
+   manually edited localStorage can never break UI or economy logic. */
+const STAT_KEY = "marzi.stats.v1";
+const DEFAULT_STATS = Object.freeze({
+  version: 1, days: {}, calls: 0, seconds: 0, secDays: {}, extraSecs: {},
+  vocabDays: {}, drillDays: {}, xp: 0, coins: 0, ownedItemIds: [], equippedItemIds: [],
+});
+function finiteNonNegative(value, fallback = 0) {
+  return Number.isFinite(value) && value >= 0 ? value : fallback;
 }
+function normalizeStats(value) {
+  const s = value && typeof value === "object" ? value : {};
+  const obj = (v) => (v && typeof v === "object" && !Array.isArray(v) ? v : {});
+  const idList = (v) => (Array.isArray(v) ? v.filter((id) => typeof id === "string") : []);
+  return {
+    version: 1,
+    days: obj(s.days), secDays: obj(s.secDays), extraSecs: obj(s.extraSecs),
+    vocabDays: obj(s.vocabDays), drillDays: obj(s.drillDays),
+    calls: finiteNonNegative(s.calls), seconds: finiteNonNegative(s.seconds),
+    xp: finiteNonNegative(s.xp), coins: finiteNonNegative(s.coins),
+    ownedItemIds: idList(s.ownedItemIds), equippedItemIds: idList(s.equippedItemIds),
+  };
+}
+function loadStats() {
+  try { return normalizeStats(JSON.parse(localStorage.getItem(STAT_KEY))); }
+  catch (e) { return normalizeStats(null); }
+}
+
+/* ---------- idempotent reward ledger (review §1.3, ADR-8) ----------
+   Every completion claims its reward exactly once under a unique id, so
+   double taps, re-rendered listeners or browser restoration can never pay
+   twice. Coin values follow spec §14: call 20, vocabulary set 10,
+   preparation batch 10, corrected drill item 2, guided dialogue 10. */
+const REWARD_LEDGER_KEY = "marzi.reward-ledger.v1";
+function newRewardId() {
+  try { if (typeof crypto !== "undefined" && crypto.randomUUID) return crypto.randomUUID(); } catch (e) {}
+  return Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 10);
+}
+function loadRewardLedger() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(REWARD_LEDGER_KEY));
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
+  } catch (e) { return {}; }
+}
+function claimReward(rewardId, reward) {
+  const ledger = loadRewardLedger();
+  if (ledger[rewardId]) return { claimed: false, reward: ledger[rewardId] };
+  const st = loadStats();
+  const xp = Math.max(0, Number(reward && reward.xp) || 0);
+  const coins = Math.max(0, Number(reward && reward.coins) || 0);
+  st.xp += xp;
+  st.coins += coins;
+  ledger[rewardId] = { xp, coins, claimedAt: new Date().toISOString() };
+  const ids = Object.keys(ledger); // bounded: drop the oldest entries
+  if (ids.length > 600) {
+    ids.sort((a, b) => String(ledger[a].claimedAt).localeCompare(String(ledger[b].claimedAt)));
+    for (const drop of ids.slice(0, ids.length - 500)) delete ledger[drop];
+  }
+  try {
+    localStorage.setItem(STAT_KEY, JSON.stringify(st));
+    localStorage.setItem(REWARD_LEDGER_KEY, JSON.stringify(ledger));
+  } catch (e) {}
+  if (coins) SFX.coin();
+  updateTopbar();
+  return { claimed: true, reward: ledger[rewardId] };
+}
+
 function recordCall() {
   if (!S.turns.some((x) => x.me)) return 0;
+  const gained = 15 + Math.min(20, S.turns.filter((x) => x.me).length * 2);
+  const claim = claimReward("call:" + (S.callId || (S.callId = newRewardId())), { xp: gained, coins: 20 });
+  if (!claim.claimed) return 0; // this call was already counted
   const st = loadStats();
   const d = new Date().toISOString().slice(0, 10);
   st.days[d] = (st.days[d] || 0) + 1;
-  st.calls = (st.calls || 0) + 1;
-  st.seconds = (st.seconds || 0) + S.seconds;
-  st.secDays = st.secDays || {};
+  st.calls += 1;
+  st.seconds += S.seconds;
   st.secDays[d] = (st.secDays[d] || 0) + S.seconds;
-  const gained = 15 + Math.min(20, S.turns.filter((x) => x.me).length * 2);
-  st.xp = (st.xp || 0) + gained;
-  st.coins = (st.coins || 0) + 20; // completed call reward (spec §14)
   try { localStorage.setItem(STAT_KEY, JSON.stringify(st)); } catch (e) {}
   return gained;
 }
@@ -1612,9 +1841,7 @@ function addXp(n) {
   st.xp = (st.xp || 0) + n;
   try { localStorage.setItem(STAT_KEY, JSON.stringify(st)); } catch (e) {}
 }
-/* coin rewards (spec §14 economy, grafted locally per ADR-8): call 20,
-   vocabulary set 10, preparation batch 10, corrected drill item 2,
-   guided dialogue 10. Coins buy extra call minutes in the Store. */
+/* ledger-bypassing coin primitive - only for flows without a completion id */
 function addCoins(n) {
   const st = loadStats();
   st.coins = (st.coins || 0) + n;
@@ -1690,11 +1917,28 @@ function evolutionHTML(current) {
    drawn as layered SVG so outfits can be added later. */
 /* SIX canonical lamina stages (master spec §15): eggs, tadpole, tadpole with
    legs, young frog, studious frog (glasses + book), expert frog (cap + pencil).
-   The 7 XP ranks map onto them via stageFor (ranks 5 & 6 share the studious
-   stage) - rank titles stay untouched for levels. */
+   Evolution has its OWN XP thresholds (review §1.2) - learner rank (rankFor)
+   is a separate system and stays untouched for level titles. */
 const MARZI_NAMES = ["Ei", "Kaulquappe", "Kaulquappe mit Beinen", "Junger Frosch", "Bücherfrosch", "Meisterfrosch"];
-function stageFor(rankN) {
-  return rankN <= 4 ? rankN : rankN <= 6 ? 5 : 6;
+const MARZI_STAGE_XP = [0, 150, 400, 800, 1500, 2600];
+function marziStageForXp(xp) {
+  const n = Number(xp);
+  const safe = Number.isFinite(n) && n > 0 ? n : 0;
+  let stage = 1;
+  for (let i = 0; i < MARZI_STAGE_XP.length; i++) if (safe >= MARZI_STAGE_XP[i]) stage = i + 1;
+  return stage;
+}
+function currentMarziStage() { return marziStageForXp(loadStats().xp); }
+/* Call companion (review §1.1): the EARNED stage, never forced. Stages 1-3
+   render inside a circular badge with a caption so early Marzi stays
+   recognizable without pretending an egg stands in the scene. */
+function renderCallCompanion() {
+  const stage = currentMarziStage();
+  const el = $("vcMarzi");
+  el.dataset.stage = String(stage);
+  el.setAttribute("aria-label", `Marzi, ${MARZI_NAMES[stage - 1]}, ${stage}/6`);
+  el.innerHTML = `<span class="vc-marzi-art">${marziSVG(stage)}</span>` +
+    `<span class="vc-marzi-cap">Marzi · ${esc(MARZI_NAMES[stage - 1])} · ${stage}/6</span>`;
 }
 function marziSVG(stage, mood) {
   const g1 = "#79a94c", g2 = "#97c162", belly = "#f4ecd6", dark = "#33461f", lens = "#4a3423";
@@ -2063,7 +2307,7 @@ function renderLearn() {
   const L = t();
   const st = loadStats();
   const xp = st.xp || 0, r = rankFor(xp);
-  const stage = stageFor(r.n);
+  const stage = marziStageForXp(xp);
   $("learnHi").textContent = L.hello;
   $("marzi").innerHTML = marziSVG(stage);
   $("marzi").title = `Marzi · ${MARZI_NAMES[stage - 1]}`;
@@ -2193,7 +2437,7 @@ function buyPack(id) {
 function renderProfile() {
   const L = t();
   const st = loadStats();
-  const xp = st.xp || 0, r = rankFor(xp), stage = stageFor(r.n);
+  const xp = st.xp || 0, r = rankFor(xp), stage = marziStageForXp(xp);
   $("profTitle").textContent = L.tabProfile.toUpperCase();
   const stats = [
     [`Lv. ${r.n}`, r.title],
@@ -3432,8 +3676,7 @@ function dialogAvailable() {
   return DIALOGUES.filter((d) => SCENARIOS.some((s) => s.id === d.scenario));
 }
 function dlgMarzi() {
-  // family rule (as in calls): Marzi is always the recognisable frog, min stage 5
-  return marziSVG(Math.max(5, stageFor(rankFor(loadStats().xp || 0).n)));
+  return marziSVG(currentMarziStage());
 }
 function startDialog() {
   const L = t();
@@ -3612,9 +3855,7 @@ function startConversation() {
   const g = S.active.goals;
   S.currentGoal = g[Math.floor(Math.random() * g.length)];
   show("call"); alertMsg(null); renderCall();
-  /* In calls Marzi is always the recognisable frog (family rule): at least
-     the Schulfrosch with glasses, more only if the learner has evolved past it. */
-  $("vcMarzi").innerHTML = marziSVG(Math.max(5, stageFor(rankFor(loadStats().xp || 0).n)));
+  renderCallCompanion();
   if (S.active.kind !== "face") SFX.ringStart();
   acquireWakeLock();
   clearInterval(S.timerId);
@@ -3656,7 +3897,7 @@ const OUTFITS = [
 function showLimit() {
   const L = t();
   const st = loadStats();
-  const stage = stageFor(rankFor(st.xp || 0).n);
+  const stage = marziStageForXp(st.xp || 0);
   $("limitMarzi").innerHTML = marziSVG(stage, "sad");
   $("limitTitle").textContent = L.limitTitle;
   $("limitBody").textContent = L.limitMsg;
@@ -3833,7 +4074,7 @@ function renderOnboard() {
   const L = t();
   $("obMarzi").innerHTML = marziSVG(5);
   $("obIntroLbl").textContent = L.obIntro;
-  $("obEvo").innerHTML = evolutionHTML(stageFor(rankFor(loadStats().xp || 0).n));
+  $("obEvo").innerHTML = evolutionHTML(currentMarziStage());
   $("obLearnLbl").textContent = L.obLearn;
   $("obHelp").innerHTML = LANG_CHIPS.map(([k, n]) =>
     `<button class="${k === S.lang ? "on" : ""}" data-k="${k}">${n}</button>`).join("");

@@ -36,6 +36,7 @@ function mkEl() {
       add(c) { this._c.add(c); }, remove(c) { this._c.delete(c); }, has(c) { return this._c.has(c); },
     },
     style: {}, dataset: {}, innerHTML: "", textContent: "", value: "", placeholder: "",
+    setAttribute() {}, getAttribute() { return null; },
     disabled: false, className: "", onclick: null, oninput: null, onkeydown: null,
     querySelector() { return null; }, querySelectorAll: () => [],
     appendChild() {}, focus() {}, removeAttribute() {}, scrollTop: 0, scrollHeight: 0,
@@ -70,7 +71,7 @@ let src = m[1];
 src += `\n;globalThis.__t = { T, TARGET, TARGETS, LEVELS, LEVEL_ORDER, SCENARIOS, GROUPS, BASIC_DECKS, HELP_LANG,
   saidWord, normDe, lev, rankFor, recordCall, addXp, loadStats, loadFixes, saveFixes,
   voiceOf, timerText, systemPrompt, S, chartSVG, loadTests, saveTestResult,
-  MARZI_NAMES, stageFor, addCoins, COIN_PACKS, buyPack, planLimitToday, planUsedToday, PLAN_SECONDS };`;
+  MARZI_NAMES, marziStageForXp, currentMarziStage, renderCallCompanion, addCoins, COIN_PACKS, buyPack, planLimitToday, planUsedToday, PLAN_SECONDS };`;
 eval(src);
 const tt = globalThis.__t;
 
@@ -296,10 +297,21 @@ check("TARGET drives the taught language: registry shape, prompt language, recog
 check("marzi has 6 canonical stages and the coin economy works", () => {
   // six lamina stages (Marzi spec §15); the 7 XP ranks collapse onto them
   if (tt.MARZI_NAMES.length !== 6) throw new Error("stages " + tt.MARZI_NAMES.length);
-  const map = [1, 2, 3, 4, 5, 5, 6];
-  map.forEach((want, i) => {
-    if (tt.stageFor(i + 1) !== want) throw new Error(`stageFor(${i + 1}) = ${tt.stageFor(i + 1)}, want ${want}`);
-  });
+  // canonical XP thresholds (MARZI-001): exact values map UP, invalid maps to 1
+  const cases = [[0,1],[149,1],[150,2],[399,2],[400,3],[799,3],[800,4],[1499,4],[1500,5],[2599,5],[2600,6],[999999,6],[-5,1],[NaN,1],["nope",1],[null,1],[undefined,1]];
+  for (const [xp, want] of cases) {
+    const got = tt.marziStageForXp(xp);
+    if (got !== want) throw new Error(`marziStageForXp(${xp}) = ${got}, want ${want}`);
+  }
+  // the call companion must show the EARNED stage - stage 5 is never forced
+  localStorage.setItem("marzi.stats.v1", JSON.stringify({ days:{}, xp: 0 }));
+  for (const [xp, want] of [[0,1],[200,2],[500,3],[900,4],[1600,5],[3000,6]]) {
+    localStorage.setItem("marzi.stats.v1", JSON.stringify({ days:{}, xp }));
+    tt.renderCallCompanion();
+    const el = document.getElementById("vcMarzi");
+    if (el.dataset.stage !== String(want)) throw new Error(`companion at ${xp} XP shows stage ${el.dataset.stage}, want ${want}`);
+  }
+  localStorage.setItem("marzi.stats.v1", JSON.stringify({ days:{}, xp: 0 }));
   // coins: earned on rewards, spent on minute packages that extend today's plan
   const before = tt.loadStats().coins || 0;
   tt.addCoins(250);
