@@ -2,6 +2,18 @@
 
 Short log of the decisions that shape this codebase. New entries go on top.
 
+## ADR-10 · Asset & logo governance (2026-07-31, converged with external blueprint ADR-009)
+Character poses and outfit layering wait for **approved final source SVGs**
+from the family — never approximated from screenshots or AI previews.
+Outfit identifiers/catalog may exist as data before visuals do (coin-store
+phase). Logo/art changes go through the repository only: receive approved
+SVG → validate (viewBox present, no scripts/event handlers/foreignObject/
+external refs) → test → deploy. The production app must never expose file
+upload endpoints, asset-replacement APIs, hidden admin routes, client-side
+admin passwords, or runtime SVG injection from user input. Revisit only if
+authenticated accounts + server storage + sanitization exist (see ADR-8).
+Canonical mascot spelling: **Marzi** (from Marzolo) — never "Marzy".
+
 ## ADR-9 · Blueprint adoption strategy (2026-07-30)
 An external "Enterprise Blueprint" (React/Firebase monorepo) was evaluated.
 Decision: **graft its ideas, do not migrate.** The shipped, in-review app
