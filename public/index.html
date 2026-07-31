@@ -1936,6 +1936,7 @@ function renderCallCompanion() {
   const stage = currentMarziStage();
   const el = $("vcMarzi");
   el.dataset.stage = String(stage);
+  el.setAttribute("role", "img");
   el.setAttribute("aria-label", `Marzi, ${MARZI_NAMES[stage - 1]}, ${stage}/6`);
   el.innerHTML = `<span class="vc-marzi-art">${marziSVG(stage)}</span>` +
     `<span class="vc-marzi-cap">Marzi · ${esc(MARZI_NAMES[stage - 1])} · ${stage}/6</span>`;
@@ -1996,7 +1997,7 @@ function marziSVG(stage, mood) {
   }
   return `<svg viewBox="0 0 120 120" role="img" aria-label="Marzi">${body}</svg>`;
 }
-const MARZI_KEY = "telefontrainer.marzi";
+const MARZI_KEY = "marzi.stage.v1";
 
 /* ---------- tiny synth: jingle, coin, fanfare, German ringback ---------- */
 const SFX = (() => {
@@ -2310,10 +2311,10 @@ function renderLearn() {
   const stage = marziStageForXp(xp);
   $("learnHi").textContent = L.hello;
   $("marzi").innerHTML = marziSVG(stage);
-  $("marzi").title = `Marzi · ${MARZI_NAMES[stage - 1]}`;
   $("marziCap").textContent = `Marzi · ${MARZI_NAMES[stage - 1]} · ${stage}/${MARZI_NAMES.length}`;
-  $("marzi").style.cursor = "pointer";
-  $("marzi").onclick = () => {
+  // the whole hero button opens the evolution showcase (clickable + keyboard)
+  $("marziBtn").setAttribute("aria-label", `Marzi · ${MARZI_NAMES[stage - 1]} · ${stage}/${MARZI_NAMES.length} — ${L.evoTitle}`);
+  $("marziBtn").onclick = () => {
     $("limitMarzi").innerHTML = "";
     $("limitTitle").textContent = t().evoTitle;
     $("limitBody").innerHTML = evolutionHTML(stage);
@@ -2323,7 +2324,6 @@ function renderLearn() {
     $("limitBack").classList.remove("hidden");
     $("limitBox").classList.remove("hidden");
   };
-  $("marziCap").onclick = $("marzi").onclick;
   const prevStage = +(localStorage.getItem(MARZI_KEY) || 0);
   if (prevStage && stage > prevStage) {
     $("marzi").classList.remove("evolve");
@@ -3164,6 +3164,10 @@ function timerText() {
   return (A.kind === "face" ? TARGET.timerFace + " · " : TARGET.timerCall + " · ") + mmss();
 }
 
+/* Mic button state (review §7): visual + announced. busy wins over listening. */
+function micStatusFor(state) {
+  return state.busy ? "processing" : state.listening ? "listening" : "ready";
+}
 function renderCall() {
   const L = t();
   const A = S.active || S.scenario;
@@ -3203,8 +3207,10 @@ function renderCall() {
   $("freeBtn").textContent = (S.handsFree ? "\u25CF " : "\u25CB ") + L.handsFree;
   $("freeBtn").className = "toggle" + (S.handsFree ? " on" : "");
   $("micBtn").innerHTML = IC.mic(18) + " " + esc(S.listening ? L.listening : L.speak);
-  $("micBtn").className = "big" + (S.listening ? " live" : "");
+  $("micBtn").className = "big";
+  $("micBtn").dataset.status = micStatusFor(S);
   $("micBtn").disabled = S.busy;
+  $("callStatusLive").textContent = S.listening ? L.listening : S.busy ? "" : L.speak;
   $("hintBtn").disabled = !S.hint;
   $("repeatBtn").disabled = !S.turns.some((x) => !x.me);
 
@@ -3852,6 +3858,7 @@ function startConversation() {
     S.active = S.scenario;
   }
   S.turns = []; S.hint = null; S.hintOpen = false; S.seconds = 0; S.handsFree = true; S.speaker = 1;
+  S.callId = newRewardId(); // each call claims its reward under a fresh id
   const g = S.active.goals;
   S.currentGoal = g[Math.floor(Math.random() * g.length)];
   show("call"); alertMsg(null); renderCall();

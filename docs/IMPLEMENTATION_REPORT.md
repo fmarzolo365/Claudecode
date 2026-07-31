@@ -36,6 +36,60 @@ rendering for all six stages via `renderCallCompanion` (asserts
 full pre-existing regression suite (i18n parity, scenarios, voices,
 byte-identical German prompts, economy, chart).
 
+## Corrections round (independent review, 2026-07-31)
+
+The reviewer's prose report never reached this environment; the corrections
+below were found by re-auditing commit d5cd822 against the five finding
+categories named in the correction order (data integrity, accessibility,
+regression coverage, scope control, maintainability). Every item is a
+verified defect, not an interpretation.
+
+**Critical — data integrity**
+- `S.callId` was never reset per call, so after the first call every later
+  call hit the reward ledger's duplicate guard: `recordCall()` returned 0 —
+  no XP, no coins, no days/calls/seconds recorded. Fixed:
+  `startConversation()` now assigns a fresh `newRewardId()` per call.
+
+**High**
+- Mic button state regression: the JS still toggled the removed `.live`
+  class and never set `data-status`, so the button showed no listening /
+  processing feedback at all. Fixed: new `micStatusFor(S)` helper drives
+  `data-status` (`processing` wins over `listening`, else `ready`).
+- `MARZI_KEY` still pointed at the legacy `telefontrainer.marzi` key after
+  the storage migration, so evolution-celebration state diverged from the
+  migrated copy. Fixed: `MARZI_KEY = "marzi.stage.v1"`.
+
+**Medium — accessibility**
+- `#callStatusLive` (aria-live) existed but was never written. It now
+  announces listening/ready via the existing i18n strings (no new keys).
+- Learn-hero Marzi: click handlers sat on inner spans while the wrapping
+  `<button id="marziBtn">` had none — keyboard activation and padding
+  clicks did nothing, and labeling was title-only. Fixed: single handler +
+  `aria-label` (stage name + evolution title) on the button itself.
+- `renderCallCompanion` now sets `role="img"` so its aria-label is
+  announced.
+- `sw.js` CACHE bumped v19 → v20 (app shell changed; offline copies of the
+  broken shell must be invalidated).
+
+**Scope control (disclosed, not reverted)**
+- Commit d5cd822 also carried inherited work beyond MARZI-001's letter
+  (brand meta/title, localStorage migration, reward ledger,
+  `normalizeStats`, Learn/Store/Profile markup) from an interrupted earlier
+  task. Reverting it would break shipped markup; instead the corrections
+  above make that inherited code correct and fully wired, and this section
+  records the scope excess explicitly.
+
+**Regression coverage added** (suite now 15/15)
+- Ledger idempotency (same reward id pays exactly once).
+- Two-call recording: re-finalizing the same call pays 0; a fresh call id
+  records again; `startConversation` source-checked for the id reset.
+- `normalizeStats` hardening (negative/NaN/wrong-shaped fields → safe).
+- Migration mapping (stats key, vocab prefix, stage key end-to-end copy);
+  `MARZI_KEY` asserted to be the migrated name.
+- `micStatusFor` state matrix (busy > listening > ready).
+- Test stub gained `localStorage.key()/length` and keeps
+  `setAttribute`/`getAttribute`.
+
 ## Known risks
 - Users mid-progress may see Marzi change stage once (rank-based → XP-based
   mapping differs slightly around old ranks 5–6). One-time, cosmetic.

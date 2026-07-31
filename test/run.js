@@ -26,6 +26,8 @@ globalThis.localStorage = {
   getItem: (k) => store[k] ?? null,
   setItem: (k, v) => { store[k] = String(v); },
   removeItem: (k) => { delete store[k]; },
+  key: (i) => Object.keys(store)[i] ?? null,
+  get length() { return Object.keys(store).length; },
 };
 const els = {};
 function mkEl() {
@@ -71,7 +73,8 @@ let src = m[1];
 src += `\n;globalThis.__t = { T, TARGET, TARGETS, LEVELS, LEVEL_ORDER, SCENARIOS, GROUPS, BASIC_DECKS, HELP_LANG,
   saidWord, normDe, lev, rankFor, recordCall, addXp, loadStats, loadFixes, saveFixes,
   voiceOf, timerText, systemPrompt, S, chartSVG, loadTests, saveTestResult,
-  MARZI_NAMES, marziStageForXp, currentMarziStage, renderCallCompanion, addCoins, COIN_PACKS, buyPack, planLimitToday, planUsedToday, PLAN_SECONDS };`;
+  MARZI_NAMES, marziStageForXp, currentMarziStage, renderCallCompanion, addCoins, COIN_PACKS, buyPack, planLimitToday, planUsedToday, PLAN_SECONDS,
+  normalizeStats, claimReward, newRewardId, migratedName, migrateStorageKeys, micStatusFor, MARZI_KEY };`;
 eval(src);
 const tt = globalThis.__t;
 
@@ -324,6 +327,45 @@ check("marzi has 6 canonical stages and the coin economy works", () => {
   const poor = tt.loadStats().coins || 0;
   tt.buyPack("min100"); // 1500 coins - cannot afford, must be rejected
   if ((tt.loadStats().coins || 0) !== poor) throw new Error("insufficient-coin purchase went through");
+});
+
+check("MARZI-001 corrections: ledger idempotency, per-call ids, hardened storage", () => {
+  // claimReward pays exactly once per id (double tap / re-render safety)
+  localStorage.setItem("marzi.stats.v1", JSON.stringify({ xp: 0, coins: 0 }));
+  localStorage.setItem("marzi.reward-ledger.v1", JSON.stringify({}));
+  const first = tt.claimReward("test:once", { xp: 10, coins: 5 });
+  const dupe = tt.claimReward("test:once", { xp: 10, coins: 5 });
+  if (!first.claimed || dupe.claimed) throw new Error("ledger not idempotent");
+  let st = tt.loadStats();
+  if (st.xp !== 10 || st.coins !== 5) throw new Error(`paid ${st.xp}xp/${st.coins}c, want 10/5`);
+  // two calls with fresh ids BOTH record (regression: callId was never reset)
+  tt.S.turns = [{ me: true, text: "Guten Tag" }]; tt.S.seconds = 30;
+  tt.S.callId = tt.newRewardId();
+  const g1 = tt.recordCall();
+  const g2 = tt.recordCall(); // same call re-finalized: must NOT pay twice
+  tt.S.callId = tt.newRewardId(); // what startConversation now does per call
+  const g3 = tt.recordCall();
+  if (!(g1 > 0) || g2 !== 0 || !(g3 > 0)) throw new Error(`gains ${g1}/${g2}/${g3}, want >0/0/>0`);
+  if (tt.loadStats().calls !== 2) throw new Error(`calls=${tt.loadStats().calls}, want 2`);
+  const startSrc = String(src.match(/function startConversation\(\)[\s\S]*?\n\}/)[0]);
+  if (!/S\.callId = newRewardId\(\)/.test(startSrc)) throw new Error("startConversation does not reset S.callId");
+  // normalizeStats survives corrupt localStorage shapes
+  const n = tt.normalizeStats({ xp: -3, coins: "x", seconds: NaN, days: [], ownedItemIds: "no" });
+  if (n.xp !== 0 || n.coins !== 0 || n.seconds !== 0) throw new Error("negative/NaN not zeroed");
+  if (Array.isArray(n.days) || typeof n.days !== "object" || n.ownedItemIds.length !== 0) throw new Error("shapes not normalized");
+  if (tt.normalizeStats(null).calls !== 0) throw new Error("null stats not defaulted");
+  // brand migration copies every legacy key; evolution key reads the new name
+  if (tt.migratedName("telefontrainer.stats") !== "marzi.stats.v1") throw new Error("stats key unmapped");
+  if (tt.migratedName("telefontrainer.vocab.kita.A1") !== "marzi.vocab.v1.kita.A1") throw new Error("vocab prefix unmapped");
+  if (tt.MARZI_KEY !== "marzi.stage.v1") throw new Error("MARZI_KEY still legacy: " + tt.MARZI_KEY);
+  localStorage.setItem("telefontrainer.marzi", "4");
+  tt.migrateStorageKeys();
+  if (localStorage.getItem("marzi.stage.v1") !== "4") throw new Error("migration did not copy stage");
+  localStorage.removeItem("telefontrainer.marzi"); localStorage.removeItem("marzi.stage.v1");
+  // mic button states: busy wins, listening pulses, idle is ready
+  if (tt.micStatusFor({ busy: true, listening: true }) !== "processing") throw new Error("busy should win");
+  if (tt.micStatusFor({ busy: false, listening: true }) !== "listening") throw new Error("listening state");
+  if (tt.micStatusFor({ busy: false, listening: false }) !== "ready") throw new Error("ready state");
 });
 
 check("progress chart renders points, CEFR bands and a projection", () => {
