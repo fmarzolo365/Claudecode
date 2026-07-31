@@ -69,7 +69,8 @@ if (!m) { console.error("FAIL  could not extract app script"); process.exit(1); 
 let src = m[1];
 src += `\n;globalThis.__t = { T, TARGET, TARGETS, LEVELS, LEVEL_ORDER, SCENARIOS, GROUPS, BASIC_DECKS, HELP_LANG,
   saidWord, normDe, lev, rankFor, recordCall, addXp, loadStats, loadFixes, saveFixes,
-  voiceOf, timerText, systemPrompt, S, chartSVG, loadTests, saveTestResult };`;
+  voiceOf, timerText, systemPrompt, S, chartSVG, loadTests, saveTestResult,
+  MARZI_NAMES, stageFor, addCoins, COIN_PACKS, buyPack, planLimitToday, planUsedToday, PLAN_SECONDS };`;
 eval(src);
 const tt = globalThis.__t;
 
@@ -290,6 +291,27 @@ check("TARGET drives the taught language: registry shape, prompt language, recog
       if (it.ex) for (const l of LANGS) if (!it.xl || !it.xl[l]) throw new Error(d.id + "/" + it.de + " example missing " + l);
     }
   }
+});
+
+check("marzi has 6 canonical stages and the coin economy works", () => {
+  // six lamina stages (Marzi spec §15); the 7 XP ranks collapse onto them
+  if (tt.MARZI_NAMES.length !== 6) throw new Error("stages " + tt.MARZI_NAMES.length);
+  const map = [1, 2, 3, 4, 5, 5, 6];
+  map.forEach((want, i) => {
+    if (tt.stageFor(i + 1) !== want) throw new Error(`stageFor(${i + 1}) = ${tt.stageFor(i + 1)}, want ${want}`);
+  });
+  // coins: earned on rewards, spent on minute packages that extend today's plan
+  const before = tt.loadStats().coins || 0;
+  tt.addCoins(250);
+  if ((tt.loadStats().coins || 0) !== before + 250) throw new Error("coins not stored");
+  const pack = tt.COIN_PACKS[0];
+  const limitBefore = tt.planLimitToday();
+  tt.buyPack(pack.id);
+  if ((tt.loadStats().coins || 0) !== before + 250 - pack.price) throw new Error("purchase did not deduct");
+  if (tt.planLimitToday() !== limitBefore + pack.minutes * 60) throw new Error("purchase did not extend the plan");
+  const poor = tt.loadStats().coins || 0;
+  tt.buyPack("min100"); // 1500 coins - cannot afford, must be rejected
+  if ((tt.loadStats().coins || 0) !== poor) throw new Error("insufficient-coin purchase went through");
 });
 
 check("progress chart renders points, CEFR bands and a projection", () => {

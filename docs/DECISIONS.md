@@ -2,6 +2,18 @@
 
 Short log of the decisions that shape this codebase. New entries go on top.
 
+## ADR-11 · Marzi product redesign grafted natively (2026-07-31)
+The "Marzi master product spec" (React/TS target) was implemented **natively
+in the single-file app** per ADR-9: design tokens (§6/§17 palette, Nunito
+Sans, button hierarchy), four-tab shell (Learn/Talk/Store/Profile with
+sticky top bar: Marzi wordmark + coin/streak chips), local coin economy
+(§14 rewards; usage packages converted from MB to call minutes — our
+metered unit), and the SIX canonical evolution stages (§15; the 7 XP ranks
+map onto them, ranks 5+6 share the studious frog; rank titles unchanged).
+Outfits ship as catalog data only (ADR-10). Premium is a teaser card —
+no payment until Play Billing. The call screen keeps its family-approved
+layout; only chrome picked up the new tokens.
+
 ## ADR-10 · Asset & logo governance (2026-07-31, converged with external blueprint ADR-009)
 Character poses and outfit layering wait for **approved final source SVGs**
 from the family — never approximated from screenshots or AI previews.
