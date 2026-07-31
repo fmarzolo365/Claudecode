@@ -10,9 +10,17 @@ const fs = require("fs");
 const path = require("path");
 
 let failures = 0;
+const pending = []; // async checks settle before the summary
 function check(name, fn) {
   try {
-    fn();
+    const r = fn();
+    if (r && typeof r.then === "function") {
+      pending.push(r.then(
+        () => console.log("  ok  " + name),
+        (e) => { failures++; console.error("FAIL  " + name + " — " + e.message); }
+      ));
+      return;
+    }
     console.log("  ok  " + name);
   } catch (e) {
     failures++;
@@ -81,7 +89,9 @@ src += `\n;globalThis.__t = { T, TARGET, TARGETS, LEVELS, LEVEL_ORDER, SCENARIOS
   voiceOf, timerText, systemPrompt, S, chartSVG, loadTests, saveTestResult,
   MARZI_NAMES, marziStageForXp, currentMarziStage, renderCallCompanion, addCoins, COIN_PACKS, buyPack, planLimitToday, planUsedToday, PLAN_SECONDS,
   normalizeStats, claimReward, newRewardId, migratedName, migrateStorageKeys, micStatusFor, MARZI_KEY,
-  TAB_HASH, tabFromHash, showTab, updateTopbar };`;
+  TAB_HASH, tabFromHash, showTab, updateTopbar,
+  ENGINE_CONTRACTS, validateProvider, createProviderRegistry, ScenarioRegistry, CharacterRegistry,
+  createTranscript, PromptBuilder, createConversationSession };`;
 eval(src);
 const tt = globalThis.__t;
 
@@ -398,6 +408,63 @@ check("MARZI-002 shell: hash routing, top-bar resources, reusable primitives", (
   tt.showTab("learn");
 });
 
+check("MARZI-003 engine: contracts, DI, registries, transcript, lifecycle", async () => {
+  // interface contracts reject incomplete providers; DI throws before registration
+  const P = tt.createProviderRegistry();
+  let threw = 0;
+  try { P.register("ai", {}); } catch (e) { threw++; if (!/complete/.test(e.message)) throw e; }
+  try { P.register("nope", { x() {} }); } catch (e) { threw++; }
+  try { P.get("ai"); } catch (e) { threw++; }
+  if (threw !== 3) throw new Error("contract/DI violations not rejected: " + threw);
+  if (P.has("ai")) throw new Error("failed registration must not register");
+  P.register("voice", { speak: async () => {}, stopAll() {} });
+  if (!P.has("voice") || typeof P.get("voice").speak !== "function") throw new Error("DI roundtrip");
+  // registries are read-only views over the canonical scenario data
+  const ids = tt.ScenarioRegistry.ids();
+  if (!ids.length || ids.some((id) => !tt.SCENARIOS.find((s) => s.id === id && s.goals))) throw new Error("scenario ids");
+  try { tt.ScenarioRegistry.get("no-such"); throw new Error("unknown scenario accepted"); }
+  catch (e) { if (!/unknown scenario/.test(e.message)) throw e; }
+  const c1 = tt.CharacterRegistry.get(ids[0], 1), c2 = tt.CharacterRegistry.get(ids[0], 2);
+  if (c1.name !== tt.ScenarioRegistry.get(ids[0]).who || !c1.voice) throw new Error("character view");
+  if (c2.id !== ids[0] + "2" || c2.speaker !== 2) throw new Error("second speaker view");
+  // transcript model validates turns and maps to provider messages
+  const tr = tt.createTranscript();
+  for (const bad of [null, {}, { speaker: "learner", text: "" }, { speaker: "robot", text: "hi" }]) {
+    try { tr.add(bad); throw new Error("bad turn accepted: " + JSON.stringify(bad)); }
+    catch (e) { if (!/turn/.test(e.message)) throw e; }
+  }
+  tr.add({ speaker: "character", text: "Guten Tag!" });
+  tr.add({ speaker: "learner", text: "Hallo, ich möchte einen Termin." });
+  const msgs = tr.forPrompt("SEED");
+  if (msgs.length !== 3 || msgs[0].content !== "SEED" || msgs[1].role !== "assistant" || msgs[2].role !== "user") throw new Error("forPrompt mapping");
+  if (tr.last().index !== 1 || tr.list().length !== 2) throw new Error("transcript accessors");
+  // prompt builder delegates to the frozen prompt and never leaks state into S
+  const before = JSON.stringify({ sc: tt.S.scenario.id, lvl: tt.S.level, lang: tt.S.lang, goal: tt.S.currentGoal });
+  const sc = tt.ScenarioRegistry.get(ids[0]);
+  const prompt = tt.PromptBuilder.rolePlay({ scenario: sc, level: "A2", lang: "en", goal: sc.goals[0] });
+  if (!prompt.includes(sc.goals[0]) || !prompt.includes("CEFR level A2")) throw new Error("prompt content");
+  if (JSON.stringify({ sc: tt.S.scenario.id, lvl: tt.S.level, lang: tt.S.lang, goal: tt.S.currentGoal }) !== before) throw new Error("PromptBuilder leaked state into S");
+  // lifecycle: created -> active -> ended, with a fake injected AI provider
+  const providers = tt.createProviderRegistry();
+  const seen = {};
+  providers.register("ai", { complete: async ({ system, messages }) => { seen.system = system; seen.messages = messages; return { text: "Praxis Dr. Weber, guten Tag!" }; } });
+  const ses = tt.createConversationSession({ scenarioId: ids[0], level: "A1", lang: "en", goal: sc.goals[0], providers });
+  if (ses.state !== "created" || ses.character(2).speaker !== 2) throw new Error("session init");
+  let notActive = false;
+  try { await ses.send("Hallo?"); } catch (e) { notActive = /not active/.test(e.message); }
+  if (!notActive) throw new Error("send before start accepted");
+  ses.start();
+  try { ses.start(); throw new Error("double start accepted"); } catch (e) { if (!/cannot start/.test(e.message)) throw e; }
+  const reply = await ses.send("Guten Tag, ich hätte gern einen Termin.");
+  if (reply.text !== "Praxis Dr. Weber, guten Tag!") throw new Error("reply not returned");
+  if (ses.transcript.list().length !== 2 || ses.transcript.last().speaker !== "character") throw new Error("send did not record turns");
+  if (!seen.system.includes("CEFR level A1") || seen.messages[0].content !== tt.TARGET.seed) throw new Error("provider not fed prompt+seed");
+  ses.end();
+  let endedThrew = false;
+  try { await ses.send("noch da?"); } catch (e) { endedThrew = /ended/.test(e.message); }
+  if (!endedThrew) throw new Error("send after end accepted");
+});
+
 check("progress chart renders points, CEFR bands and a projection", () => {
   const tests = [
     { date: "2026-07-01", score: 20, cefr: "A1" },
@@ -410,8 +477,10 @@ check("progress chart renders points, CEFR bands and a projection", () => {
 });
 
 /* ---------- result ---------- */
-if (failures) {
-  console.error("\n" + failures + " check(s) failed");
-  process.exit(1);
-}
-console.log("\nAll checks passed.");
+Promise.all(pending).then(() => {
+  if (failures) {
+    console.error("\n" + failures + " check(s) failed");
+    process.exit(1);
+  }
+  console.log("\nAll checks passed.");
+});

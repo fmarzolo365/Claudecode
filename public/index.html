@@ -3094,6 +3094,132 @@ function history() {
     .concat(S.turns.map((x) => ({ role: x.me ? "user" : "assistant", content: x.text })));
 }
 
+/* ================= MARZI-003 · Conversation Engine (architecture) =================
+   Provider-agnostic core for role-play conversations. Nothing in this block
+   touches the network, audio APIs, rewards or UI - concrete AI/speech/voice
+   providers are injected through the registry below. The live call flow
+   (ask/listen/speak above) migrates onto this engine in a later task. */
+
+/* ---- interface contracts (duck-typed, enforced at registration) ----
+   ai:     async complete({system, messages}) -> {text}         (chat model)
+   speech: start({lang, onResult, onError}) / stop()            (STT)
+   voice:  async speak({text, voice, speed}) / stopAll()        (TTS) */
+const ENGINE_CONTRACTS = {
+  ai: ["complete"],
+  speech: ["start", "stop"],
+  voice: ["speak", "stopAll"],
+};
+function validateProvider(kind, impl) {
+  const contract = ENGINE_CONTRACTS[kind];
+  if (!contract) throw new Error("unknown provider kind: " + kind);
+  const missing = contract.filter((m) => typeof (impl && impl[m]) !== "function");
+  if (missing.length) throw new Error(`provider "${kind}" is missing: ${missing.join(", ")}`);
+  return impl;
+}
+
+/* ---- dependency injection ---- */
+function createProviderRegistry() {
+  const reg = {};
+  return {
+    register(kind, impl) { reg[kind] = validateProvider(kind, impl); return impl; },
+    get(kind) {
+      if (!reg[kind]) throw new Error("no provider registered for: " + kind);
+      return reg[kind];
+    },
+    has(kind) { return Boolean(reg[kind]); },
+  };
+}
+
+/* ---- registries: read-only views over the canonical scenario data ---- */
+const ScenarioRegistry = {
+  ids() { return SCENARIOS.filter((s) => s.goals).map((s) => s.id); },
+  get(id) {
+    const s = SCENARIOS.find((x) => x.id === id && x.goals);
+    if (!s) throw new Error("unknown scenario: " + id);
+    return s;
+  },
+};
+const CharacterRegistry = {
+  get(scenarioId, speaker) {
+    const s = ScenarioRegistry.get(scenarioId);
+    const second = speaker === 2;
+    return Object.freeze({
+      id: scenarioId + (second ? "2" : ""), scenarioId, speaker: second ? 2 : 1,
+      name: s.who, avatar: s.avatar, kind: s.kind || "phone",
+      voice: second ? (s.voice2 || s.voice) : s.voice,
+    });
+  },
+};
+
+/* ---- transcript model ---- */
+function createTranscript() {
+  const turns = [];
+  return {
+    add(turn) {
+      if (!turn || typeof turn.text !== "string" || !turn.text.trim()) throw new Error("turn needs text");
+      if (turn.speaker !== "learner" && turn.speaker !== "character") throw new Error("turn speaker must be learner|character");
+      turns.push(Object.freeze({ ...turn, index: turns.length }));
+      return turns.length;
+    },
+    list() { return turns.slice(); },
+    last() { return turns[turns.length - 1] || null; },
+    /* provider message shape; optional seed opens the exchange */
+    forPrompt(seed) {
+      const msgs = turns.map((t) => ({ role: t.speaker === "learner" ? "user" : "assistant", content: t.text }));
+      return seed ? [{ role: "user", content: seed }].concat(msgs) : msgs;
+    },
+  };
+}
+
+/* ---- prompt builder ----
+   Delegates to systemPrompt(), which is byte-frozen for German by the test
+   suite - the engine must not fork the prompt text. S is snapshotted and
+   restored, so building a prompt never leaks state into the live app. */
+const PromptBuilder = {
+  rolePlay(cfg) {
+    const prev = { scenario: S.scenario, level: S.level, lang: S.lang,
+                   active: S.active, currentGoal: S.currentGoal };
+    try {
+      S.active = cfg.scenario; S.scenario = cfg.scenario;
+      if (cfg.level) S.level = cfg.level;
+      if (cfg.lang) S.lang = cfg.lang;
+      S.currentGoal = cfg.goal;
+      return systemPrompt();
+    } finally { Object.assign(S, prev); }
+  },
+};
+
+/* ---- conversation session + lifecycle: created -> active -> ended ---- */
+function createConversationSession({ scenarioId, level, lang, goal, providers }) {
+  const scenario = ScenarioRegistry.get(scenarioId);
+  const transcript = createTranscript();
+  let state = "created";
+  const session = {
+    get state() { return state; },
+    scenario, transcript,
+    character(n) { return CharacterRegistry.get(scenarioId, n || 1); },
+    start() {
+      if (state !== "created") throw new Error("cannot start from state: " + state);
+      state = "active";
+      return session;
+    },
+    async send(learnerText) {
+      if (state !== "active") throw new Error("session is " + state + ", not active");
+      transcript.add({ speaker: "learner", text: learnerText });
+      const reply = await providers.get("ai").complete({
+        system: PromptBuilder.rolePlay({ scenario, level, lang, goal }),
+        messages: transcript.forPrompt(TARGET.seed),
+      });
+      if (!reply || typeof reply.text !== "string") throw new Error("ai provider must return {text}");
+      transcript.add({ speaker: "character", text: reply.text });
+      return reply;
+    },
+    end() { state = "ended"; return session; },
+  };
+  return session;
+}
+/* =============== end MARZI-003 Conversation Engine =============== */
+
 async function ask() {
   S.busy = true; renderCall();
   try {

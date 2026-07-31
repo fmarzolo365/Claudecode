@@ -143,3 +143,51 @@ in the document). Verified live in Chromium at 390×844: deep link `#store`
 renders the Store, gear → `#profile` shows Profile, browser back returns to
 `#store`/Store, top bar does not overflow. Test stub gained
 `location`/`history`/`addEventListener`.
+
+---
+
+# Implementation Report — MARZI-003
+
+**Task:** Conversation Engine architecture
+**Date:** 2026-07-31 · **Status:** Complete, tests green, NOT merged (awaiting review)
+
+## What was built
+A provider-agnostic conversation core inside the single-file app (ADR-9:
+graft natively — in a no-framework codebase, "interfaces" are documented
+duck-typed contracts enforced at registration):
+
+- **ENGINE_CONTRACTS + validateProvider** — the AIProvider
+  (`complete({system, messages}) → {text}`), SpeechProvider
+  (`start/stop`, STT) and VoiceProvider (`speak/stopAll`, TTS) interfaces.
+  Registration rejects implementations with missing methods.
+- **createProviderRegistry** — dependency injection: `register/get/has`;
+  `get` before registration throws.
+- **ScenarioRegistry / CharacterRegistry** — read-only views over the
+  canonical `SCENARIOS` data (playable ids, per-speaker character view
+  with voice/avatar/kind; speaker 2 maps to the `<id>2` persona).
+- **createTranscript** — the transcript model: validated turns
+  (learner|character, non-empty text, frozen entries), accessors, and
+  `forPrompt(seed)` mapping to provider message shape.
+- **PromptBuilder.rolePlay(cfg)** — delegates to `systemPrompt()` (the
+  German prompt is byte-frozen by the suite and must not fork); snapshots
+  and restores `S`, so building a prompt never leaks state.
+- **createConversationSession** — lifecycle `created → active → ended`;
+  `send()` only when active, records both turns, feeds the injected AI
+  provider the built prompt + seeded transcript, validates the reply
+  shape; illegal transitions throw.
+
+## Explicitly NOT done (per task)
+No provider implementations, no OpenAI/Anthropic calls, no speech APIs, no
+TTS/STT, no rewards/XP, no UI changes. The live call flow (`ask/listen/
+speak`) is untouched and still runs on its original path — migrating it
+onto the engine is a future task.
+
+## Tests
+`node --check server.js` — pass. `node test/run.js` — **17/17**. The new
+architecture check covers: contract rejection (missing methods, unknown
+kinds), DI throw-before-register and roundtrip, registry views + unknown-id
+rejection, transcript turn validation + message mapping, PromptBuilder
+content and S-restoration, and the full session lifecycle with a fake
+injected AI provider (send-before-start, double-start and send-after-end
+all throw; turns recorded; provider receives prompt + seed). The test
+harness now settles async checks before the summary/exit code.
