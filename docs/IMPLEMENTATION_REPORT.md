@@ -892,3 +892,87 @@ reduced motion, with states still exposed via `data-state` and the existing
 clamping, and a registered-asset switch test. Chromium 390×844 and 360×640
 plus reduced motion: all five reachable call states render correctly with zero
 asset requests. `sw.js` CACHE v32.
+
+---
+
+# Implementation Report — MARZI-014 (PRODUCT-AUTOMATION-002, 2/4)
+
+**Task:** Premium + Internet/Minutes · **Status:** Complete, 32/32 green, NOT merged
+
+**One value, two presentations.** `planSnapshot()` is the single source: it
+derives `limitSec / usedSec / leftSec` from the existing daily allowance and
+exposes each as minutes *and* as MB at the approved board ratio
+`MB_PER_MINUTE = 10` (`mbFromSeconds`). There is **no second consumable**:
+`buyPack()`, the pack prices, the wallet and minute consumption are untouched,
+and every surface that shows internet reads the same snapshot — verified in
+Chromium that `10 / 30 min` and `200 MB restantes` describe the same 20
+remaining minutes.
+
+**Plan screen** (`openPlanScreen`) shows call time and Internet (5G) with both
+action rows — *Buy more internet* (coins, the existing packs) and *Get
+Premium*. Reached from the top-bar minutes chip and from the daily-limit
+sheet.
+
+**Premium screen** (`openPremiumScreen`) presents the monthly ($4.99) and
+annual ($39.99, *BEST VALUE*, *Save 33%*) plans and four benefits, exactly as
+approved. Per the approved decision this is **presentation only**:
+`isPremium()` returns `false` unconditionally, the purchase action states that
+Premium is not yet available, and no entitlement, economy, backend or payment
+path exists. A test-only hook (`__setPremiumPreview`) drives the premium
+*visual* state; there is no user-facing activation switch.
+
+**i18n.** 25 new keys in all six help languages.
+
+**Verification.** Suite 32/32, `node --check server.js`. Chromium 390×844 and
+360×640: plan and premium render fully, prices and savings correct, state
+`Gratis`, zero undersized targets, and the purchase action returns the
+not-available notice with `limit` unchanged at 1800 s and `premium: false`.
+`sw.js` CACHE v33.
+
+## Defects found during verification
+
+Both are **pre-existing and outside the MARZI-014 scope**; both were fixed
+because they broke the package's own acceptance criterion (clean rendering at
+390×844 and 360×640).
+
+1. **Plan and Premium hosts were mounted inside `<section id="store">`.**
+   A fixed overlay inside a hidden section is `display: none` with it, so
+   `#planPrem` was unreachable whenever Store was not the active tab. Both
+   hosts now sit at top level beside `#limitBox`. *(Introduced earlier in this
+   package, found before commit.)*
+
+2. **The 48px touch-target pseudo-element overflowed the viewport
+   (MARZI-010 era).** `.chip-res::after` used `inset-inline: 0; min-width:
+   48px`, so on a chip narrower than 48px the hit box grew outwards only. The
+   last top-bar chip pushed its box past the right edge and gave the whole
+   page ~6px of horizontal scroll — reproduced with a real `mouse.wheel`
+   gesture (`scrollX: 6`), not inferred from `scrollWidth`. The box is now
+   centred on its control (`left: 50%; translate(-50%, -50%)`, physical so it
+   is symmetric in both directions) and still measures ≥ 48×48.
+
+   A second, independent cause was found in the same place: on 360px phones
+   the four resource chips genuinely do not fit at full spacing once the coin
+   balance reaches four digits. A `@media (max-width: 380px)` rule tightens the
+   row gap and chip padding (the gear keeps its padding — it is the last chip
+   and its centred hit area needs the width), so 390px and up render unchanged.
+
+   Measured after the fix, with the widest uncompacted balance (9999) and a
+   two-digit streak, at 390×844 and 360×640 in both `es` (LTR) and `ar` (RTL):
+   `scrollX = 0`, `documentElement.scrollWidth === innerWidth`, and every
+   top-bar hit area ≥ 48×48 and fully inside the viewport.
+
+## Open, not fixed — needs a product decision
+
+At **360px the top bar has exactly zero slack left** (the flexible spacer
+measures 0). A *three-digit* streak (~1 year of daily practice) alongside a
+four-digit coin balance still overflows: measured `scrollX = 9` at 360px and
+`scrollX = 3` at 390px with a 400-day streak. No amount of further tightening
+makes this robust — at some value something has to give, and choosing *what*
+gives is a product/branding call I am not making unilaterally:
+
+- compact the streak the way `compactNum` compacts coins (loses the exact day
+  count, which is the point of a streak), **or**
+- hide the "Marzi" wordmark below ~380px (governed by ADR-10), **or**
+- move one chip (most likely minutes) out of the top bar on small phones.
+
+Everything else in the top bar is correct; this is the residual case.

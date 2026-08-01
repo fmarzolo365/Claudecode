@@ -106,7 +106,9 @@ src += `\n;globalThis.__t = { T, TARGET, TARGETS, LEVELS, LEVEL_ORDER, SCENARIOS
   UI, IC, ICON, evolutionHTML, renderCallStatus,
   MARZI_STATES, marziStateForCall, marziStateForReward, isMarziState, marziArt,
   marziAssetPath, hasMarziAsset, MARZI_ASSETS, marziSVG,
-  showLimit, closeLimit, limitOpen, applyLangDirection, RTL_LANGS, isOffline, renderNetBanner, notifyStorageFailure, buildRewardSummary, isHighPerformance, renderRewardSummary, animateReward, celebrateEvolution,
+  showLimit, closeLimit, limitOpen, planSnapshot, mbFromSeconds, MB_PER_MINUTE, isPremium,
+  premiumPreviewState, __setPremiumPreview, openPlanScreen, closePlanScreen, planScreenOpen,
+  openPremiumScreen, closePremiumScreen, premiumScreenOpen, applyLangDirection, RTL_LANGS, isOffline, renderNetBanner, notifyStorageFailure, buildRewardSummary, isHighPerformance, renderRewardSummary, animateReward, celebrateEvolution,
   closeEvolutionCelebration, evolutionCelebrationOpen, CELEBRATED_KEY, claimReward, loadRewardLedger,
   OUTFITS, STORE_CATS, LEGACY_OUTFIT_IDS, outfitById, outfitName, outfitState,
   purchaseOutfit, equipOutfit, unequipOutfit, renderStore, openOutfitPreview, normalizeWardrobe };`;
@@ -1067,6 +1069,15 @@ check("MARZI-010 direction + touch targets", () => {
   if (/\.dlg-marzi \{[^}]*margin-left: auto/.test(styles)) throw new Error("physical margin left in a mirrored component");
   // compact chrome keeps its size but gains a full hit area
   if (!styles.includes(".chip-res::after")) throw new Error("hit-area extension missing");
+  // the hit area is centred on its control: anchored to the inline start it
+  // grew outwards only, and the last top-bar chip pushed its box past the
+  // viewport, giving the whole page horizontal scroll
+  const hit = styles.match(/\.chip-res::after[^}]*\}/)[0];
+  if (!/left: 50%/.test(hit) || !/translate\(-50%, -50%\)/.test(hit)) throw new Error("hit area is not centred on its control");
+  if (/inset-inline: 0/.test(hit)) throw new Error("hit area still anchored to the inline start");
+  if (!/min-width: var\(--touch-min\)/.test(hit) || !/height: var\(--touch-min\)/.test(hit)) throw new Error("hit area below the touch floor");
+  // small phones tighten the top bar so four resource chips fit without scroll
+  if (!/@media \(max-width: 380px\) \{\s*\.topbar-in \{ gap: 4px; \}/.test(styles)) throw new Error("narrow top-bar rule missing");
   if (!/\.seg button \{ min-height: var\(--touch-min\)/.test(styles)) throw new Error("segmented controls below the floor");
   if (!/\.routine button \{ min-height: var\(--touch-min\)/.test(styles)) throw new Error("routine chips below the floor");
   if (!/\.legal a \{[^}]*min-height: var\(--touch-min\)/.test(styles)) throw new Error("legal links below the floor");
@@ -1197,6 +1208,70 @@ check("MARZI-013 Marzi states: mapping, fallback, asset paths", () => {
     if (!styles.includes(`[data-state="${st}"] > svg`)) throw new Error("no motion rule for " + st);
   }
   if (!styles.includes("prefers-reduced-motion")) throw new Error("reduced-motion guard missing");
+});
+
+check("MARZI-014 plan + premium: one value, board pricing, no entitlement", () => {
+  const L = tt.T.en;
+  tt.S.lang = "en";
+  const today = new Date().toISOString().slice(0, 10);
+
+  // MB is a VIEW of minutes at the board ratio; never a second resource
+  if (tt.MB_PER_MINUTE !== 10) throw new Error("board ratio must be 10 MB per minute");
+  if (tt.mbFromSeconds(600) !== 100) throw new Error("100 MB should equal 10 minutes");
+  if (tt.mbFromSeconds(0) !== 0 || tt.mbFromSeconds(-5) !== 0) throw new Error("MB must never go negative");
+  localStorage.setItem("marzi.stats.v1", JSON.stringify({ days: {}, xp: 500, coins: 300, secDays: { [today]: 600 } }));
+  const P = tt.planSnapshot();
+  if (P.limitMin !== 30 || P.usedMin !== 10 || P.leftMin !== 20) throw new Error(`minutes ${P.usedMin}/${P.limitMin}, left ${P.leftMin}`);
+  if (P.limitMb !== 300 || P.usedMb !== 100 || P.leftMb !== 200) throw new Error(`MB ${P.usedMb}/${P.limitMb}, left ${P.leftMb}`);
+  // both readouts derive from the same seconds - they cannot disagree
+  if (P.leftMb !== tt.mbFromSeconds(P.leftSec)) throw new Error("MB and minutes diverged");
+  if (P.exhausted) throw new Error("not exhausted at 10/30");
+  localStorage.setItem("marzi.stats.v1", JSON.stringify({ days: {}, xp: 500, coins: 300, secDays: { [today]: tt.PLAN_SECONDS } }));
+  const E = tt.planSnapshot();
+  if (!E.exhausted || E.leftMin !== 0 || E.leftMb !== 0) throw new Error("exhausted state");
+
+  // plan screen shows call time AND internet from that one snapshot
+  tt.openPlanScreen();
+  const plan = document.getElementById("planScreen").innerHTML;
+  if (!tt.planScreenOpen()) throw new Error("plan screen state");
+  if (!plan.includes(L.planCallTime) || !plan.includes(L.planInternet)) throw new Error("plan sections");
+  if (!plan.includes("30 / 30")) throw new Error("call time readout");
+  if (!plan.includes("MB")) throw new Error("internet readout");
+  if (!plan.includes(L.planBuyNet) || !plan.includes(L.premGet)) throw new Error("plan actions");
+  tt.closePlanScreen();
+  if (tt.planScreenOpen()) throw new Error("plan screen not dismissible");
+
+  // premium: board pricing, benefits, both states, and NO entitlement
+  tt.openPremiumScreen();
+  const prem = document.getElementById("premScreen").innerHTML;
+  if (!prem.includes("$4.99") || !prem.includes("$39.99")) throw new Error("board pricing missing");
+  if (!prem.includes(L.premSave)) throw new Error("Save 33% missing");
+  if (!prem.includes(L.premBest)) throw new Error("best-value badge missing");
+  for (const bnf of [L.premB1, L.premB2, L.premB3, L.premB4]) if (!prem.includes(bnf)) throw new Error("benefit missing: " + bnf);
+  if (!prem.includes(L.premFree)) throw new Error("free state not shown");
+  // the purchase action states plainly that Premium is not available yet
+  document.getElementById("premGo").onclick();
+  if (document.getElementById("premNotice").textContent !== L.premNotYet) throw new Error("purchase action must say Premium is unavailable");
+  // nothing is unlocked, ever
+  if (tt.isPremium() !== false) throw new Error("Premium must never be entitled");
+  const beforeLimit = tt.planLimitToday();
+  tt.__setPremiumPreview(true);                    // test-only visual hook
+  tt.openPremiumScreen();
+  if (!document.getElementById("premScreen").innerHTML.includes(L.premGet)) throw new Error("premium visual state");
+  if (tt.premiumPreviewState() !== "premium") throw new Error("preview hook");
+  if (tt.isPremium() !== false) throw new Error("preview must not grant entitlement");
+  if (tt.planLimitToday() !== beforeLimit) throw new Error("preview changed the minute allowance");
+  tt.__setPremiumPreview(false);
+  tt.closePremiumScreen();
+  if (tt.premiumScreenOpen()) throw new Error("premium screen not dismissible");
+
+  // no user-facing activation switch anywhere in the shipped script
+  if (/__setPremiumPreview\(\s*true\s*\)/.test(src.replace(/function __setPremiumPreview[^\n]*\n/, "")))
+    throw new Error("a user-facing premium activation path exists");
+  // economy untouched
+  if (tt.COIN_PACKS.map((p) => p.price).join() !== "200,450,800,1500") throw new Error("package prices changed");
+  if (tt.PLAN_SECONDS !== 30 * 60) throw new Error("daily allowance changed");
+  if (!/function buyPack\(id\) \{\n  const p = COIN_PACKS\.find/.test(src)) throw new Error("buyPack changed");
 });
 
 check("progress chart renders points, CEFR bands and a projection", () => {

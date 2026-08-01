@@ -171,6 +171,16 @@
   .chip-res.mins .ic { color: var(--marzi-dark); }
   .chip-res.gear { padding: 7px 9px; }
   .chip-res.gear .ic { color: var(--muted); }
+  /* Small phones (360px class) cannot fit the four resource chips at full
+     spacing once the coin balance reaches four digits, and the row then gave
+     the whole page horizontal scroll. Tighten only below the width where it
+     stops fitting, so 390px and up render unchanged. The gear keeps its
+     padding: it is the last chip, and its centred hit area needs the width. */
+  @media (max-width: 380px) {
+    .topbar-in { gap: 4px; }
+    .chip-res { padding: 7px 6px; }
+    .chip-res.gear { padding: 7px 9px; }
+  }
   /* ---- MARZI-002 reusable shell primitives ----
      .card and .btn are the base components every future screen composes;
      existing page classes keep their look and migrate onto these over time. */
@@ -902,6 +912,68 @@
     position: fixed; inset: 0; z-index: 55; background: rgba(23, 20, 15, .42);
     backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);
   }
+  /* ---------- MARZI-014: plan + premium screens (board 02_call.png) ---------- */
+  .sheet-screen {
+    position: fixed; inset: 0; z-index: 86; overflow-y: auto;
+    background: var(--call-bg); color: var(--white);
+    padding: calc(env(safe-area-inset-top, 0px) + var(--space-3)) var(--space-4)
+             calc(env(safe-area-inset-bottom, 0px) + var(--space-5));
+  }
+  .sheet-screen.light { background: var(--bg); color: var(--ink); }
+  .sheet-screen .ss-head {
+    display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-4);
+  }
+  .sheet-screen .ss-title { font: 800 var(--text-f16) var(--font-sans); flex: 1; text-align: center; }
+  .sheet-screen .ss-x {
+    width: var(--touch-min); height: var(--touch-min); border-radius: 50%; border: 0; cursor: pointer;
+    background: rgba(255,255,255,.16); color: inherit; display: grid; place-items: center;
+  }
+  .sheet-screen.light .ss-x { background: var(--surface-strong); }
+  .plan-card {
+    background: var(--card); color: var(--ink); border-radius: var(--radius-lg);
+    padding: var(--space-4); margin-bottom: var(--space-3); box-shadow: var(--shadow);
+  }
+  .plan-card .pc-label { font: 700 var(--text-f13-5) var(--font-sans); }
+  .plan-card .pc-value { font: 800 var(--text-f27) var(--font-sans); margin-top: 2px; }
+  .plan-card .pc-value small { font: 700 var(--text-f14) var(--font-sans); color: var(--muted); }
+  .plan-card .pc-value.low { color: var(--red); }
+  .plan-card .pc-note { font: 600 var(--text-f11-5) var(--font-sans); color: var(--muted); margin-top: var(--space-2); }
+  .plan-row {
+    width: 100%; display: flex; align-items: center; gap: var(--space-3); cursor: pointer;
+    background: var(--card); color: var(--ink); border: 0; border-radius: var(--radius);
+    padding: var(--space-3); margin-top: var(--space-2); min-height: var(--touch-min); text-align: start;
+  }
+  .plan-row .pr-txt { flex: 1; min-width: 0; }
+  .plan-row .pr-txt b { display: block; font: 800 var(--text-f13-5) var(--font-sans); }
+  .plan-row .pr-txt small { display: block; color: var(--muted); font: 600 var(--text-f11-5) var(--font-sans); }
+  .prem-benefits { list-style: none; margin: var(--space-3) 0 0; padding: 0; }
+  .prem-benefits li { display: flex; gap: var(--space-2); align-items: center; margin-top: var(--space-2);
+    font: 600 var(--text-f12-5) var(--font-sans); }
+  .prem-benefits .ic { color: var(--primary); flex: 0 0 auto; }
+  .prem-plans { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2); margin-top: var(--space-4); }
+  .prem-plan {
+    position: relative; text-align: center; border: 1.5px solid var(--line); border-radius: var(--radius);
+    background: var(--card); color: var(--ink); padding: var(--space-4) var(--space-2) var(--space-3);
+  }
+  .prem-plan[data-best="1"] { border-color: var(--primary); box-shadow: 0 0 0 2px var(--tint-primary-35); }
+  .prem-plan .pp-name { font: 700 var(--text-f12) var(--font-sans); color: var(--muted); }
+  .prem-plan .pp-price { font: 800 var(--text-f24) var(--font-sans); margin-top: 2px; }
+  .prem-plan .pp-per { font: 600 var(--text-f11-5) var(--font-sans); color: var(--muted); }
+  .prem-plan .pp-badge {
+    position: absolute; top: -10px; inset-inline-start: 50%; transform: translateX(-50%);
+    background: var(--primary); color: var(--white); border-radius: 999px; padding: 3px 9px;
+    font: 800 var(--text-f8) var(--font-sans); white-space: nowrap;
+  }
+  .prem-plan .pp-save {
+    display: inline-block; margin-top: var(--space-2); background: var(--primary-soft);
+    color: var(--marzi-dark); border-radius: 999px; padding: 3px 9px;
+    font: 700 var(--text-f10) var(--font-sans);
+  }
+  .prem-state {
+    display: inline-flex; align-items: center; gap: 5px; border-radius: 999px; padding: 4px 10px;
+    font: 800 var(--text-f10-5) var(--font-sans); background: rgba(255,255,255,.16);
+  }
+  .prem-note { margin-top: var(--space-3); text-align: center; font: 600 var(--text-f12) var(--font-sans); opacity: .85; }
   /* ---------- MARZI-013: per-state Marzi motion (reduced-motion safe) ---------- */
   .marzi-art-img { width: 100%; height: 100%; object-fit: contain; }
   [data-state="listening"] > svg, [data-state="listening"] > .marzi-art-img { animation: mLean var(--loop-pulse) var(--ease) infinite; }
@@ -1193,11 +1265,15 @@
     min-height: 80px; max-height: none; overflow: visible;
   }
   /* MARZI-010: compact chrome keeps its board size but gains a full 48px
-     hit area, so the touch floor is met without changing the visuals. */
+     hit area, so the touch floor is met without changing the visuals.
+     The box is centred on the control (physical left/translate, so it is
+     symmetric in both directions): anchoring it to the inline start made it
+     grow outwards only, and the last top-bar chip then pushed its hit area
+     past the viewport and gave the page a few pixels of horizontal scroll. */
   .chip-res, .menu-btn, .drawer-close, .store-head .store-x { position: relative; }
   .chip-res::after, .menu-btn::after, .drawer-close::after, .store-head .store-x::after {
-    content: ""; position: absolute; inset-inline: 0; top: 50%; transform: translateY(-50%);
-    height: var(--touch-min); min-width: var(--touch-min);
+    content: ""; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    width: 100%; height: var(--touch-min); min-width: var(--touch-min);
   }
   /* segmented controls and legal links meet the floor directly */
   .seg button { min-height: var(--touch-min); }
@@ -1491,6 +1567,12 @@
 </main>
 
 <div id="limitBack" class="drawer-back hidden" style="z-index:60"></div>
+<!-- plan / internet and Premium live at top level: a fixed overlay inside a
+     hidden <section> would be display:none with it -->
+<div class="ui-modal-back hidden" id="planBack"></div>
+<div id="planScreen" class="hidden"></div>
+<div class="ui-modal-back hidden" id="premBack"></div>
+<div id="premScreen" class="hidden"></div>
 <div id="limitBox" class="limit hidden">
   <div class="limit-marzi" id="limitMarzi"></div>
   <div class="limit-title" id="limitTitle"></div>
@@ -1673,6 +1755,13 @@ const T = {
   es:{ tagline:"Practica llamadas y conversaciones reales en alemán. Tú hablas, la otra persona responde.",
     pick:"Elige la situación", level:"Nivel", helpLang:"Idioma de las correcciones", call:"LLAMAR",
     outfitNames:["Exploradora","Deportiva","Arcoíris","Clásica","Universitaria","Artística","Profesional","Aventurera","Graduada"], catNames:["Outfits","Sombreros","Gafas","Mochilas","Pantalones"],
+    planTitle:"Tu tiempo e internet", planCallTime:"Tiempo de llamadas", planInternet:"Internet (5G)", planRemaining:"restantes",
+    planWhat:"¿Qué quieres hacer?", planBuyNet:"Comprar más internet", planUseCoins:"Usa tus monedas", premGet:"Hazte Premium",
+    premUnlimited:"Llamadas ilimitadas", premHeadline:"¡Llamadas ilimitadas!", premSub:"Habla todo lo que quieras con cualquier persona, sin límites.", premB1:"Minutos ilimitados cada día",
+    premB2:"Internet 5G siempre disponible", premB3:"Acceso a personajes especiales", premB4:"Respuestas más rápidas de la IA", premMonthly:"Mensual",
+    premYearly:"Anual", premPerMonth:"por mes", premPerYear:"por año", premBest:"MEJOR OFERTA",
+    premSave:"Ahorra 33%", premContinue:"Continuar", premLater:"Más tarde", premNotYet:"Premium aún no está disponible. Te avisaremos cuando lo esté.",
+    premFree:"Gratis",
     offlineTitle:"Sin conexión", offlineMsg:"Necesitas conexión para llamar. Vuelve a intentarlo cuando tengas internet.",
     rwTime:"Duración", rwTurns:"Turnos", rwMistakes:"Correcciones", rwNormal:"¡Buen trabajo! Sigue así.",
     rwHigh:"¡Excelente llamada! Hablaste con confianza.", rwZero:"Habla la próxima vez para ganar XP.", rwEvolvedTitle:"¡Marzi ha crecido!", rwContinue:"Continuar",
@@ -1731,6 +1820,13 @@ const T = {
   en:{ tagline:"Practise real German calls and conversations. You speak, the other person answers.",
     pick:"Choose the situation", level:"Level", helpLang:"Language for corrections", call:"CALL",
     outfitNames:["Explorer","Sporty","Rainbow","Classic","University","Artistic","Professional","Adventurer","Graduate"], catNames:["Outfits","Hats","Glasses","Backpacks","Trousers"],
+    planTitle:"Your time and internet", planCallTime:"Call time", planInternet:"Internet (5G)", planRemaining:"remaining",
+    planWhat:"What would you like to do?", planBuyNet:"Buy more internet", planUseCoins:"Use your coins", premGet:"Get Premium",
+    premUnlimited:"Unlimited calls", premHeadline:"Unlimited calls!", premSub:"Talk as much as you like, with anyone, without limits.", premB1:"Unlimited minutes every day",
+    premB2:"5G internet always available", premB3:"Access to special characters", premB4:"Faster AI responses", premMonthly:"Monthly",
+    premYearly:"Yearly", premPerMonth:"per month", premPerYear:"per year", premBest:"BEST VALUE",
+    premSave:"Save 33%", premContinue:"Continue", premLater:"Later", premNotYet:"Premium is not available yet. We will let you know when it is.",
+    premFree:"Free",
     offlineTitle:"No connection", offlineMsg:"You need a connection to call. Try again once you are back online.",
     rwTime:"Duration", rwTurns:"Turns", rwMistakes:"Corrections", rwNormal:"Nice work! Keep going.",
     rwHigh:"Excellent call! You spoke with confidence.", rwZero:"Speak next time to earn XP.", rwEvolvedTitle:"Marzi has grown!", rwContinue:"Continue",
@@ -1792,6 +1888,13 @@ const T = {
 T.tr = { tagline:"Gerçek Almanca aramalar ve konuşmalar pratiği yap. Sen konuş, karşı taraf cevap versin.",
   pick:"Durumu seç", level:"Seviye", helpLang:"Düzeltme dili", call:"ARA",
   outfitNames:["Kâşif","Sportif","Gökkuşağı","Klasik","Üniversite","Sanatçı","Profesyonel","Maceracı","Mezun"], catNames:["Kıyafetler","Şapkalar","Gözlükler","Sırt çantaları","Pantolonlar"],
+  planTitle:"Süren ve internetin", planCallTime:"Arama süresi", planInternet:"İnternet (5G)", planRemaining:"kaldı",
+  planWhat:"Ne yapmak istersin?", planBuyNet:"Daha fazla internet al", planUseCoins:"Jetonlarını kullan", premGet:"Premium ol",
+  premUnlimited:"Sınırsız arama", premHeadline:"Sınırsız arama!", premSub:"Kiminle istersen, sınırsız konuş.", premB1:"Her gün sınırsız dakika",
+  premB2:"Her zaman 5G internet", premB3:"Özel karakterlere erişim", premB4:"Daha hızlı yapay zekâ yanıtları", premMonthly:"Aylık",
+  premYearly:"Yıllık", premPerMonth:"ayda", premPerYear:"yılda", premBest:"EN İYİ TEKLİF",
+  premSave:"%33 tasarruf", premContinue:"Devam", premLater:"Sonra", premNotYet:"Premium henüz kullanılamıyor. Hazır olduğunda haber vereceğiz.",
+  premFree:"Ücretsiz",
   offlineTitle:"Bağlantı yok", offlineMsg:"Aramak için bağlantı gerekir. İnternet gelince tekrar dene.",
   rwTime:"Süre", rwTurns:"Tur", rwMistakes:"Düzeltme", rwNormal:"Güzel iş! Böyle devam.",
   rwHigh:"Harika bir görüşme! Kendinden emin konuştun.", rwZero:"XP kazanmak için konuş.", rwEvolvedTitle:"Marzi büyüdü!", rwContinue:"Devam",
@@ -1850,6 +1953,13 @@ T.tr = { tagline:"Gerçek Almanca aramalar ve konuşmalar pratiği yap. Sen konu
 T.ar = { tagline:"تدرّب على مكالمات ومحادثات حقيقية بالألمانية. أنت تتكلم والطرف الآخر يجيب.",
   pick:"اختر الموقف", level:"المستوى", helpLang:"لغة التصحيحات", call:"اتصل",
   outfitNames:["المستكشفة","الرياضية","قوس قزح","الكلاسيكية","الجامعية","الفنية","المهنية","المغامرة","الخريجة"], catNames:["الأزياء","القبعات","النظارات","الحقائب","السراويل"],
+  planTitle:"وقتك وإنترنتك", planCallTime:"وقت المكالمات", planInternet:"إنترنت (5G)", planRemaining:"متبقٍ",
+  planWhat:"ماذا تريد أن تفعل؟", planBuyNet:"اشترِ المزيد من الإنترنت", planUseCoins:"استخدم عملاتك", premGet:"احصل على بريميوم",
+  premUnlimited:"مكالمات غير محدودة", premHeadline:"مكالمات غير محدودة!", premSub:"تحدث كما تشاء مع أي شخص بلا حدود.", premB1:"دقائق غير محدودة كل يوم",
+  premB2:"إنترنت 5G متاح دائمًا", premB3:"الوصول إلى شخصيات خاصة", premB4:"ردود أسرع من الذكاء الاصطناعي", premMonthly:"شهري",
+  premYearly:"سنوي", premPerMonth:"شهريًا", premPerYear:"سنويًا", premBest:"أفضل عرض",
+  premSave:"وفّر 33%", premContinue:"متابعة", premLater:"لاحقًا", premNotYet:"بريميوم غير متاح بعد. سنخبرك عندما يصبح متاحًا.",
+  premFree:"مجاني",
   offlineTitle:"لا يوجد اتصال", offlineMsg:"تحتاج إلى اتصال لإجراء مكالمة. حاول مرة أخرى عند عودة الإنترنت.",
   rwTime:"المدة", rwTurns:"الأدوار", rwMistakes:"التصحيحات", rwNormal:"عمل جيد! واصل.",
   rwHigh:"مكالمة ممتازة! تحدثت بثقة.", rwZero:"تحدث في المرة القادمة لتكسب XP.", rwEvolvedTitle:"لقد كبر مارزي!", rwContinue:"متابعة",
@@ -1908,6 +2018,13 @@ T.ar = { tagline:"تدرّب على مكالمات ومحادثات حقيقية
 T.uk = { tagline:"Тренуй реальні дзвінки й розмови німецькою. Ти говориш — співрозмовник відповідає.",
   pick:"Обери ситуацію", level:"Рівень", helpLang:"Мова пояснень", call:"ДЗВОНИТИ",
   outfitNames:["Дослідниця","Спортивна","Веселка","Класична","Університетська","Артистична","Професійна","Мандрівниця","Випускниця"], catNames:["Вбрання","Капелюхи","Окуляри","Рюкзаки","Штани"],
+  planTitle:"Твій час та інтернет", planCallTime:"Час дзвінків", planInternet:"Інтернет (5G)", planRemaining:"залишилось",
+  planWhat:"Що хочеш зробити?", planBuyNet:"Купити більше інтернету", planUseCoins:"Використай монети", premGet:"Отримати Premium",
+  premUnlimited:"Безлімітні дзвінки", premHeadline:"Безлімітні дзвінки!", premSub:"Говори скільки завгодно й з ким завгодно, без обмежень.", premB1:"Безлімітні хвилини щодня",
+  premB2:"Інтернет 5G завжди доступний", premB3:"Доступ до особливих персонажів", premB4:"Швидші відповіді ШІ", premMonthly:"Щомісяця",
+  premYearly:"Щороку", premPerMonth:"на місяць", premPerYear:"на рік", premBest:"НАЙКРАЩА ЦІНА",
+  premSave:"Заощадь 33%", premContinue:"Далі", premLater:"Пізніше", premNotYet:"Premium ще недоступний. Ми повідомимо, щойно він з'явиться.",
+  premFree:"Безкоштовно",
   offlineTitle:"Немає зв'язку", offlineMsg:"Для дзвінка потрібне з'єднання. Спробуй ще раз, коли з'явиться інтернет.",
   rwTime:"Тривалість", rwTurns:"Репліки", rwMistakes:"Виправлення", rwNormal:"Гарна робота! Так тримати.",
   rwHigh:"Чудова розмова! Ти говорив упевнено.", rwZero:"Говори наступного разу, щоб отримати XP.", rwEvolvedTitle:"Marzi підріс!", rwContinue:"Далі",
@@ -1967,6 +2084,13 @@ T.uk = { tagline:"Тренуй реальні дзвінки й розмови �
 T.it = { tagline:"Allenati con telefonate e conversazioni reali in tedesco. Tu parli, l'altra persona risponde.",
   pick:"Scegli la situazione", level:"Livello", helpLang:"Lingua delle correzioni", call:"CHIAMA",
   outfitNames:["Esploratrice","Sportiva","Arcobaleno","Classica","Universitaria","Artistica","Professionale","Avventuriera","Laureata"], catNames:["Outfit","Cappelli","Occhiali","Zaini","Pantaloni"],
+  planTitle:"Il tuo tempo e internet", planCallTime:"Tempo di chiamata", planInternet:"Internet (5G)", planRemaining:"rimanenti",
+  planWhat:"Cosa vuoi fare?", planBuyNet:"Compra più internet", planUseCoins:"Usa le tue monete", premGet:"Passa a Premium",
+  premUnlimited:"Chiamate illimitate", premHeadline:"Chiamate illimitate!", premSub:"Parla quanto vuoi, con chiunque, senza limiti.", premB1:"Minuti illimitati ogni giorno",
+  premB2:"Internet 5G sempre disponibile", premB3:"Accesso a personaggi speciali", premB4:"Risposte IA più rapide", premMonthly:"Mensile",
+  premYearly:"Annuale", premPerMonth:"al mese", premPerYear:"all'anno", premBest:"MIGLIOR OFFERTA",
+  premSave:"Risparmia 33%", premContinue:"Continua", premLater:"Più tardi", premNotYet:"Premium non è ancora disponibile. Ti avviseremo quando lo sarà.",
+  premFree:"Gratis",
   offlineTitle:"Nessuna connessione", offlineMsg:"Serve una connessione per chiamare. Riprova quando torni online.",
   rwTime:"Durata", rwTurns:"Turni", rwMistakes:"Correzioni", rwNormal:"Bel lavoro! Continua così.",
   rwHigh:"Ottima chiamata! Hai parlato con sicurezza.", rwZero:"Parla la prossima volta per guadagnare XP.", rwEvolvedTitle:"Marzi è cresciuto!", rwContinue:"Continua",
@@ -3628,6 +3752,122 @@ function renderStore() {
   updateTopbar();
 }
 
+/* ---------- MARZI-014: plan / internet + Premium (board 02_call.png) ----------
+   Both screens read planSnapshot(), so minutes and MB can never disagree.
+   Premium is presentation only: nothing is unlocked and no user-facing switch
+   exists (approved decision). */
+function openPlanScreen() {
+  const L = t();
+  const P = planSnapshot();
+  const st = loadStats();
+  $("planScreen").innerHTML =
+    `<div class="sheet-screen">
+       <div class="ss-head">
+         <button class="ss-x" id="planX" type="button" aria-label="${esc(L.ok)}">${IC.list(ICON.lg)}</button>
+         <div class="ss-title">${esc(L.planTitle)}</div>
+         ${UI.coinChip({ value: st.coins || 0, label: "Coins", tag: "span" })}
+       </div>
+       <div class="plan-card">
+         <div class="pc-label">${esc(L.planCallTime)}</div>
+         <div class="pc-value${P.exhausted ? " low" : ""}">${P.usedMin} / ${P.limitMin} <small>min</small></div>
+         ${UI.xpBar({ percent: P.limitSec ? Math.round(100 * P.usedSec / P.limitSec) : 100 })}
+         <div class="pc-note" id="planReset"></div>
+       </div>
+       <div class="plan-card">
+         <div class="pc-label">${IC.wave(ICON.sm)} ${esc(L.planInternet)}</div>
+         <div class="pc-value${P.exhausted ? " low" : ""}">${P.leftMb} <small>MB ${esc(L.planRemaining)}</small></div>
+         ${UI.xpBar({ percent: P.limitMb ? Math.round(100 * P.leftMb / P.limitMb) : 0 })}
+         <div class="pc-note">${P.leftMin} min · ${MB_PER_MINUTE} MB = 1 min</div>
+       </div>
+       <p class="prem-note">${esc(L.planWhat)}</p>
+       <button class="plan-row" id="planBuy" type="button">
+         <span style="color:var(--coin);display:inline-flex">${IC.coin(ICON.hero)}</span>
+         <span class="pr-txt"><b>${esc(L.planBuyNet)}</b><small>${esc(L.planUseCoins)}</small></span>
+         <span aria-hidden="true">›</span></button>
+       <button class="plan-row" id="planPrem" type="button">
+         <span style="color:var(--coin);display:inline-flex">${IC.crown(ICON.hero)}</span>
+         <span class="pr-txt"><b>${esc(L.premGet)}</b><small>${esc(L.premUnlimited)}</small></span>
+         <span aria-hidden="true">›</span></button>
+     </div>`;
+  const now = new Date(), mid = new Date(now); mid.setHours(24, 0, 0, 0);
+  const mins = Math.round((mid - now) / 60000);
+  $("planReset").textContent = `${L.resetsIn} ${Math.floor(mins / 60)} h ${String(mins % 60).padStart(2, "0")} min`;
+  $("planScreen").classList.remove("hidden");
+  $("planBack").classList.remove("hidden");
+  if (document.body.classList) document.body.classList.add("modal-lock");
+  PLAN_OPEN = true;
+  $("planX").onclick = () => closePlanScreen();
+  $("planBack").onclick = () => closePlanScreen();
+  $("planBuy").onclick = () => { closePlanScreen(); showTab("store"); };
+  $("planPrem").onclick = () => { closePlanScreen(); openPremiumScreen(); };
+  try { $("planX").focus(); } catch (e) {}
+}
+let PLAN_OPEN = false;
+function planScreenOpen() { return PLAN_OPEN; }
+function closePlanScreen() {
+  PLAN_OPEN = false;
+  $("planScreen").classList.add("hidden");
+  $("planBack").classList.add("hidden");
+  if (document.body.classList && !PREM_OPEN) document.body.classList.remove("modal-lock");
+}
+
+function openPremiumScreen() {
+  const L = t();
+  const premium = premiumPreviewState() === "premium";
+  const benefits = [L.premB1, L.premB2, L.premB3, L.premB4]
+    .map((b) => `<li>${IC.check(ICON.sm)}<span>${esc(b)}</span></li>`).join("");
+  $("premScreen").innerHTML =
+    `<div class="sheet-screen light">
+       <div class="ss-head">
+         <button class="ss-x" id="premX" type="button" aria-label="${esc(L.ok)}">${IC.list(ICON.lg)}</button>
+         <div class="ss-title">${esc(L.premGet)}</div>
+         <span class="prem-state" id="premState" style="background:var(--surface-strong);color:var(--ink)">
+           ${premium ? IC.crown(ICON.xs) : IC.star(ICON.xs)} ${esc(premium ? L.premGet : L.premFree)}</span>
+       </div>
+       <div style="text-align:center">
+         <span style="color:var(--coin);display:inline-flex">${IC.crown(ICON.jumbo)}</span>
+         <h2 style="font:800 var(--text-lg) var(--font-sans);margin:var(--space-2) 0 0">${esc(L.premHeadline)}</h2>
+         <p class="note" style="margin-top:4px">${esc(L.premSub)}</p>
+       </div>
+       <ul class="prem-benefits">${benefits}</ul>
+       <div class="prem-plans">
+         <div class="prem-plan">
+           <div class="pp-name">${esc(L.premMonthly)}</div>
+           <div class="pp-price">$4.99</div>
+           <div class="pp-per">${esc(L.premPerMonth)}</div>
+         </div>
+         <div class="prem-plan" data-best="1">
+           <span class="pp-badge">${esc(L.premBest)}</span>
+           <div class="pp-name">${esc(L.premYearly)}</div>
+           <div class="pp-price">$39.99</div>
+           <div class="pp-per">${esc(L.premPerYear)}</div>
+           <span class="pp-save">${esc(L.premSave)}</span>
+         </div>
+       </div>
+       ${UI.buttonPrimary({ id: "premGo", label: L.premContinue, cls: "prem-act" })}
+       ${UI.buttonSecondary({ id: "premLater", label: L.premLater, cls: "prem-act" })}
+       <p class="prem-note" id="premNotice"></p>
+     </div>`;
+  $("premScreen").classList.remove("hidden");
+  $("premBack").classList.remove("hidden");
+  if (document.body.classList) document.body.classList.add("modal-lock");
+  PREM_OPEN = true;
+  // presentation only: the action states plainly that Premium is not available
+  $("premGo").onclick = () => { $("premNotice").textContent = L.premNotYet; };
+  $("premLater").onclick = () => closePremiumScreen();
+  $("premX").onclick = () => closePremiumScreen();
+  $("premBack").onclick = () => closePremiumScreen();
+  try { $("premX").focus(); } catch (e) {}
+}
+let PREM_OPEN = false;
+function premiumScreenOpen() { return PREM_OPEN; }
+function closePremiumScreen() {
+  PREM_OPEN = false;
+  $("premScreen").classList.add("hidden");
+  $("premBack").classList.add("hidden");
+  if (document.body.classList && !PLAN_OPEN) document.body.classList.remove("modal-lock");
+}
+
 /* preview + explicit purchase / equip / unequip */
 function openOutfitPreview(id) {
   const L = t();
@@ -3721,6 +3961,10 @@ function renderProfile() {
        <span class="soon-badge" style="margin-left:auto">${esc(L.obSoon)}</span>
      </div>
      <p class="note" style="margin:8px 0 0">${esc(L.premiumText)}</p>`;
+  $("premiumCard").onclick = () => openPremiumScreen();
+  $("premiumCard").setAttribute("role", "button");
+  $("premiumCard").setAttribute("tabindex", "0");
+  $("premiumCard").onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") openPremiumScreen(); };
   $("soundBtn").textContent = (S.sound !== false ? "♪ " : "○ ") + L.sound + (S.sound !== false ? ": ON" : ": OFF");
   $("soundBtn").className = "toggle" + (S.sound !== false ? " on" : "");
   $("soundBtn").onclick = () => {
@@ -5607,6 +5851,32 @@ function planLimitToday() {
   const st = loadStats();
   return PLAN_SECONDS + (((st.extraSecs || {})[new Date().toISOString().slice(0, 10)]) || 0);
 }
+/* ---------- MARZI-014: internet is a VIEW of the minutes allowance ----------
+   Board 02_call.png prices 100 MB as ~10 min of calls, so 10 MB = 1 minute.
+   MB is never stored, never consumed and never purchased separately: both
+   readouts derive from the same seconds value that already drives the plan. */
+const MB_PER_MINUTE = 10;
+function mbFromSeconds(sec) { return Math.max(0, Math.round((Number(sec) || 0) / 60 * MB_PER_MINUTE)); }
+/* one canonical snapshot used by every plan/internet readout */
+function planSnapshot() {
+  const limitSec = planLimitToday();
+  const usedSec = Math.min(planUsedToday(), limitSec);
+  const leftSec = Math.max(0, limitSec - usedSec);
+  return {
+    limitSec, usedSec, leftSec,
+    limitMin: Math.round(limitSec / 60), usedMin: Math.round(usedSec / 60), leftMin: Math.ceil(leftSec / 60),
+    limitMb: mbFromSeconds(limitSec), usedMb: mbFromSeconds(usedSec), leftMb: mbFromSeconds(leftSec),
+    exhausted: leftSec <= 0,
+  };
+}
+/* Premium is PRESENTATION ONLY (approved): no entitlement, no unlock, no
+   user-facing activation. The test hook below exists purely to render the
+   subscribed visual state for verification. */
+let PREMIUM_PREVIEW = false;
+function isPremium() { return false; }              // never true in the product
+function premiumPreviewState() { return PREMIUM_PREVIEW ? "premium" : "free"; }
+function __setPremiumPreview(v) { PREMIUM_PREVIEW = !!v; }  // test-only hook
+
 const COIN_PACKS = [
   { id:"min10", minutes:10, price:200 },
   { id:"min25", minutes:25, price:450 },
@@ -5642,7 +5912,7 @@ function showLimit() {
   // coins can buy more minutes right away (spec §28: allowance exhausted -> buy usage)
   $("limitStore").innerHTML = `<span style="display:inline-flex;color:var(--coin)">${IC.coin(ICON.btn)}</span> ${esc(L.buyMinutes)}`;
   $("limitStore").classList.remove("hidden");
-  $("limitStore").onclick = () => { closeLimit(); showTab("store"); };
+  $("limitStore").onclick = () => { closeLimit(); openPlanScreen(); };
   $("limitOk").textContent = L.ok;
   $("limitBack").classList.remove("hidden");
   box.classList.remove("hidden");
@@ -5815,6 +6085,8 @@ window.addEventListener("popstate", () => { if (sheetOpen()) closeCallSheet(true
 document.addEventListener("keydown", (e) => {
   if (e.key !== "Escape") return;
   if (sheetOpen()) closeCallSheet();
+  else if (premiumScreenOpen()) closePremiumScreen();
+  else if (planScreenOpen()) closePlanScreen();
   else if (limitOpen()) closeLimit();
   else if (evolutionCelebrationOpen()) closeEvolutionCelebration();
   else if (STORE_PREVIEW) closeOutfitPreview();
@@ -5954,7 +6226,7 @@ $("obStartBtn").onclick = () => {
 /* bottom navigation + top-bar resources */
 $("bottomnav").querySelectorAll("[data-tab]").forEach((b) => b.onclick = () => showTab(b.dataset.tab));
 $("tbCoins").onclick = () => showTab("store");
-$("tbMins").onclick = () => showTab("store");
+$("tbMins").onclick = () => openPlanScreen();
 $("tbGear").innerHTML = IC.gear(ICON.btn);
 $("tbGear").onclick = () => showTab("profile");
 window.addEventListener("hashchange", () => {
