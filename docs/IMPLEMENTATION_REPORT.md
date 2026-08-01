@@ -576,3 +576,75 @@ XP. Reduced motion: animation durations 0s, states still legible.
    chip and mic, not by Marzi's face.
 4. Character portraits remain flat-cartoon, not the board's painterly style
    (deviation H5, out of scope).
+
+---
+
+# Implementation Report — MARZI-007
+
+**Task:** Canonical store experience (store panel in `04_progress.png`)
+**Date:** 2026-08-01 · **Status:** Complete, tests green, NOT merged
+
+## Catalog
+Nine outfits with board slugs and **board prices** (800 / 900 / 1200), matching
+`MARZI_ASSET_SPEC.md` P3 so approved art drops in by filename. Names are
+localized in all six languages; Spanish is transcribed verbatim from the board.
+Five categories (`outfits · hats · glasses · backpacks · pants`); only
+`outfits` has a catalog — the rest render a friendly **"Coming later"** empty
+state and never imply products exist.
+
+## One canonical transaction
+`commitStats(next)` is the single writer: one object, one `localStorage` call.
+`purchaseOutfit` builds a copy and commits once, so **a failed write changes
+neither the balance nor ownership** (verified by stubbing `setItem` to throw).
+It is idempotent — an owned item returns `already` before any deduction.
+**Buying never auto-equips.** `equipOutfit` writes `equippedItemIds: [id]`, so
+at most one outfit is ever worn; equipping another replaces it.
+
+## Migration safety
+`normalizeWardrobe` runs inside `normalizeStats` on every load:
+legacy ids map to canonical ones (`young-frog-adventurer→explorer`,
+`studious-frog-reader→classic`, `expert-frog-graduate→graduate`), and
+**unrecognised ids are never deleted** — they move to `legacyUnknownItemIds`
+and stay recoverable. Corrupt storage (non-arrays, objects in the list,
+equipped-but-not-owned) is filtered without throwing and without ghosts.
+
+## States
+`locked` (stage requirement) · `available` (price) · `insufficient` (muted
+price) · `owned` (check + "Owned") · `equipped` (check + "Worn" + ring), plus
+the selected preview modal. Every state is **icon + text**, never colour alone.
+Tapping a card opens the preview with the correct explicit action:
+Buy / Equip / Unequip, always with Cancel. Escape and the backdrop close it;
+the result is announced through an `aria-live` region.
+
+## Minute packs
+Untouched and kept in their own section below the outfit grid. `buyPack`,
+prices and behaviour are unchanged; only the button height was raised to the
+48px floor (presentation).
+
+## Fixes found while verifying
+- Minute-pack buttons were 38px — below the touch floor.
+- The top bar overflowed once the balance reached four digits. The brand
+  wordmark now never shrinks (a first attempt clipped it to "M…"); chips are
+  compact and values ≥ 10000 display as `99k` while the wallet keeps the exact
+  number in `aria-label`.
+- Minute-pack rows showed the price twice (row text + button).
+
+## Tests — 25/25
+`node --check server.js` pass. New MARZI-007 check covers catalog integrity
+(9 ids/stages/prices, categories, localized names), the full state machine,
+purchase idempotency, locked/insufficient refusals leaving the wallet
+untouched, **atomic rollback on save failure**, one-outfit-maximum equipping
+and switching, legacy migration with unknown ids preserved, corrupt-storage
+recovery, and the rendered grid/tabs/empty state.
+
+Chromium at 390×844 and 360×640: five tabs, nine cards, 3-column grid, zero
+targets under 48px, no horizontal scroll. Buy 2000→1200 with `owned` and
+**not** equipped; equip then switch leaves exactly one worn; reload persists;
+empty category shows "Muy pronto".
+
+## Unresolved asset gaps
+1. **All nine outfit visuals** — neutral silhouette placeholder (spec P3).
+2. **Preview art** shows the same silhouette, not a dressed Marzi.
+3. **Hats / glasses / backpacks / pants** — no catalog, no art; tabs ship empty
+   by design.
+4. **Category icons** come from the existing `IC` set, not board glyphs.

@@ -152,19 +152,19 @@
     backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
   }
   .topbar-in {
-    width: 100%; max-width: 560px; height: 64px; margin: 0 auto; padding: 0 var(--space-3);
-    display: flex; align-items: center; gap: var(--space-2);
+    width: 100%; max-width: 560px; height: 64px; margin: 0 auto; padding: 0 var(--space-2);
+    display: flex; align-items: center; gap: 6px;
   }
   .wordmark {
     font-family: var(--font-sans); font-size: var(--text-xl); font-weight: 800;
-    letter-spacing: -.04em; color: var(--marzi-dark);
+    letter-spacing: -.04em; color: var(--marzi-dark); flex: 0 0 auto; white-space: nowrap;
   }
-  .topbar .grow { flex: 1; }
+  .topbar .grow { flex: 1 1 auto; min-width: 0; }
   .chip-res {
     display: inline-flex; align-items: center; gap: 5px;
     font: 800 var(--text-sm) var(--font-sans); color: var(--ink); white-space: nowrap;
     background: var(--card); border: 1px solid var(--line); border-radius: 999px;
-    padding: 7px 10px; box-shadow: var(--shadow-sm); cursor: pointer; min-height: 34px;
+    padding: 7px 8px; box-shadow: var(--shadow-sm); cursor: pointer; min-height: 34px;
   }
   .chip-res .ic { color: var(--coin); }
   .chip-res.streak .ic { color: var(--primary); }
@@ -902,6 +902,57 @@
     position: fixed; inset: 0; z-index: 55; background: rgba(23, 20, 15, .42);
     backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);
   }
+  /* ---------- MARZI-007: canonical store (board 04_progress panel) ---------- */
+  .store-head {
+    display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-2);
+  }
+  .store-head .store-coins { font: 800 var(--text-f18) var(--font-sans); display: inline-flex; align-items: center; gap: 6px; }
+  .store-head .store-coins .ic { color: var(--coin); }
+  .store-head .store-x { margin-left: auto; width: var(--touch-min); height: var(--touch-min); border-radius: 50%;
+    border: 1px solid var(--line); background: var(--card); color: var(--ink); cursor: pointer; display: grid; place-items: center; }
+  .cat-tabs {
+    display: flex; gap: var(--space-1); padding: 4px; margin-bottom: var(--space-3);
+    background: var(--surface-soft); border: 1px solid var(--line); border-radius: 999px; overflow-x: auto; scrollbar-width: none;
+  }
+  .cat-tabs::-webkit-scrollbar { display: none; }
+  .cat-tab {
+    flex: 1 0 auto; min-height: var(--touch-min); min-width: var(--touch-min);
+    display: grid; place-items: center; gap: 1px; padding: 0 var(--space-2);
+    border: 0; border-radius: 999px; background: transparent; color: var(--muted); cursor: pointer;
+    font: 700 var(--text-f8) var(--font-sans);
+  }
+  .cat-tab[aria-selected="true"] { background: var(--primary); color: var(--white); }
+  .cat-tab[data-empty="1"] { opacity: .55; }
+  .cat-tab .cat-lb { max-width: 62px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .outfit-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-2); }
+  .outfit-card {
+    display: flex; flex-direction: column; overflow: hidden; cursor: pointer; text-align: center;
+    border: 1.5px solid var(--line); border-radius: var(--radius); background: var(--card);
+    box-shadow: var(--shadow-sm); padding: 0 0 var(--space-2); font: inherit; color: var(--ink);
+    min-height: var(--touch-min);
+  }
+  .outfit-card .outfit-preview {
+    display: grid; place-items: center; aspect-ratio: 1 / 1; width: 100%;
+    background: linear-gradient(150deg, var(--stage-from), var(--stage-to)); color: var(--marzi-dark);
+  }
+  .outfit-card .outfit-preview svg { width: 54%; height: 54%; opacity: .55; }
+  .outfit-card .outfit-copy { display: block; padding: var(--space-2) 4px 0; }
+  .outfit-card .outfit-copy strong { display: block; font: 800 var(--text-f11-5) var(--font-sans); line-height: 1.2; }
+  .outfit-card .outfit-foot {
+    display: inline-flex; align-items: center; justify-content: center; gap: 3px; margin-top: 3px;
+    font: 700 var(--text-f10-5) var(--font-sans); color: var(--coin-ink);
+  }
+  .outfit-card[data-state="locked"] { opacity: .72; }
+  .outfit-card[data-state="locked"] .outfit-preview { filter: grayscale(.55); }
+  .outfit-card[data-state="locked"] .outfit-foot { color: var(--muted); }
+  .outfit-card[data-state="insufficient"] .outfit-foot { color: var(--muted); }
+  .outfit-card[data-state="owned"] .outfit-foot { color: var(--marzi-dark); }
+  .outfit-card[data-state="equipped"] { border-color: var(--primary); box-shadow: 0 0 0 2px var(--tint-primary-35), var(--shadow-sm); }
+  .outfit-card[data-state="equipped"] .outfit-foot { color: var(--marzi-dark); }
+  .store-modal-art { width: 116px; height: 116px; margin: 0 auto; display: grid; place-items: center;
+    border-radius: var(--radius); background: linear-gradient(150deg, var(--stage-from), var(--stage-to)); color: var(--marzi-dark); }
+  .store-modal-art svg { width: 58%; height: 58%; opacity: .6; }
+  .store-note { text-align: center; font: 700 var(--text-f11-5) var(--font-sans); color: var(--marzi-dark); margin-top: var(--space-3); }
   /* ---------- MARZI-006: immersive call layer (board 02_call.png) ----------
      Fixed, dynamic-viewport sized, safe-area aware. The portrait is the
      dominant visual; every overlay is absolutely positioned so nothing can
@@ -1082,7 +1133,7 @@
   .store-item .nm small { font-size: var(--text-f12); color: var(--muted); }
   .buy-btn {
     border: none; border-radius: 999px; background: var(--primary); color: var(--white);
-    font: 800 var(--text-f12-5) var(--font-sans); padding: 9px 13px; min-height: 38px; cursor: pointer;
+    font: 800 var(--text-f12-5) var(--font-sans); padding: 9px 13px; min-height: var(--touch-min); cursor: pointer;
     display: inline-flex; align-items: center; gap: 6px; box-shadow: var(--shadow-sm); white-space: nowrap;
   }
   .buy-btn:hover { background: var(--primary-hover); }
@@ -1319,7 +1370,10 @@
   <!-- STORE: coins, minute packages, outfit catalog (data-only, ADR-10) -->
   <section id="store" class="hidden">
     <div class="plate"><span id="storeTitle"></span></div>
+    <div id="storeLive" class="sr-only" aria-live="polite"></div>
     <div id="storeBody" style="margin-top:10px"></div>
+    <div class="ui-modal-back hidden" id="storeBack"></div>
+    <div id="storeModal" class="hidden"></div>
   </section>
 
   <!-- PROFILE: identity + activity summary + grouped settings + premium + legal (review §6) -->
@@ -1521,6 +1575,10 @@ const LEVELS = {
 const T = {
   es:{ tagline:"Practica llamadas y conversaciones reales en alemán. Tú hablas, la otra persona responde.",
     pick:"Elige la situación", level:"Nivel", helpLang:"Idioma de las correcciones", call:"LLAMAR",
+    outfitNames:["Exploradora","Deportiva","Arcoíris","Clásica","Universitaria","Artística","Profesional","Aventurera","Graduada"], catNames:["Outfits","Sombreros","Gafas","Mochilas","Pantalones"],
+    storeOutfits:"Tienda de outfits", collectAll:"¡Colecciona todos los outfits de Marzi!", comingLater:"Muy pronto",
+    equipBtn:"Poner", unequipBtn:"Quitar", equippedLbl:"Puesto", ownedLbl:"Comprado",
+    needStage:"Disponible en la etapa", buyBtn:"Comprar", cancelBtn:"Cancelar", saveFailed:"No se pudo guardar. Inténtalo de nuevo.",
     talkingWith:"Hablando con", transcript:"Transcripción",
     stageWord:"Nivel", stageNames:["Huevos de rana","Renacuajo","Renacuajo con patas","Ranita joven","Rana estudiosa","Rana experta"],
     stageDescs:["Todo comienza con pequeñas bolitas llenas de posibilidades.","Empiezas a descubrir nuevas palabras y sonidos.","Entiendes más y formas tus primeras frases.","Ya puedes tener conversaciones básicas.","Aprendes cada día y tu alemán mejora mucho.","Dominas el alemán y puedes enseñar a otros."],
@@ -1572,6 +1630,10 @@ const T = {
     obWish:"¡Apuntado! Te avisaremos. Mientras tanto, sigue seleccionado el idioma actual 💪", obPair:"Idiomas: hablo / aprendo" },
   en:{ tagline:"Practise real German calls and conversations. You speak, the other person answers.",
     pick:"Choose the situation", level:"Level", helpLang:"Language for corrections", call:"CALL",
+    outfitNames:["Explorer","Sporty","Rainbow","Classic","University","Artistic","Professional","Adventurer","Graduate"], catNames:["Outfits","Hats","Glasses","Backpacks","Trousers"],
+    storeOutfits:"Outfit store", collectAll:"Collect all of Marzi's outfits!", comingLater:"Coming later",
+    equipBtn:"Wear", unequipBtn:"Take off", equippedLbl:"Worn", ownedLbl:"Owned",
+    needStage:"Available at stage", buyBtn:"Buy", cancelBtn:"Cancel", saveFailed:"Could not save. Please try again.",
     talkingWith:"Talking with", transcript:"Transcript",
     stageWord:"Level", stageNames:["Frog eggs","Tadpole","Tadpole with legs","Young frog","Studious frog","Expert frog"],
     stageDescs:["It all starts with tiny eggs full of possibilities.","You begin to discover new words and sounds.","You understand more and form your first sentences.","You can already have basic conversations.","You learn every day and your German improves a lot.","You have mastered German and can teach others."],
@@ -1626,6 +1688,10 @@ const T = {
 /* ---------- additional help languages ---------- */
 T.tr = { tagline:"Gerçek Almanca aramalar ve konuşmalar pratiği yap. Sen konuş, karşı taraf cevap versin.",
   pick:"Durumu seç", level:"Seviye", helpLang:"Düzeltme dili", call:"ARA",
+  outfitNames:["Kâşif","Sportif","Gökkuşağı","Klasik","Üniversite","Sanatçı","Profesyonel","Maceracı","Mezun"], catNames:["Kıyafetler","Şapkalar","Gözlükler","Sırt çantaları","Pantolonlar"],
+  storeOutfits:"Kıyafet mağazası", collectAll:"Marzi'nin tüm kıyafetlerini topla!", comingLater:"Yakında",
+  equipBtn:"Giydir", unequipBtn:"Çıkar", equippedLbl:"Giyili", ownedLbl:"Alındı",
+  needStage:"Şu aşamada açılır", buyBtn:"Satın al", cancelBtn:"Vazgeç", saveFailed:"Kaydedilemedi. Tekrar dene.",
   talkingWith:"Konuşulan kişi", transcript:"Konuşma metni",
   stageWord:"Seviye", stageNames:["Kurbağa yumurtaları","İribaş","Bacaklı iribaş","Genç kurbağa","Çalışkan kurbağa","Uzman kurbağa"],
   stageDescs:["Her şey olasılıklarla dolu minik yumurtalarla başlar.","Yeni kelimeler ve sesler keşfetmeye başlıyorsun.","Daha çok anlıyor ve ilk cümlelerini kuruyorsun.","Artık temel sohbetler yapabiliyorsun.","Her gün öğreniyorsun ve Almancan çok gelişiyor.","Almancaya hâkimsin ve başkalarına öğretebilirsin."],
@@ -1677,6 +1743,10 @@ T.tr = { tagline:"Gerçek Almanca aramalar ve konuşmalar pratiği yap. Sen konu
   obWish:"Not aldık! Haber vereceğiz. O zamana kadar mevcut dil seçili kalıyor 💪", obPair:"Diller: konuşurum / öğrenirim" };
 T.ar = { tagline:"تدرّب على مكالمات ومحادثات حقيقية بالألمانية. أنت تتكلم والطرف الآخر يجيب.",
   pick:"اختر الموقف", level:"المستوى", helpLang:"لغة التصحيحات", call:"اتصل",
+  outfitNames:["المستكشفة","الرياضية","قوس قزح","الكلاسيكية","الجامعية","الفنية","المهنية","المغامرة","الخريجة"], catNames:["الأزياء","القبعات","النظارات","الحقائب","السراويل"],
+  storeOutfits:"متجر الأزياء", collectAll:"اجمع كل أزياء مارزي!", comingLater:"قريبًا",
+  equipBtn:"ارتداء", unequipBtn:"خلع", equippedLbl:"مُرتدى", ownedLbl:"مملوك",
+  needStage:"يتوفر في المرحلة", buyBtn:"شراء", cancelBtn:"إلغاء", saveFailed:"تعذّر الحفظ. حاول مرة أخرى.",
   talkingWith:"تتحدث مع", transcript:"النص",
   stageWord:"المستوى", stageNames:["بيض الضفدع","شرغوف","شرغوف بأرجل","ضفدع صغير","ضفدع مجتهد","ضفدع خبير"],
   stageDescs:["كل شيء يبدأ ببويضات صغيرة مليئة بالإمكانات.","تبدأ باكتشاف كلمات وأصوات جديدة.","تفهم أكثر وتكوّن جملك الأولى.","يمكنك إجراء محادثات أساسية.","تتعلم كل يوم وتتحسن لغتك الألمانية كثيرًا.","أتقنت الألمانية ويمكنك تعليمها للآخرين."],
@@ -1728,6 +1798,10 @@ T.ar = { tagline:"تدرّب على مكالمات ومحادثات حقيقية
   obWish:"سجلنا رغبتك! سنخبرك عندما تتوفر. حتى ذلك الحين تبقى اللغة الحالية مختارة 💪", obPair:"اللغات: أتحدث / أتعلم" };
 T.uk = { tagline:"Тренуй реальні дзвінки й розмови німецькою. Ти говориш — співрозмовник відповідає.",
   pick:"Обери ситуацію", level:"Рівень", helpLang:"Мова пояснень", call:"ДЗВОНИТИ",
+  outfitNames:["Дослідниця","Спортивна","Веселка","Класична","Університетська","Артистична","Професійна","Мандрівниця","Випускниця"], catNames:["Вбрання","Капелюхи","Окуляри","Рюкзаки","Штани"],
+  storeOutfits:"Крамниця вбрання", collectAll:"Збери все вбрання Marzi!", comingLater:"Незабаром",
+  equipBtn:"Вдягнути", unequipBtn:"Зняти", equippedLbl:"Вдягнено", ownedLbl:"Придбано",
+  needStage:"Доступно на етапі", buyBtn:"Купити", cancelBtn:"Скасувати", saveFailed:"Не вдалося зберегти. Спробуй ще раз.",
   talkingWith:"Розмова з", transcript:"Транскрипт",
   stageWord:"Рівень", stageNames:["Жаб'яча ікра","Пуголовок","Пуголовок з лапками","Молода жабка","Жабка-книголюб","Жабка-експерт"],
   stageDescs:["Усе починається з крихітних ікринок, повних можливостей.","Ти починаєш відкривати нові слова та звуки.","Ти розумієш більше й складаєш перші речення.","Ти вже можеш вести прості розмови.","Ти вчишся щодня, і твоя німецька значно кращає.","Ти опанував німецьку й можеш навчати інших."],
@@ -1780,6 +1854,10 @@ T.uk = { tagline:"Тренуй реальні дзвінки й розмови �
 
 T.it = { tagline:"Allenati con telefonate e conversazioni reali in tedesco. Tu parli, l'altra persona risponde.",
   pick:"Scegli la situazione", level:"Livello", helpLang:"Lingua delle correzioni", call:"CHIAMA",
+  outfitNames:["Esploratrice","Sportiva","Arcobaleno","Classica","Universitaria","Artistica","Professionale","Avventuriera","Laureata"], catNames:["Outfit","Cappelli","Occhiali","Zaini","Pantaloni"],
+  storeOutfits:"Negozio di outfit", collectAll:"Colleziona tutti gli outfit di Marzi!", comingLater:"Presto",
+  equipBtn:"Indossa", unequipBtn:"Togli", equippedLbl:"Indossato", ownedLbl:"Acquistato",
+  needStage:"Disponibile alla tappa", buyBtn:"Compra", cancelBtn:"Annulla", saveFailed:"Salvataggio non riuscito. Riprova.",
   talkingWith:"Stai parlando con", transcript:"Trascrizione",
   stageWord:"Livello", stageNames:["Uova di rana","Girino","Girino con zampe","Ranocchia giovane","Rana studiosa","Rana esperta"],
   stageDescs:["Tutto inizia con piccole uova piene di possibilità.","Inizi a scoprire nuove parole e suoni.","Capisci di più e formi le tue prime frasi.","Puoi già fare conversazioni di base.","Impari ogni giorno e il tuo tedesco migliora molto.","Padroneggi il tedesco e puoi insegnarlo agli altri."],
@@ -2253,9 +2331,41 @@ function saveSettings() {
    loadStats() always returns a normalized shape (review §11): corrupt or
    manually edited localStorage can never break UI or economy logic. */
 const STAT_KEY = "marzi.stats.v1";
+/* ---------- MARZI-007: canonical store catalog ----------
+   Nine outfits, slugs and prices transcribed from the store panel inside
+   docs/design/concept-boards/04_progress.png. Slugs match
+   docs/design/MARZI_ASSET_SPEC.md P3, so approved art drops in by filename.
+   Categories exist for the whole board tab strip; only "outfits" has a
+   catalog today - the rest are shown as coming later, never as products. */
+const STORE_CATS = ["outfits", "hats", "glasses", "backpacks", "pants"];
+const OUTFITS = [
+  { id: "explorer", cat: "outfits", stage: 4, price: 800 },
+  { id: "sporty", cat: "outfits", stage: 4, price: 800 },
+  { id: "rainbow", cat: "outfits", stage: 4, price: 800 },
+  { id: "classic", cat: "outfits", stage: 5, price: 900 },
+  { id: "university", cat: "outfits", stage: 5, price: 900 },
+  { id: "artistic", cat: "outfits", stage: 5, price: 900 },
+  { id: "professional", cat: "outfits", stage: 6, price: 1200 },
+  { id: "adventurer", cat: "outfits", stage: 6, price: 1200 },
+  { id: "graduate", cat: "outfits", stage: 6, price: 1200 },
+];
+/* ids from the pre-MARZI-007 catalog that map onto a canonical item */
+const LEGACY_OUTFIT_IDS = {
+  "young-frog-adventurer": "explorer",
+  "studious-frog-reader": "classic",
+  "expert-frog-graduate": "graduate",
+};
+function outfitById(id) { return OUTFITS.find((o) => o.id === id) || null; }
+function outfitName(id) {
+  const i = OUTFITS.findIndex((o) => o.id === id);
+  const names = (t() && t().outfitNames) || T.en.outfitNames;
+  return i < 0 ? "" : (names[i] || T.en.outfitNames[i]);
+}
+
 const DEFAULT_STATS = Object.freeze({
   version: 1, days: {}, calls: 0, seconds: 0, secDays: {}, extraSecs: {},
   vocabDays: {}, drillDays: {}, xp: 0, coins: 0, ownedItemIds: [], equippedItemIds: [],
+  legacyUnknownItemIds: [],
 });
 function finiteNonNegative(value, fallback = 0) {
   return Number.isFinite(value) && value >= 0 ? value : fallback;
@@ -2270,9 +2380,31 @@ function normalizeStats(value) {
     vocabDays: obj(s.vocabDays), drillDays: obj(s.drillDays),
     calls: finiteNonNegative(s.calls), seconds: finiteNonNegative(s.seconds),
     xp: finiteNonNegative(s.xp), coins: finiteNonNegative(s.coins),
-    ownedItemIds: idList(s.ownedItemIds), equippedItemIds: idList(s.equippedItemIds),
+    ...normalizeWardrobe(idList(s.ownedItemIds), idList(s.equippedItemIds), idList(s.legacyUnknownItemIds)),
   };
 }
+/* Wardrobe normalization + migration (MARZI-007).
+   - legacy ids that map onto a canonical item are migrated;
+   - ids we do not recognise are NEVER deleted - they move to
+     legacyUnknownItemIds so nothing a learner owned is lost;
+   - at most ONE outfit can be equipped, and only if it is owned. */
+function normalizeWardrobe(owned, equipped, unknownSoFar) {
+  const known = new Set(OUTFITS.map((o) => o.id));
+  const out = [], unknown = (unknownSoFar || []).slice();
+  for (const raw of owned) {
+    const id = known.has(raw) ? raw : (LEGACY_OUTFIT_IDS[raw] || null);
+    if (id && known.has(id)) { if (!out.includes(id)) out.push(id); }
+    else if (!unknown.includes(raw)) unknown.push(raw);
+  }
+  const eq = [];
+  for (const raw of equipped) {
+    const id = known.has(raw) ? raw : (LEGACY_OUTFIT_IDS[raw] || null);
+    if (id && out.includes(id) && eq.length === 0) eq.push(id);
+    else if (!id && !unknown.includes(raw)) unknown.push(raw);
+  }
+  return { ownedItemIds: out, equippedItemIds: eq, legacyUnknownItemIds: unknown };
+}
+
 function loadStats() {
   try { return normalizeStats(JSON.parse(localStorage.getItem(STAT_KEY))); }
   catch (e) { return normalizeStats(null); }
@@ -2315,6 +2447,51 @@ function claimReward(rewardId, reward) {
   if (coins) SFX.coin();
   updateTopbar();
   return { claimed: true, reward: ledger[rewardId] };
+}
+
+/* ---------- MARZI-007: one canonical wallet/wardrobe transaction ----------
+   Every coin deduction and ownership change goes through commitStats: it
+   writes ONE object in ONE localStorage call. If that write fails, nothing
+   changed - the caller's copy is discarded and storage still holds the old
+   balance and the old wardrobe. */
+function commitStats(next) {
+  try { localStorage.setItem(STAT_KEY, JSON.stringify(next)); return true; }
+  catch (e) { return false; }
+}
+/* state of one catalog item for the current learner */
+function outfitState(id, st) {
+  const s = st || loadStats();
+  const item = outfitById(id);
+  if (!item) return "unknown";
+  if ((s.equippedItemIds || [])[0] === id) return "equipped";
+  if ((s.ownedItemIds || []).includes(id)) return "owned";
+  if (marziStageForXp(s.xp) < item.stage) return "locked";
+  return (s.coins || 0) < item.price ? "insufficient" : "available";
+}
+/* Idempotent purchase: an already-owned item never deducts again, and the
+   deduction + ownership land together or not at all. Buying does NOT equip. */
+function purchaseOutfit(id) {
+  const item = outfitById(id);
+  if (!item) return { ok: false, code: "unknown" };
+  const st = loadStats();
+  if ((st.ownedItemIds || []).includes(id)) return { ok: false, code: "already" };
+  if (marziStageForXp(st.xp) < item.stage) return { ok: false, code: "locked" };
+  if ((st.coins || 0) < item.price) return { ok: false, code: "insufficient" };
+  const next = { ...st, coins: st.coins - item.price, ownedItemIds: (st.ownedItemIds || []).concat(id) };
+  if (!commitStats(next)) return { ok: false, code: "save-failed" };
+  return { ok: true, code: "bought" };
+}
+/* Exactly one outfit may be worn; equipping another replaces it. */
+function equipOutfit(id) {
+  const st = loadStats();
+  if (!(st.ownedItemIds || []).includes(id)) return { ok: false, code: "not-owned" };
+  const next = { ...st, equippedItemIds: [id] };
+  return commitStats(next) ? { ok: true, code: "equipped" } : { ok: false, code: "save-failed" };
+}
+function unequipOutfit() {
+  const st = loadStats();
+  const next = { ...st, equippedItemIds: [] };
+  return commitStats(next) ? { ok: true, code: "unequipped" } : { ok: false, code: "save-failed" };
 }
 
 function recordCall() {
@@ -2402,6 +2579,10 @@ const IC = {
   speaker: (s) => ic('<path d="M4 9.5h3.2L12 5.5v13l-4.8-4H4z"/><path d="M15.8 9.2a4 4 0 0 1 0 5.6M18.4 6.6a7.6 7.6 0 0 1 0 10.8"/>', false, s),
   warn: (s) => ic('<path d="M12 4.6L2.9 19.4h18.2z"/><path d="M12 10v4M12 16.8h.01"/>', false, s),
   check: (s) => ic('<path d="M4.5 12.6l4.7 4.6L19.5 6.8"/>', false, s),
+  shirt: (s) => ic('<path d="M8.5 3.5L12 6l3.5-2.5L20 6l-1.5 4-2 .6V20H7.5v-9.4l-2-.6L4 6z"/>', false, s),
+  hat: (s) => ic('<path d="M8 12V7a4 4 0 0 1 8 0v5"/><path d="M3.5 13.5c0 1.7 3.8 3 8.5 3s8.5-1.3 8.5-3"/>', false, s),
+  glasses: (s) => ic('<circle cx="6.5" cy="14" r="3.4"/><circle cx="17.5" cy="14" r="3.4"/><path d="M9.9 14c.7-1 3.5-1 4.2 0M3.1 11.5L5 8h3M20.9 11.5L19 8h-3"/>', false, s),
+  pants: (s) => ic('<path d="M7 3.5h10l.7 17h-4L12 11l-1.7 9.5h-4z"/>', false, s),
   wave: (s) => ic('<path d="M3 12h2.2M8 6.5v11M12 3.6v16.8M16 7.5v9M20.8 12H19"/>', false, s),
 };
 const deckIc = (name, s) => (IC[name] ? IC[name](s) : "");
@@ -2492,13 +2673,27 @@ const UI = {
       `</div>`;
   },
   /* --- 11. Outfit card: catalog entry (ADR-10: data before visuals) --- */
-  outfitCard({ id = "", name = "", group = "", price = 0, state = "locked", action = "" } = {}) {
-    return `<div class="outfit-card" data-outfit="${esc(id)}" data-state="${esc(state)}">` +
-      `<div class="outfit-preview"><div class="asset-placeholder" aria-hidden="true">${IC.star(ICON.xl)}</div>` +
-      (state === "locked" ? `<span class="outfit-lock" aria-hidden="true">🔒</span>` : "") + `</div>` +
-      `<div class="outfit-copy"><small>${esc(group)}</small><strong>${esc(name)}</strong>` +
-      `<span>${IC.coin(ICON.xs)} ${esc(String(price))}</span></div>` +
-      `<button type="button" ${state === "locked" ? "disabled" : ""}>${esc(action)}</button></div>`;
+  outfitCard({ id = "", name = "", price = 0, state = "locked", stageLabel = "", stateLabel = "", art = "" } = {}) {
+    // state is carried by an icon AND text, never by colour alone
+    const mark = { locked: IC.warn(ICON.xs), insufficient: IC.coin(ICON.xs),
+                   owned: IC.check(ICON.xs), equipped: IC.check(ICON.xs), available: IC.coin(ICON.xs) }[state] || "";
+    const foot = state === "owned" || state === "equipped"
+      ? `${mark}<span>${esc(stateLabel)}</span>`
+      : state === "locked" ? `${mark}<span>${esc(stageLabel)}</span>`
+      : `${mark}<span>${esc(String(price))}</span>`;
+    return `<button class="outfit-card" type="button" data-outfit="${esc(id)}" data-state="${esc(state)}"` +
+      ` aria-label="${esc(`${name} — ${stateLabel || stageLabel || price}`)}">` +
+      `<span class="outfit-preview" data-outfit-art="${esc(id)}" aria-hidden="true">${art}</span>` +
+      `<span class="outfit-copy"><strong>${esc(name)}</strong>` +
+      `<span class="outfit-foot">${foot}</span></span></button>`;
+  },
+  /* --- 24. Category tabs: one row of filters over a catalog --- */
+  categoryTabs({ tabs = [], active = "", label = "" } = {}) {
+    return `<div class="cat-tabs" role="tablist" aria-label="${esc(label)}">` + tabs.map((tb) =>
+      `<button class="cat-tab" type="button" role="tab" data-cat="${esc(tb.id)}"` +
+      ` aria-selected="${tb.id === active}" ${tb.empty ? 'data-empty="1"' : ""}` +
+      ` aria-label="${esc(tb.label)}"><span class="cat-ic" aria-hidden="true">${tb.icon || ""}</span>` +
+      `<span class="cat-lb">${esc(tb.label)}</span></button>`).join("") + `</div>`;
   },
   /* --- 12/13. Buttons: one primary action per screen, secondary for the rest --- */
   buttonPrimary({ label = "", icon = "", id = "", cls = "", attrs = "" } = {}) {
@@ -3124,39 +3319,119 @@ function renderLearn() {
 
 /* ---------- STORE: coin balance, minute packages, outfit catalog ---------- */
 let STORE_MSG = null;
+let STORE_CAT = "outfits";
+let STORE_PREVIEW = null;
+const CAT_ICON = { outfits: "shirt", hats: "hat", glasses: "glasses", backpacks: "bag", pants: "pants" };
+const OUTFIT_ART = (id) => IC.shirt(ICON.jumbo); // neutral silhouette until approved art lands
+
 function renderStore() {
   const L = t();
   const st = loadStats();
   const coins = st.coins || 0;
-  $("storeTitle").textContent = L.tabStore.toUpperCase();
-  const lim = planLimitToday(), used = planUsedToday();
+  $("storeTitle").textContent = L.storeOutfits.toUpperCase();
+  const items = OUTFITS.filter((o) => o.cat === STORE_CAT);
+  const tabs = STORE_CATS.map((c, i) => ({
+    id: c, label: (L.catNames || T.en.catNames)[i], icon: IC[CAT_ICON[c]](ICON.md),
+    empty: !OUTFITS.some((o) => o.cat === c),
+  }));
+
   $("storeBody").innerHTML =
-    `<div class="hero-xl" style="align-items:center">
-       <span style="display:inline-flex;color:var(--coin)">${IC.coin(ICON.jumbo)}</span>
-       <div style="flex:1">
-         <div style="font:800 25px var(--font-sans);letter-spacing:-.02em">${coins}</div>
-         <div class="hero-sub" style="margin-top:2px">${esc(L.coins)} · ${Math.max(0, Math.round((lim - used) / 60))} ${esc(L.minLeft)}</div>
-       </div>
-     </div>
-     ${STORE_MSG ? `<div class="v-verdict ${STORE_MSG === L.bought ? "ok" : "bad"}" style="margin-top:12px">${esc(STORE_MSG)}</div>` : ""}
-     <div class="label">${esc(L.buyMinutes)}</div>
+    `<div class="store-head">
+       <span class="store-coins">${IC.coin(ICON.hero)} ${coins}</span>
+       <button class="store-x" id="storeClose" type="button" aria-label="${esc(L.back)}">${IC.list(ICON.lg)}</button>
+     </div>` +
+    UI.categoryTabs({ tabs, active: STORE_CAT, label: L.storeOutfits }) +
+    (items.length
+      ? `<div class="outfit-grid-3">` + items.map((o) => {
+          const state = outfitState(o.id, st);
+          return UI.outfitCard({
+            id: o.id, name: outfitName(o.id), price: o.price, state,
+            stageLabel: `${L.needStage} ${o.stage}`,
+            stateLabel: state === "equipped" ? L.equippedLbl : state === "owned" ? L.ownedLbl : "",
+            art: OUTFIT_ART(o.id),
+          });
+        }).join("") + `</div>
+         <p class="store-note">${esc(L.collectAll)}</p>`
+      : UI.emptyState({ icon: IC[CAT_ICON[STORE_CAT]](ICON.hero), title: L.comingLater, body: "" })) +
+    `<div class="label" style="margin-top:18px">${esc(L.buyMinutes)}</div>
      <div class="list">` +
-    COIN_PACKS.map((p) => `<div class="store-item">
-        <span style="display:inline-flex;color:var(--primary)">${IC.clock(ICON.hero)}</span>
-        <div class="nm"><b>+${p.minutes} min</b><small>${esc(L.today)}</small></div>
-        <button class="buy-btn" data-pack="${p.id}" ${coins < p.price ? "disabled" : ""}>${IC.coin(ICON.sm)} ${p.price}</button>
-      </div>`).join("") +
-    `</div>
-     <div class="label">${esc(L.outfits)}</div>
-     <div class="list">` +
-    OUTFITS.map((o) => `<div class="store-item">
-        <span style="display:inline-flex;color:var(--muted)">${IC.bag(ICON.hero)}</span>
-        <div class="nm"><b>${esc(o.de)}</b><small>${esc(marziNames()[o.stage - 1])} · ${IC.coin(ICON.xxs)} ${o.price}</small></div>
-        <span class="soon-badge">${esc(L.obSoon)}</span>
-      </div>`).join("") +
+    COIN_PACKS.map((p) => UI.storeItem({
+      icon: `<span style="display:inline-flex;color:var(--primary)">${IC.clock(ICON.hero)}</span>`,
+      name: `+${p.minutes} min`, sub: L.today,
+    })).join("") +
     `</div>`;
-  $("storeBody").querySelectorAll("[data-pack]").forEach((b) => b.onclick = () => buyPack(b.dataset.pack));
+
+  // minute packs keep their own buy button and their existing behaviour
+  $("storeBody").querySelectorAll(".store-item").forEach((row, i) => {
+    const pack = COIN_PACKS[i];
+    if (!pack) return;
+    const b = document.createElement("button");
+    b.className = "buy-btn";
+    b.disabled = coins < pack.price;
+    b.innerHTML = `${IC.coin(ICON.sm)} ${pack.price}`;
+    b.onclick = () => buyPack(pack.id);
+    row.appendChild(b);
+  });
+  $("storeBody").querySelectorAll("[data-cat]").forEach((b) =>
+    b.onclick = () => { STORE_CAT = b.dataset.cat; renderStore(); });
+  $("storeBody").querySelectorAll("[data-outfit]").forEach((b) =>
+    b.onclick = () => openOutfitPreview(b.dataset.outfit));
+  $("storeClose").onclick = () => showTab("learn");
+  if (STORE_MSG) announceStore(STORE_MSG);
   updateTopbar();
+}
+
+/* preview + explicit purchase / equip / unequip */
+function openOutfitPreview(id) {
+  const L = t();
+  const item = outfitById(id);
+  if (!item) return;
+  STORE_PREVIEW = id;
+  const state = outfitState(id, loadStats());
+  const primary =
+    state === "available" ? UI.buttonPrimary({ id: "storeBuy", label: L.buyBtn, icon: IC.coin(ICON.sm), cls: "store-act" })
+    : state === "owned" ? UI.buttonPrimary({ id: "storeEquip", label: L.equipBtn, icon: IC.check(ICON.sm), cls: "store-act" })
+    : state === "equipped" ? UI.buttonSecondary({ id: "storeUnequip", label: L.unequipBtn, cls: "store-act" })
+    : "";
+  // one body line: what it costs, or why it cannot be bought yet
+  const body = state === "locked" ? `${L.needStage} ${item.stage}`
+    : state === "insufficient" ? `${L.notEnough} · ${item.price}`
+    : state === "available" ? String(item.price)
+    : state === "equipped" ? L.equippedLbl : L.ownedLbl;
+  $("storeModal").innerHTML = UI.modal({
+    title: outfitName(id), labelledBy: "storeModalTitle", body,
+    actions: `<div class="store-modal-art" aria-hidden="true">${OUTFIT_ART(id)}</div>` +
+      primary + UI.buttonSecondary({ id: "storeCancel", label: L.cancelBtn, cls: "store-act" }),
+  });
+  $("storeModal").classList.remove("hidden");
+  $("storeBack").classList.remove("hidden");
+  const act = $("storeBuy") || $("storeEquip") || $("storeUnequip") || $("storeCancel");
+  try { act.focus(); } catch (e) {}
+  if ($("storeBuy")) $("storeBuy").onclick = () => runStoreAction(purchaseOutfit(id));
+  if ($("storeEquip")) $("storeEquip").onclick = () => runStoreAction(equipOutfit(id));
+  if ($("storeUnequip")) $("storeUnequip").onclick = () => runStoreAction(unequipOutfit());
+  $("storeCancel").onclick = () => closeOutfitPreview();
+  $("storeBack").onclick = () => closeOutfitPreview();
+}
+function closeOutfitPreview() {
+  STORE_PREVIEW = null;
+  $("storeModal").classList.add("hidden");
+  $("storeBack").classList.add("hidden");
+}
+/* one place turns a transaction result into feedback + a re-render */
+function runStoreAction(res) {
+  const L = t();
+  const msg = { bought: L.bought, equipped: L.equippedLbl, unequipped: L.ownedLbl,
+                insufficient: L.notEnough, locked: L.comingLater, already: L.ownedLbl,
+                "save-failed": L.saveFailed, "not-owned": L.notEnough }[res.code] || "";
+  STORE_MSG = msg;
+  if (res.ok && res.code === "bought") SFX.fanfare();
+  closeOutfitPreview();
+  renderStore();
+}
+function announceStore(msg) {
+  const el = $("storeLive");
+  if (el) el.textContent = msg;
 }
 function buyPack(id) {
   const p = COIN_PACKS.find((x) => x.id === id);
@@ -3216,9 +3491,15 @@ function renderProfile() {
 }
 
 /* ---------- app shell: top bar + bottom navigation ---------- */
+/* chip display only - the wallet keeps the exact value */
+function compactNum(n) {
+  const v = Math.max(0, Math.floor(Number(n) || 0));
+  return v >= 10000 ? Math.floor(v / 1000) + "k" : String(v);
+}
 function updateTopbar() {
   const st = loadStats();
-  $("tbCoins").innerHTML = `${IC.coin(ICON.chip)} ${st.coins || 0}`;
+  $("tbCoins").innerHTML = `${IC.coin(ICON.chip)} ${compactNum(st.coins)}`;
+  $("tbCoins").setAttribute("aria-label", `Coins: ${st.coins || 0}`);
   $("tbStreak").innerHTML = `${IC.flame(ICON.sm)} ${currentStreak(st)}`;
   const minsLeft = Math.max(0, Math.ceil((planLimitToday() - planUsedToday()) / 60));
   $("tbMins").innerHTML = `${IC.clock(ICON.sm)} ${minsLeft}`;
@@ -4945,11 +5226,7 @@ const COIN_PACKS = [
 ];
 /* outfit catalog: identifiers, prices and stage gates only - visuals wait for
    approved family artwork (ADR-10), shown as "coming soon" in the Store */
-const OUTFITS = [
-  { id:"young-frog-adventurer", de:"Abenteurer", stage:4, price:400 },
-  { id:"studious-frog-reader", de:"Bücherwurm", stage:5, price:650 },
-  { id:"expert-frog-graduate", de:"Absolvent", stage:6, price:1200 },
-];
+
 function showLimit() {
   const L = t();
   const st = loadStats();
@@ -5086,7 +5363,11 @@ function closeCallSheet(fromPop) {
   try { $("sheetBtn").focus(); } catch (e) {}
 }
 window.addEventListener("popstate", () => { if (sheetOpen()) closeCallSheet(true); });
-document.addEventListener("keydown", (e) => { if (e.key === "Escape" && sheetOpen()) closeCallSheet(); });
+document.addEventListener("keydown", (e) => {
+  if (e.key !== "Escape") return;
+  if (sheetOpen()) closeCallSheet();
+  else if (STORE_PREVIEW) closeOutfitPreview();
+});
 $("sheetBtn").onclick = () => openCallSheet();
 $("callMinBtn").onclick = () => openCallSheet();
 $("sheetClose").onclick = () => closeCallSheet();

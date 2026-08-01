@@ -182,15 +182,19 @@ passing.
 **Responsive** Single row; the name column absorbs remaining width.
 **Usage** `UI.storeItem({ name: "25 min", price: 450, action: L.buy })`
 
-### 11. Outfit card — `UI.outfitCard({id, name, group, price, state, action})`
-**Purpose** Catalog entry for a Marzi outfit.
-**Visual rules** Preview area with a placeholder until approved artwork
-exists (ADR-10: identifiers ship before visuals), copy block, action.
-**States** `locked` (greyscale + lock badge, disabled action) / `available` /
-`owned`.
-**Accessibility** Lock state is an icon plus a disabled control, not colour.
-**Responsive** Fixed-width cards in a scroll-snapping grid.
-**Usage** `UI.outfitCard({ name: "Schal", group: "Winter", price: 120, state: "locked" })`
+### 11. Outfit card — `UI.outfitCard({id, name, price, state, stageLabel, stateLabel, art})`
+**Purpose** Catalog entry for a Marzi outfit, in the store grid.
+**Visual rules** Square art slot (`data-outfit-art`) above name and footer.
+The slot holds a neutral silhouette until approved artwork exists (ADR-10) —
+production files replace it **without markup changes**. No technical
+placeholder wording is ever shown to a learner.
+**States** `locked` (greyscale, stage requirement) / `available` (price) /
+`insufficient` (price, muted) / `owned` (check + "Owned") / `equipped`
+(check + "Worn", ring). Every state pairs an **icon with text**.
+**Accessibility** The card is a button with an `aria-label` combining name and
+state; state is never colour-only; the whole card meets the touch floor.
+**Responsive** Three-column grid at 390px and 360px.
+**Usage** `UI.outfitCard({ id, name, price, state, stageLabel, stateLabel, art })`
 
 ### 12. Primary button — `UI.buttonPrimary({label, icon, id, cls, attrs})`
 **Purpose** The single most important action on a screen.
@@ -318,6 +322,19 @@ the title; focus moves to close on open and back to the opener on close. The
 opening control is **labelled, never icon-only**.
 **Responsive** Full width, safe-area padded at the bottom.
 **Usage** `UI.callSheet({ title: L.transcript, closeLabel: L.ok, body })`
+
+### 24. Category tabs — `UI.categoryTabs({tabs, active, label})`
+**Purpose** One row of filters over a catalog (the store's five categories).
+**Visual rules** Pill strip on `--surface-soft`; the active tab is filled with
+`--primary`. Scrolls horizontally rather than wrapping.
+**States** `active` (filled + `aria-selected="true"`); `empty` dims a category
+that has no catalog yet — it stays visible and selectable and shows a
+"coming later" empty state, so it never implies products exist.
+**Accessibility** `role="tablist"` / `role="tab"` with `aria-selected`; each
+tab carries an `aria-label` and a visible label, so selection is not conveyed
+by colour alone. Tabs meet the 48px floor.
+**Responsive** Equal-width tabs that scroll on narrow screens.
+**Usage** `UI.categoryTabs({ tabs, active: STORE_CAT, label: L.storeOutfits })`
 
 ---
 

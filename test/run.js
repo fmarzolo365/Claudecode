@@ -103,7 +103,9 @@ src += `\n;globalThis.__t = { T, TARGET, TARGETS, LEVELS, LEVEL_ORDER, SCENARIOS
   ENGINE_CONTRACTS, validateProvider, createProviderRegistry, ScenarioRegistry, CharacterRegistry,
   createTranscript, PromptBuilder, createConversationSession, ENGINE, send, ask,
   renderLearn, renderCall, renderTranscript, openCallSheet, closeCallSheet, sheetOpen, endCall, callStateFor, callStateLabel, callStateIcon, callSecondsLeft, renderScenarioCards, renderCharacterCard, scenarioSubtitle,
-  UI, IC, ICON, evolutionHTML, renderCallStatus };`;
+  UI, IC, ICON, evolutionHTML, renderCallStatus,
+  OUTFITS, STORE_CATS, LEGACY_OUTFIT_IDS, outfitById, outfitName, outfitState,
+  purchaseOutfit, equipOutfit, unequipOutfit, renderStore, openOutfitPreview, normalizeWardrobe };`;
 eval(src);
 const tt = globalThis.__t;
 
@@ -608,7 +610,7 @@ check("design system: canonical components, tokens and documentation", () => {
     "evolutionCard", "characterCard", "scenarioCard", "bubble", "storeItem", "outfitCard",
     "buttonPrimary", "buttonSecondary", "statusBadge", "progressCard", "rewardPopup",
     "modal", "emptyState", "errorState",
-    "callControl", "speechBubble", "callIdentity", "callSheet"];
+    "callControl", "speechBubble", "callIdentity", "callSheet", "categoryTabs"];
   for (const c of COMPONENTS) if (typeof tt.UI[c] !== "function") throw new Error("missing component: " + c);
   if (Object.keys(tt.UI).length !== COMPONENTS.length) {
     throw new Error("UI has undocumented members: " + Object.keys(tt.UI).filter((k) => !COMPONENTS.includes(k)));
@@ -814,6 +816,105 @@ checkAsync("MARZI-006 call layer: states, sheet, guards, targets", async () => {
   const pillCss = html.slice(html.indexOf("  .call-pill {"), html.indexOf("  .call-pill[aria-pressed"));
   if (!/min-height:\s*var\(--touch-min\)/.test(pillCss)) throw new Error("tool pills must meet the touch floor");
   tt.S.session = null; tt.S.turns = [];
+});
+
+check("MARZI-007 store: catalog, purchase transaction, equip, migration", () => {
+  const L = tt.T.en;
+  // catalog matches the board panel exactly (slugs also match the asset spec)
+  const want = [["explorer",4,800],["sporty",4,800],["rainbow",4,800],
+                ["classic",5,900],["university",5,900],["artistic",5,900],
+                ["professional",6,1200],["adventurer",6,1200],["graduate",6,1200]];
+  if (tt.OUTFITS.length !== 9) throw new Error("catalog size " + tt.OUTFITS.length);
+  want.forEach(([id, stage, price], i) => {
+    const o = tt.OUTFITS[i];
+    if (o.id !== id || o.stage !== stage || o.price !== price) throw new Error(`catalog[${i}] = ${o.id}/${o.stage}/${o.price}`);
+    if (o.cat !== "outfits") throw new Error(id + " category");
+  });
+  if (tt.STORE_CATS.join() !== "outfits,hats,glasses,backpacks,pants") throw new Error("categories");
+  for (const lang of LANGS) {
+    if ((tt.T[lang].outfitNames || []).length !== 9) throw new Error(lang + " outfitNames");
+    if ((tt.T[lang].catNames || []).length !== 5) throw new Error(lang + " catNames");
+  }
+  if (tt.T.es.outfitNames[0] !== "Exploradora") throw new Error("es names must match the board");
+
+  const setStats = (o) => localStorage.setItem("marzi.stats.v1", JSON.stringify(o));
+  // locked -> insufficient -> available
+  setStats({ xp: 0, coins: 5000, ownedItemIds: [], equippedItemIds: [] });
+  if (tt.outfitState("explorer") !== "locked") throw new Error("stage gate");
+  setStats({ xp: 900, coins: 10, ownedItemIds: [], equippedItemIds: [] });
+  if (tt.outfitState("explorer") !== "insufficient") throw new Error("insufficient state");
+  setStats({ xp: 900, coins: 1000, ownedItemIds: [], equippedItemIds: [] });
+  if (tt.outfitState("explorer") !== "available") throw new Error("available state");
+
+  // buy deducts exactly once and does NOT auto-equip
+  const r1 = tt.purchaseOutfit("explorer");
+  if (!r1.ok || r1.code !== "bought") throw new Error("purchase failed");
+  let st = tt.loadStats();
+  if (st.coins !== 200) throw new Error("coins after buy: " + st.coins);
+  if (!st.ownedItemIds.includes("explorer")) throw new Error("not owned");
+  if (st.equippedItemIds.length !== 0) throw new Error("buying must not auto-equip");
+  if (tt.outfitState("explorer") !== "owned") throw new Error("owned state");
+  // duplicate purchase never deducts again
+  const r2 = tt.purchaseOutfit("explorer");
+  if (r2.ok || r2.code !== "already") throw new Error("duplicate purchase allowed");
+  if (tt.loadStats().coins !== 200) throw new Error("duplicate purchase deducted coins");
+  // locked and insufficient purchases are refused without touching the wallet
+  setStats({ xp: 900, coins: 5000, ownedItemIds: [], equippedItemIds: [] });
+  if (tt.purchaseOutfit("graduate").code !== "locked") throw new Error("locked purchase allowed");
+  if (tt.loadStats().coins !== 5000) throw new Error("locked purchase touched the wallet");
+  setStats({ xp: 900, coins: 10, ownedItemIds: [], equippedItemIds: [] });
+  if (tt.purchaseOutfit("explorer").code !== "insufficient") throw new Error("insufficient purchase allowed");
+  if (tt.loadStats().coins !== 10) throw new Error("insufficient purchase touched the wallet");
+
+  // storage failure rolls back: neither coins nor ownership change
+  setStats({ xp: 900, coins: 1000, ownedItemIds: [], equippedItemIds: [] });
+  const realSet = localStorage.setItem;
+  localStorage.setItem = () => { throw new Error("quota"); };
+  const rf = tt.purchaseOutfit("explorer");
+  localStorage.setItem = realSet;
+  if (rf.ok || rf.code !== "save-failed") throw new Error("save failure not reported");
+  st = tt.loadStats();
+  if (st.coins !== 1000 || st.ownedItemIds.length !== 0) throw new Error("purchase not atomic on save failure");
+
+  // exactly one outfit equipped; switching replaces
+  setStats({ xp: 3000, coins: 5000, ownedItemIds: ["explorer", "graduate"], equippedItemIds: [] });
+  if (tt.equipOutfit("sporty").code !== "not-owned") throw new Error("equipped an unowned item");
+  tt.equipOutfit("explorer");
+  if (tt.loadStats().equippedItemIds.join() !== "explorer") throw new Error("equip");
+  tt.equipOutfit("graduate");
+  const eq = tt.loadStats().equippedItemIds;
+  if (eq.length !== 1 || eq[0] !== "graduate") throw new Error("more than one equipped: " + eq.join());
+  if (tt.outfitState("explorer") !== "owned" || tt.outfitState("graduate") !== "equipped") throw new Error("switch states");
+  tt.unequipOutfit();
+  if (tt.loadStats().equippedItemIds.length !== 0) throw new Error("unequip");
+
+  // migration: legacy ids map, unknown ids are preserved, never deleted
+  const w = tt.normalizeWardrobe(["young-frog-adventurer", "expert-frog-graduate", "mystery-hat", "explorer"], ["mystery-hat"], []);
+  if (!w.ownedItemIds.includes("explorer") || !w.ownedItemIds.includes("graduate")) throw new Error("legacy ids not migrated");
+  if (w.ownedItemIds.filter((x) => x === "explorer").length !== 1) throw new Error("migration duplicated an id");
+  if (!w.legacyUnknownItemIds.includes("mystery-hat")) throw new Error("unknown id was lost");
+  if (w.equippedItemIds.length !== 0) throw new Error("unknown id must not end up equipped");
+  // corrupt storage never throws and never yields ghosts
+  setStats({ xp: "bad", coins: null, ownedItemIds: "nope", equippedItemIds: [{}, "explorer"] });
+  const safe = tt.loadStats();
+  if (!Array.isArray(safe.ownedItemIds) || safe.ownedItemIds.length !== 0) throw new Error("corrupt owned not recovered");
+  if (safe.equippedItemIds.length !== 0) throw new Error("equipped an item that is not owned");
+  if (safe.coins !== 0 || safe.xp !== 0) throw new Error("corrupt wallet not recovered");
+
+  // render: five tabs, nine cards, empty categories say "coming later"
+  setStats({ xp: 3000, coins: 5000, ownedItemIds: ["graduate"], equippedItemIds: ["graduate"] });
+  tt.S.lang = "en";
+  tt.renderStore();
+  const body = document.getElementById("storeBody").innerHTML;
+  if ((body.match(/data-cat="/g) || []).length !== 5) throw new Error("five category tabs");
+  if ((body.match(/data-outfit="/g) || []).length !== 9) throw new Error("nine cards");
+  if (!body.includes('data-state="equipped"')) throw new Error("equipped card state");
+  if (!body.includes(L.collectAll)) throw new Error("collection line");
+  if (!body.includes("+10 min")) throw new Error("minute packs must stay in their own section");
+  const before = tt.loadStats().coins;
+  tt.openOutfitPreview("graduate");
+  if (!document.getElementById("storeModal").innerHTML.includes(L.unequipBtn)) throw new Error("equipped preview must offer unequip");
+  if (tt.loadStats().coins !== before) throw new Error("opening a preview changed the wallet");
 });
 
 check("progress chart renders points, CEFR bands and a projection", () => {
