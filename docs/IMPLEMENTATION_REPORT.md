@@ -976,3 +976,68 @@ gives is a product/branding call I am not making unilaterally:
 - move one chip (most likely minutes) out of the top bar on small phones.
 
 Everything else in the top bar is correct; this is the residual case.
+
+---
+
+# Implementation Report — MARZI-015 (PRODUCT-AUTOMATION-002, 3/4)
+
+**Task:** Profile & Progress · **Status:** Complete, 33/33 green, NOT merged
+
+**No fabricated statistics — one snapshot, verified counters only.**
+`profileSnapshot()` is the single reader for the whole screen. Every field is
+a counter the app already writes; nothing is estimated, projected or inferred:
+
+| Shown | Source |
+|---|---|
+| Marzi stage + localized description | `marziStageForXp(xp)` → `stageNames` / `stageDescs` |
+| Learner rank (separate line) | `rankFor(xp)` — untouched, still its own system |
+| XP and next-stage progress | the six `MARZI_STAGE_XP` thresholds, unchanged |
+| Coins · calls · speaking time · streak | `stats.coins` · `.calls` · `.seconds/60` · `currentStreak` |
+| Mistakes reviewed | fixes carrying a `drilled` date — what the drill actually visited |
+| Saved words | `loadWords().length` |
+| Owned / equipped outfits | `ownedItemIds` / `equippedItemIds`, canonical ids only |
+
+**Hierarchy.** Marzi's stage (`3/6 · Renacuajo con patas`) and its localized
+description are primary; the learner rank sits below as a small secondary line
+— the same ordering approved for the home screen, so the two progression
+systems never read as one.
+
+**Wardrobe.** Owned outfits render with the equipped one marked, reusing the
+MARZI-007 `outfitCard` and its states. An empty wardrobe gets the canonical
+empty state pointing at the store — never a blank area.
+
+**Achievements** are pure functions of the snapshot: each declares the counter
+it reads and its goal, so nothing can be earned that the data does not
+support. Locked ones show real progress (`2/7`), never a teaser. Verified in
+the suite that a fresh profile earns exactly zero, and that no `have` can
+exceed its `goal`. Eight achievements: 1/10/50 calls, 60 minutes spoken,
+7/30-day streak, 25 mistakes reviewed, first outfit.
+
+**Settings and accessibility** are now two labelled groups. Settings keeps the
+language pair, export and import. Accessibility holds sound and a new
+**reduce-motion** control: it is persisted, applied at boot, and **additive
+only** — the `prefers-reduced-motion` media query still wins, so the control
+can turn motion off but never force it back on against the system setting.
+Measured in Chromium: toggling it sets `body.reduce-motion`, persists
+`reduceMotion: true`, and drops transition duration to `1e-06s`.
+
+**i18n.** 19 new keys in all six help languages.
+
+**Test-stub fix.** `document.body` in the suite was a bare `{ appendChild }`,
+so `body.classList` was invisible to tests — every call site had to guard with
+`if (document.body.classList)`. It is now a real stub element, so
+`modal-lock`, `in-call` and `reduce-motion` are all observable.
+
+**Verification.** Suite 33/33, `node --check server.js`. Chromium 390×844 and
+360×640 in `es` and `ar`: correct localized stage name and description, rank
+on its own line, `300 XP → Ranita joven`, all six stats from the seeded
+history (`65 min` from 3900 s, `2` reviewed from 3 fixes of which 2 drilled),
+`4/8` achievements with the right ones locked, both outfits with `sporty`
+equipped, both settings groups, zero undersized targets, `scrollX = 0`.
+`sw.js` CACHE v34.
+
+**One defect found and fixed during verification:** the achievement card put
+its name and its state side by side as flex siblings, so a long localized name
+pushed the card 4px past a 360px viewport (`scrollX: 4`). The text is now its
+own shrinkable column (`min-width: 0; overflow-wrap: anywhere`) — re-measured
+`scrollX = 0` and no element past the viewport edge.

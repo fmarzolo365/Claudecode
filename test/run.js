@@ -65,7 +65,9 @@ function mkEl() {
 globalThis.document = {
   getElementById: (id) => els[id] || (els[id] = mkEl()),
   addEventListener() {}, createElement: () => mkEl(),
-  body: { appendChild() {} }, querySelectorAll: () => [],
+  // body carries a real classList: modal-lock, in-call and reduce-motion are
+  // all applied there, so the stub has to be able to observe them
+  body: Object.assign(mkEl(), { appendChild() {} }), querySelectorAll: () => [],
 };
 globalThis.window = globalThis;
 globalThis.addEventListener = () => {};
@@ -111,7 +113,9 @@ src += `\n;globalThis.__t = { T, TARGET, TARGETS, LEVELS, LEVEL_ORDER, SCENARIOS
   openPremiumScreen, closePremiumScreen, premiumScreenOpen, applyLangDirection, RTL_LANGS, isOffline, renderNetBanner, notifyStorageFailure, buildRewardSummary, isHighPerformance, renderRewardSummary, animateReward, celebrateEvolution,
   closeEvolutionCelebration, evolutionCelebrationOpen, CELEBRATED_KEY, claimReward, loadRewardLedger,
   OUTFITS, STORE_CATS, LEGACY_OUTFIT_IDS, outfitById, outfitName, outfitState,
-  purchaseOutfit, equipOutfit, unequipOutfit, renderStore, openOutfitPreview, normalizeWardrobe };`;
+  purchaseOutfit, equipOutfit, unequipOutfit, renderStore, openOutfitPreview, normalizeWardrobe,
+  profileSnapshot, reviewedMistakeCount, ACHIEVEMENTS, achievementState, renderProfile, applyReduceMotion,
+  MARZI_STAGE_XP, currentStreak, loadWords };`;
 eval(src);
 const tt = globalThis.__t;
 
@@ -1272,6 +1276,87 @@ check("MARZI-014 plan + premium: one value, board pricing, no entitlement", () =
   if (tt.COIN_PACKS.map((p) => p.price).join() !== "200,450,800,1500") throw new Error("package prices changed");
   if (tt.PLAN_SECONDS !== 30 * 60) throw new Error("daily allowance changed");
   if (!/function buyPack\(id\) \{\n  const p = COIN_PACKS\.find/.test(src)) throw new Error("buyPack changed");
+});
+
+check("MARZI-015 profile: verified data only, wardrobe, achievements, a11y", () => {
+  const L = tt.T.en;
+  tt.S.lang = "en";
+  const today = new Date().toISOString().slice(0, 10);
+  const yesterday = new Date(Date.now() - 864e5).toISOString().slice(0, 10);
+
+  // a learner with a known, fully verifiable history
+  localStorage.setItem("marzi.stats.v1", JSON.stringify({
+    days: { [today]: { calls: 1 }, [yesterday]: { calls: 1 } },
+    calls: 12, seconds: 3900, xp: 500, coins: 640,
+    ownedItemIds: ["explorer", "sporty"], equippedItemIds: ["sporty"],
+  }));
+  localStorage.setItem("telefontrainer.fixes", JSON.stringify([
+    { text: "a", corrected: "A", drilled: today }, { text: "b", corrected: "B", drilled: today }, { text: "c", corrected: "C" },
+  ]));
+  localStorage.setItem("telefontrainer.words", JSON.stringify(["Haus", "Baum"]));
+
+  const p = tt.profileSnapshot();
+  // every figure is the stored counter, never an estimate
+  if (p.calls !== 12 || p.coins !== 640 || p.xp !== 500) throw new Error("counters not read verbatim");
+  if (p.minutes !== 65) throw new Error("speaking time is not seconds/60: " + p.minutes);
+  if (p.reviewed !== 2) throw new Error("reviewed counts only drilled mistakes: " + p.reviewed);
+  if (p.words !== 2) throw new Error("saved words");
+  if (p.streak !== 2) throw new Error("streak: " + p.streak);
+  // stage and rank are two separate systems and stay separate
+  if (p.stage !== tt.marziStageForXp(500)) throw new Error("stage not derived from the XP thresholds");
+  if (p.rank.n !== tt.rankFor(500).n) throw new Error("rank must stay the learner rank");
+  if (p.stageBase !== tt.MARZI_STAGE_XP[p.stage - 1]) throw new Error("stage base");
+  if (p.stageNext !== tt.MARZI_STAGE_XP[p.stage]) throw new Error("next threshold");
+  if (p.xpToNext !== p.stageNext - 500) throw new Error("XP to next stage");
+  if (p.stageGained + p.xpToNext !== p.stageSpan) throw new Error("stage progress does not span the thresholds");
+  // the six thresholds are untouched
+  if (tt.MARZI_STAGE_XP.join() !== "0,150,400,800,1500,2600") throw new Error("XP thresholds changed");
+
+  // wardrobe: owned items only, at most one equipped, unknown ids never shown
+  if (p.owned.join() !== "explorer,sporty") throw new Error("owned outfits");
+  if (p.equipped !== "sporty") throw new Error("equipped outfit");
+
+  // achievements are pure functions of the snapshot - nothing else can grant one
+  const achv = tt.achievementState(p);
+  const by = Object.fromEntries(achv.map((a) => [a.id, a]));
+  if (!by.call1.earned || !by.call10.earned) throw new Error("call achievements not earned at 12 calls");
+  if (by.call50.earned) throw new Error("50-call achievement earned at 12 calls");
+  if (!by.min60.earned) throw new Error("60 minutes not earned at 65 minutes");
+  if (by.streak7.earned) throw new Error("7-day streak earned at 2 days");
+  if (by.fix25.earned) throw new Error("25 reviewed earned at 2");
+  if (!by.outfit1.earned) throw new Error("first outfit not earned");
+  if (by.streak7.have !== 2 || by.streak7.goal !== 7) throw new Error("locked achievements must show real progress");
+  for (const a of achv) if (a.have > a.goal) throw new Error("progress above the goal: " + a.id);
+  // a fresh learner earns nothing at all
+  localStorage.setItem("marzi.stats.v1", JSON.stringify({ days: {}, calls: 0, seconds: 0, xp: 0, coins: 0 }));
+  localStorage.setItem("telefontrainer.fixes", "[]");
+  localStorage.setItem("telefontrainer.words", "[]");
+  const zero = tt.achievementState(tt.profileSnapshot());
+  if (zero.some((a) => a.earned)) throw new Error("an empty profile earned an achievement");
+  if (tt.profileSnapshot().owned.length) throw new Error("empty wardrobe");
+
+  // rendering: identity, both localized stage strings, and the empty wardrobe state
+  tt.renderProfile();
+  const body = document.getElementById("profBody").innerHTML;
+  const stage = tt.marziStageForXp(0);
+  if (!body.includes(L.stageNames[stage - 1])) throw new Error("stage name missing");
+  if (!body.includes(L.stageDescs[stage - 1])) throw new Error("localized stage description missing");
+  if (!body.includes("Lv. " + tt.rankFor(0).n)) throw new Error("learner rank not shown separately");
+  if (!body.includes(L.profNoOutfits)) throw new Error("empty wardrobe state missing");
+  if (!body.includes(L.profAchv) || !body.includes("0/" + tt.ACHIEVEMENTS.length)) throw new Error("achievement summary");
+  if (!body.includes(L.profReviewed)) throw new Error("mistakes reviewed missing");
+
+  // accessibility control: reduce motion is a real, persisted, additive setting
+  const styles = html.slice(html.indexOf("<style>"), html.indexOf("</style>"));
+  if (!/body\.reduce-motion \*/.test(styles)) throw new Error("reduce-motion class has no effect");
+  if (!/@media \(prefers-reduced-motion: reduce\)/.test(styles)) throw new Error("OS preference no longer honoured");
+  tt.S.reduceMotion = true;
+  if (tt.applyReduceMotion() !== true || !document.body.classList.has("reduce-motion")) throw new Error("reduce motion not applied");
+  tt.S.reduceMotion = false;
+  tt.applyReduceMotion();
+  if (document.body.classList.has("reduce-motion")) throw new Error("reduce motion not removable");
+  if (!/reduceMotion:!!S\.reduceMotion/.test(src)) throw new Error("reduce motion is not persisted");
+  if (!/applyReduceMotion\(\);\s*\n/.test(src)) throw new Error("reduce motion not applied at boot");
 });
 
 check("progress chart renders points, CEFR bands and a projection", () => {

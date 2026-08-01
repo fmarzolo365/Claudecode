@@ -1,7 +1,7 @@
 // Telefontrainer service worker: fast loads + offline shell.
 // Network-first for everything same-origin except /api/ (never cached),
 // falling back to cache when offline. Bump CACHE to invalidate.
-const CACHE = "telefontrainer-v33";
+const CACHE = "telefontrainer-v34";
 const ASSETS = ["/", "/manifest.webmanifest", "/icons/icon-192.png", "/icons/icon-512.png"];
 
 self.addEventListener("install", (e) => {

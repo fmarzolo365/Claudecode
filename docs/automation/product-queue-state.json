@@ -16,13 +16,13 @@
     {
       "id": "MARZI-015",
       "title": "Profile & Progress",
-      "status": "in_progress",
+      "status": "done",
       "commit": null
     },
     {
       "id": "MARZI-016",
       "title": "Map / Learning Journey",
-      "status": "pending",
+      "status": "in_progress",
       "commit": null
     }
   ],

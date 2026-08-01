@@ -1286,6 +1286,37 @@
     .big[data-status="listening"] { animation: none; box-shadow: 0 0 0 3px rgba(95,150,45,.5); }
     .vc-stage.speaking::after { animation: none; box-shadow: inset 0 0 0 3px rgba(95,150,45,.75); }
   }
+  /* MARZI-015: the same result from the in-app control. It can only ADD
+     reduction - the OS preference above is never overridden downwards. */
+  body.reduce-motion *, body.reduce-motion *::before, body.reduce-motion *::after {
+    animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important;
+  }
+  body.reduce-motion .big[data-status="listening"] { animation: none; box-shadow: 0 0 0 3px rgba(95,150,45,.5); }
+  body.reduce-motion .vc-stage.speaking::after { animation: none; box-shadow: inset 0 0 0 3px rgba(95,150,45,.75); }
+  /* ---------- MARZI-015: profile identity, achievements ---------- */
+  .prof-id { display: flex; flex-direction: column; align-items: center; text-align: center; gap: var(--space-1); }
+  .prof-id-stage { font: 800 var(--text-lg) var(--font-sans); color: var(--marzi-dark); }
+  .prof-id-desc { margin: 0; max-width: 30ch; font: 500 var(--text-sm) var(--font-sans); color: var(--muted); }
+  .prof-id-rank {
+    font: 700 var(--text-xs) var(--font-sans); color: var(--muted);
+    background: var(--surface-strong); border-radius: 999px; padding: 4px var(--space-3);
+  }
+  .label.prof-achv-lbl { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-2); }
+  .prof-achv-n { color: var(--muted); }
+  .achv-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-2); }
+  .achv {
+    display: flex; align-items: center; gap: var(--space-2);
+    background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: var(--space-2) var(--space-3); min-height: var(--touch-min);
+  }
+  /* the text column must be allowed to shrink and wrap, or a long localized
+     name pushes the card past the viewport on a 360px phone */
+  .achv-txt { min-width: 0; overflow-wrap: anywhere; }
+  .achv b { display: block; font: 800 var(--text-xs) var(--font-sans); color: var(--ink); }
+  .achv small { display: block; font: 700 var(--text-f11-5) var(--font-sans); color: var(--muted); }
+  .achv-ic { display: inline-flex; flex: 0 0 auto; color: var(--muted); }
+  .achv[data-state="earned"] { border-color: var(--primary); background: var(--tint-primary-04); }
+  .achv[data-state="earned"] .achv-ic { color: var(--primary); }
   /* screen-reader-only live region (review §12) */
   .sr-only {
     position: absolute !important; width: 1px !important; height: 1px !important;
@@ -1551,11 +1582,16 @@
   <section id="profile" class="hidden">
     <div class="plate"><span id="profTitle"></span></div>
     <div id="profBody" style="margin-top:10px"></div>
+    <div class="label" style="margin-top:18px" id="profSettingsLbl"></div>
     <div class="setting-list">
       <button class="setting-row" id="pairBtn" type="button"></button>
-      <button class="setting-row" id="soundBtn" type="button"></button>
       <button class="setting-row" id="exportBtn" type="button"></button>
       <button class="setting-row" id="importBtn" type="button"></button>
+    </div>
+    <div class="label" style="margin-top:18px" id="profA11yLbl"></div>
+    <div class="setting-list">
+      <button class="setting-row" id="soundBtn" type="button"></button>
+      <button class="setting-row" id="motionBtn" type="button" aria-pressed="false"></button>
     </div>
     <input type="file" id="importFile" accept="application/json" class="hidden" />
     <div class="premium-card" id="premiumCard"></div>
@@ -1762,6 +1798,11 @@ const T = {
     premYearly:"Anual", premPerMonth:"por mes", premPerYear:"por año", premBest:"MEJOR OFERTA",
     premSave:"Ahorra 33%", premContinue:"Continuar", premLater:"Más tarde", premNotYet:"Premium aún no está disponible. Te avisaremos cuando lo esté.",
     premFree:"Gratis",
+    profStats:"Tus números", profWardrobe:"Tu armario", profNoOutfits:"Todavía no tienes ropa. Visita la tienda.",
+    profAchv:"Logros", profEarned:"Conseguido", profSettings:"Ajustes", profA11y:"Accesibilidad",
+    profMotion:"Reducir movimiento", profReviewed:"Errores repasados", profNext:"Próxima etapa", profMax:"Etapa máxima",
+    achCall1:"Primera llamada", achCall10:"10 llamadas", achCall50:"50 llamadas", achMin60:"60 minutos hablando",
+    achStreak7:"7 días seguidos", achStreak30:"30 días seguidos", achFix25:"25 errores repasados", achOutfit1:"Primera ropa",
     offlineTitle:"Sin conexión", offlineMsg:"Necesitas conexión para llamar. Vuelve a intentarlo cuando tengas internet.",
     rwTime:"Duración", rwTurns:"Turnos", rwMistakes:"Correcciones", rwNormal:"¡Buen trabajo! Sigue así.",
     rwHigh:"¡Excelente llamada! Hablaste con confianza.", rwZero:"Habla la próxima vez para ganar XP.", rwEvolvedTitle:"¡Marzi ha crecido!", rwContinue:"Continuar",
@@ -1827,6 +1868,11 @@ const T = {
     premYearly:"Yearly", premPerMonth:"per month", premPerYear:"per year", premBest:"BEST VALUE",
     premSave:"Save 33%", premContinue:"Continue", premLater:"Later", premNotYet:"Premium is not available yet. We will let you know when it is.",
     premFree:"Free",
+    profStats:"Your numbers", profWardrobe:"Your wardrobe", profNoOutfits:"No clothes yet. Visit the store.",
+    profAchv:"Achievements", profEarned:"Earned", profSettings:"Settings", profA11y:"Accessibility",
+    profMotion:"Reduce motion", profReviewed:"Mistakes reviewed", profNext:"Next stage", profMax:"Final stage",
+    achCall1:"First call", achCall10:"10 calls", achCall50:"50 calls", achMin60:"60 minutes speaking",
+    achStreak7:"7 days in a row", achStreak30:"30 days in a row", achFix25:"25 mistakes reviewed", achOutfit1:"First outfit",
     offlineTitle:"No connection", offlineMsg:"You need a connection to call. Try again once you are back online.",
     rwTime:"Duration", rwTurns:"Turns", rwMistakes:"Corrections", rwNormal:"Nice work! Keep going.",
     rwHigh:"Excellent call! You spoke with confidence.", rwZero:"Speak next time to earn XP.", rwEvolvedTitle:"Marzi has grown!", rwContinue:"Continue",
@@ -1895,6 +1941,11 @@ T.tr = { tagline:"Gerçek Almanca aramalar ve konuşmalar pratiği yap. Sen konu
   premYearly:"Yıllık", premPerMonth:"ayda", premPerYear:"yılda", premBest:"EN İYİ TEKLİF",
   premSave:"%33 tasarruf", premContinue:"Devam", premLater:"Sonra", premNotYet:"Premium henüz kullanılamıyor. Hazır olduğunda haber vereceğiz.",
   premFree:"Ücretsiz",
+  profStats:"Rakamların", profWardrobe:"Gardırobun", profNoOutfits:"Henüz kıyafetin yok. Mağazaya uğra.",
+  profAchv:"Başarımlar", profEarned:"Kazanıldı", profSettings:"Ayarlar", profA11y:"Erişilebilirlik",
+  profMotion:"Hareketi azalt", profReviewed:"Tekrar edilen hatalar", profNext:"Sonraki aşama", profMax:"Son aşama",
+  achCall1:"İlk arama", achCall10:"10 arama", achCall50:"50 arama", achMin60:"60 dakika konuşma",
+  achStreak7:"Üst üste 7 gün", achStreak30:"Üst üste 30 gün", achFix25:"25 hata tekrar edildi", achOutfit1:"İlk kıyafet",
   offlineTitle:"Bağlantı yok", offlineMsg:"Aramak için bağlantı gerekir. İnternet gelince tekrar dene.",
   rwTime:"Süre", rwTurns:"Tur", rwMistakes:"Düzeltme", rwNormal:"Güzel iş! Böyle devam.",
   rwHigh:"Harika bir görüşme! Kendinden emin konuştun.", rwZero:"XP kazanmak için konuş.", rwEvolvedTitle:"Marzi büyüdü!", rwContinue:"Devam",
@@ -1960,6 +2011,11 @@ T.ar = { tagline:"تدرّب على مكالمات ومحادثات حقيقية
   premYearly:"سنوي", premPerMonth:"شهريًا", premPerYear:"سنويًا", premBest:"أفضل عرض",
   premSave:"وفّر 33%", premContinue:"متابعة", premLater:"لاحقًا", premNotYet:"بريميوم غير متاح بعد. سنخبرك عندما يصبح متاحًا.",
   premFree:"مجاني",
+  profStats:"أرقامك", profWardrobe:"خزانتك", profNoOutfits:"لا توجد ملابس بعد. زر المتجر.",
+  profAchv:"الإنجازات", profEarned:"تم", profSettings:"الإعدادات", profA11y:"إمكانية الوصول",
+  profMotion:"تقليل الحركة", profReviewed:"أخطاء تمت مراجعتها", profNext:"المرحلة التالية", profMax:"المرحلة الأخيرة",
+  achCall1:"أول مكالمة", achCall10:"10 مكالمات", achCall50:"50 مكالمة", achMin60:"60 دقيقة تحدث",
+  achStreak7:"7 أيام متتالية", achStreak30:"30 يومًا متتاليًا", achFix25:"مراجعة 25 خطأ", achOutfit1:"أول ملابس",
   offlineTitle:"لا يوجد اتصال", offlineMsg:"تحتاج إلى اتصال لإجراء مكالمة. حاول مرة أخرى عند عودة الإنترنت.",
   rwTime:"المدة", rwTurns:"الأدوار", rwMistakes:"التصحيحات", rwNormal:"عمل جيد! واصل.",
   rwHigh:"مكالمة ممتازة! تحدثت بثقة.", rwZero:"تحدث في المرة القادمة لتكسب XP.", rwEvolvedTitle:"لقد كبر مارزي!", rwContinue:"متابعة",
@@ -2025,6 +2081,11 @@ T.uk = { tagline:"Тренуй реальні дзвінки й розмови �
   premYearly:"Щороку", premPerMonth:"на місяць", premPerYear:"на рік", premBest:"НАЙКРАЩА ЦІНА",
   premSave:"Заощадь 33%", premContinue:"Далі", premLater:"Пізніше", premNotYet:"Premium ще недоступний. Ми повідомимо, щойно він з'явиться.",
   premFree:"Безкоштовно",
+  profStats:"Твої числа", profWardrobe:"Твоя шафа", profNoOutfits:"Ще немає одягу. Загляни в магазин.",
+  profAchv:"Досягнення", profEarned:"Отримано", profSettings:"Налаштування", profA11y:"Доступність",
+  profMotion:"Менше руху", profReviewed:"Опрацьовані помилки", profNext:"Наступний етап", profMax:"Останній етап",
+  achCall1:"Перший дзвінок", achCall10:"10 дзвінків", achCall50:"50 дзвінків", achMin60:"60 хвилин мовлення",
+  achStreak7:"7 днів поспіль", achStreak30:"30 днів поспіль", achFix25:"25 опрацьованих помилок", achOutfit1:"Перший одяг",
   offlineTitle:"Немає зв'язку", offlineMsg:"Для дзвінка потрібне з'єднання. Спробуй ще раз, коли з'явиться інтернет.",
   rwTime:"Тривалість", rwTurns:"Репліки", rwMistakes:"Виправлення", rwNormal:"Гарна робота! Так тримати.",
   rwHigh:"Чудова розмова! Ти говорив упевнено.", rwZero:"Говори наступного разу, щоб отримати XP.", rwEvolvedTitle:"Marzi підріс!", rwContinue:"Далі",
@@ -2091,6 +2152,11 @@ T.it = { tagline:"Allenati con telefonate e conversazioni reali in tedesco. Tu p
   premYearly:"Annuale", premPerMonth:"al mese", premPerYear:"all'anno", premBest:"MIGLIOR OFFERTA",
   premSave:"Risparmia 33%", premContinue:"Continua", premLater:"Più tardi", premNotYet:"Premium non è ancora disponibile. Ti avviseremo quando lo sarà.",
   premFree:"Gratis",
+  profStats:"I tuoi numeri", profWardrobe:"Il tuo guardaroba", profNoOutfits:"Non hai ancora vestiti. Vai al negozio.",
+  profAchv:"Obiettivi", profEarned:"Ottenuto", profSettings:"Impostazioni", profA11y:"Accessibilità",
+  profMotion:"Riduci il movimento", profReviewed:"Errori ripassati", profNext:"Prossima fase", profMax:"Fase finale",
+  achCall1:"Prima chiamata", achCall10:"10 chiamate", achCall50:"50 chiamate", achMin60:"60 minuti di parlato",
+  achStreak7:"7 giorni di fila", achStreak30:"30 giorni di fila", achFix25:"25 errori ripassati", achOutfit1:"Primo vestito",
   offlineTitle:"Nessuna connessione", offlineMsg:"Serve una connessione per chiamare. Riprova quando torni online.",
   rwTime:"Durata", rwTurns:"Turni", rwMistakes:"Correzioni", rwNormal:"Bel lavoro! Continua così.",
   rwHigh:"Ottima chiamata! Hai parlato con sicurezza.", rwZero:"Parla la prossima volta per guadagnare XP.", rwEvolvedTitle:"Marzi è cresciuto!", rwContinue:"Continua",
@@ -2542,7 +2608,7 @@ const S = { scenario:SCENARIOS[0], level:"A1", lang:"es", targetLang:TARGET.code
 const SET_KEY = "marzi.settings.v1";
 function saveSettings() {
   try {
-    localStorage.setItem(SET_KEY, JSON.stringify({ scenario:S.scenario.id, level:S.level, lang:S.lang, targetLang:S.targetLang, speed:S.speed, customTopic:S.customTopic, sound:S.sound !== false }));
+    localStorage.setItem(SET_KEY, JSON.stringify({ scenario:S.scenario.id, level:S.level, lang:S.lang, targetLang:S.targetLang, speed:S.speed, customTopic:S.customTopic, sound:S.sound !== false, reduceMotion:!!S.reduceMotion }));
   } catch (e) { try { notifyStorageFailure(); } catch (e2) {} }
 }
 (function loadSettings() {
@@ -2556,6 +2622,7 @@ function saveSettings() {
     if (SPEEDS[s.speed]) S.speed = s.speed;
     if (typeof s.customTopic === "string") S.customTopic = s.customTopic;
     if (s.sound === false) S.sound = false;
+    if (s.reduceMotion === true) S.reduceMotion = true;
     // first run: preselect the correction language from the phone's language
     // and remember to show the onboarding (language pair picker)
     if (!localStorage.getItem(SET_KEY)) {
@@ -3935,24 +4002,112 @@ function buyPack(id) {
   renderStore();
 }
 
-/* ---------- PROFILE: stats, settings, premium teaser ---------- */
+/* ---------- PROFILE: stats, settings, premium teaser ----------
+   MARZI-015. Every number on this screen comes from `profileSnapshot()`,
+   which reads only counters the app already writes - there is no estimated,
+   projected or otherwise invented statistic anywhere below. */
+function reviewedMistakeCount() {
+  // a mistake counts as reviewed once the drill has actually visited it
+  return loadFixes().filter((f) => f && f.drilled).length;
+}
+function profileSnapshot(st) {
+  const s = st || loadStats();
+  const xp = s.xp || 0;
+  const stage = marziStageForXp(xp);
+  const base = MARZI_STAGE_XP[stage - 1];
+  const next = stage < MARZI_STAGE_COUNT ? MARZI_STAGE_XP[stage] : null;
+  const owned = (s.ownedItemIds || []).filter((id) => OUTFITS.some((o) => o.id === id));
+  return {
+    xp, stage, rank: rankFor(xp),
+    stageBase: base, stageNext: next,
+    stageGained: xp - base,
+    stageSpan: next === null ? 0 : next - base,
+    xpToNext: next === null ? 0 : Math.max(0, next - xp),
+    coins: s.coins || 0,
+    calls: s.calls || 0,
+    seconds: s.seconds || 0,
+    minutes: Math.round((s.seconds || 0) / 60),
+    streak: currentStreak(s),
+    reviewed: reviewedMistakeCount(),
+    words: loadWords().length,
+    owned,
+    equipped: (s.equippedItemIds || [])[0] || null,
+  };
+}
+/* Achievements are pure functions of the snapshot above: each names the exact
+   counter it reads, so nothing can be earned that the data does not support. */
+const ACHIEVEMENTS = [
+  { id: "call1", key: "achCall1", icon: "phone", read: (p) => p.calls, goal: 1 },
+  { id: "call10", key: "achCall10", icon: "phone", read: (p) => p.calls, goal: 10 },
+  { id: "call50", key: "achCall50", icon: "phone", read: (p) => p.calls, goal: 50 },
+  { id: "min60", key: "achMin60", icon: "clock", read: (p) => p.minutes, goal: 60 },
+  { id: "streak7", key: "achStreak7", icon: "flame", read: (p) => p.streak, goal: 7 },
+  { id: "streak30", key: "achStreak30", icon: "flame", read: (p) => p.streak, goal: 30 },
+  { id: "fix25", key: "achFix25", icon: "check", read: (p) => p.reviewed, goal: 25 },
+  { id: "outfit1", key: "achOutfit1", icon: "shirt", read: (p) => p.owned.length, goal: 1 },
+];
+function achievementState(p) {
+  return ACHIEVEMENTS.map((a) => {
+    const have = Math.max(0, Number(a.read(p)) || 0);
+    return { id: a.id, key: a.key, icon: a.icon, goal: a.goal, have: Math.min(have, a.goal), earned: have >= a.goal };
+  });
+}
 function renderProfile() {
   const L = t();
   const st = loadStats();
-  const xp = st.xp || 0, r = rankFor(xp), stage = marziStageForXp(xp);
+  const p = profileSnapshot(st);
+  const stage = p.stage;
   $("profTitle").textContent = L.tabProfile.toUpperCase();
   const stats = [
-    [`Lv. ${r.n}`, r.title],
-    [`${stage}/${MARZI_STAGE_COUNT}`, `Marzi · ${marziNames()[stage - 1]}`],
-    [`${xp}`, "XP"],
-    [`${st.coins || 0}`, L.coins],
-    [`${currentStreak(st)}`, L.days],
-    [`${st.calls || 0}`, L.calls],
-    [`${Math.round((st.seconds || 0) / 60)}`, L.minutes],
-    [`${loadWords().length}`, L.myWords],
+    [`${p.coins}`, L.coins],
+    [`${p.streak}`, L.days],
+    [`${p.calls}`, L.calls],
+    [`${p.minutes}`, L.minutes],
+    [`${p.reviewed}`, L.profReviewed],
+    [`${p.words}`, L.myWords],
   ];
-  $("profBody").innerHTML = `<div class="stat-grid">` +
+  const achv = achievementState(p);
+  const earned = achv.filter((a) => a.earned).length;
+  $("profBody").innerHTML =
+    // identity: Marzi's stage is primary, the learner rank a secondary line
+    `<div class="prof-id">
+       ${UI.marziAvatar({ stage, mood: "happy", size: "var(--avatar-xl)" })}
+       <div class="prof-id-stage">${esc(stage + "/" + MARZI_STAGE_COUNT + " · " + marziNames()[stage - 1])}</div>
+       <p class="prof-id-desc">${esc(marziDescs()[stage - 1])}</p>
+       <div class="prof-id-rank">${esc(`Lv. ${p.rank.n} · ${p.rank.title}`)}</div>
+     </div>` +
+    UI.progressCard({
+      title: p.stageNext === null ? L.profMax : L.profNext,
+      value: p.stageNext === null ? 1 : p.stageGained, max: p.stageNext === null ? 1 : p.stageSpan,
+      valueLabel: `${p.xp} XP`,
+      caption: p.stageNext === null ? "" : `${p.xpToNext} XP → ${marziNames()[stage]}`,
+    }) +
+    `<div class="label" style="margin-top:18px">${esc(L.profStats)}</div>
+     <div class="stat-grid">` +
     stats.map(([b, s]) => `<div class="stat"><b>${esc(b)}</b><small>${esc(s)}</small></div>`).join("") +
+    `</div>
+     <div class="label" style="margin-top:18px">${esc(L.profWardrobe)}</div>` +
+    (p.owned.length
+      ? `<div class="outfit-grid-3">` + p.owned.map((id) => {
+          const o = OUTFITS.find((x) => x.id === id);
+          const state = id === p.equipped ? "equipped" : "owned";
+          return UI.outfitCard({
+            id, name: outfitName(id), price: o.price, state,
+            stageLabel: `${L.needStage} ${o.stage}`,
+            stateLabel: state === "equipped" ? L.equippedLbl : L.ownedLbl,
+            art: OUTFIT_ART(id),
+          });
+        }).join("") + `</div>`
+      : UI.emptyState({ icon: IC.shirt(ICON.hero), title: L.profNoOutfits, body: "" })) +
+    `<div class="label prof-achv-lbl" style="margin-top:18px"><span>${esc(L.profAchv)}</span><span class="prof-achv-n">${esc(earned + "/" + achv.length)}</span></div>
+     <div class="achv-grid">` +
+    achv.map((a) => {
+      const name = (L[a.key] || T.en[a.key] || a.id);
+      return `<div class="achv" data-id="${esc(a.id)}" data-state="${a.earned ? "earned" : "locked"}">` +
+        `<span class="achv-ic" aria-hidden="true">${IC[a.icon](ICON.lg)}</span>` +
+        `<span class="achv-txt"><b>${esc(name)}</b>` +
+        `<small>${esc(a.earned ? L.profEarned : `${a.have}/${a.goal}`)}</small></span></div>`;
+    }).join("") +
     `</div>`;
   $("premiumCard").innerHTML =
     `<div style="display:flex;align-items:center;gap:10px">
@@ -3965,12 +4120,24 @@ function renderProfile() {
   $("premiumCard").setAttribute("role", "button");
   $("premiumCard").setAttribute("tabindex", "0");
   $("premiumCard").onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") openPremiumScreen(); };
+  $("profSettingsLbl").textContent = L.profSettings;
+  $("profA11yLbl").textContent = L.profA11y;
   $("soundBtn").textContent = (S.sound !== false ? "♪ " : "○ ") + L.sound + (S.sound !== false ? ": ON" : ": OFF");
   $("soundBtn").className = "toggle" + (S.sound !== false ? " on" : "");
   $("soundBtn").onclick = () => {
     S.sound = S.sound === false;
     if (S.sound === false) SFX.ringStop();
     saveSettings(); renderProfile();
+  };
+  // reduce motion: an in-app control on top of the OS preference, which is
+  // already honoured. Forcing it on is possible; forcing it OFF is not - the
+  // system setting always wins.
+  $("motionBtn").textContent = (S.reduceMotion ? "◐ " : "◑ ") + L.profMotion + (S.reduceMotion ? ": ON" : ": OFF");
+  $("motionBtn").className = "toggle" + (S.reduceMotion ? " on" : "");
+  $("motionBtn").setAttribute("aria-pressed", S.reduceMotion ? "true" : "false");
+  $("motionBtn").onclick = () => {
+    S.reduceMotion = !S.reduceMotion;
+    saveSettings(); applyReduceMotion(); renderProfile();
   };
   // compact language row: current help language → target; tap opens the pair picker
   const helpName = (LANG_CHIPS.find((x) => x[0] === S.lang) || ["", S.lang])[1];
@@ -4000,6 +4167,13 @@ function applyLangDirection(lang) {
     document.documentElement.setAttribute("dir", dir);
   } catch (e) {}
   return dir;
+}
+/* MARZI-015: the in-app reduce-motion control. The OS preference is honoured
+   by its own media query and always wins, so this can only add reduction. */
+function applyReduceMotion() {
+  const on = !!S.reduceMotion;
+  try { document.body.classList[on ? "add" : "remove"]("reduce-motion"); } catch (e) {}
+  return on;
 }
 
 function updateTopbar() {
@@ -6235,6 +6409,7 @@ window.addEventListener("hashchange", () => {
 });
 
 applyLangDirection();
+applyReduceMotion();
 renderNetBanner();
 window.addEventListener("online", renderNetBanner);
 window.addEventListener("offline", renderNetBanner);
