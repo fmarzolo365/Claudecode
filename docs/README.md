@@ -34,8 +34,18 @@ Canonical documents for the app. Read in this order when picking up the work.
 - **[EXPANSION.md](EXPANSION.md)** — multi-language groundwork (TARGETS).
 
 ## Gates
-`node --check server.js` and `node test/run.js` must both pass. CI runs them on
-every branch. The suite additionally enforces: i18n parity across all six help
-languages, byte-identical German prompts, design-token purity (no raw colours,
-timings, type or icon sizes), component and accessibility contracts, and the
-release gates in this index.
+`node test/conflict-markers.js`, `node --check server.js` and `node test/run.js`
+must all pass. CI runs the three on every branch. The suite additionally
+enforces: i18n parity across all six help languages, byte-identical German
+prompts, design-token purity (no raw colours, timings, type or icon sizes),
+component and accessibility contracts, and the release gates in this index.
+
+**Conflict-marker gate.** `test/conflict-markers.js` scans every text file in
+the repository — not just the shipped app — for unresolved `<<<`/`===`/`>>>`
+merge markers, and fails with the file and line of each. It runs as its own
+named CI step so a bad merge fails fast, and again inside the suite, which
+also proves the scanner still detects a planted conflict. A lone `=======` is
+only counted inside a file that already has an opening or closing marker, so
+Markdown setext headings do not trip it. This is not hypothetical:
+`docs/EXPANSION.md` shipped with a committed three-way conflict (fixed in
+CODEX-FIX-001).

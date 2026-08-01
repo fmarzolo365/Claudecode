@@ -8,6 +8,8 @@
  */
 const fs = require("fs");
 const path = require("path");
+const os = require("os");
+const { scanConflictMarkers } = require("./conflict-markers.js");
 
 let failures = 0;
 const pending = []; // async checks settle before the summary
@@ -1157,6 +1159,32 @@ check("release gates: hygiene, versioning and documentation", () => {
   // 5. no dependencies crept in - the app stays dependency-free (ADR-3)
   const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "package.json"), "utf8"));
   if (Object.keys(pkg.dependencies || {}).length) throw new Error("runtime dependencies added");
+  // 6. CI runs the conflict-marker gate as its own named step
+  if (!ci.includes("node test/conflict-markers.js")) throw new Error("CI missing the conflict-marker gate");
+});
+
+check("no unresolved conflict markers anywhere in the repository", () => {
+  // docs/EXPANSION.md once shipped with a committed three-way conflict, so
+  // this gate is repository-wide: every text file, not just the shipped app.
+  const hits = scanConflictMarkers();
+  if (hits.length) {
+    const where = hits.map((h) => `${h.file}:${h.markers.map((m) => m.line).join(",")}`).join(" ");
+    throw new Error(`unresolved conflict markers in ${hits.length} file(s): ${where}`);
+  }
+  // and the gate itself must actually detect one - a scanner that can only
+  // ever return zero would pass this check while proving nothing
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cm-"));
+  try {
+    const marked = ["a", "<".repeat(7) + " HEAD", "x", "=".repeat(7), "y", ">".repeat(7) + " other", "b"].join("\n");
+    fs.writeFileSync(path.join(tmp, "conflicted.md"), marked);
+    fs.writeFileSync(path.join(tmp, "heading.md"), "# Title\n" + "=".repeat(7) + "\nbody\n");
+    const found = scanConflictMarkers(tmp);
+    if (found.length !== 1) throw new Error("scanner flagged " + found.length + " files, expected exactly the conflicted one");
+    if (found[0].file !== "conflicted.md") throw new Error("scanner flagged the wrong file: " + found[0].file);
+    if (found[0].markers.map((m) => m.line).join() !== "2,4,6") throw new Error("scanner missed a marker line");
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
 });
 
 check("MARZI-013 Marzi states: mapping, fallback, asset paths", () => {

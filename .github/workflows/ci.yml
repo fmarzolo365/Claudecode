@@ -13,6 +13,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+      - name: Conflict-marker gate
+        run: node test/conflict-markers.js
       - name: Syntax check server
         run: node --check server.js
       - name: Run test suite
