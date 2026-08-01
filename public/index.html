@@ -1171,6 +1171,13 @@
     font-size: var(--text-f64); opacity: .9;
   }
   .callscreen:has(.call-portrait.ok) .call-emoji { display: none; }
+  /* MARZI-018 M-10: a soft floor under Marzi so the lower third reads as a
+     room he is standing in, not as empty space below a crop. */
+  .call-mid::after {
+    content: ""; position: absolute; inset-inline: 0; bottom: 0; height: 38%;
+    z-index: 1; pointer-events: none;
+    background: linear-gradient(180deg, rgba(16,12,8,0) 0%, rgba(16,12,8,.42) 52%, rgba(16,12,8,.72) 100%);
+  }
   /* scrim keeps text legible over any portrait */
   .call-scrim {
     position: absolute; inset: 0;
@@ -1208,18 +1215,32 @@
      min-content and clips its text */
   .call-bubble.char { inset-inline-start: var(--space-3); top: 12%; width: 62%; border-end-start-radius: 6px; }
   .call-bubble.marzi {
-    inset-inline-end: var(--space-3); bottom: var(--space-2); width: 52%;
-    cursor: pointer; border-end-end-radius: 6px;
+    inset-inline-start: min(42vw, 200px); inset-inline-end: var(--space-3);
+    bottom: calc(var(--space-2) + 26%); width: auto;
+    cursor: pointer; border-end-start-radius: 6px;
     background: var(--paper); border-color: var(--tint-leaf-35);
   }
+  /* the tail points back at Marzi, so bubble and companion read as one unit */
+  .call-bubble.marzi::after {
+    content: ""; position: absolute; inset-inline-start: -7px; bottom: 12px;
+    width: 12px; height: 12px; transform: rotate(45deg);
+    background: var(--paper); border-inline-start: 1.5px solid var(--tint-leaf-35);
+    border-block-end: 1.5px solid var(--tint-leaf-35); border-end-start-radius: 3px;
+  }
   /* Marzi in-scene, lower-left, board position */
+  /* MARZI-018 M-02: Marzi is an in-scene companion. The art scales with the
+     dynamic viewport so he holds >=30% of width and ~25% of height on both
+     reference phones, and is clamped so he never overruns the stage. */
   .call-marzi {
     position: absolute; inset-inline-start: var(--space-2); bottom: 0;
     z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 1px;
-    pointer-events: none; max-width: 128px;
+    pointer-events: none; max-width: min(46vw, 220px);
   }
-  .call-marzi .vc-marzi-art { width: 108px; height: 108px; filter: drop-shadow(0 6px 14px rgba(16,12,8,.55)); }
-  .call-marzi .vc-marzi-art svg { width: 100%; height: 100%; }
+  .call-marzi .vc-marzi-art {
+    width: clamp(108px, 23dvh, 196px); height: clamp(108px, 23dvh, 196px);
+    filter: drop-shadow(0 6px 14px rgba(16,12,8,.55));
+  }
+  .call-marzi .vc-marzi-art svg, .call-marzi .vc-marzi-img { width: 100%; height: 100%; display: block; }
   .call-marzi[data-stage="1"] .vc-marzi-art,
   .call-marzi[data-stage="2"] .vc-marzi-art,
   .call-marzi[data-stage="3"] .vc-marzi-art {
@@ -3600,7 +3621,7 @@ function renderCallCompanion() {
   el.dataset.state = state;
   el.setAttribute("role", "img");
   el.setAttribute("aria-label", `Marzi, ${marziNames()[stage - 1]}, ${stage}/${MARZI_STAGE_COUNT}`);
-  el.innerHTML = `<span class="vc-marzi-art" data-state="${state}">${marziArt(stage, state)}</span>` +
+  el.innerHTML = `<span class="vc-marzi-art" data-state="${state}">${marziCallArt(stage, state)}</span>` +
     `<span class="vc-marzi-cap">Marzi · ${esc(marziNames()[stage - 1])} · ${stage}/${MARZI_STAGE_COUNT}</span>`;
 }
 /* ---------- MARZI-013: canonical presentation states ----------
@@ -3641,6 +3662,43 @@ const MARZI_ASSETS = Object.create(null); // filled only when approved files shi
    so the lockup falls back to the existing approved stage-6 SVG and no request
    is ever made for a file that does not exist. Shipping the approved artwork
    means dropping the file in and registering it here - no call site changes. */
+/* ---------- MARZI-018: call-pose asset resolver ----------
+   Stable paths for the 21 approved call poses (stages 4-6 x seven states).
+   The registry SHIPS EMPTY, exactly like MARZI_ASSETS and the brand mark, so
+   every lookup falls back to the approved marziSVG and no request is ever
+   made for a file that does not exist. Shipping production art means dropping
+   the files in and registering them - no call site changes. */
+const CALL_POSE_STATES = ["ready", "listening", "thinking", "speaking", "encouraging", "limit", "offline"];
+/* the seven call poses map onto the eight canonical MARZI_STATES shipped in
+   MARZI-013 - no new state vocabulary is introduced */
+const CALL_POSE_TO_STATE = {
+  ready: "neutral", listening: "listening", thinking: "thinking", speaking: "speaking",
+  encouraging: "happy", limit: "sad", offline: "sad",
+};
+const MARZI_CALL_ASSETS = Object.create(null);
+function marziCallPose(state) {
+  if (CALL_POSE_STATES.includes(state)) return state;
+  const hit = Object.keys(CALL_POSE_TO_STATE).find((k) => CALL_POSE_TO_STATE[k] === state);
+  return hit || "ready";
+}
+function marziCallAssetPath(stage, state) {
+  const n = Math.min(6, Math.max(4, Number(stage) || 4)); // call poses exist for stages 4-6 only
+  return `/assets/marzi/call/stage-${n}-${marziCallPose(state)}.svg`;
+}
+function hasMarziCallAsset(stage, state) {
+  return MARZI_CALL_ASSETS[marziCallAssetPath(stage, state)] === true;
+}
+/* single entry point: approved art when registered, approved SVG otherwise */
+function marziCallArt(stage, state) {
+  const pose = marziCallPose(state);
+  if (Number(stage) >= 4 && hasMarziCallAsset(stage, pose)) {
+    return `<img class="vc-marzi-img" src="${esc(marziCallAssetPath(stage, pose))}" alt="" />`;
+  }
+  return marziArt(stage, CALL_POSE_TO_STATE[pose] || "neutral");
+}
+function __registerCallAsset(stage, state, on) {
+  MARZI_CALL_ASSETS[marziCallAssetPath(stage, state)] = on === true;
+}
 const BRAND_MARK_ASSET = "/assets/marzi/stage-6/header-neutral.svg";
 const BRAND_MARK_REGISTERED = Object.create(null);
 function hasBrandMarkAsset() { return BRAND_MARK_REGISTERED[BRAND_MARK_ASSET] === true; }
