@@ -440,3 +440,61 @@ outside `:root`, and on drift between the JS `ICON` scale and the
 
 ## Tests
 `node --check server.js` — pass. `node test/run.js` — **21/21**.
+
+---
+
+# Implementation Report — Board reconciliation, Batch 1
+
+**Task:** MARZI-DESIGN-RECONCILIATION Batch 1 (M1, H3, H4, L1, L4)
+**Date:** 2026-08-01 · **Status:** Complete, tests green, NOT merged
+
+## Boards are now canonical
+`docs/design/concept-boards/{01_home,02_call,04_progress}.png` are the visual
+source of truth; a future board is canonical on arrival. The Store panel
+inside `04_progress.png` stands in until a dedicated store board exists.
+
+## M1 · Palette (board-measured, high confidence only)
+`--bg` `#f7f1e5` → **`#fcf8f0`** · `--primary` `#5f962d` → **`#547c2c`**
+(hover `#496b26`, active `#3e5a20`, keeping the original ratios) ·
+`--track` `#eae4cd` → **`#e0dcc4`** · new **`--xp-fill: #709820`**.
+Per ruling, `--coin` and `--card` are unchanged — coin sampling was
+inconclusive (4–8% region dominance) and card sampling would have inverted
+page/card elevation.
+
+## H3 + L4 · Stage naming
+`MARZI_NAMES` (hard-coded German) → `marziNames()` / `marziDescs()`, backed by
+`stageNames` + `stageDescs` + `stageWord` in all six help languages (**78 new
+strings**). Spanish is transcribed verbatim from `04_progress.png`; stage 1 is
+plural everywhere. The evolution showcase now shows the current stage's
+description. All nine call sites migrated. **The six XP thresholds are
+untouched** (asserted in the suite).
+
+## H4 + L1 · Home hero
+Rebuilt to the board hierarchy: greeting → **Marzi centred at 132px** →
+**stage number + stage name** as the primary identity → **XP bar with the
+value in a pill inside** → one primary green CTA. Learner rank stays as a
+small secondary line — rank and evolution remain separate systems
+(MARZI-001). XP bar is now 22px with a solid `--xp-fill`.
+
+## Sparkles
+Five CSS-only radial-gradient dots in `--coin` / `--primary`, slow opacity
+twinkle, disabled under `prefers-reduced-motion`. **No image assets.**
+A real bug was found and fixed during verification: without a per-layer
+`background-size`, `background-position` moves a full-size layer, so every
+dot rendered in the middle of the card (invisible behind Marzi).
+
+## Verification
+`node --check server.js` — pass. `node test/run.js` — **23/23**, including two
+new checks: localized stage names/descriptions in all six languages with the
+Spanish text asserted against the board and the XP thresholds re-asserted;
+and the Home hero (board token values, solid fill, 22px bar, stage identity,
+XP-inside-bar, rank still visible, sparkles CSS-only).
+Chromium at 390×844: Home (es) shows "Nivel 5 / Rana estudiosa", page
+background `rgb(252,248,240)`, XP fill `rgb(112,152,32)`, bar 22px, no page
+scroll; Home (en) shows "Level 5 / Studious frog"; the evolution modal lists
+all six Spanish names plus the description; the call screen is unregressed
+(756px, no scroll, localized companion label, transcript intact).
+
+## Not touched
+Call UI, store logic, economy, providers, prompts, backend, rewards, outfit
+catalog, logo, progression thresholds.

@@ -87,12 +87,12 @@ let src = m[1];
 src += `\n;globalThis.__t = { T, TARGET, TARGETS, LEVELS, LEVEL_ORDER, SCENARIOS, GROUPS, BASIC_DECKS, HELP_LANG,
   saidWord, normDe, lev, rankFor, recordCall, addXp, loadStats, loadFixes, saveFixes,
   voiceOf, timerText, systemPrompt, S, chartSVG, loadTests, saveTestResult,
-  MARZI_NAMES, marziStageForXp, currentMarziStage, renderCallCompanion, addCoins, COIN_PACKS, buyPack, planLimitToday, planUsedToday, PLAN_SECONDS,
+  marziNames, marziDescs, MARZI_STAGE_COUNT, marziStageForXp, currentMarziStage, renderCallCompanion, addCoins, COIN_PACKS, buyPack, planLimitToday, planUsedToday, PLAN_SECONDS,
   normalizeStats, claimReward, newRewardId, migratedName, migrateStorageKeys, micStatusFor, MARZI_KEY,
   TAB_HASH, tabFromHash, showTab, updateTopbar,
   ENGINE_CONTRACTS, validateProvider, createProviderRegistry, ScenarioRegistry, CharacterRegistry,
   createTranscript, PromptBuilder, createConversationSession, ENGINE, send, ask,
-  callStateFor, callStateLabel, callStateIcon, callSecondsLeft, renderScenarioCards, renderCharacterCard, scenarioSubtitle,
+  renderLearn, callStateFor, callStateLabel, callStateIcon, callSecondsLeft, renderScenarioCards, renderCharacterCard, scenarioSubtitle,
   UI, IC, ICON, evolutionHTML };`;
 eval(src);
 const tt = globalThis.__t;
@@ -317,8 +317,9 @@ check("TARGET drives the taught language: registry shape, prompt language, recog
 });
 
 check("marzi has 6 canonical stages and the coin economy works", () => {
-  // six lamina stages (Marzi spec §15); the 7 XP ranks collapse onto them
-  if (tt.MARZI_NAMES.length !== 6) throw new Error("stages " + tt.MARZI_NAMES.length);
+  // six canonical stages (concept boards 01/04); names are localized
+  if (tt.MARZI_STAGE_COUNT !== 6) throw new Error("stage count " + tt.MARZI_STAGE_COUNT);
+  if (tt.marziNames().length !== 6) throw new Error("stages " + tt.marziNames().length);
   // canonical XP thresholds (MARZI-001): exact values map UP, invalid maps to 1
   const cases = [[0,1],[149,1],[150,2],[399,2],[400,3],[799,3],[800,4],[1499,4],[1500,5],[2599,5],[2600,6],[999999,6],[-5,1],[NaN,1],["nope",1],[null,1],[undefined,1]];
   for (const [xp, want] of cases) {
@@ -665,6 +666,58 @@ check("design tokens: no raw colours, timings, type sizes or icon sizes", () => 
       throw new Error(`icon scale drift: ICON.${name}=${px} has no matching --icon-${name}`);
     }
   }
+});
+
+check("stage naming: localized names + descriptions match the concept boards", () => {
+  // every help language carries six names and six descriptions
+  for (const lang of LANGS) {
+    const L = tt.T[lang];
+    if (!Array.isArray(L.stageNames) || L.stageNames.length !== 6) throw new Error(lang + " stageNames");
+    if (!Array.isArray(L.stageDescs) || L.stageDescs.length !== 6) throw new Error(lang + " stageDescs");
+    if (L.stageNames.some((n) => !n || !n.trim())) throw new Error(lang + " empty stage name");
+    if (L.stageDescs.some((d) => !d || d.length < 10)) throw new Error(lang + " weak stage description");
+    if (!L.stageWord) throw new Error(lang + " stageWord");
+  }
+  // Spanish is transcribed verbatim from board 04_progress
+  const es = tt.T.es.stageNames;
+  const want = ["Huevos de rana", "Renacuajo", "Renacuajo con patas", "Ranita joven", "Rana estudiosa", "Rana experta"];
+  if (es.join("|") !== want.join("|")) throw new Error("es stage names drifted from the board: " + es.join("|"));
+  if (!/^Todo comienza/.test(tt.T.es.stageDescs[0])) throw new Error("es stage description drifted from the board");
+  // stage 1 is plural in every language the board fixes
+  if (tt.T.en.stageNames[0] !== "Frog eggs") throw new Error("stage 1 must be plural");
+  // names follow the active help language, and the XP thresholds are untouched
+  tt.S.lang = "es";
+  if (tt.marziNames()[4] !== "Rana estudiosa") throw new Error("names not localized");
+  if (tt.marziDescs().length !== 6) throw new Error("descs not localized");
+  tt.S.lang = "en";
+  if (tt.marziNames()[4] !== "Studious frog") throw new Error("names did not follow language");
+  for (const [xp, want2] of [[0,1],[150,2],[400,3],[800,4],[1500,5],[2600,6]]) {
+    if (tt.marziStageForXp(xp) !== want2) throw new Error("XP threshold changed at " + xp);
+  }
+});
+
+check("home hero + XP bar follow the concept boards", () => {
+  // board palette values applied as tokens
+  const root = html.slice(html.indexOf(":root {"), html.indexOf("}", html.indexOf(":root {")));
+  for (const [token, value] of [["--bg", "#fcf8f0"], ["--primary", "#547c2c"], ["--xp-fill", "#709820"], ["--track", "#e0dcc4"]]) {
+    if (!root.includes(`${token}: ${value}`)) throw new Error(`${token} is not the board value ${value}`);
+  }
+  // XP fill is solid, not a gradient
+  const xpCss = html.slice(html.indexOf("  .xpbar {"), html.indexOf("  .xpbar .xp-val"));
+  if (/linear-gradient/.test(xpCss)) throw new Error("XP fill must be solid");
+  if (!/height:\s*22px/.test(xpCss)) throw new Error("XP bar proportion");
+  // hero renders stage identity, XP inside the bar, rank as a secondary line
+  localStorage.setItem("marzi.stats.v1", JSON.stringify({ days: {}, xp: 520, calls: 4 }));
+  tt.S.lang = "en";
+  tt.renderLearn();
+  if (document.getElementById("heroStage").textContent !== "Level 3") throw new Error("stage line: " + document.getElementById("heroStage").textContent);
+  if (document.getElementById("heroStageName").textContent !== "Tadpole with legs") throw new Error("stage name line");
+  if (!/^\d+ \/ \d+ XP$/.test(document.getElementById("heroXp").textContent)) throw new Error("XP value: " + document.getElementById("heroXp").textContent);
+  if (!/^Lv\. \d+ · /.test(document.getElementById("heroLv").textContent)) throw new Error("learner rank must stay visible");
+  // sparkles are CSS-only: no new image assets
+  const hero = html.slice(html.indexOf("  .learn-hero {"), html.indexOf("  .hero-greet"));
+  if (!hero.includes("radial-gradient")) throw new Error("sparkles missing");
+  if (/url\(/.test(hero)) throw new Error("sparkles must not use image assets");
 });
 
 check("progress chart renders points, CEFR bands and a projection", () => {

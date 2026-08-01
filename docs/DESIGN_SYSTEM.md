@@ -9,9 +9,12 @@ visual that is not here, add it *here* first, then use it.
 - **Enforcement:** `node test/run.js` fails if a component is missing, if a
   builder loses its accessibility contract, if a shipped screen stops
   composing a component, or if this document stops covering one.
-- **Source of truth:** the family-approved concept boards. Where a board
-  value is not yet transcribed here, the shipped tokens below govern; when a
-  board and this file disagree, the board wins and this file is updated.
+- **Source of truth:** the family-approved concept boards in
+  `docs/design/concept-boards/` (`01_home.png`, `02_call.png`,
+  `04_progress.png`). When a board and this file disagree, **the board wins**
+  and this file is updated. A new board is canonical the moment it lands.
+  Board panels also stand in for missing boards: the Store panel inside
+  `04_progress.png` is canonical until a dedicated store board exists.
 
 ## Foundations
 
@@ -22,10 +25,10 @@ may hard-code a colour, duration, radius, hit area or icon size.
 
 | Group | Tokens | Notes |
 |---|---|---|
-| **Colors — surface** | `--bg` `--card` `--surface-soft` `--surface-strong` | Warm cream family. `--bg` is the app canvas, `--card` every raised surface. |
+| **Colors — surface** | `--bg` `--card` `--surface-soft` `--surface-strong` | Warm cream family. `--bg` is the app canvas (**`#fcf8f0`, measured from the boards**), `--card` every raised surface. Cards stay lighter than the page: elevation is preserved until a dedicated card board exists. |
 | **Colors — ink** | `--ink` `--muted` `--line` | `--ink` body text, `--muted` secondary, `--line` all hairlines. |
-| **Colors — brand** | `--primary` `--primary-hover` `--primary-active` `--primary-soft` `--marzi-dark` | Marzi green. `--primary` is reserved for the primary action and selected states. |
-| **Colors — accent** | `--coin` `--red` `--green` | `--coin` only for currency, `--red` only for destructive/hang-up and errors. |
+| **Colors — brand** | `--primary` `--primary-hover` `--primary-active` `--primary-soft` `--marzi-dark` | Marzi green, **`#547c2c` measured from the boards** (four independent samples). `--primary` is reserved for the primary action and selected states. |
+| **Colors — accent** | `--coin` `--red` `--green` `--xp-fill` `--track` | `--coin` only for currency, `--red` only for destructive/hang-up and errors. `--xp-fill` (`#709820`) and `--track` (`#e0dcc4`) are board-measured. `--coin` is **not** board-aligned yet: sampling was inconclusive (4–8% dominance). |
 | **Spacing** | `--space-1: 4px` … `--space-5: 24px` | 4px base grid. Gaps and padding use these, never raw px. |
 | **Typography — semantic** | `--font-sans` (Nunito Sans), `--text-xs: 11px` `--text-sm: 13px` `--text-md: 15px` `--text-lg: 19px` `--text-xl: 26px` | Monospace (`JetBrains Mono`) is reserved for labels, timers and counters. Prefer these for new work. |
 | **Typography — fine ramp** | `--text-f7-5` … `--text-f64` | The exact sizes shipping today, named so no raw px survives in the CSS. **Transitional:** consolidating them into the semantic scale changes pixels and needs board sign-off — see "Known debt". |
@@ -67,6 +70,11 @@ re-drawn, re-coloured or replaced (ADR-5, ADR-10). Sized from the avatar
 tokens.
 **States** `stage` 1–6, clamped (invalid input renders stage 1, >6 renders 6);
 optional `mood` (`happy`, `sad`).
+**Naming** Stage names and one-line descriptions are **localized** and come
+from the boards (`marziNames()` / `marziDescs()`, backed by `stageNames` /
+`stageDescs` in every help language). Spanish is transcribed verbatim from
+`04_progress.png`; stage 1 is plural ("Huevos de rana" / "Frog eggs"). The six
+XP thresholds are unrelated to naming and never change with it.
 **Accessibility** Renders `role="img"` with `aria-label="Marzi, <stage name>,
 n/6"`. The optional caption repeats this visibly.
 **Responsive** Fixed square; the caption wraps rather than truncating.
@@ -110,7 +118,10 @@ shell.
 
 ### 5. XP bar — `UI.xpBar({percent, id})`
 **Purpose** Progress toward the next learner rank.
-**Visual rules** 7px pill track, gradient fill, `--dur-slow` width transition.
+**Visual rules** Board proportion: **22px pill track**, **solid `--xp-fill`**
+(never a gradient), `--dur-slow` width transition. On the Home hero the value
+sits in a `--card` pill inside the bar's right end (`.xp-val`), as on boards
+01/04.
 **States** 0–100, clamped both ends.
 **Accessibility** `role="progressbar"` with `aria-valuenow/min/max`.
 **Responsive** Full width of its container.
@@ -298,6 +309,13 @@ These are recorded rather than silently carried:
    are **intentionally not tokenized.** They are family-approved artwork
    constants under ADR-5/ADR-10, not UI chrome, and must only change with
    approved art.
-4. Board reconciliation (Marzi proportions, backpack, stage styling,
-   owned/equipped store states, `happy` mood art) is still open — see the
-   MARZI-DESIGN-RECONCILIATION notes in the implementation report.
+4. Board reconciliation: **Batch 1 done** (palette, stage naming, Home
+   hierarchy, XP bar, sparkles). Still open and deliberately not started:
+   C1 Marzi artwork, C2 call-screen rebuild, H1 store rebuild, H2 outfit
+   catalog, H5 portrait style, H6 limit modal, M2 internet framing,
+   M3 Premium, M5 logo.
+5. **Home sparkles** are pure CSS radial-gradient dots in `--coin` /
+   `--primary` — no image assets. Each layer carries its own
+   `background-size`, otherwise `background-position` moves a full-size layer
+   and every dot lands in the middle. Motion is a slow opacity twinkle that
+   the global reduced-motion block disables.
