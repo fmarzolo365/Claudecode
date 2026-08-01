@@ -99,7 +99,7 @@ const m = html.match(/<script>([\s\S]*)<\/script>/);
 if (!m) { console.error("FAIL  could not extract app script"); process.exit(1); }
 let src = m[1];
 src += `\n;globalThis.__t = { T, TARGET, TARGETS, LEVELS, LEVEL_ORDER, SCENARIOS, GROUPS, BASIC_DECKS, HELP_LANG,
-  saidWord, normDe, lev, rankFor, RANKS, rankNames, recordCall, addXp, loadStats, loadFixes, saveFixes,
+  saidWord, normDe, lev, rankFor, RANKS, rankNames, legacyPromptHistory, recordCall, addXp, loadStats, loadFixes, saveFixes,
   voiceOf, timerText, systemPrompt, S, chartSVG, loadTests, saveTestResult,
   marziNames, marziDescs, MARZI_STAGE_COUNT, marziStageForXp, currentMarziStage, renderCallCompanion, addCoins, COIN_PACKS, buyPack, planLimitToday, planUsedToday, PLAN_SECONDS,
   normalizeStats, claimReward, newRewardId, migratedName, migrateStorageKeys, micStatusFor, MARZI_KEY,
@@ -2000,6 +2000,41 @@ check("MARZI-018 no-internet state stays distinct from the daily limit", () => {
   if (L.offRetry === L.retry) throw new Error("connection retry must not reuse the drill string");
   setOnline(true);
   try { Object.defineProperty(globalThis, "navigator", { value: realNav, configurable: true }); } catch (e) {}
+});
+
+
+check("MARZI-018-R1: nothing may shadow the native History API", () => {
+  // A top-level `function history()` became window.history and silently broke
+  // back/pushState/replaceState, because every call site is try/catch-wrapped.
+  // Verified in a clean top-level browser; this guards the whole class.
+  const scriptSrc = src;
+  // no global declaration may take a name the platform already owns on window
+  const RESERVED = ["history", "location", "navigator", "document", "screen", "origin", "name", "length", "top", "parent", "self", "status"];
+  // TOP-LEVEL declarations only (column 0): those are what become window
+  // properties. A block-scoped `const name` inside a function is harmless.
+  for (const word of RESERVED) {
+    const decl = new RegExp("^(function|var|let|const|class)\\s+" + word + "\\b", "m");
+    if (decl.test(scriptSrc)) throw new Error(`a top-level global named "${word}" shadows a native window property`);
+  }
+  // the renamed helper still exists and still returns the legacy shape
+  if (!/function legacyPromptHistory\(\)/.test(scriptSrc)) throw new Error("the legacy prompt-history helper was lost, not renamed");
+  if (typeof tt.legacyPromptHistory !== "function") throw new Error("legacyPromptHistory is not callable");
+  tt.S.turns = [{ me: true, text: "hallo" }, { me: false, text: "guten tag" }];
+  const h = tt.legacyPromptHistory();
+  if (!Array.isArray(h) || h[0].role !== "user" || h[0].content !== tt.TARGET.seed) throw new Error("legacy helper shape changed");
+  if (h[1].role !== "user" || h[2].role !== "assistant") throw new Error("legacy helper role mapping changed");
+  tt.S.turns = [];
+
+  // every History API call site stays window-qualified, so a future global
+  // cannot silently capture them again
+  const calls = scriptSrc.match(/(?<![\w.])history\.(back|pushState|replaceState)/g) || [];
+  if (calls.length) throw new Error("unqualified History API call(s): " + calls.join(","));
+  for (const need of ["window.history.pushState({ marziSheet: true }", "window.history.back()"]) {
+    if (!scriptSrc.includes(need)) throw new Error("navigation call site changed: " + need);
+  }
+  // the sheet flag must only be set when the push actually happened
+  const open = String(scriptSrc.match(/window\.history\.pushState\(\{ marziSheet: true \}[^\n]*/)[0]);
+  if (!/SHEET_HISTORY = true/.test(open)) throw new Error("sheet history flag no longer set at push time");
 });
 
 check("progress chart renders points, CEFR bands and a projection", () => {
