@@ -827,3 +827,25 @@ Two new i18n keys (`offlineTitle`, `offlineMsg`) in all six languages.
 Chromium at 390×844 and 360×640: online → no banner; offline → banner shown,
 call refused (`#call` stays hidden), reason displayed; back online → banner
 cleared. `sw.js` CACHE v31.
+
+---
+
+# Implementation Report — MARZI-012 (queue 4/4)
+
+**Task:** Quality gates and consolidation
+**Status:** Complete, 30/30 green, NOT merged
+
+- **CI now runs on every branch.** The workflow previously triggered only on
+  `main` and pull requests, so nothing on the development branch was ever
+  gated. It now runs `node --check server.js` and `node test/run.js` on
+  `branches: ['**']`.
+- **Release-gates check** added to the suite, failing loudly on: debug
+  leftovers in the shipped script (`console.log`, `debugger`, `TODO`,
+  `FIXME`, `XXX` — currently zero), an unversioned service-worker cache or a
+  service worker that stops excluding `/api/`, a CI workflow missing either
+  gate, a missing or unindexed canonical document, and any runtime dependency
+  (ADR-3 stays enforced, not just documented).
+- **`docs/README.md`** indexes every canonical document in reading order and
+  states the gate contract.
+
+No runtime behaviour changed: no reformatting, no build step, no dependencies.

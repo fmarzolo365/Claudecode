@@ -1107,6 +1107,40 @@ check("MARZI-011 offline + storage resilience", () => {
   setOnline(true); tt.renderNetBanner();
 });
 
+check("release gates: hygiene, versioning and documentation", () => {
+  // 1. nothing debug-only ships in the inline app script
+  for (const [re_, name] of [[/console\.log\(/g, "console.log"], [/\bdebugger\b/g, "debugger"],
+                             [/\bTODO\b/g, "TODO"], [/\bFIXME\b/g, "FIXME"], [/\bXXX\b/g, "XXX"]]) {
+    const hits = src.match(re_) || [];
+    if (hits.length) throw new Error(`${name} left in the shipped script (${hits.length})`);
+  }
+  // 2. the service worker is versioned and still excludes the API
+  const sw = fs.readFileSync(path.join(__dirname, "..", "public", "sw.js"), "utf8");
+  const cache = (sw.match(/const CACHE = "([^"]+)"/) || [])[1];
+  if (!/^telefontrainer-v\d+$/.test(cache || "")) throw new Error("service worker cache not versioned: " + cache);
+  if (!/\/api\//.test(sw)) throw new Error("service worker must never cache API responses");
+  // 3. CI runs both gates, on feature branches too
+  const ci = fs.readFileSync(path.join(__dirname, "..", ".github", "workflows", "ci.yml"), "utf8");
+  if (!ci.includes("node --check server.js")) throw new Error("CI missing the server syntax check");
+  if (!ci.includes("node test/run.js")) throw new Error("CI missing the test suite");
+  if (!/branches: \['\*\*'\]/.test(ci)) throw new Error("CI does not run on feature branches");
+  // 4. the canonical documents exist and are indexed
+  const docs = ["DECISIONS.md", "DESIGN_SYSTEM.md", "IMPLEMENTATION_REPORT.md",
+                "design/MARZI_ASSET_SPEC.md", "design/MARZI_ASSET_DELIVERY_CHECKLIST.md",
+                "design/concept-boards/README.md", "automation/MARZI_QUEUE.md", "README.md"];
+  for (const d of docs) {
+    const f = path.join(__dirname, "..", "docs", d);
+    if (!fs.existsSync(f)) throw new Error("missing canonical document: docs/" + d);
+  }
+  const index = fs.readFileSync(path.join(__dirname, "..", "docs", "README.md"), "utf8");
+  for (const d of docs.filter((x) => x !== "README.md")) {
+    if (!index.includes(d)) throw new Error("docs/README.md does not index " + d);
+  }
+  // 5. no dependencies crept in - the app stays dependency-free (ADR-3)
+  const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "package.json"), "utf8"));
+  if (Object.keys(pkg.dependencies || {}).length) throw new Error("runtime dependencies added");
+});
+
 check("progress chart renders points, CEFR bands and a projection", () => {
   const tests = [
     { date: "2026-07-01", score: 20, cefr: "A1" },

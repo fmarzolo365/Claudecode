@@ -26,15 +26,16 @@
       "id": "MARZI-011",
       "title": "Offline and storage resilience",
       "status": "done",
-      "commit": null
+      "commit": "ec2b915"
     },
     {
       "id": "MARZI-012",
       "title": "Quality gates and consolidation",
-      "status": "pending",
+      "status": "done",
       "commit": null
     }
   ],
   "startedFrom": "12b81ae",
-  "updated": "2026-08-01"
+  "updated": "2026-08-01",
+  "completed": true
 }
