@@ -45,6 +45,7 @@
     --shadow: 0 8px 24px rgba(34, 27, 15, .12);
     --shadow-lg: 0 18px 50px rgba(34, 27, 15, .18);
     --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-top: env(safe-area-inset-top, 0px);
     /* MARZI-002 shell scales: spacing + type. New chrome and every future
        screen use these instead of ad-hoc pixel values. */
     --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 24px;
@@ -142,6 +143,10 @@
   body.in-call main {
     height: calc(100dvh - 64px); display: flex; flex-direction: column; overflow: hidden;
   }
+  /* MARZI-018: the immersive layer owns the whole dynamic viewport and keeps
+     its chrome inside both safe areas. */
+  body.in-call .call-top { padding-top: calc(var(--space-2) + var(--safe-top)); }
+  body.in-call .call-stack { padding-bottom: calc(var(--space-2) + var(--safe-bottom)); }
   body.in-call #call { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
   body.in-call #call .log { flex: 1 1 auto; min-height: 104px; max-height: none; }
   /* ---------- app shell: sticky top bar + fixed bottom navigation ---------- */
@@ -1158,10 +1163,14 @@
     object-fit: cover; object-position: 50% 22%; display: none;
   }
   .call-portrait.ok { display: block; }
+  /* MARZI-018 M-01: the emoji is the portrait's FALLBACK, not an overlay on
+     top of it. A loaded portrait already represents the character, so the
+     emoji is removed from the scene entirely (board 05, decision 7). */
   .call-emoji {
     position: absolute; left: 50%; top: 30%; transform: translate(-50%, -50%);
     font-size: var(--text-f64); opacity: .9;
   }
+  .callscreen:has(.call-portrait.ok) .call-emoji { display: none; }
   /* scrim keeps text legible over any portrait */
   .call-scrim {
     position: absolute; inset: 0;
@@ -1230,7 +1239,8 @@
   }
   .call-tools { display: flex; gap: var(--space-2); flex-wrap: wrap; justify-content: center; }
   .call-pill {
-    min-height: var(--touch-min); display: inline-flex; align-items: center; gap: 5px;
+    min-height: var(--touch-min); min-width: var(--touch-min); justify-content: center;
+    display: inline-flex; align-items: center; gap: 5px;
     padding: 0 var(--space-2); border-radius: 999px; cursor: pointer; white-space: nowrap;
     background: rgba(255,255,255,.16); color: var(--white); border: 1px solid rgba(255,255,255,.28);
     font: 700 var(--text-f10-5) var(--font-sans);
@@ -1252,11 +1262,18 @@
   .call-ctrl[disabled] { opacity: .45; cursor: not-allowed; }
   .call-ctrl[data-status="listening"] { background: var(--primary); animation: listeningPulse var(--loop-pulse) var(--ease) infinite; }
   .call-ctrl[data-status="processing"] { background: var(--disabled-fill); color: var(--ink); }
-  .call-ctrl[data-status="failed"] { background: var(--red); }
+  /* MARZI-018 M-05: only .danger (hang-up) is red. A failed microphone is a
+     warning state - never a second danger signal competing with hang-up. */
+  .call-ctrl[data-status="failed"] { background: var(--warn-soft); color: var(--warn-ink); }
+  /* MARZI-018 M-07: the timer is the primary reading; connection state and
+     remaining allowance are quieter context beside it. */
   .call-meta {
-    display: flex; align-items: center; gap: var(--space-2); min-height: 20px;
-    font: 700 var(--text-f11-5) 'JetBrains Mono', monospace; color: var(--white); opacity: .9;
+    display: flex; align-items: baseline; justify-content: center; gap: var(--space-2);
+    min-height: 20px; font: 700 var(--text-f11-5) 'JetBrains Mono', monospace;
+    color: var(--white); opacity: .9;
   }
+  .call-meta #timer { font-size: var(--text-md); opacity: 1; letter-spacing: .04em; }
+  .call-meta .call-meta-ctx { opacity: .72; }
   .call-meta .low { color: var(--coin); }
   /* status + alerts stay visible until resolved */
   .call-status-chip {
@@ -1628,7 +1645,7 @@
           <button class="call-pill" id="freeBtn" type="button"></button>
         </div>
         <div class="call-controls" id="callControls"></div>
-        <div class="call-meta"><span id="timer">00:00</span><span id="vcLeft"></span></div>
+        <div class="call-meta"><span id="timer">00:00</span><span id="vcLeft" class="call-meta-ctx"></span></div>
       </div>
     </div>
 
@@ -3515,9 +3532,12 @@ const UI = {
   },
   /* --- 22. Call identity: who the learner is talking to --- */
   callIdentity({ kicker = "", name = "", place = "" } = {}) {
+    // `name` is the identity the learner is speaking to and is always the
+    // largest line; `place` is context and must never compete with it.
+    // SCENARIOS carry no separate personal name, so `who` fills `name`.
     return `<span class="call-id-kicker">${esc(kicker)}</span>` +
       `<span class="call-id-name">${esc(name)}</span>` +
-      `<span class="call-id-place">${esc(place)}</span>`;
+      (place ? `<span class="call-id-place">${esc(place)}</span>` : "");
   },
   /* --- 23. Call sheet: transcript + tools over the call layer --- */
   callSheet({ title = "", closeLabel = "", body = "" } = {}) {
@@ -5849,8 +5869,17 @@ function renderCall() {
   $("callId").innerHTML = UI.callIdentity({
     kicker: L.talkingWith, name: A.who, place: A[S.lang] || A.en || A.de || "",
   });
+  // MARZI-018 M-01: the emoji is the portrait's fallback. While it is the
+  // thing being shown it must carry the character's accessible name; once the
+  // portrait loads it leaves the scene and becomes decorative.
   $("vcEmoji").textContent = A.avatar || "🎧";
   const img = $("vcImg");
+  const markEmoji = (portraitOk) => {
+    const e = $("vcEmoji");
+    if (portraitOk) { e.setAttribute("aria-hidden", "true"); e.removeAttribute("role"); e.removeAttribute("aria-label"); }
+    else { e.removeAttribute("aria-hidden"); e.setAttribute("role", "img"); e.setAttribute("aria-label", A.who || ""); }
+  };
+  markEmoji(img.classList.has ? img.classList.has("ok") : img.classList.contains("ok"));
   const src = A.id && A.id !== "custom" && A.id !== "random"
     ? `/api/avatar/${A.id}${S.speaker === 2 ? "2" : ""}?v=3&pin=${encodeURIComponent(localStorage.getItem(PIN_KEY) || "")}`
     : "";
@@ -5859,9 +5888,10 @@ function renderCall() {
     img.dataset.retried = "";
     img.classList.remove("ok");
     if (src) {
-      img.onload = () => img.classList.add("ok");
+      img.onload = () => { img.classList.add("ok"); markEmoji(true); };
       img.onerror = () => {
         img.classList.remove("ok");
+        markEmoji(false);
         // one delayed retry: generation can take ~10s on the very first view
         if (!img.dataset.retried) {
           img.dataset.retried = "1";
@@ -5869,7 +5899,7 @@ function renderCall() {
         }
       };
       img.src = src;
-    } else img.removeAttribute("src");
+    } else { img.removeAttribute("src"); markEmoji(false); }
   }
 
   $("timer").textContent = timerText();

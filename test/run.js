@@ -1834,6 +1834,61 @@ check("MARZI-018 call render: last character line survives processing", () => {
   tt.S.busy = false; tt.S.turns = []; tt.S.hint = null;
 });
 
+
+check("MARZI-018 call chrome: emoji fallback, one danger control, targets, safe areas", () => {
+  const styles = html.slice(html.indexOf("<style>"), html.indexOf("</style>"));
+
+  // M-01 (mandatory): a loaded portrait removes the emoji from the scene
+  if (!/\.callscreen:has\(\.call-portrait\.ok\) \.call-emoji \{ display: none; \}/.test(styles))
+    throw new Error("a loaded portrait must hide the emoji fallback");
+  // ...and the fallback still exists, with an accessible name, when it fails
+  if (!/\.call-portrait\.ok \{ display: block; \}/.test(styles)) throw new Error("portrait success class lost");
+  if (!html.includes('id="vcEmoji"')) throw new Error("the emoji fallback element was removed");
+  if (!/\$\("vcEmoji"\)\.textContent = A\.avatar/.test(src)) throw new Error("the fallback no longer carries the character emoji");
+  // constraint 3: while the fallback IS the visual it must be announced;
+  // once the portrait loads it becomes decorative
+  const mk = String(src.match(/const markEmoji = [\s\S]*?\n  \};/)[0]);
+  if (!/portraitOk\)/.test(mk)) throw new Error("fallback accessibility does not follow portrait state");
+  if (!/aria-hidden", "true"/.test(mk)) throw new Error("a loaded portrait must leave the emoji decorative");
+  if (!/setAttribute\("role", "img"\)/.test(mk) || !/aria-label", A\.who/.test(mk))
+    throw new Error("the failure fallback must be announced with the character name");
+  if (!/markEmoji\(true\)/.test(src) || !/markEmoji\(false\)/.test(src))
+    throw new Error("markEmoji is not wired to load and error");
+  if (!/id="vcImg"/.test(html) || !/class="call-portrait"/.test(html)) throw new Error("portrait element changed");
+
+  // M-05 / constraint 7: only hang-up may be red
+  const dangerRules = (styles.match(/\.call-ctrl[^{]*\{[^}]*background: var\(--red\)[^}]*\}/g) || []);
+  if (dangerRules.length !== 1) throw new Error("exactly one call control may use the danger red, found " + dangerRules.length);
+  if (!/\.call-ctrl\.danger \{[^}]*background: var\(--red\)/.test(styles)) throw new Error("the danger red must belong to hang-up");
+  if (/\.call-ctrl\[data-status="failed"\] \{[^}]*var\(--red\)/.test(styles)) throw new Error("a failed mic must not borrow the hang-up red");
+  if (!/\.call-ctrl\[data-status="failed"\] \{[^}]*var\(--warn-soft\)/.test(styles)) throw new Error("failed mic has no warning treatment");
+
+  // M-06 / constraint 8: secondary tools meet the touch floor in BOTH axes
+  if (!/\.call-pill \{[^}]*min-height: var\(--touch-min\)[^}]*min-width: var\(--touch-min\)/.test(styles))
+    throw new Error("secondary call tools must be at least 48px in both axes");
+
+  // M-09: the call layer honours both safe areas
+  if (!/--safe-top: env\(safe-area-inset-top, 0px\)/.test(styles)) throw new Error("--safe-top token missing");
+  if (!/body\.in-call \.call-top \{ padding-top: calc\(var\(--space-2\) \+ var\(--safe-top\)\); \}/.test(styles))
+    throw new Error("call top does not clear the top safe area");
+  if (!/body\.in-call \.call-stack \{ padding-bottom: calc\(var\(--space-2\) \+ var\(--safe-bottom\)\); \}/.test(styles))
+    throw new Error("call stack does not clear the bottom safe area");
+
+  // M-07: the timer reads as primary, remaining allowance as context
+  if (!/\.call-meta #timer \{ font-size: var\(--text-md\)/.test(styles)) throw new Error("timer is not the primary reading");
+  if (!html.includes('id="vcLeft" class="call-meta-ctx"')) throw new Error("remaining allowance is not marked as context");
+
+  // three primary controls, one of them hang-up, all built by the same component
+  const ctrls = String(src.match(/UI\.callControl\(\{ id: "micBtn"[\s\S]*?UI\.callControl\(\{ id: "playBtn"[^\n]*/)[0]);
+  if ((ctrls.match(/UI\.callControl\(\{/g) || []).length !== 3) throw new Error("there must be exactly three primary controls");
+  if ((ctrls.match(/variant: "danger"/g) || []).length !== 1) throw new Error("exactly one primary control may be danger");
+
+  // identity: the name line is present and place is optional context
+  const idc = String(src.match(/callIdentity\(\{[\s\S]*?\n  \},/)[0]);
+  if (!/call-id-name/.test(idc) || !/call-id-place/.test(idc)) throw new Error("identity hierarchy changed");
+  if (!/place \?/.test(idc)) throw new Error("place must be optional so it cannot render empty");
+});
+
 check("progress chart renders points, CEFR bands and a projection", () => {
   const tests = [
     { date: "2026-07-01", score: 20, cefr: "A1" },
