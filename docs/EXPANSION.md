@@ -1,6 +1,5 @@
 # Launching a new target language (sister app)
 
-<<<<<<< HEAD
 ## Status
 
 | Target | Status | Notes |
@@ -20,24 +19,18 @@ Two independent axes — do not mix them up:
   recognition locale, device-TTS locale, voice picking, every AI prompt —
   reads from `TARGET`. `test/run.js` asserts this stays true for both
   registry entries.
-=======
-Two independent axes — do not mix them up:
-
-- **Target language** = the language being TAUGHT (today: German). Driven by
-  the single `TARGET` object at the top of the script in `public/index.html`
-  (`code`, `locale`, `name`, `nativeName`, `exam`). All logic — speech
-  recognition locale, device-TTS locale, voice picking, every AI prompt —
-  reads from it. `test/run.js` asserts this stays true.
->>>>>>> origin/main
 - **Help languages** = the 6 UI/correction languages (es, en, it, tr, ar, uk)
   in the `T` object. A French sister app keeps the same 6 help languages
   unless the market says otherwise. Changing one axis never touches the other.
 
 ## Checklist per new target (e.g. French)
 
-1. **`TARGET` object** — e.g. `{ code:"fr", locale:"fr-FR", name:"French",
-   nativeName:"Français", exam:"DELF" }`. Review prompt phrases that
-   interpolate `${TARGET.name}` as a nationality ("a kind German") for grammar.
+1. **New `TARGETS` entry** — a registry entry keyed by the language code, e.g.
+   `fr: { code:"fr", locale:"fr-FR", name:"French", nativeName:"Français",
+   exam:"DELF", charset:…, seed:…, fixEx:…, scenarios:…, groups:…, decks:… }`.
+   German's entry must stay byte-identical (suite-guarded). Review prompt
+   phrases that interpolate `${TARGET.name}` as a nationality ("a kind
+   German") for grammar.
 2. **Scenario pack translated** — every `SCENARIOS` entry: `de:` title (the
    target-language field name is historical), `who`, `place`, `role`, plus
    culturally correct businesses (Bürgeramt → mairie/préfecture). Also the
@@ -64,7 +57,11 @@ Two independent axes — do not mix them up:
 7. **Store listing per country** — new app id/name (Telefontrainer is
    German-specific), icons, screenshots in the target, localized store copy
    per help language, `manifest.webmanifest` + PWA metadata, and a separate
-   deploy (one target per deployment; there is no runtime language switch).
+   deploy per store listing. Note that a deployment is not locked to one
+   target: the onboarding language-pair picker writes `S.targetLang`, and
+   because `TARGET` resolves once at load, switching saves the setting and
+   reloads. A per-country listing is a store/marketing decision, not a
+   technical limit.
 
 ## Recommended rollout order
 
