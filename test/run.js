@@ -11,6 +11,16 @@ const path = require("path");
 
 let failures = 0;
 const pending = []; // async checks settle before the summary
+/* async checks mutate shared app state (S), so they run one at a time and
+   only after every synchronous check has finished */
+let chain = Promise.resolve();
+function checkAsync(name, fn) {
+  chain = chain.then(async () => {
+    try { await fn(); console.log("  ok  " + name); }
+    catch (e) { failures++; console.error("FAIL  " + name + " — " + e.message); }
+  });
+  pending.push(chain);
+}
 function check(name, fn) {
   try {
     const r = fn();
@@ -92,8 +102,8 @@ src += `\n;globalThis.__t = { T, TARGET, TARGETS, LEVELS, LEVEL_ORDER, SCENARIOS
   TAB_HASH, tabFromHash, showTab, updateTopbar,
   ENGINE_CONTRACTS, validateProvider, createProviderRegistry, ScenarioRegistry, CharacterRegistry,
   createTranscript, PromptBuilder, createConversationSession, ENGINE, send, ask,
-  renderLearn, callStateFor, callStateLabel, callStateIcon, callSecondsLeft, renderScenarioCards, renderCharacterCard, scenarioSubtitle,
-  UI, IC, ICON, evolutionHTML };`;
+  renderLearn, renderCall, renderTranscript, openCallSheet, closeCallSheet, sheetOpen, endCall, callStateFor, callStateLabel, callStateIcon, callSecondsLeft, renderScenarioCards, renderCharacterCard, scenarioSubtitle,
+  UI, IC, ICON, evolutionHTML, renderCallStatus };`;
 eval(src);
 const tt = globalThis.__t;
 
@@ -411,7 +421,7 @@ check("MARZI-002 shell: hash routing, top-bar resources, reusable primitives", (
   tt.showTab("learn");
 });
 
-check("MARZI-003 engine: contracts, DI, registries, transcript, lifecycle", async () => {
+checkAsync("MARZI-003 engine: contracts, DI, registries, transcript, lifecycle", async () => {
   // interface contracts reject incomplete providers; DI throws before registration
   const P = tt.createProviderRegistry();
   let threw = 0;
@@ -468,7 +478,7 @@ check("MARZI-003 engine: contracts, DI, registries, transcript, lifecycle", asyn
   if (!endedThrew) throw new Error("send after end accepted");
 });
 
-check("MARZI-004 integration: live call flow runs on the engine, guarded", async () => {
+checkAsync("MARZI-004 integration: live call flow runs on the engine, guarded", async () => {
   // boot registered the three live adapters
   for (const kind of ["ai", "speech", "voice"]) if (!tt.ENGINE.has(kind)) throw new Error("live adapter missing: " + kind);
   const sc = tt.ScenarioRegistry.get(tt.ScenarioRegistry.ids()[0]);
@@ -580,8 +590,8 @@ check("MARZI-005 practice + call UI: cards, states, bubbles, a11y", () => {
   // markup guarantees: bubbles, identity outside the portrait, 48px targets, reduced motion
   for (const needle of [
     "UI.bubble({", 'class="bub"',                               // left/right bubbles
-    'id="vcPlace"', 'class="vc-id"',                            // identity below the portrait
-    'id="playBtn"', 'id="callStatus"',                          // speaker replay + status chip
+    'id="callId"', "UI.callIdentity(",                          // identity block (MARZI-006)
+    "UI.callControl(", 'id="callStatus"',                       // circular controls + status chip
     "prefers-reduced-motion", ":focus-visible",                 // a11y
     "min-height: 48px",
   ]) if (!html.includes(needle)) throw new Error("missing from markup: " + needle);
@@ -597,7 +607,8 @@ check("design system: canonical components, tokens and documentation", () => {
   const COMPONENTS = ["marziAvatar", "characterAvatar", "topBar", "coinChip", "xpBar",
     "evolutionCard", "characterCard", "scenarioCard", "bubble", "storeItem", "outfitCard",
     "buttonPrimary", "buttonSecondary", "statusBadge", "progressCard", "rewardPopup",
-    "modal", "emptyState", "errorState"];
+    "modal", "emptyState", "errorState",
+    "callControl", "speechBubble", "callIdentity", "callSheet"];
   for (const c of COMPONENTS) if (typeof tt.UI[c] !== "function") throw new Error("missing component: " + c);
   if (Object.keys(tt.UI).length !== COMPONENTS.length) {
     throw new Error("UI has undocumented members: " + Object.keys(tt.UI).filter((k) => !COMPONENTS.includes(k)));
@@ -632,7 +643,8 @@ check("design system: canonical components, tokens and documentation", () => {
   if (tt.UI.emptyState({ title: "<script>" }).includes("<script>")) throw new Error("empty state does not escape");
   // 5. shipped screens COMPOSE the components instead of re-declaring markup
   for (const [fn, comp] of [["renderScenarioCards", "UI.scenarioCard("], ["renderCharacterCard", "UI.characterCard("],
-                            ["evolutionHTML", "UI.evolutionCard("], ["renderCall", "UI.bubble("]]) {
+                            ["evolutionHTML", "UI.evolutionCard("], ["renderTranscript", "UI.bubble("],
+                            ["renderCall", "UI.callControl("], ["renderCall", "UI.callIdentity("]]) {
     const body = String(src.match(new RegExp("function " + fn + "\\([\\s\\S]*?\\n\\}"))[0]);
     if (!body.includes(comp)) throw new Error(fn + " does not use " + comp);
   }
@@ -718,6 +730,90 @@ check("home hero + XP bar follow the concept boards", () => {
   const hero = html.slice(html.indexOf("  .learn-hero {"), html.indexOf("  .hero-greet"));
   if (!hero.includes("radial-gradient")) throw new Error("sparkles missing");
   if (/url\(/.test(hero)) throw new Error("sparkles must not use image assets");
+});
+
+checkAsync("MARZI-006 call layer: states, sheet, guards, targets", async () => {
+  const sc = tt.ScenarioRegistry.get(tt.ScenarioRegistry.ids()[0]);
+  tt.S.lang = "en"; tt.S.active = sc; tt.S.turns = []; tt.S.busy = false;
+  tt.S.listening = false; tt.S.speaking = false; tt.S.callError = false; tt.S.handsFree = false;
+  const spoken = [];
+  tt.ENGINE.register("voice", { speak: async (o) => spoken.push(o.text), stopAll() {} });
+  tt.ENGINE.register("ai", { complete: async () => ({ text: "Praxis, guten Tag!", raw: { reply: "Praxis, guten Tag!", suggestion: "Ich möchte einen Termin.", speaker: "main" } }) });
+  tt.S.session = tt.createConversationSession({ scenario: sc, level: "A1", lang: "en", goal: sc.goals[0], providers: tt.ENGINE }).start();
+
+  // identity, controls and the labelled sheet opener all render
+  tt.renderCall();
+  const idHTML = document.getElementById("callId").innerHTML;
+  if (!idHTML.includes(sc.who) || !idHTML.includes("Talking with")) throw new Error("identity block");
+  const ctrls = document.getElementById("callControls").innerHTML;
+  for (const id of ["micBtn", "hangBtn", "playBtn"]) if (!ctrls.includes(`id="${id}"`)) throw new Error("missing control " + id);
+  if (!/class="call-ctrl danger"/.test(ctrls)) throw new Error("hang-up must be the danger control");
+  if (!document.getElementById("sheetBtn").innerHTML.includes("Transcript")) throw new Error("sheet opener must be labelled, not icon-only");
+
+  // every call state renders icon + text, and the mic follows
+  for (const [set, want] of [
+    [() => { tt.S.listening = true; }, "listening"],
+    [() => { tt.S.listening = false; tt.S.speaking = true; }, "speaking"],
+    [() => { tt.S.speaking = false; tt.S.busy = true; }, "processing"],
+    [() => { tt.S.busy = false; tt.S.callError = true; }, "error"],
+  ]) {
+    set(); tt.renderCallStatus();
+    const chip = document.getElementById("callStatus");
+    if (chip.dataset.state !== want) throw new Error(`state ${chip.dataset.state}, want ${want}`);
+    if (!/<svg/.test(chip.innerHTML) || !/<span>/.test(chip.innerHTML)) throw new Error(want + " needs icon + text");
+    if (!document.getElementById("callStatusLive").textContent) throw new Error(want + " not announced");
+  }
+  if (document.getElementById("micBtn").dataset.status !== "failed") throw new Error("mic must show the error state");
+  tt.S.callError = false;
+  // disconnected persists while the session is ended
+  tt.S.session.end(); tt.renderCallStatus();
+  if (document.getElementById("callStatus").dataset.state !== "disconnected") throw new Error("disconnected state");
+
+  // sheet: open/close, Escape and Android back all dismiss it
+  tt.S.session = tt.createConversationSession({ scenario: sc, level: "A1", lang: "en", goal: sc.goals[0], providers: tt.ENGINE }).start();
+  tt.openCallSheet();
+  if (!tt.sheetOpen()) throw new Error("sheet did not open");
+  tt.closeCallSheet();
+  if (tt.sheetOpen()) throw new Error("sheet did not close");
+  tt.openCallSheet(); tt.closeCallSheet(true); // popstate path (Android back)
+  if (tt.sheetOpen()) throw new Error("back did not close the sheet");
+
+  // full turn: transcript bubbles, no duplicates, speaker replay
+  tt.send("Guten Morgen, ich hätte gern einen Termin.");
+  tt.send("Guten Morgen, ich hätte gern einen Termin."); // immediate re-submit: must be ignored
+  await new Promise((r) => setTimeout(r, 0));
+  if (tt.S.turns.length !== 2) throw new Error("turns " + tt.S.turns.length);
+  if (tt.S.session.transcript.list().length !== 2) throw new Error("duplicate turn accepted");
+  tt.renderTranscript();
+  const log = document.getElementById("log").innerHTML;
+  if (!log.includes('class="turn me"') || !log.includes('class="turn char"')) throw new Error("transcript bubbles");
+  if (!log.includes("data-tr=") || !log.includes("data-play=") || !log.includes("data-w=")) throw new Error("translation / slow repeat / word tap lost");
+  tt.renderCall();
+  spoken.length = 0; // the reply was already spoken once by the call flow
+  document.getElementById("playBtn").onclick();
+  if (spoken.join() !== "Praxis, guten Tag!") throw new Error("speaker replay: " + spoken.join());
+
+  // late reply after hang-up is still dropped
+  let release;
+  tt.ENGINE.register("ai", { complete: () => new Promise((r) => { release = r; }) });
+  const pending2 = tt.S.session.ask();
+  const frozen = tt.S.session.transcript.list().length;
+  tt.endCall();
+  release({ text: "zu spät", raw: {} });
+  if ((await pending2) !== null) throw new Error("late reply not dropped");
+  if (tt.S.session.transcript.list().length !== frozen) throw new Error("late reply mutated the transcript");
+
+  // layout contracts in the markup
+  for (const needle of ["100dvh", "env(safe-area-inset-bottom", "env(safe-area-inset-top",
+                        'class="callscreen"', "prefers-reduced-motion", 'role="dialog"']) {
+    if (!html.includes(needle)) throw new Error("call layer missing: " + needle);
+  }
+  const ctrlCss = html.slice(html.indexOf("  .call-ctrl {"), html.indexOf("  .call-ctrl .call-ctrl-lb"));
+  if (!/width:\s*64px/.test(ctrlCss)) throw new Error("controls must be at least 48px (64 specified)");
+  if (!/width:\s*72px/.test(html.slice(html.indexOf("  .call-ctrl.danger"), html.indexOf("  .call-ctrl.danger:hover")))) throw new Error("hang-up size");
+  const pillCss = html.slice(html.indexOf("  .call-pill {"), html.indexOf("  .call-pill[aria-pressed"));
+  if (!/min-height:\s*var\(--touch-min\)/.test(pillCss)) throw new Error("tool pills must meet the touch floor");
+  tt.S.session = null; tt.S.turns = [];
 });
 
 check("progress chart renders points, CEFR bands and a projection", () => {

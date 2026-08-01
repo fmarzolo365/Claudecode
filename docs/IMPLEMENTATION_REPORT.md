@@ -498,3 +498,81 @@ all six Spanish names plus the description; the call screen is unregressed
 ## Not touched
 Call UI, store logic, economy, providers, prompts, backend, rewards, outfit
 catalog, logo, progression thresholds.
+
+---
+
+# Implementation Report — MARZI-006
+
+**Task:** Canonical call experience (board `02_call.png`)
+**Date:** 2026-08-01 · **Status:** Complete, tests green, NOT merged
+
+## Layout
+The call is now a **fixed immersive layer**: dark, full-bleed portrait, no
+cream card, app top bar hidden. Sized with `100dvh` + `env(safe-area-inset-*)`
+— never hard-coded to 844px.
+
+Structure is a **flex column** (`.call-top` / `.call-mid` / `.call-stack`).
+The first attempt positioned everything absolutely against a magic
+`--call-stack` offset; measurement showed the tools row wrapping to 104px and
+the stack overlapping Marzi. Making the bands flex siblings removed that class
+of bug entirely — the stack can grow and nothing can collide.
+
+- Identity: kicker + name + place, centred, three lines, no truncation.
+- Character bubble upper-left; Marzi lower-left in-scene; Marzi's suggestion
+  bubble attached beside her.
+- Circular controls: mic 64px · **hang-up 72px red** · speaker 64px.
+- Timer + remaining daily minutes below the controls.
+
+**Bug fixed during verification:** right-anchored shrink-to-fit bubbles
+collapsed to *min-content* and clipped their text (`scrollHeight` 99 vs
+`clientHeight` 72). Bubbles now carry explicit widths.
+
+## Transcript & tools sheet
+Transcript moved into a bottom sheet, opened by a **labelled** control
+("Transcript", never icon-only). It keeps word tap, per-line translation,
+slow repeat, the SOS quick phrases, the hint box and typed input.
+Dismissible **four ways**: close button, swipe down, Escape, and Android back
+(a `pushState` entry consumed by `popstate`, so back never leaves the call).
+Focus moves to the close button on open and back to the opener on close.
+
+## States
+One source (`callStateFor`) drives the chip, the mic button and the aria-live
+region: ready / listening / processing / speaking / disconnected / error —
+each icon + text + colour. Disconnected and error persist until resolved;
+all existing alerts and recovery paths are unchanged.
+
+## New canonical components
+`UI.callControl`, `UI.speechBubble`, `UI.callIdentity`, `UI.callSheet` —
+documented in `DESIGN_SYSTEM.md`; the suite fails if any loses its contract.
+
+## Preserved
+ConversationSession + canonical transcript (S.turns stays render-only),
+all three providers, German prompt, rewards, XP, economy, timer logic,
+character switching, translation, slow repeat, end-call review, late-response
+and duplicate-request guards. No provider is called from an event handler.
+
+## Tests — 24/24
+`node --check server.js` pass. New MARZI-006 check covers listening,
+processing, speaking, disconnected and error states; sheet open/close/back;
+speaker replay; duplicate-turn rejection; late reply after hang-up; and the
+layout contracts (`100dvh`, safe-area insets, 64/72px controls, touch floor).
+The harness now **serialises async checks** — they share global `S` and were
+interleaving, which produced a real false failure.
+
+## Chromium
+390×844 and 360×640: no page scroll, top bar hidden, **zero collisions**
+between identity, Marzi, bubbles and controls, identity not truncated, zero
+targets under 48px, everything inside the viewport. Sheet shows 3 turns, 20
+word-tap spans, translation, 3 SOS phrases and the input; Android back closes
+the sheet and stays in the call; Escape closes it; hang-up during a pending
+response ends the session, drops the late reply, shows the review and awards
+XP. Reduced motion: animation durations 0s, states still legible.
+
+## Unresolved asset gaps
+1. Marzi in-scene is the **temporary placeholder** SVG at 108px; the board
+   shows a ~190px hoodie-wearing figure (spec P1 `call` pose).
+2. Yellow hoodie and backpack do not exist in the implementation.
+3. No `listening`/`thinking`/`speaking` expressions — state is carried by the
+   chip and mic, not by Marzi's face.
+4. Character portraits remain flat-cartoon, not the board's painterly style
+   (deviation H5, out of scope).

@@ -57,6 +57,8 @@
     --icon-btn: 15px; --icon-md: 16px; --icon-lg: 18px; --icon-xl: 20px;
     --icon-hero: 22px; --icon-jumbo: 34px;
     --touch-min: 48px; --touch-lg: 56px;
+    --call-bg: #100c08;
+    --call-stack: 92px;
     --avatar-sm: 48px; --avatar-md: 56px; --avatar-lg: 92px; --avatar-xl: 112px;
 
     /* Extended palette (design-system reconciliation, findings 1-4).
@@ -900,6 +902,165 @@
     position: fixed; inset: 0; z-index: 55; background: rgba(23, 20, 15, .42);
     backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);
   }
+  /* ---------- MARZI-006: immersive call layer (board 02_call.png) ----------
+     Fixed, dynamic-viewport sized, safe-area aware. The portrait is the
+     dominant visual; every overlay is absolutely positioned so nothing can
+     collide, and the page can never scroll. */
+  .callscreen {
+    position: fixed; inset: 0; z-index: 70; overflow: hidden;
+    background: var(--call-bg); color: var(--white);
+    height: 100dvh; min-height: 100vh;
+    display: flex; flex-direction: column;
+    padding: calc(env(safe-area-inset-top, 0px) + var(--space-2)) 0
+             calc(env(safe-area-inset-bottom, 0px) + var(--space-2));
+  }
+  /* the middle band owns every overlay; the bottom stack is a flex sibling,
+     so controls can never collide with Marzi or the bubbles */
+  .call-mid { position: relative; flex: 1 1 auto; min-height: 0; }
+  .call-portrait {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    object-fit: cover; object-position: 50% 22%; display: none;
+  }
+  .call-portrait.ok { display: block; }
+  .call-emoji {
+    position: absolute; left: 50%; top: 30%; transform: translate(-50%, -50%);
+    font-size: var(--text-f64); opacity: .9;
+  }
+  /* scrim keeps text legible over any portrait */
+  .call-scrim {
+    position: absolute; inset: 0;
+    background:
+      linear-gradient(180deg, rgba(16,12,8,.78) 0%, rgba(16,12,8,.28) 26%, rgba(16,12,8,.20) 46%, rgba(16,12,8,.86) 78%, rgba(16,12,8,.96) 100%);
+  }
+  .callscreen.speaking .call-scrim { box-shadow: inset 0 0 0 3px var(--tint-primary-35); }
+  .call-top {
+    position: relative; z-index: 4; flex: 0 0 auto;
+    display: grid; grid-template-columns: var(--touch-min) minmax(0, 1fr) var(--touch-min);
+    align-items: start; gap: var(--space-2); padding: 0 var(--space-2);
+  }
+  .call-x {
+    width: var(--touch-min); height: var(--touch-min); border-radius: 50%;
+    border: 0; background: rgba(255,255,255,.16); color: var(--white); cursor: pointer;
+    display: grid; place-items: center;
+  }
+  .call-id { min-width: 0; text-align: center; display: grid; }
+  .call-id-kicker { font: 600 var(--text-f11-5) var(--font-sans); opacity: .82; }
+  .call-id-name { font: 800 var(--text-f18) var(--font-sans); line-height: 1.2; }
+  .call-id-place { font: 600 var(--text-f12) var(--font-sans); opacity: .78; line-height: 1.3; }
+  .call-conn {
+    justify-self: end; display: inline-flex; align-items: center; gap: 4px; min-height: var(--touch-min);
+    font: 700 var(--text-f10) 'JetBrains Mono', monospace; color: var(--white); opacity: .85;
+  }
+  /* dialogue bubbles */
+  .call-bubble {
+    position: absolute; z-index: 3; max-width: 62%; text-align: left;
+    background: var(--paper-3); color: var(--ink);
+    border: 1.5px solid var(--stage-line); border-radius: 18px;
+    padding: var(--space-2) var(--space-3); box-shadow: var(--shadow);
+    font: 600 var(--text-f13-5) var(--font-sans); line-height: 1.35;
+  }
+  /* explicit widths: a right-anchored shrink-to-fit box collapses to
+     min-content and clips its text */
+  .call-bubble.char { left: var(--space-3); top: 12%; width: 62%; border-bottom-left-radius: 6px; }
+  .call-bubble.marzi {
+    right: var(--space-3); bottom: var(--space-2); width: 52%;
+    cursor: pointer; border-bottom-right-radius: 6px;
+    background: var(--paper); border-color: var(--tint-leaf-35);
+  }
+  /* Marzi in-scene, lower-left, board position */
+  .call-marzi {
+    position: absolute; left: var(--space-2); bottom: 0;
+    z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 1px;
+    pointer-events: none; max-width: 128px;
+  }
+  .call-marzi .vc-marzi-art { width: 108px; height: 108px; filter: drop-shadow(0 6px 14px rgba(16,12,8,.55)); }
+  .call-marzi .vc-marzi-art svg { width: 100%; height: 100%; }
+  .call-marzi[data-stage="1"] .vc-marzi-art,
+  .call-marzi[data-stage="2"] .vc-marzi-art,
+  .call-marzi[data-stage="3"] .vc-marzi-art {
+    width: 84px; height: 84px; padding: 6px; box-sizing: border-box;
+    border: 2px solid rgba(255,255,255,.92); border-radius: 50%;
+    background: var(--paper); filter: none;
+  }
+  .call-marzi .vc-marzi-cap {
+    font: 700 var(--text-f8) 'JetBrains Mono', monospace; letter-spacing: .03em;
+    color: var(--marzi-dark); background: var(--paper); border: 1px solid var(--tint-leaf-35);
+    border-radius: 999px; padding: 2px 7px; max-width: 126px; text-align: center; line-height: 1.2;
+  }
+  /* bottom stack: tools row, controls, meta */
+  .call-stack {
+    position: relative; z-index: 4; flex: 0 0 auto;
+    display: grid; justify-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-3) 0;
+  }
+  .call-tools { display: flex; gap: var(--space-2); flex-wrap: wrap; justify-content: center; }
+  .call-pill {
+    min-height: var(--touch-min); display: inline-flex; align-items: center; gap: 5px;
+    padding: 0 var(--space-2); border-radius: 999px; cursor: pointer; white-space: nowrap;
+    background: rgba(255,255,255,.16); color: var(--white); border: 1px solid rgba(255,255,255,.28);
+    font: 700 var(--text-f10-5) var(--font-sans);
+  }
+  .call-pill[aria-pressed="true"] { background: var(--primary); border-color: var(--primary); }
+  .call-pill[disabled] { opacity: .45; cursor: not-allowed; }
+  .call-controls { display: flex; align-items: center; gap: var(--space-4); }
+  .call-ctrl {
+    width: 64px; height: 64px; border-radius: 50%; border: 0; cursor: pointer;
+    display: grid; place-items: center; gap: 1px; color: var(--white);
+    background: rgba(255,255,255,.18); transition: background var(--dur-fast) var(--ease);
+  }
+  .call-ctrl .call-ctrl-lb {
+    font: 700 var(--text-f8) var(--font-sans); letter-spacing: .02em;
+    max-width: 62px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .call-ctrl.danger { width: 72px; height: 72px; background: var(--red); }
+  .call-ctrl.danger:hover { filter: brightness(1.08); }
+  .call-ctrl[disabled] { opacity: .45; cursor: not-allowed; }
+  .call-ctrl[data-status="listening"] { background: var(--primary); animation: listeningPulse var(--loop-pulse) var(--ease) infinite; }
+  .call-ctrl[data-status="processing"] { background: var(--disabled-fill); color: var(--ink); }
+  .call-ctrl[data-status="failed"] { background: var(--red); }
+  .call-meta {
+    display: flex; align-items: center; gap: var(--space-2); min-height: 20px;
+    font: 700 var(--text-f11-5) 'JetBrains Mono', monospace; color: var(--white); opacity: .9;
+  }
+  .call-meta .low { color: var(--coin); }
+  /* status + alerts stay visible until resolved */
+  .call-status-chip {
+    position: absolute; left: 50%; transform: translateX(-50%); z-index: 5; top: 0;
+    display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+    background: rgba(16,12,8,.72); border: 1px solid rgba(255,255,255,.24);
+    color: var(--white); border-radius: 999px; padding: 6px var(--space-3);
+    font: 700 var(--text-f11-5) var(--font-sans);
+  }
+  .call-status-chip[data-state="error"], .call-status-chip[data-state="disconnected"] {
+    background: var(--danger-soft); color: var(--danger-ink); border-color: var(--tint-danger-35);
+  }
+  .call-alert {
+    position: absolute; left: var(--space-3); right: var(--space-3); z-index: 6; top: 40px;
+    background: var(--danger-soft); color: var(--danger-ink);
+    border: 1px solid var(--tint-danger-35); border-radius: var(--radius);
+    padding: var(--space-2) var(--space-3); font: 700 var(--text-f12) var(--font-sans);
+    display: flex; align-items: center; gap: var(--space-2); box-shadow: var(--shadow);
+  }
+  .call-alert button { margin-left: auto; min-height: var(--touch-min); }
+  /* transcript + tools sheet */
+  .sheet-back { position: fixed; inset: 0; z-index: 80; background: rgba(16,12,8,.5); }
+  .call-sheet {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 81;
+    max-height: 74dvh; display: flex; flex-direction: column;
+    background: var(--card); color: var(--ink);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0; box-shadow: var(--shadow-lg);
+    padding: var(--space-2) var(--space-3) calc(env(safe-area-inset-bottom, 0px) + var(--space-3));
+    animation: sheetUp var(--dur) var(--ease);
+  }
+  @keyframes sheetUp { from { transform: translateY(14px); opacity: 0; } to { transform: none; opacity: 1; } }
+  .sheet-grab { width: 40px; height: 4px; border-radius: 999px; background: var(--line); margin: 0 auto var(--space-2); }
+  .sheet-head { display: flex; align-items: center; gap: var(--space-2); }
+  .sheet-head b { font: 800 var(--text-md) var(--font-sans); }
+  .sheet-head .btn { margin-left: auto; }
+  .sheet-body { min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+  .call-sheet .log {
+    background: transparent; border: 0; box-shadow: none; border-radius: 0;
+    min-height: 80px; max-height: none; overflow: visible;
+  }
   /* visible keyboard focus everywhere */
   :focus-visible { outline: 3px solid var(--marzi-dark); outline-offset: 2px; border-radius: 8px; }
   /* reduced motion: keep every state legible, drop the movement */
@@ -1033,50 +1194,61 @@
   </section>
 
   <!-- CALL -->
+  <!-- CALL: immersive full-screen layer (board 02_call.png). Portrait is the
+       dominant visual; transcript and tools live in a dismissible sheet. -->
   <section id="call" class="hidden">
-    <div class="vcbar">
-      <div class="vc-stage" id="vcAv">
-        <span class="vc-emoji" id="vcEmoji">🎧</span>
-        <img id="vcImg" alt="" />
-        <div class="vc-chips">
-          <div class="vc-timer" id="timer">VERBUNDEN · 00:00</div>
-          <div class="vc-left" id="vcLeft"></div>
-        </div>
-        <button class="vc-bubble hidden" id="vcBubble"></button>
-        <button class="hang" id="hangBtn"></button>
+    <div class="callscreen" id="vcAv">
+      <img id="vcImg" class="call-portrait" alt="" />
+      <span class="call-emoji" id="vcEmoji" aria-hidden="true">🎧</span>
+      <div class="call-scrim" aria-hidden="true"></div>
+
+      <header class="call-top">
+        <button class="call-x" id="callMinBtn" type="button"></button>
+        <div class="call-id" id="callId"></div>
+        <div class="call-conn" id="callConn"></div>
+      </header>
+
+      <div class="call-mid">
+        <div class="call-status-chip" id="callStatus" data-state="ready" role="status"></div>
+        <div id="alert" class="call-alert hidden" role="alert"></div>
+        <button class="call-bubble char hidden" id="vcSay" type="button"></button>
+        <div class="call-marzi vc-marzi" id="vcMarzi"></div>
+        <button class="call-bubble marzi hidden" id="vcBubble" type="button"></button>
       </div>
-      <!-- identity sits BELOW the portrait: no overlap, no truncation -->
-      <div class="vc-id">
-        <div class="vc-id-txt">
-          <div class="vc-who" id="who"></div>
-          <div class="vc-place" id="vcPlace"></div>
+      <div id="callStatusLive" class="sr-only" aria-live="polite"></div>
+
+      <div class="call-stack">
+        <div class="call-tools">
+          <button class="call-pill" id="sheetBtn" type="button"></button>
+          <button class="call-pill" id="repeatBtn" type="button"></button>
+          <button class="call-pill" id="freeBtn" type="button"></button>
         </div>
-        <div class="vc-marzi" id="vcMarzi"></div>
+        <div class="call-controls" id="callControls"></div>
+        <div class="call-meta"><span id="timer">00:00</span><span id="vcLeft"></span></div>
       </div>
-      <div class="call-status" id="callStatus" data-state="ready"></div>
     </div>
-    <div class="log" id="log"></div>
-    <p class="note hidden" id="tapHint" style="margin:8px 2px 0"></p>
-    <div class="row">
-      <button class="ghost" id="playBtn"></button>
-      <button class="ghost" id="repeatBtn"></button>
-      <button class="ghost" id="hintBtn"></button>
-    </div>
-    <div id="hintBox" class="hint hidden"><div class="label">VORSCHLAG</div><div id="hintText"></div></div>
-    <div class="row sos" id="sosRow">
-      <button class="ghost" data-sos="Wie bitte?">Wie bitte?</button>
-      <button class="ghost" data-sos="Langsamer, bitte.">Langsamer, bitte</button>
-      <button class="ghost" data-sos="Können Sie das noch einmal sagen?">Noch einmal, bitte</button>
-    </div>
-    <button class="toggle on" id="freeBtn"></button>
-    <div id="alert" class="alert hidden"></div>
-    <div id="callStatusLive" class="sr-only" aria-live="polite"></div>
-    <button class="big" id="micBtn" data-status="ready"></button>
-    <button class="mini" id="typeBtn" style="margin-top:6px"></button>
-    <div class="row hidden" id="typeRow">
-      <input type="text" id="draft" placeholder="Guten Tag, ich möchte…" />
-      <button class="ghost" id="sendBtn" style="flex:0 0 auto"></button>
-    </div>
+
+    <div class="sheet-back hidden" id="sheetBack"></div>
+    <aside class="call-sheet hidden" id="callSheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+      <div class="sheet-grab" aria-hidden="true"></div>
+      <div class="sheet-head"><b id="sheetTitle"></b><button class="btn" id="sheetClose" type="button"></button></div>
+      <div class="sheet-body">
+        <div class="log" id="log"></div>
+        <p class="note hidden" id="tapHint"></p>
+        <div id="hintBox" class="hint hidden"><div class="label">VORSCHLAG</div><div id="hintText"></div></div>
+        <div class="row"><button class="ghost" id="hintBtn" type="button"></button></div>
+        <div class="row sos" id="sosRow">
+          <button class="ghost" data-sos="Wie bitte?">Wie bitte?</button>
+          <button class="ghost" data-sos="Langsamer, bitte.">Langsamer, bitte</button>
+          <button class="ghost" data-sos="Können Sie das noch einmal sagen?">Noch einmal, bitte</button>
+        </div>
+        <div class="row" id="typeRow">
+          <input type="text" id="draft" placeholder="Guten Tag, ich möchte…" />
+          <button class="ghost" id="sendBtn" style="flex:0 0 auto"></button>
+        </div>
+        <button class="mini hidden" id="typeBtn" type="button"></button>
+      </div>
+    </aside>
   </section>
 
   <!-- DONE -->
@@ -1349,6 +1521,7 @@ const LEVELS = {
 const T = {
   es:{ tagline:"Practica llamadas y conversaciones reales en alemán. Tú hablas, la otra persona responde.",
     pick:"Elige la situación", level:"Nivel", helpLang:"Idioma de las correcciones", call:"LLAMAR",
+    talkingWith:"Hablando con", transcript:"Transcripción",
     stageWord:"Nivel", stageNames:["Huevos de rana","Renacuajo","Renacuajo con patas","Ranita joven","Rana estudiosa","Rana experta"],
     stageDescs:["Todo comienza con pequeñas bolitas llenas de posibilidades.","Empiezas a descubrir nuevas palabras y sonidos.","Entiendes más y formas tus primeras frases.","Ya puedes tener conversaciones básicas.","Aprendes cada día y tu alemán mejora mucho.","Dominas el alemán y puedes enseñar a otros."],
     stProcessing:"Pensando…", stSpeaking:"Hablando", stEnded:"Desconectado", stError:"Problema", playLast:"Escuchar de nuevo", contact:"Tu contacto", prepHint:"Preparación recomendada", timeLeft:"restantes",
@@ -1399,6 +1572,7 @@ const T = {
     obWish:"¡Apuntado! Te avisaremos. Mientras tanto, sigue seleccionado el idioma actual 💪", obPair:"Idiomas: hablo / aprendo" },
   en:{ tagline:"Practise real German calls and conversations. You speak, the other person answers.",
     pick:"Choose the situation", level:"Level", helpLang:"Language for corrections", call:"CALL",
+    talkingWith:"Talking with", transcript:"Transcript",
     stageWord:"Level", stageNames:["Frog eggs","Tadpole","Tadpole with legs","Young frog","Studious frog","Expert frog"],
     stageDescs:["It all starts with tiny eggs full of possibilities.","You begin to discover new words and sounds.","You understand more and form your first sentences.","You can already have basic conversations.","You learn every day and your German improves a lot.","You have mastered German and can teach others."],
     stProcessing:"Thinking…", stSpeaking:"Speaking", stEnded:"Disconnected", stError:"Problem", playLast:"Play again", contact:"Your contact", prepHint:"Preparation recommended", timeLeft:"left",
@@ -1452,6 +1626,7 @@ const T = {
 /* ---------- additional help languages ---------- */
 T.tr = { tagline:"Gerçek Almanca aramalar ve konuşmalar pratiği yap. Sen konuş, karşı taraf cevap versin.",
   pick:"Durumu seç", level:"Seviye", helpLang:"Düzeltme dili", call:"ARA",
+  talkingWith:"Konuşulan kişi", transcript:"Konuşma metni",
   stageWord:"Seviye", stageNames:["Kurbağa yumurtaları","İribaş","Bacaklı iribaş","Genç kurbağa","Çalışkan kurbağa","Uzman kurbağa"],
   stageDescs:["Her şey olasılıklarla dolu minik yumurtalarla başlar.","Yeni kelimeler ve sesler keşfetmeye başlıyorsun.","Daha çok anlıyor ve ilk cümlelerini kuruyorsun.","Artık temel sohbetler yapabiliyorsun.","Her gün öğreniyorsun ve Almancan çok gelişiyor.","Almancaya hâkimsin ve başkalarına öğretebilirsin."],
   stProcessing:"Düşünüyor…", stSpeaking:"Konuşuyor", stEnded:"Bağlantı kesildi", stError:"Sorun", playLast:"Tekrar dinle", contact:"Görüşeceğin kişi", prepHint:"Hazırlık önerilir", timeLeft:"kaldı",
@@ -1502,6 +1677,7 @@ T.tr = { tagline:"Gerçek Almanca aramalar ve konuşmalar pratiği yap. Sen konu
   obWish:"Not aldık! Haber vereceğiz. O zamana kadar mevcut dil seçili kalıyor 💪", obPair:"Diller: konuşurum / öğrenirim" };
 T.ar = { tagline:"تدرّب على مكالمات ومحادثات حقيقية بالألمانية. أنت تتكلم والطرف الآخر يجيب.",
   pick:"اختر الموقف", level:"المستوى", helpLang:"لغة التصحيحات", call:"اتصل",
+  talkingWith:"تتحدث مع", transcript:"النص",
   stageWord:"المستوى", stageNames:["بيض الضفدع","شرغوف","شرغوف بأرجل","ضفدع صغير","ضفدع مجتهد","ضفدع خبير"],
   stageDescs:["كل شيء يبدأ ببويضات صغيرة مليئة بالإمكانات.","تبدأ باكتشاف كلمات وأصوات جديدة.","تفهم أكثر وتكوّن جملك الأولى.","يمكنك إجراء محادثات أساسية.","تتعلم كل يوم وتتحسن لغتك الألمانية كثيرًا.","أتقنت الألمانية ويمكنك تعليمها للآخرين."],
   stProcessing:"يفكّر…", stSpeaking:"يتحدث", stEnded:"انقطع الاتصال", stError:"مشكلة", playLast:"استمع مرة أخرى", contact:"من ستتحدث معه", prepHint:"يُنصح بالتحضير", timeLeft:"متبقّية",
@@ -1552,6 +1728,7 @@ T.ar = { tagline:"تدرّب على مكالمات ومحادثات حقيقية
   obWish:"سجلنا رغبتك! سنخبرك عندما تتوفر. حتى ذلك الحين تبقى اللغة الحالية مختارة 💪", obPair:"اللغات: أتحدث / أتعلم" };
 T.uk = { tagline:"Тренуй реальні дзвінки й розмови німецькою. Ти говориш — співрозмовник відповідає.",
   pick:"Обери ситуацію", level:"Рівень", helpLang:"Мова пояснень", call:"ДЗВОНИТИ",
+  talkingWith:"Розмова з", transcript:"Транскрипт",
   stageWord:"Рівень", stageNames:["Жаб'яча ікра","Пуголовок","Пуголовок з лапками","Молода жабка","Жабка-книголюб","Жабка-експерт"],
   stageDescs:["Усе починається з крихітних ікринок, повних можливостей.","Ти починаєш відкривати нові слова та звуки.","Ти розумієш більше й складаєш перші речення.","Ти вже можеш вести прості розмови.","Ти вчишся щодня, і твоя німецька значно кращає.","Ти опанував німецьку й можеш навчати інших."],
   stProcessing:"Думає…", stSpeaking:"Говорить", stEnded:"Роз'єднано", stError:"Проблема", playLast:"Прослухати ще раз", contact:"Твій співрозмовник", prepHint:"Радимо підготуватися", timeLeft:"залишилось",
@@ -1603,6 +1780,7 @@ T.uk = { tagline:"Тренуй реальні дзвінки й розмови �
 
 T.it = { tagline:"Allenati con telefonate e conversazioni reali in tedesco. Tu parli, l'altra persona risponde.",
   pick:"Scegli la situazione", level:"Livello", helpLang:"Lingua delle correzioni", call:"CHIAMA",
+  talkingWith:"Stai parlando con", transcript:"Trascrizione",
   stageWord:"Livello", stageNames:["Uova di rana","Girino","Girino con zampe","Ranocchia giovane","Rana studiosa","Rana esperta"],
   stageDescs:["Tutto inizia con piccole uova piene di possibilità.","Inizi a scoprire nuove parole e suoni.","Capisci di più e formi le tue prime frasi.","Puoi già fare conversazioni di base.","Impari ogni giorno e il tuo tedesco migliora molto.","Padroneggi il tedesco e puoi insegnarlo agli altri."],
   stProcessing:"Sta pensando…", stSpeaking:"Sta parlando", stEnded:"Disconnesso", stError:"Problema", playLast:"Ascolta di nuovo", contact:"Il tuo interlocutore", prepHint:"Preparazione consigliata", timeLeft:"rimasti",
@@ -2364,6 +2542,32 @@ const UI = {
   emptyState({ icon = "", title = "", body = "", action = "" } = {}) {
     return `<div class="ui-empty"><div class="ui-ico" aria-hidden="true">${icon || IC.cards(ICON.hero)}</div>` +
       `<b>${esc(title)}</b>${body ? `<p>${esc(body)}</p>` : ""}${action}</div>`;
+  },
+  /* --- 20. Call control: circular action on the immersive call layer --- */
+  callControl({ icon = "", label = "", variant = "secondary", id = "", size = "", attrs = "" } = {}) {
+    return `<button class="call-ctrl ${variant}" type="button"${id ? ` id="${id}"` : ""}` +
+      (size ? ` style="width:${size};height:${size}"` : "") +
+      ` aria-label="${esc(label)}" ${attrs}><span class="call-ctrl-ic" aria-hidden="true">${icon}</span>` +
+      `<span class="call-ctrl-lb">${esc(label)}</span></button>`;
+  },
+  /* --- 21. Speech bubble: character line, or Marzi's suggestion --- */
+  speechBubble({ side = "char", text = "", id = "", tappable = false } = {}) {
+    const tag = tappable ? "button" : "div";
+    return `<${tag} class="call-bubble ${side}"${id ? ` id="${id}"` : ""}` +
+      (tappable ? ` type="button"` : ` role="note"`) + `>${esc(text)}</${tag}>`;
+  },
+  /* --- 22. Call identity: who the learner is talking to --- */
+  callIdentity({ kicker = "", name = "", place = "" } = {}) {
+    return `<span class="call-id-kicker">${esc(kicker)}</span>` +
+      `<span class="call-id-name">${esc(name)}</span>` +
+      `<span class="call-id-place">${esc(place)}</span>`;
+  },
+  /* --- 23. Call sheet: transcript + tools over the call layer --- */
+  callSheet({ title = "", closeLabel = "", body = "" } = {}) {
+    return `<div class="sheet-grab" aria-hidden="true"></div>` +
+      `<div class="sheet-head"><b id="sheetTitle">${esc(title)}</b>` +
+      `<button class="btn" id="sheetClose" type="button">${esc(closeLabel)}</button></div>` +
+      `<div class="sheet-body">${body}</div>`;
   },
   /* --- 19. Error state: what broke, and how to recover --- */
   errorState({ title = "", body = "", action = "" } = {}) {
@@ -3957,7 +4161,8 @@ function callStateIcon(st) {
   return { ready: IC.mic(ICON.sm), listening: IC.wave(ICON.sm), processing: IC.clock(ICON.sm),
            speaking: IC.speaker(ICON.sm), disconnected: IC.phone(ICON.sm), error: IC.warn(ICON.sm) }[st] || IC.mic(ICON.sm);
 }
-/* light update: status chip + live region + mic button, no full re-render */
+/* light update: status chip + live region + mic button, no full re-render.
+   Disconnected and error stay visible until the state itself resolves. */
 function renderCallStatus() {
   const st = callStateFor(S);
   const label = callStateLabel(st);
@@ -3966,7 +4171,13 @@ function renderCallStatus() {
   chip.innerHTML = callStateIcon(st) + `<span>${esc(label)}</span>`;
   chip.setAttribute("role", "status");
   $("callStatusLive").textContent = label;
-  $("micBtn").dataset.status = st === "error" ? "failed" : micStatusFor(S);
+  const mic = $("micBtn");
+  if (mic) {
+    mic.dataset.status = st === "error" ? "failed" : micStatusFor(S);
+    mic.disabled = S.busy;
+  }
+  const scr = $("vcAv");
+  if (scr && scr.classList) scr.classList.toggle("speaking", st === "speaking");
 }
 /* remaining call time from the existing plan math (read-only) */
 function callSecondsLeft() {
@@ -3975,7 +4186,10 @@ function callSecondsLeft() {
 function renderCall() {
   const L = t();
   const A = S.active || S.scenario;
-  $("who").textContent = A.who;
+  // identity: kicker + name + place, centred, never truncated (board 02)
+  $("callId").innerHTML = UI.callIdentity({
+    kicker: L.talkingWith, name: A.who, place: A[S.lang] || A.en || A.de || "",
+  });
   $("vcEmoji").textContent = A.avatar || "🎧";
   const img = $("vcImg");
   const src = A.id && A.id !== "custom" && A.id !== "random"
@@ -3986,10 +4200,9 @@ function renderCall() {
     img.dataset.retried = "";
     img.classList.remove("ok");
     if (src) {
-      img.onload = () => { img.classList.add("ok"); $("vcAv").classList.add("photo"); }; // photo covers the emoji only once loaded
+      img.onload = () => img.classList.add("ok");
       img.onerror = () => {
         img.classList.remove("ok");
-        $("vcAv").classList.remove("photo");
         // one delayed retry: generation can take ~10s on the very first view
         if (!img.dataset.retried) {
           img.dataset.retried = "1";
@@ -3997,44 +4210,65 @@ function renderCall() {
         }
       };
       img.src = src;
-    } else {
-      img.removeAttribute("src");
-      $("vcAv").classList.remove("photo");
-    }
+    } else img.removeAttribute("src");
   }
+
   $("timer").textContent = timerText();
-  $("vcPlace").textContent = (A[S.lang] || A.en || A.de || "");
   const left = callSecondsLeft();
-  const lowTime = left <= 300;
-  $("vcLeft").innerHTML = IC.clock(ICON.xxs) + ` ${Math.ceil(left / 60)} min ${esc(L.timeLeft)}`;
-  $("vcLeft").dataset.low = lowTime ? "1" : "0";
-  $("vcLeft").setAttribute("aria-label", `${Math.ceil(left / 60)} min ${L.timeLeft}`);
-  $("hangBtn").innerHTML = IC.phone(ICON.chip) + " " + esc(A.kind === "face" ? L.endTalk : L.hangUp);
-  $("playBtn").innerHTML = IC.speaker(ICON.btn) + " " + esc(L.playLast);
-  $("repeatBtn").textContent = L.repeat;
-  $("hintBtn").textContent = L.hint;
-  $("typeBtn").textContent = L.type;
-  $("sendBtn").textContent = L.send;
-  $("freeBtn").textContent = (S.handsFree ? "\u25CF " : "\u25CB ") + L.handsFree;
-  $("freeBtn").className = "toggle" + (S.handsFree ? " on" : "");
-  $("micBtn").innerHTML = IC.mic(ICON.lg) + " " + esc(S.listening ? L.listening : L.speak);
-  $("micBtn").className = "big";
-  $("micBtn").disabled = S.busy;
-  $("hintBtn").disabled = !S.hint;
+  $("vcLeft").innerHTML = `· <span class="${left <= 300 ? "low" : ""}">${Math.ceil(left / 60)} min ${esc(L.timeLeft)}</span>`;
+  $("callConn").innerHTML = IC.wave(ICON.sm) + `<span class="sr-only">${esc(callStateLabel(callStateFor(S)))}</span>`;
+  $("callMinBtn").innerHTML = IC.list(ICON.lg);
+  $("callMinBtn").setAttribute("aria-label", L.transcript);
+
+  // circular controls, built from the canonical component
+  $("callControls").innerHTML =
+    UI.callControl({ id: "micBtn", icon: IC.mic(ICON.xl), label: S.listening ? L.listening : L.speak, variant: "secondary", attrs: `data-status="${micStatusFor(S)}"` }) +
+    UI.callControl({ id: "hangBtn", icon: IC.phone(ICON.xl), label: A.kind === "face" ? L.endTalk : L.hangUp, variant: "danger" }) +
+    UI.callControl({ id: "playBtn", icon: IC.speaker(ICON.xl), label: L.playLast, variant: "secondary" });
+  wireCallControls();
+
+  // the transcript opener stays labelled (discoverability); the other two are
+  // icon-only with explicit labels so the row fits one line on a 360px phone
+  $("sheetBtn").innerHTML = IC.list(ICON.sm) + `<span>${esc(L.transcript)}</span>`;
+  $("sheetBtn").setAttribute("aria-label", L.transcript);
+  $("repeatBtn").innerHTML = IC.speaker(ICON.sm);
+  $("repeatBtn").setAttribute("aria-label", L.repeat);
+  $("repeatBtn").title = L.repeat;
+  $("freeBtn").innerHTML = IC.mic(ICON.sm);
+  $("freeBtn").setAttribute("aria-label", L.handsFree);
+  $("freeBtn").title = L.handsFree;
+  $("freeBtn").setAttribute("aria-pressed", String(!!S.handsFree));
   $("repeatBtn").disabled = !S.turns.some((x) => !x.me);
   $("playBtn").disabled = !S.turns.some((x) => !x.me);
-  renderCallStatus();
+  $("hintBtn").innerHTML = IC.help(ICON.sm) + " " + esc(L.hint);
+  $("hintBtn").disabled = !S.hint;
+  $("sendBtn").textContent = L.send;
+  $("typeBtn").textContent = L.type;
 
-  // Marzi's speech bubble: on the learner's turn Marzi offers the hint;
-  // tapping the bubble opens the same suggestion as the hint button.
-  // While the character speaks the CSS fades it out (.speaking).
-  $("vcBubble").textContent = L.hint;
-  $("vcBubble").classList.toggle("hidden", !(S.hint && !S.hintOpen && !S.busy));
+  // character line in a bubble (board 02), tap to hear it again
+  const lastChar = [...S.turns].reverse().find((x) => !x.me);
+  $("vcSay").textContent = lastChar ? lastChar.text : "";
+  $("vcSay").classList.toggle("hidden", !lastChar);
+  $("vcSay").setAttribute("aria-label", `${A.who}: ${lastChar ? lastChar.text : ""}`);
 
+  // Marzi's bubble carries the suggestion and is attached to Marzi
+  $("vcBubble").textContent = S.hint || L.hint;
+  $("vcBubble").classList.toggle("hidden", !(S.hint && !S.busy));
+  $("vcBubble").setAttribute("aria-label", `Marzi: ${S.hint || L.hint}`);
 
   if (S.hint && S.hintOpen) { $("hintText").textContent = S.hint; $("hintBox").classList.remove("hidden"); }
   else $("hintBox").classList.add("hidden");
 
+  renderCallStatus();
+  renderTranscript();
+}
+
+/* transcript lives in the sheet; S.turns stays render-only state */
+function renderTranscript() {
+  const L = t();
+  const A = S.active || S.scenario;
+  $("sheetTitle").textContent = L.transcript;
+  $("sheetClose").textContent = L.ok;
   $("log").innerHTML = S.turns.map((x, i) => UI.bubble({
     side: x.me ? "me" : "char",
     tag: x.me ? L.you : A.tag,
@@ -4059,7 +4293,7 @@ function renderCall() {
   $("log").querySelectorAll("[data-say]").forEach((b) =>
     b.onclick = () => speak(S.turns[+b.dataset.say].corrected, true));
   $("log").querySelectorAll("[data-tr]").forEach((b) =>
-    b.onclick = () => { const x = S.turns[+b.dataset.tr]; x.open = !x.open; renderCall(); });
+    b.onclick = () => { const x = S.turns[+b.dataset.tr]; x.open = !x.open; renderTranscript(); });
   $("log").scrollTop = $("log").scrollHeight;
 }
 
@@ -4073,7 +4307,7 @@ function show(which) {
   // the call is immersive; onboarding is chromeless
   $("bottomnav").classList.toggle("hidden", which === "call" || which === "onboard");
   if (document.body.classList) document.body.classList.toggle("in-call", which === "call");
-  $("topbar").classList.toggle("hidden", which === "onboard");
+  $("topbar").classList.toggle("hidden", which === "onboard" || which === "call");
   const active = TAB_OF[which] || "";
   [["nbLearn","learn"],["nbTalk","talk"],["nbStore","store"],["nbProfile","profile"]]
     .forEach(([id, tb]) => $(id).classList.toggle("on", tb === active));
@@ -4748,7 +4982,8 @@ function goCall() {
   else startConversation();
 }
 $("callBtn").onclick = goCall;
-$("hangBtn").onclick = () => {
+function endCall() {
+  if (sheetOpen()) closeCallSheet();
   S.handsFree = false;
   if (S.session) S.session.end(); // any pending AI reply is dropped by the engine
   SFX.ringStop();
@@ -4778,7 +5013,8 @@ $("hangBtn").onclick = () => {
   updateTopbar();
   show("done");
   evaluateCall();
-};
+}
+
 $("againBtn").onclick = () => { stopAudio(); speechSynthesis.cancel(); showTab("talk"); };
 function openDrawer() { $("drawer").classList.add("open"); $("drawerBack").classList.remove("hidden"); }
 function closeDrawer() { $("drawer").classList.remove("open"); $("drawerBack").classList.add("hidden"); }
@@ -4825,17 +5061,63 @@ $("ankiBtn").onclick = () => exportAnki();
 $("clearBtn").onclick = () => {
   if (confirm(t().clearConfirm)) { localStorage.removeItem(FIX_KEY); renderMistakes(); }
 };
-$("micBtn").onclick = () => listen();
-/* speaker replay: the last thing the character said, at normal speed,
-   through the existing voice provider (no new TTS path) */
-$("playBtn").onclick = () => {
-  for (let i = S.turns.length - 1; i >= 0; i--) {
-    if (!S.turns[i].me) {
-      ENGINE.get("voice").speak({ text: S.turns[i].text, slow: false, speaker: S.turns[i].sp || 1 });
-      return;
-    }
+/* ---------- MARZI-006: transcript & tools sheet ----------
+   Dismissible four ways: close button, swipe down, Escape, Android back.
+   Back is handled with a pushState entry so it never navigates the tab. */
+let SHEET_HISTORY = false;
+let SHEET_SHOWN = false;
+function sheetOpen() { return SHEET_SHOWN; }
+function openCallSheet() {
+  renderTranscript();
+  SHEET_SHOWN = true;
+  $("callSheet").classList.remove("hidden");
+  $("sheetBack").classList.remove("hidden");
+  try { $("sheetClose").focus(); } catch (e) {}
+  if (!SHEET_HISTORY) {
+    try { window.history.pushState({ marziSheet: true }, ""); SHEET_HISTORY = true; } catch (e) {}
   }
-};
+}
+function closeCallSheet(fromPop) {
+  SHEET_SHOWN = false;
+  $("callSheet").classList.add("hidden");
+  $("sheetBack").classList.add("hidden");
+  if (SHEET_HISTORY && !fromPop) { SHEET_HISTORY = false; try { window.history.back(); } catch (e) {} }
+  else SHEET_HISTORY = false;
+  try { $("sheetBtn").focus(); } catch (e) {}
+}
+window.addEventListener("popstate", () => { if (sheetOpen()) closeCallSheet(true); });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape" && sheetOpen()) closeCallSheet(); });
+$("sheetBtn").onclick = () => openCallSheet();
+$("callMinBtn").onclick = () => openCallSheet();
+$("sheetClose").onclick = () => closeCallSheet();
+$("sheetBack").onclick = () => closeCallSheet();
+/* swipe down to dismiss */
+(() => {
+  let y0 = null;
+  const sheet = $("callSheet");
+  if (!sheet.addEventListener) return;
+  sheet.addEventListener("touchstart", (e) => { y0 = e.touches && e.touches[0] ? e.touches[0].clientY : null; }, { passive: true });
+  sheet.addEventListener("touchend", (e) => {
+    const y1 = e.changedTouches && e.changedTouches[0] ? e.changedTouches[0].clientY : null;
+    if (y0 != null && y1 != null && y1 - y0 > 60) closeCallSheet();
+    y0 = null;
+  }, { passive: true });
+})();
+
+/* the circular controls are rebuilt on every render, so their handlers are
+   re-attached here - no provider is ever called directly from a handler */
+function wireCallControls() {
+  $("micBtn").onclick = () => listen();
+  $("hangBtn").onclick = () => endCall();
+  $("playBtn").onclick = () => {
+    for (let i = S.turns.length - 1; i >= 0; i--) {
+      if (!S.turns[i].me) {
+        ENGINE.get("voice").speak({ text: S.turns[i].text, slow: false, speaker: S.turns[i].sp || 1 });
+        return;
+      }
+    }
+  };
+}
 // SOS phrases are German in the static markup; other targets swap them in
 if (TARGET.code !== "de") {
   $("sosRow").innerHTML = TARGET.sos.map(([say, label]) =>

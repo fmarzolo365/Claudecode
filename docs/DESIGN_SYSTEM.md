@@ -272,6 +272,53 @@ is the compact variant of this component.
 **Responsive** Centred; text wraps freely.
 **Usage** `UI.errorState({ title: L.err, body: L.micBlocked })`
 
+### 20. Call control — `UI.callControl({icon, label, variant, id, size, attrs})`
+**Purpose** A circular action on the immersive call layer (board `02_call.png`).
+**Visual rules** Circle, translucent white over the portrait; `danger` is the
+red hang-up and is the largest control. Icon above a short label.
+**States** `secondary` / `danger`; `data-status` drives listening (green +
+pulse), processing (neutral, disabled) and failed (red); `disabled` dims.
+**Accessibility** `aria-label` always set; the visible label repeats it, so a
+state is never colour-only. Minimum 64px, hang-up 72px — both above the 48px
+floor.
+**Responsive** Fixed circles in a centred row; never shrink below the floor.
+**Usage** `UI.callControl({ id: "hangBtn", icon: IC.phone(ICON.xl), label: L.hangUp, variant: "danger" })`
+
+### 21. Speech bubble — `UI.speechBubble({side, text, id, tappable})`
+**Purpose** A spoken line on the call layer: the character's line, or Marzi's
+suggestion.
+**Visual rules** `char` sits upper-left with a left tail; `marzi` attaches to
+Marzi lower-right with a right tail. Paper background so it reads over any
+portrait.
+**States** Hidden when there is nothing to say; `tappable` renders a button
+(Marzi's suggestion opens the full hint).
+**Accessibility** `aria-label` names the speaker; non-tappable bubbles use
+`role="note"`.
+**Responsive** Max 62% (char) / 54% (Marzi) of the layer width; wraps freely.
+**Usage** `UI.speechBubble({ side: "marzi", text: S.hint, tappable: true })`
+
+### 22. Call identity — `UI.callIdentity({kicker, name, place})`
+**Purpose** Who the learner is talking to, at the top of the call layer.
+**Visual rules** Three centred lines: kicker ("Talking with"), name, place.
+**States** Follows character switching — the handover persona updates it.
+**Accessibility** Real text, never truncated; the name is the largest line.
+**Responsive** Centred between the close button and the connection indicator.
+**Usage** `UI.callIdentity({ kicker: L.talkingWith, name: A.who, place: A[S.lang] })`
+
+### 23. Call sheet — `UI.callSheet({title, closeLabel, body})`
+**Purpose** Transcript and tools over the call, without breaking the board
+composition.
+**Visual rules** Bottom sheet on a dimmed backdrop, grab handle, title row
+with a labelled close button, scrolling body capped at 74dvh.
+**States** Hidden / shown. Dismissible four ways: close button, swipe down,
+Escape, Android back (a `pushState` entry is consumed by `popstate`, so back
+never leaves the call).
+**Accessibility** `role="dialog"`, `aria-modal="true"`, `aria-labelledby` on
+the title; focus moves to close on open and back to the opener on close. The
+opening control is **labelled, never icon-only**.
+**Responsive** Full width, safe-area padded at the bottom.
+**Usage** `UI.callSheet({ title: L.transcript, closeLabel: L.ok, body })`
+
 ---
 
 ## Adding to the system
