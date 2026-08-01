@@ -1,10 +1,30 @@
 {
   "queue": "PRODUCT-AUTOMATION-002",
   "packages": [
-    { "id": "MARZI-013", "title": "Marzi States & Emotions", "status": "in_progress", "commit": null },
-    { "id": "MARZI-014", "title": "Premium + Internet/Minutes", "status": "pending", "commit": null },
-    { "id": "MARZI-015", "title": "Profile & Progress", "status": "pending", "commit": null },
-    { "id": "MARZI-016", "title": "Map / Learning Journey", "status": "pending", "commit": null }
+    {
+      "id": "MARZI-013",
+      "title": "Marzi States & Emotions",
+      "status": "done",
+      "commit": null
+    },
+    {
+      "id": "MARZI-014",
+      "title": "Premium + Internet/Minutes",
+      "status": "in_progress",
+      "commit": null
+    },
+    {
+      "id": "MARZI-015",
+      "title": "Profile & Progress",
+      "status": "pending",
+      "commit": null
+    },
+    {
+      "id": "MARZI-016",
+      "title": "Map / Learning Journey",
+      "status": "pending",
+      "commit": null
+    }
   ],
   "decisions": {
     "premium": "presentation-only; no unlock; no user-facing activation switch; test-only hook",

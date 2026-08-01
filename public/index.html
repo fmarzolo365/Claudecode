@@ -902,6 +902,16 @@
     position: fixed; inset: 0; z-index: 55; background: rgba(23, 20, 15, .42);
     backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);
   }
+  /* ---------- MARZI-013: per-state Marzi motion (reduced-motion safe) ---------- */
+  .marzi-art-img { width: 100%; height: 100%; object-fit: contain; }
+  [data-state="listening"] > svg, [data-state="listening"] > .marzi-art-img { animation: mLean var(--loop-pulse) var(--ease) infinite; }
+  [data-state="thinking"] > svg, [data-state="thinking"] > .marzi-art-img { animation: mThink var(--loop-bob) var(--ease) infinite; }
+  [data-state="speaking"] > svg, [data-state="speaking"] > .marzi-art-img { animation: mTalk var(--loop-glow) var(--ease) infinite; }
+  [data-state="celebrating"] > svg, [data-state="celebrating"] > .marzi-art-img { animation: mCheer var(--dur-slower) var(--ease-pop); }
+  @keyframes mLean { 0%, 100% { transform: rotate(-2deg); } 50% { transform: rotate(2deg); } }
+  @keyframes mThink { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+  @keyframes mTalk { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.035); } }
+  @keyframes mCheer { 0% { transform: scale(.9) rotate(-4deg); } 60% { transform: scale(1.06) rotate(3deg); } 100% { transform: none; } }
   /* ---------- MARZI-011: offline banner ---------- */
   .net-banner {
     position: sticky; top: 0; z-index: 45; display: flex; align-items: center; gap: var(--space-2);
@@ -2760,7 +2770,7 @@ const UI = {
     const n = Math.min(6, Math.max(1, Number(stage) || 1));
     const label = `Marzi, ${marziNames()[n - 1]}, ${n}/${MARZI_STAGE_COUNT}`;
     return `<span class="ui-marzi ${cls}" data-stage="${n}" role="img" aria-label="${esc(label)}">` +
-      `<span class="ui-marzi-art" style="display:block;width:${size};height:${size}">${marziSVG(n, mood)}</span>` +
+      `<span class="ui-marzi-art" data-state="${esc(isMarziState(mood) ? mood : "neutral")}" style="display:block;width:${size};height:${size}">${marziArt(n, mood)}</span>` +
       (caption ? `<span class="vc-marzi-cap">${esc(caption)}</span>` : "") + `</span>`;
   },
   /* --- 2. Character avatar: an EXISTING scenario character (ADR-10: never new art) --- */
@@ -2989,13 +2999,67 @@ function currentMarziStage() { return marziStageForXp(loadStats().xp); }
 function renderCallCompanion() {
   const stage = currentMarziStage();
   const el = $("vcMarzi");
+  const state = marziStateForCall(callStateFor(S));   // deterministic, no new inference
   el.dataset.stage = String(stage);
+  el.dataset.state = state;
   el.setAttribute("role", "img");
   el.setAttribute("aria-label", `Marzi, ${marziNames()[stage - 1]}, ${stage}/${MARZI_STAGE_COUNT}`);
-  el.innerHTML = `<span class="vc-marzi-art">${marziSVG(stage)}</span>` +
+  el.innerHTML = `<span class="vc-marzi-art" data-state="${state}">${marziArt(stage, state)}</span>` +
     `<span class="vc-marzi-cap">Marzi · ${esc(marziNames()[stage - 1])} · ${stage}/${MARZI_STAGE_COUNT}</span>`;
 }
+/* ---------- MARZI-013: canonical presentation states ----------
+   Eight states, mapped deterministically from state the app already owns:
+   the call state machine (callStateFor) and the reward summary state.
+   Nothing new is inferred and no artwork is invented - the shipped SVG is
+   always the fallback, and a resolver is prepared so approved production
+   files can be dropped in without touching any call site. */
+const MARZI_STATES = ["neutral", "happy", "listening", "thinking", "speaking", "sad", "error", "celebrating"];
+
+/* call state -> presentation state (call screen, companion) */
+const CALL_STATE_MOOD = {
+  ready: "neutral", listening: "listening", processing: "thinking",
+  speaking: "speaking", disconnected: "sad", error: "error",
+};
+/* reward summary state -> presentation state (end of call) */
+const REWARD_STATE_MOOD = {
+  normal: "happy", high: "celebrating", evolved: "celebrating",
+  none: "sad", duplicate: "neutral", "save-failed": "error",
+};
+function marziStateForCall(state) { return CALL_STATE_MOOD[state] || "neutral"; }
+function marziStateForReward(state) { return REWARD_STATE_MOOD[state] || "neutral"; }
+function isMarziState(x) { return MARZI_STATES.includes(x); }
+
+/* Where an approved production file WOULD live (docs/design/MARZI_ASSET_SPEC.md
+   naming). The registry is empty until real files are added, so every lookup
+   falls back to the shipped SVG - no requests are made for files that do not
+   exist. */
+const MARZI_STAGE_SLUGS = ["01_eggs", "02_tadpole", "03_tadpole_legs",
+                           "04_young_frog", "05_studious_frog", "06_expert_frog"];
+const MARZI_STATE_POSE = {
+  neutral: "hero", happy: "hero", sad: "hero",
+  listening: "call", thinking: "call", speaking: "call",
+  error: "error", celebrating: "reward",
+};
+const MARZI_ASSETS = Object.create(null); // filled only when approved files ship
+function marziAssetPath(stage, state) {
+  const n = Math.min(6, Math.max(1, Number(stage) || 1));
+  const st = isMarziState(state) ? state : "neutral";
+  return `/assets/marzi/svg/marzi_${MARZI_STAGE_SLUGS[n - 1]}_${MARZI_STATE_POSE[st]}_${st}.svg`;
+}
+function hasMarziAsset(stage, state) { return Boolean(MARZI_ASSETS[marziAssetPath(stage, state)]); }
+/* the single entry point every screen uses */
+function marziArt(stage, state) {
+  const st = isMarziState(state) ? state : "neutral";
+  if (hasMarziAsset(stage, st)) {
+    return `<img class="marzi-art-img" src="${esc(marziAssetPath(stage, st))}" alt="" />`;
+  }
+  return marziSVG(stage, st); // fallback: shipped artwork
+}
+
 function marziSVG(stage, mood) {
+  // the placeholder artwork carries two mouths; every state maps onto one of
+  // them until approved per-state files exist (see MARZI_ASSET_SPEC P0/P1)
+  const down = mood === "sad" || mood === "error";
   const g1 = "#79a94c", g2 = "#97c162", belly = "#f4ecd6", dark = "#33461f", lens = "#4a3423";
   const eyes = (cy, r, pr) => `<g class="mblink">
      <circle cx="45" cy="${cy}" r="${r}" fill="#fff" stroke="${dark}" stroke-width="1.4"/>
@@ -3020,7 +3084,7 @@ function marziSVG(stage, mood) {
       <ellipse cx="55" cy="66" rx="27" ry="23" fill="${g1}"/>
       <ellipse cx="52" cy="76" rx="15" ry="9" fill="${belly}"/>
       ${eyes(48, 8.5, 4)}
-      <path d="${mood === "sad" ? "M46 66 Q56 60 66 66" : "M46 62 Q56 68 66 62"}" fill="none" stroke="${dark}" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="${down ? "M46 66 Q56 60 66 66" : "M46 62 Q56 68 66 62"}" fill="none" stroke="${dark}" stroke-width="2.6" stroke-linecap="round"/>
       <circle cx="86" cy="34" r="3.5" fill="none" stroke="${g2}" stroke-width="2"/>
       <circle cx="93" cy="24" r="2.2" fill="none" stroke="${g2}" stroke-width="2"/>`;
   } else {
@@ -3044,7 +3108,7 @@ function marziSVG(stage, mood) {
       ${eyes(34, 9.5, 4.5)}
       ${glasses}
       <circle cx="42" cy="58" r="4" fill="#e9a08b" opacity=".55"/><circle cx="78" cy="58" r="4" fill="#e9a08b" opacity=".55"/>
-      <path d="${mood === "sad" ? "M47 64 Q60 55 73 64" : "M47 58 Q60 67 73 58"}" fill="none" stroke="${dark}" stroke-width="2.8" stroke-linecap="round"/>
+      <path d="${down ? "M47 64 Q60 55 73 64" : "M47 58 Q60 67 73 58"}" fill="none" stroke="${dark}" stroke-width="2.8" stroke-linecap="round"/>
       <circle cx="56" cy="50" r="1.4" fill="${dark}"/><circle cx="64" cy="50" r="1.4" fill="${dark}"/>
       <ellipse cx="42" cy="99" rx="9" ry="4.5" fill="${g2}"/><ellipse cx="78" cy="99" rx="9" ry="4.5" fill="${g2}"/>
       ${book}${cap}${pencil}`;
@@ -4659,6 +4723,12 @@ function renderCallStatus() {
   }
   const scr = $("vcAv");
   if (scr && scr.classList) scr.classList.toggle("speaking", st === "speaking");
+  // Marzi's presentation state follows the same single source
+  const comp = $("vcMarzi");
+  if (comp && comp.dataset && comp.dataset.stage) {
+    const mood = marziStateForCall(st);
+    if (comp.dataset.state !== mood) renderCallCompanion();
+  }
 }
 /* remaining call time from the existing plan math (read-only) */
 function callSecondsLeft() {
@@ -4803,7 +4873,7 @@ function renderRewardSummary(sum) {
   const message = { none: L.rwZero, high: L.rwHigh,
                     evolved: marziDescs()[sum.stageAfter - 1] || L.rwNormal,
                     "save-failed": L.saveFailed, duplicate: L.rwNormal }[sum.state] || L.rwNormal;
-  const mood = sum.state === "none" || sum.state === "save-failed" ? "sad" : "happy";
+  const mood = marziStateForReward(sum.state);
   $("rewardBox").innerHTML = UI.rewardSummary({
     state: sum.state, stage: sum.stageAfter, mood, message,
     xpLabel: sum.xp ? `+${sum.xp} XP` : "",

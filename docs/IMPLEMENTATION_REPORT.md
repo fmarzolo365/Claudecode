@@ -849,3 +849,46 @@ cleared. `sw.js` CACHE v31.
   states the gate contract.
 
 No runtime behaviour changed: no reformatting, no build step, no dependencies.
+
+---
+
+# Implementation Report — MARZI-013 (PRODUCT-AUTOMATION-002, 1/4)
+
+**Task:** Marzi States & Emotions · **Status:** Complete, 31/31 green, NOT merged
+
+**Eight canonical states** — `neutral · happy · listening · thinking ·
+speaking · sad · error · celebrating` — mapped **deterministically from state
+the app already owns**, with no new inference:
+
+| Source | Mapping |
+|---|---|
+| `callStateFor` | ready→neutral · listening→listening · processing→thinking · speaking→speaking · disconnected→sad · error→error |
+| reward summary | normal→happy · high→celebrating · evolved→celebrating · none→sad · duplicate→neutral · save-failed→error |
+
+Unknown input falls back to `neutral` and never throws.
+
+**Artwork.** `marziArt(stage, state)` is the single entry point. The asset
+registry `MARZI_ASSETS` **ships empty**, so every lookup falls back to the
+existing SVG — verified in Chromium that **no request is made** for a file
+that does not exist. `marziAssetPath()` produces the exact names from
+`MARZI_ASSET_SPEC.md` (e.g. `marzi_05_studious_frog_call_listening.svg`), so
+approved production files can be registered later **without touching a single
+call site**. No artwork was invented; the placeholder answers all eight states
+(the sad/error pair shares the existing downturned mouth).
+
+**Wiring.** The call companion now derives its state from the same
+`callStateFor` source that drives the status chip and mic, re-rendering only
+when the state actually changes; the reward card uses the reward mapping
+instead of its previous ad-hoc ternary.
+
+**Accessibility & motion.** Per-state motion (lean/think/talk/cheer) sits
+behind `prefers-reduced-motion` — measured `animationDuration: 0s` under
+reduced motion, with states still exposed via `data-state` and the existing
+`role="img"` label.
+
+**Preserved:** ConversationSession, providers, prompts, XP, rewards, economy.
+
+**Verification.** Suite 31/31 including every state, every fallback, path
+clamping, and a registered-asset switch test. Chromium 390×844 and 360×640
+plus reduced motion: all five reachable call states render correctly with zero
+asset requests. `sw.js` CACHE v32.

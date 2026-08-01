@@ -104,6 +104,8 @@ src += `\n;globalThis.__t = { T, TARGET, TARGETS, LEVELS, LEVEL_ORDER, SCENARIOS
   createTranscript, PromptBuilder, createConversationSession, ENGINE, send, ask,
   renderLearn, renderCall, renderTranscript, openCallSheet, closeCallSheet, sheetOpen, endCall, callStateFor, callStateLabel, callStateIcon, callSecondsLeft, renderScenarioCards, renderCharacterCard, scenarioSubtitle,
   UI, IC, ICON, evolutionHTML, renderCallStatus,
+  MARZI_STATES, marziStateForCall, marziStateForReward, isMarziState, marziArt,
+  marziAssetPath, hasMarziAsset, MARZI_ASSETS, marziSVG,
   showLimit, closeLimit, limitOpen, applyLangDirection, RTL_LANGS, isOffline, renderNetBanner, notifyStorageFailure, buildRewardSummary, isHighPerformance, renderRewardSummary, animateReward, celebrateEvolution,
   closeEvolutionCelebration, evolutionCelebrationOpen, CELEBRATED_KEY, claimReward, loadRewardLedger,
   OUTFITS, STORE_CATS, LEGACY_OUTFIT_IDS, outfitById, outfitName, outfitState,
@@ -1139,6 +1141,62 @@ check("release gates: hygiene, versioning and documentation", () => {
   // 5. no dependencies crept in - the app stays dependency-free (ADR-3)
   const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "package.json"), "utf8"));
   if (Object.keys(pkg.dependencies || {}).length) throw new Error("runtime dependencies added");
+});
+
+check("MARZI-013 Marzi states: mapping, fallback, asset paths", () => {
+  // the eight canonical states, exactly
+  if (tt.MARZI_STATES.join() !== "neutral,happy,listening,thinking,speaking,sad,error,celebrating")
+    throw new Error("state vocabulary: " + tt.MARZI_STATES.join());
+
+  // deterministic mapping from the existing call state machine
+  for (const [call, want] of [["ready","neutral"],["listening","listening"],["processing","thinking"],
+                              ["speaking","speaking"],["disconnected","sad"],["error","error"]]) {
+    if (tt.marziStateForCall(call) !== want) throw new Error(`call ${call} -> ${tt.marziStateForCall(call)}, want ${want}`);
+  }
+  // and from the existing reward summary state
+  for (const [rw, want] of [["normal","happy"],["high","celebrating"],["evolved","celebrating"],
+                            ["none","sad"],["duplicate","neutral"],["save-failed","error"]]) {
+    if (tt.marziStateForReward(rw) !== want) throw new Error(`reward ${rw} -> ${tt.marziStateForReward(rw)}, want ${want}`);
+  }
+  // unknown input never throws and never invents a state
+  if (tt.marziStateForCall("nope") !== "neutral" || tt.marziStateForReward(undefined) !== "neutral")
+    throw new Error("unknown state must fall back to neutral");
+  if (tt.isMarziState("wat") || !tt.isMarziState("thinking")) throw new Error("state guard");
+
+  // every state renders, and with no approved files present it is the shipped
+  // artwork - never a request for a file that does not exist
+  if (Object.keys(tt.MARZI_ASSETS).length !== 0) throw new Error("asset registry must ship empty");
+  for (const st of tt.MARZI_STATES) {
+    for (const stage of [1, 3, 6]) {
+      const art = tt.marziArt(stage, st);
+      if (!art.includes("<svg")) throw new Error(`${st}@${stage} did not fall back to the shipped artwork`);
+      if (art.includes("<img")) throw new Error(`${st}@${stage} requested a file that does not exist`);
+    }
+  }
+  // asset paths follow the approved naming, ready for production files
+  const p1 = tt.marziAssetPath(5, "listening");
+  if (p1 !== "/assets/marzi/svg/marzi_05_studious_frog_call_listening.svg") throw new Error("asset path: " + p1);
+  if (tt.marziAssetPath(1, "celebrating") !== "/assets/marzi/svg/marzi_01_eggs_reward_celebrating.svg") throw new Error("reward pose path");
+  if (tt.marziAssetPath(99, "wat") !== "/assets/marzi/svg/marzi_06_expert_frog_hero_neutral.svg") throw new Error("path clamping");
+  if (tt.hasMarziAsset(5, "listening")) throw new Error("no approved asset should be reported as present");
+  // registering an approved file switches the resolver without touching call sites
+  tt.MARZI_ASSETS[p1] = true;
+  if (!tt.marziArt(5, "listening").includes("<img")) throw new Error("registered asset not used");
+  delete tt.MARZI_ASSETS[p1];
+
+  // the companion follows the call state; the reward card follows the reward state
+  const compSrc = String(src.match(/function renderCallCompanion\(\)[\s\S]*?\n\}/)[0]);
+  if (!compSrc.includes("marziStateForCall(callStateFor(S))")) throw new Error("companion does not use the canonical mapping");
+  const rwSrc = String(src.match(/function renderRewardSummary\([\s\S]*?\n\}/)[0]);
+  if (!rwSrc.includes("marziStateForReward(sum.state)")) throw new Error("reward card does not use the canonical mapping");
+  // the placeholder artwork answers every state (sad-family shares one mouth)
+  for (const st of tt.MARZI_STATES) if (!tt.marziSVG(4, st).includes("<svg")) throw new Error("placeholder missing for " + st);
+  // motion is per-state and reduced-motion still governs it
+  const styles = html.slice(html.indexOf("<style>"), html.indexOf("</style>"));
+  for (const st of ["listening", "thinking", "speaking", "celebrating"]) {
+    if (!styles.includes(`[data-state="${st}"] > svg`)) throw new Error("no motion rule for " + st);
+  }
+  if (!styles.includes("prefers-reduced-motion")) throw new Error("reduced-motion guard missing");
 });
 
 check("progress chart renders points, CEFR bands and a projection", () => {
