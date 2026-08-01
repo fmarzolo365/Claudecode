@@ -902,6 +902,14 @@
     position: fixed; inset: 0; z-index: 55; background: rgba(23, 20, 15, .42);
     backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);
   }
+  /* ---------- MARZI-011: offline banner ---------- */
+  .net-banner {
+    position: sticky; top: 0; z-index: 45; display: flex; align-items: center; gap: var(--space-2);
+    background: var(--danger-soft); color: var(--danger-ink);
+    border-bottom: 1px solid var(--tint-danger-35);
+    padding: var(--space-2) var(--space-3); font: 700 var(--text-f12) var(--font-sans);
+  }
+  .net-banner b { font-weight: 800; }
   /* ---------- MARZI-009: plan-limit experience (board 02, panel 2) ----------
      The shared modal surface gains a full-screen dark variant used only for
      the daily-limit moment; the evolution showcase keeps the card form. */
@@ -1244,6 +1252,7 @@
     <button class="chip-res gear" id="tbGear" aria-label="Settings"></button>
   </div>
 </header>
+<div id="netBanner" class="net-banner hidden" role="status"></div>
 <main>
   <!-- LEARN home: Marzi companion hero, mission, quick cards (spec §23, review §4) -->
   <section id="learn">
@@ -1654,6 +1663,7 @@ const T = {
   es:{ tagline:"Practica llamadas y conversaciones reales en alemán. Tú hablas, la otra persona responde.",
     pick:"Elige la situación", level:"Nivel", helpLang:"Idioma de las correcciones", call:"LLAMAR",
     outfitNames:["Exploradora","Deportiva","Arcoíris","Clásica","Universitaria","Artística","Profesional","Aventurera","Graduada"], catNames:["Outfits","Sombreros","Gafas","Mochilas","Pantalones"],
+    offlineTitle:"Sin conexión", offlineMsg:"Necesitas conexión para llamar. Vuelve a intentarlo cuando tengas internet.",
     rwTime:"Duración", rwTurns:"Turnos", rwMistakes:"Correcciones", rwNormal:"¡Buen trabajo! Sigue así.",
     rwHigh:"¡Excelente llamada! Hablaste con confianza.", rwZero:"Habla la próxima vez para ganar XP.", rwEvolvedTitle:"¡Marzi ha crecido!", rwContinue:"Continuar",
     storeOutfits:"Tienda de outfits", collectAll:"¡Colecciona todos los outfits de Marzi!", comingLater:"Muy pronto",
@@ -1711,6 +1721,7 @@ const T = {
   en:{ tagline:"Practise real German calls and conversations. You speak, the other person answers.",
     pick:"Choose the situation", level:"Level", helpLang:"Language for corrections", call:"CALL",
     outfitNames:["Explorer","Sporty","Rainbow","Classic","University","Artistic","Professional","Adventurer","Graduate"], catNames:["Outfits","Hats","Glasses","Backpacks","Trousers"],
+    offlineTitle:"No connection", offlineMsg:"You need a connection to call. Try again once you are back online.",
     rwTime:"Duration", rwTurns:"Turns", rwMistakes:"Corrections", rwNormal:"Nice work! Keep going.",
     rwHigh:"Excellent call! You spoke with confidence.", rwZero:"Speak next time to earn XP.", rwEvolvedTitle:"Marzi has grown!", rwContinue:"Continue",
     storeOutfits:"Outfit store", collectAll:"Collect all of Marzi's outfits!", comingLater:"Coming later",
@@ -1771,6 +1782,7 @@ const T = {
 T.tr = { tagline:"Gerçek Almanca aramalar ve konuşmalar pratiği yap. Sen konuş, karşı taraf cevap versin.",
   pick:"Durumu seç", level:"Seviye", helpLang:"Düzeltme dili", call:"ARA",
   outfitNames:["Kâşif","Sportif","Gökkuşağı","Klasik","Üniversite","Sanatçı","Profesyonel","Maceracı","Mezun"], catNames:["Kıyafetler","Şapkalar","Gözlükler","Sırt çantaları","Pantolonlar"],
+  offlineTitle:"Bağlantı yok", offlineMsg:"Aramak için bağlantı gerekir. İnternet gelince tekrar dene.",
   rwTime:"Süre", rwTurns:"Tur", rwMistakes:"Düzeltme", rwNormal:"Güzel iş! Böyle devam.",
   rwHigh:"Harika bir görüşme! Kendinden emin konuştun.", rwZero:"XP kazanmak için konuş.", rwEvolvedTitle:"Marzi büyüdü!", rwContinue:"Devam",
   storeOutfits:"Kıyafet mağazası", collectAll:"Marzi'nin tüm kıyafetlerini topla!", comingLater:"Yakında",
@@ -1828,6 +1840,7 @@ T.tr = { tagline:"Gerçek Almanca aramalar ve konuşmalar pratiği yap. Sen konu
 T.ar = { tagline:"تدرّب على مكالمات ومحادثات حقيقية بالألمانية. أنت تتكلم والطرف الآخر يجيب.",
   pick:"اختر الموقف", level:"المستوى", helpLang:"لغة التصحيحات", call:"اتصل",
   outfitNames:["المستكشفة","الرياضية","قوس قزح","الكلاسيكية","الجامعية","الفنية","المهنية","المغامرة","الخريجة"], catNames:["الأزياء","القبعات","النظارات","الحقائب","السراويل"],
+  offlineTitle:"لا يوجد اتصال", offlineMsg:"تحتاج إلى اتصال لإجراء مكالمة. حاول مرة أخرى عند عودة الإنترنت.",
   rwTime:"المدة", rwTurns:"الأدوار", rwMistakes:"التصحيحات", rwNormal:"عمل جيد! واصل.",
   rwHigh:"مكالمة ممتازة! تحدثت بثقة.", rwZero:"تحدث في المرة القادمة لتكسب XP.", rwEvolvedTitle:"لقد كبر مارزي!", rwContinue:"متابعة",
   storeOutfits:"متجر الأزياء", collectAll:"اجمع كل أزياء مارزي!", comingLater:"قريبًا",
@@ -1885,6 +1898,7 @@ T.ar = { tagline:"تدرّب على مكالمات ومحادثات حقيقية
 T.uk = { tagline:"Тренуй реальні дзвінки й розмови німецькою. Ти говориш — співрозмовник відповідає.",
   pick:"Обери ситуацію", level:"Рівень", helpLang:"Мова пояснень", call:"ДЗВОНИТИ",
   outfitNames:["Дослідниця","Спортивна","Веселка","Класична","Університетська","Артистична","Професійна","Мандрівниця","Випускниця"], catNames:["Вбрання","Капелюхи","Окуляри","Рюкзаки","Штани"],
+  offlineTitle:"Немає зв'язку", offlineMsg:"Для дзвінка потрібне з'єднання. Спробуй ще раз, коли з'явиться інтернет.",
   rwTime:"Тривалість", rwTurns:"Репліки", rwMistakes:"Виправлення", rwNormal:"Гарна робота! Так тримати.",
   rwHigh:"Чудова розмова! Ти говорив упевнено.", rwZero:"Говори наступного разу, щоб отримати XP.", rwEvolvedTitle:"Marzi підріс!", rwContinue:"Далі",
   storeOutfits:"Крамниця вбрання", collectAll:"Збери все вбрання Marzi!", comingLater:"Незабаром",
@@ -1943,6 +1957,7 @@ T.uk = { tagline:"Тренуй реальні дзвінки й розмови �
 T.it = { tagline:"Allenati con telefonate e conversazioni reali in tedesco. Tu parli, l'altra persona risponde.",
   pick:"Scegli la situazione", level:"Livello", helpLang:"Lingua delle correzioni", call:"CHIAMA",
   outfitNames:["Esploratrice","Sportiva","Arcobaleno","Classica","Universitaria","Artistica","Professionale","Avventuriera","Laureata"], catNames:["Outfit","Cappelli","Occhiali","Zaini","Pantaloni"],
+  offlineTitle:"Nessuna connessione", offlineMsg:"Serve una connessione per chiamare. Riprova quando torni online.",
   rwTime:"Durata", rwTurns:"Turni", rwMistakes:"Correzioni", rwNormal:"Bel lavoro! Continua così.",
   rwHigh:"Ottima chiamata! Hai parlato con sicurezza.", rwZero:"Parla la prossima volta per guadagnare XP.", rwEvolvedTitle:"Marzi è cresciuto!", rwContinue:"Continua",
   storeOutfits:"Negozio di outfit", collectAll:"Colleziona tutti gli outfit di Marzi!", comingLater:"Presto",
@@ -2394,7 +2409,7 @@ const SET_KEY = "marzi.settings.v1";
 function saveSettings() {
   try {
     localStorage.setItem(SET_KEY, JSON.stringify({ scenario:S.scenario.id, level:S.level, lang:S.lang, targetLang:S.targetLang, speed:S.speed, customTopic:S.customTopic, sound:S.sound !== false }));
-  } catch (e) {}
+  } catch (e) { try { notifyStorageFailure(); } catch (e2) {} }
 }
 (function loadSettings() {
   try {
@@ -4493,7 +4508,9 @@ async function ask() {
     ENGINE.get("voice").speak({ text: reply.text, slow: false, speaker: S.speaker,
       done: () => { if (S.handsFree && !p.done) listen(); } });
   } catch (e) {
-    S.busy = false; alertMsg(t().err); renderCall();
+    S.busy = false;
+    alertMsg(isOffline() ? t().offlineMsg : t().err);
+    renderCall();
   }
 }
 
@@ -5575,7 +5592,38 @@ function closeLimit() {
   $("limitPlan").classList.add("hidden");
 }
 $("limitOk").onclick = $("limitBack").onclick = () => closeLimit();
+/* ---------- MARZI-011: offline + storage resilience ----------
+   Failure states are honest: the learner is told what happened and what to do
+   next, instead of a generic error or a silent no-op. */
+function isOffline() {
+  try { return typeof navigator !== "undefined" && navigator.onLine === false; }
+  catch (e) { return false; }
+}
+function renderNetBanner() {
+  const L = t();
+  const el = $("netBanner");
+  const off = isOffline();
+  el.innerHTML = off ? `${IC.warn(ICON.sm)} <b>${esc(L.offlineTitle)}</b> <span>${esc(L.offlineMsg)}</span>` : "";
+  el.classList.toggle("hidden", !off);
+  return off;
+}
+/* a storage write that fails must never be silent */
+function notifyStorageFailure() {
+  const L = t();
+  const el = $("netBanner");
+  el.innerHTML = `${IC.warn(ICON.sm)} <b>${esc(L.saveFailed)}</b>`;
+  el.classList.remove("hidden");
+}
+
 function goCall() {
+  // offline: refuse with a clear recovery path instead of a generic failure.
+  // The banner is the channel - #alert lives inside the call screen and would
+  // be invisible here.
+  if (isOffline()) {
+    renderNetBanner();
+    try { $("netBanner").scrollIntoView({ block: "nearest" }); } catch (e) {}
+    return;
+  }
   if (planUsedToday() >= planLimitToday()) { showLimit(); return; }
   if (S.level === "A0" && canPrep() && !PREPPED.has(S.scenario.id)) startPrep();
   else startConversation();
@@ -5845,6 +5893,9 @@ window.addEventListener("hashchange", () => {
 });
 
 applyLangDirection();
+renderNetBanner();
+window.addEventListener("online", renderNetBanner);
+window.addEventListener("offline", renderNetBanner);
 renderSetup();
 if (S.firstRun) showOnboarding();
 else showTab(tabFromHash(location.hash) || "learn");

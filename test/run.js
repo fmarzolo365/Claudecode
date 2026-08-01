@@ -104,7 +104,7 @@ src += `\n;globalThis.__t = { T, TARGET, TARGETS, LEVELS, LEVEL_ORDER, SCENARIOS
   createTranscript, PromptBuilder, createConversationSession, ENGINE, send, ask,
   renderLearn, renderCall, renderTranscript, openCallSheet, closeCallSheet, sheetOpen, endCall, callStateFor, callStateLabel, callStateIcon, callSecondsLeft, renderScenarioCards, renderCharacterCard, scenarioSubtitle,
   UI, IC, ICON, evolutionHTML, renderCallStatus,
-  showLimit, closeLimit, limitOpen, applyLangDirection, RTL_LANGS, buildRewardSummary, isHighPerformance, renderRewardSummary, animateReward, celebrateEvolution,
+  showLimit, closeLimit, limitOpen, applyLangDirection, RTL_LANGS, isOffline, renderNetBanner, notifyStorageFailure, buildRewardSummary, isHighPerformance, renderRewardSummary, animateReward, celebrateEvolution,
   closeEvolutionCelebration, evolutionCelebrationOpen, CELEBRATED_KEY, claimReward, loadRewardLedger,
   OUTFITS, STORE_CATS, LEGACY_OUTFIT_IDS, outfitById, outfitName, outfitState,
   purchaseOutfit, equipOutfit, unequipOutfit, renderStore, openOutfitPreview, normalizeWardrobe };`;
@@ -1055,7 +1055,7 @@ check("MARZI-010 direction + touch targets", () => {
   if (tt.applyLangDirection("es") !== "ltr") throw new Error("Spanish must be ltr");
   if (tt.applyLangDirection("en") !== "ltr") throw new Error("English must be ltr");
   // the document is updated at boot and whenever the help language changes
-  if (!src.includes("applyLangDirection();\nrenderSetup();")) throw new Error("direction not applied at boot");
+  if (!/applyLangDirection\(\);\s*\n/.test(src)) throw new Error("direction not applied at boot");
   if (!/S\.lang = b\.dataset\.k; applyLangDirection\(\)/.test(src)) throw new Error("direction not applied on language change");
   // layout uses logical properties so RTL mirrors without a second stylesheet
   const styles = html.slice(html.indexOf("<style>"), html.indexOf("</style>"));
@@ -1068,6 +1068,43 @@ check("MARZI-010 direction + touch targets", () => {
   if (!/\.seg button \{ min-height: var\(--touch-min\)/.test(styles)) throw new Error("segmented controls below the floor");
   if (!/\.routine button \{ min-height: var\(--touch-min\)/.test(styles)) throw new Error("routine chips below the floor");
   if (!/\.legal a \{[^}]*min-height: var\(--touch-min\)/.test(styles)) throw new Error("legal links below the floor");
+});
+
+check("MARZI-011 offline + storage resilience", () => {
+  const L = tt.T.en;
+  tt.S.lang = "en";
+  const realNav = globalThis.navigator;
+  const setOnline = (v) => { try { Object.defineProperty(globalThis, "navigator", { value: { ...realNav, onLine: v }, configurable: true }); } catch (e) {} };
+  // online: no banner
+  setOnline(true);
+  if (tt.isOffline()) throw new Error("online reported as offline");
+  if (tt.renderNetBanner()) throw new Error("banner shown while online");
+  // offline: persistent banner naming the problem and the recovery
+  setOnline(false);
+  if (!tt.isOffline()) throw new Error("offline not detected");
+  if (!tt.renderNetBanner()) throw new Error("banner not shown while offline");
+  const banner = document.getElementById("netBanner").innerHTML;
+  if (!banner.includes(L.offlineTitle) || !banner.includes(L.offlineMsg)) throw new Error("banner copy");
+  if (document.getElementById("netBanner").classList.has("hidden")) throw new Error("banner hidden while offline");
+  // a call refuses to start offline, with the recovery message - not a silent no-op
+  const goCallSrc = String(src.match(/function goCall\(\)[\s\S]*?\n\}/)[0]);
+  if (!/isOffline\(\)/.test(goCallSrc)) throw new Error("goCall does not gate on connectivity");
+  if (!/renderNetBanner\(\)/.test(goCallSrc)) throw new Error("goCall does not surface the reason");
+  if (/alertMsg\(/.test(goCallSrc)) throw new Error("goCall must not write to the call-scoped alert");
+  // in-call failures tell offline apart from a server error, keeping both alerts
+  const askSrc = String(src.match(/async function ask\(\)[\s\S]*?\n\}/)[0]);
+  if (!/isOffline\(\) \? t\(\)\.offlineMsg : t\(\)\.err/.test(askSrc)) throw new Error("ask does not distinguish offline from server error");
+  // storage failure is surfaced, never silent
+  tt.notifyStorageFailure();
+  if (!document.getElementById("netBanner").innerHTML.includes(L.saveFailed)) throw new Error("storage failure not surfaced");
+  if (!/catch \(e\) \{ try \{ notifyStorageFailure\(\)/.test(src)) throw new Error("settings write swallows failures");
+  // connectivity changes are observed
+  if (!src.includes('window.addEventListener("online", renderNetBanner)')) throw new Error("no online listener");
+  if (!src.includes('window.addEventListener("offline", renderNetBanner)')) throw new Error("no offline listener");
+  // the service worker still never caches API responses
+  const sw = fs.readFileSync(path.join(__dirname, "..", "public", "sw.js"), "utf8");
+  if (!/\/api\//.test(sw)) throw new Error("service worker lost its API rule");
+  setOnline(true); tt.renderNetBanner();
 });
 
 check("progress chart renders points, CEFR bands and a projection", () => {

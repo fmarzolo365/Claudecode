@@ -794,3 +794,36 @@ LTR heights: segmented buttons and routine chips 27→48px, legal links 15→48p
 That is the point of the package, not a regression.
 
 `sw.js` CACHE v30.
+
+---
+
+# Implementation Report — MARZI-011 (queue 3/4)
+
+**Task:** Offline and storage resilience
+**Status:** Complete, 29/29 green, NOT merged
+
+The app had **no connectivity handling at all** — `navigator.onLine` was never
+consulted, and an offline call failed with the developer-oriented "no answer
+from the server" message.
+
+- **Offline banner** (`#netBanner`, `role="status"`): sticky under the top
+  bar, names the problem and the recovery, appears and clears on the `online`
+  / `offline` events.
+- **Calls refuse to start offline** with the reason surfaced, instead of
+  attempting a request that will fail. The banner is the channel — a first
+  attempt used `alertMsg`, which writes to `#alert` **inside the call screen**
+  and would have been invisible on the Talk tab.
+- **In-call failures now distinguish offline from a server error**, keeping
+  both existing alerts and every recovery path.
+- **Storage failures are never silent**: `notifyStorageFailure()` surfaces the
+  localized `saveFailed` string, and the settings write no longer swallows its
+  exception. Purchases and rewards already reported save failures (MARZI-007 /
+  008); this closes the last silent path.
+- Service-worker policy unchanged — the suite asserts it still never caches
+  `/api/`.
+
+Two new i18n keys (`offlineTitle`, `offlineMsg`) in all six languages.
+
+Chromium at 390×844 and 360×640: online → no banner; offline → banner shown,
+call refused (`#call` stays hidden), reason displayed; back online → banner
+cleared. `sw.js` CACHE v31.

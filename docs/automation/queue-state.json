@@ -20,12 +20,12 @@
       "id": "MARZI-010",
       "title": "RTL and accessibility sweep",
       "status": "done",
-      "commit": null
+      "commit": "f4630ec"
     },
     {
       "id": "MARZI-011",
       "title": "Offline and storage resilience",
-      "status": "pending",
+      "status": "done",
       "commit": null
     },
     {
