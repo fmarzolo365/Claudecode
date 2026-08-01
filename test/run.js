@@ -91,7 +91,8 @@ src += `\n;globalThis.__t = { T, TARGET, TARGETS, LEVELS, LEVEL_ORDER, SCENARIOS
   normalizeStats, claimReward, newRewardId, migratedName, migrateStorageKeys, micStatusFor, MARZI_KEY,
   TAB_HASH, tabFromHash, showTab, updateTopbar,
   ENGINE_CONTRACTS, validateProvider, createProviderRegistry, ScenarioRegistry, CharacterRegistry,
-  createTranscript, PromptBuilder, createConversationSession, ENGINE, send, ask };`;
+  createTranscript, PromptBuilder, createConversationSession, ENGINE, send, ask,
+  callStateFor, callStateLabel, callStateIcon, callSecondsLeft, renderScenarioCards, renderCharacterCard, scenarioSubtitle };`;
 eval(src);
 const tt = globalThis.__t;
 
@@ -523,6 +524,68 @@ check("MARZI-004 integration: live call flow runs on the engine, guarded", async
   if (spoken.join() !== "Praxis Dr. Weber, guten Tag!") throw new Error("voice provider not used: " + spoken.join());
   if (tt.S.busy) throw new Error("busy flag stuck");
   tt.S.session.end(); tt.S.session = null; tt.S.turns = [];
+});
+
+check("MARZI-005 practice + call UI: cards, states, bubbles, a11y", () => {
+  const L = tt.T[tt.S.lang] || tt.T.en;
+  // every call state resolves, and each has BOTH an icon and a text label
+  const cases = [
+    [{ session: { state: "ended" } }, "disconnected"],
+    [{ callError: true }, "error"],
+    [{ speaking: true }, "speaking"],
+    [{ busy: true }, "processing"],
+    [{ listening: true }, "listening"],
+    [{}, "ready"],
+  ];
+  for (const [st, want] of cases) {
+    const got = tt.callStateFor(st);
+    if (got !== want) throw new Error(`callStateFor ${JSON.stringify(st)} = ${got}, want ${want}`);
+    if (!tt.callStateLabel(got) || !/<svg/.test(tt.callStateIcon(got))) throw new Error("state without icon+text: " + got);
+  }
+  // precedence: an ended session outranks every transient state
+  if (tt.callStateFor({ session: { state: "ended" }, listening: true, busy: true }) !== "disconnected") throw new Error("ended precedence");
+  if (tt.callStateFor({ callError: true, speaking: true }) !== "error") throw new Error("error precedence");
+  // the six state labels are localized in every help language
+  for (const lang of Object.keys(tt.T)) {
+    for (const k of ["stProcessing", "stSpeaking", "stEnded", "stError", "playLast", "contact", "prepHint", "timeLeft"]) {
+      if (!tt.T[lang][k]) throw new Error(`missing ${k} in ${lang}`);
+    }
+  }
+  // remaining call time comes from the existing plan math and never goes negative
+  const today = new Date().toISOString().slice(0, 10);
+  localStorage.setItem("marzi.stats.v1", JSON.stringify({ days: {}, secDays: { [today]: 600 } }));
+  tt.S.seconds = 60;
+  if (tt.callSecondsLeft() !== tt.PLAN_SECONDS - 660) throw new Error("time left: " + tt.callSecondsLeft());
+  tt.S.seconds = 99999;
+  if (tt.callSecondsLeft() !== 0) throw new Error("time left went negative");
+  tt.S.seconds = 0;
+  // scenario cards: selected state is exposed via aria-pressed, plus a check icon
+  tt.renderScenarioCards();
+  const rail = document.getElementById("scnRail").innerHTML;
+  if (!rail.includes('aria-pressed="true"')) throw new Error("no selected scenario card");
+  if ((rail.match(/aria-pressed="true"/g) || []).length !== 1) throw new Error("more than one selected card");
+  if (!rail.includes("scn-on")) throw new Error("selected card has no non-colour indicator");
+  if (!rail.includes(tt.S.scenario.de)) throw new Error("card missing scenario title");
+  // character card uses existing scenario data only
+  tt.renderCharacterCard();
+  if (document.getElementById("charName").textContent !== tt.S.scenario.who) throw new Error("character name");
+  if (!tt.scenarioSubtitle(tt.S.scenario)) throw new Error("character place");
+  // the preparation hint is advisory: goCall gating must be untouched
+  const goCallSrc = String(src.match(/function goCall\(\)[\s\S]*?\n\}/)[0]);
+  if (/charPrep|prepHint/.test(goCallSrc)) throw new Error("prep hint leaked into goCall gating");
+  // markup guarantees: bubbles, identity outside the portrait, 48px targets, reduced motion
+  for (const needle of [
+    'class="turn ${x.me ? "me" : "char"}"', 'class="bub"',      // left/right bubbles
+    'id="vcPlace"', 'class="vc-id"',                            // identity below the portrait
+    'id="playBtn"', 'id="callStatus"',                          // speaker replay + status chip
+    "prefers-reduced-motion", ":focus-visible",                 // a11y
+    "min-height: 48px",
+  ]) if (!html.includes(needle)) throw new Error("missing from markup: " + needle);
+  // word tap and per-line translation survive the bubble rewrite
+  const tpl = String(src.match(/\$\("log"\)\.innerHTML = S\.turns\.map[\s\S]*?\.join\(""\)/)[0]);
+  for (const needle of ["tappable(x.text, i)", "data-play=", "data-tr=", "data-say=", "x.open"]) {
+    if (!tpl.includes(needle)) throw new Error("bubble rewrite dropped: " + needle);
+  }
 });
 
 check("progress chart renders points, CEFR bands and a projection", () => {

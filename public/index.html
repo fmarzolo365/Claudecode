@@ -66,7 +66,14 @@
     padding: 14px 16px calc(90px + var(--safe-bottom));
   }
   /* the call screen hides the bottom nav, so it doesn't need to clear it */
-  body.in-call main { padding-bottom: calc(12px + var(--safe-bottom)); }
+  body.in-call main { padding-bottom: calc(10px + var(--safe-bottom)); }
+  /* MARZI-005: the call fills exactly one screen - the transcript is the
+     flexible middle, so alerts or the type row never push the page taller */
+  body.in-call main {
+    height: calc(100dvh - 64px); display: flex; flex-direction: column; overflow: hidden;
+  }
+  body.in-call #call { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
+  body.in-call #call .log { flex: 1 1 auto; min-height: 104px; max-height: none; }
   /* ---------- app shell: sticky top bar + fixed bottom navigation ---------- */
   .topbar {
     position: sticky; top: 0; z-index: 30;
@@ -231,7 +238,8 @@
   .bar .who { font-family: var(--font-sans); font-size: 17px; font-weight: 600; }
   .bar .meta { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: .16em; color: var(--yellow); opacity: .9; }
   .hang {
-    background: var(--red); color: #fff; border: none; padding: 10px 16px;
+    background: var(--red); color: #fff; border: none; padding: 0 18px;
+    min-height: 48px; display: inline-flex; align-items: center; gap: 6px;
     font: 700 12px var(--font-sans); letter-spacing: .06em; cursor: pointer;
     border-radius: 999px; transition: filter .15s ease;
   }
@@ -242,7 +250,7 @@
   }
   .vc-stage {
     /* landscape card so stage + transcript + SOS + mic all fit one phone screen */
-    position: relative; width: 100%; aspect-ratio: 16 / 9; max-height: 200px; border-radius: 18px;
+    position: relative; width: 100%; aspect-ratio: 16 / 9; max-height: 140px; border-radius: 18px;
     overflow: hidden; background: linear-gradient(160deg, #f7f2df, #e7edd2);
     border: 2.5px solid #d9e0bd;
     display: flex; align-items: center; justify-content: center;
@@ -264,21 +272,40 @@
     0%, 100% { box-shadow: inset 0 0 0 2.5px rgba(95,150,45,.35); }
     50% { box-shadow: inset 0 0 0 4px rgba(95,150,45,.9); }
   }
-  .vc-timer {
-    position: absolute; top: 10px; left: 12px; z-index: 2;
-    font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: .16em;
-    color: var(--yellow-deep); background: rgba(253,251,242,.9);
-    border: 1px solid rgba(85,122,50,.2); padding: 5px 10px; border-radius: 999px;
+  /* chips ride on the portrait; identity moved out (MARZI-005) */
+  .vc-chips { position: absolute; top: 8px; left: 10px; z-index: 2; display: flex; flex-wrap: wrap; gap: 6px; max-width: 62%; }
+  .vc-timer, .vc-left {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: .12em;
+    color: var(--yellow-deep); background: rgba(253,251,242,.92);
+    border: 1px solid rgba(85,122,50,.2); padding: 5px 9px; border-radius: 999px;
+    display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;
   }
+  .vc-left[data-low="1"] { color: #a8391f; border-color: rgba(168,57,31,.35); }
+  /* identity row under the portrait: full width, never truncated, Marzi beside it */
+  .vc-id { display: flex; align-items: center; gap: var(--space-2); padding: 7px 4px 1px; }
+  .vc-id-txt { min-width: 0; flex: 1; }
   .vc-who {
-    position: absolute; left: 12px; bottom: 12px; z-index: 2;
-    font-family: var(--font-sans); font-size: 15.5px; font-weight: 600;
-    color: var(--ink); background: rgba(253,251,242,.92);
-    border: 1.5px solid #d9e0bd; padding: 6px 12px; border-radius: 999px;
-    box-shadow: 0 2px 8px rgba(22,19,13,.08); max-width: 55%;
+    font-family: var(--font-sans); font-size: var(--text-md); font-weight: 800;
+    color: var(--ink); line-height: 1.25;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
-  .vc-stage .hang { position: absolute; top: 10px; right: 10px; z-index: 2; }
+  .vc-place {
+    font-size: var(--text-xs); color: var(--muted); margin-top: 1px; line-height: 1.3;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  /* status: icon + text + colour, never colour alone */
+  .call-status {
+    display: flex; align-items: center; gap: 6px; margin: 4px 4px 0;
+    font: 700 var(--text-xs) var(--font-sans); letter-spacing: .02em;
+    border-radius: 999px; padding: 6px 10px; border: 1px solid var(--line);
+    background: var(--surface-soft); color: var(--muted);
+  }
+  .call-status[data-state="listening"] { background: var(--primary-soft); color: var(--marzi-dark); border-color: rgba(85,122,50,.35); }
+  .call-status[data-state="speaking"] { background: #eef3ff; color: #2f4a8a; border-color: rgba(47,74,138,.28); }
+  .call-status[data-state="processing"] { background: var(--surface-strong); color: var(--ink); }
+  .call-status[data-state="error"] { background: #fdecea; color: #a8391f; border-color: rgba(168,57,31,.35); }
+  .call-status[data-state="disconnected"] { background: var(--surface-strong); color: var(--muted); }
+  .vc-stage .hang { position: absolute; top: 8px; right: 8px; z-index: 2; }
   .hang:hover { filter: brightness(1.1); }
   .log {
     background: var(--card); border: 1px solid var(--line); border-top: none;
@@ -288,30 +315,43 @@
   }
   /* adaptive: a growing transcript earns more guaranteed room (review §7) */
   .log:has(.turn:nth-child(3)) { min-height: 148px; }
-  .turn { padding: 12px 16px; border-bottom: 1px solid var(--line); display: flex; gap: 10px; }
-  .turn:last-child { border-bottom: none; }
-  .tag {
-    font-family: 'JetBrains Mono', monospace; font-size: 9.5px; letter-spacing: .12em;
-    width: 84px; flex: 0 0 84px; padding-top: 4px; color: var(--muted);
+  /* MARZI-005: chat bubbles - character left, learner right. The inner DOM
+     (word-tap spans, translation/replay buttons) is unchanged. */
+  .turn { padding: 8px 12px; display: flex; gap: 8px; }
+  .turn.me { justify-content: flex-end; }
+  .bub {
+    max-width: 84%; min-width: 0; padding: 9px 13px 7px;
+    border-radius: 18px; background: var(--surface-soft);
+    border: 1px solid var(--line); border-bottom-left-radius: 6px;
   }
-  .tag.me { color: var(--green); }
+  .turn.me .bub {
+    background: var(--primary-soft); border-color: rgba(85,122,50,.28);
+    border-bottom-left-radius: 18px; border-bottom-right-radius: 6px;
+  }
+  .tag {
+    display: block; font-family: 'JetBrains Mono', monospace; font-size: 9px;
+    letter-spacing: .12em; color: var(--muted); margin-bottom: 3px;
+  }
+  .tag.me { color: var(--marzi-dark); }
   .said { font-size: 15.5px; line-height: 1.5; }
   .w { cursor: pointer; border-radius: 4px; }
   .w:active { background: rgba(95,150,45,.35); }
   .wsave { margin-top: 6px; font: 600 12.5px var(--font-sans); color: var(--green); }
   .sub { font-size: 13px; color: var(--muted); margin-top: 4px; }
   .fix { font-size: 12.5px; color: var(--red); margin-top: 4px; }
+  /* MARZI-005: inline transcript actions still meet the 48px target */
   .mini {
-    background: none; border: none; padding: 0; font: 12px var(--font-sans);
-    color: var(--muted); text-decoration: underline; cursor: pointer; margin-right: 12px;
+    background: none; border: none; padding: 0 8px; font: 12px var(--font-sans);
+    color: var(--muted); text-decoration: underline; cursor: pointer; margin-right: 4px;
+    display: inline-flex; align-items: center; min-height: 48px;
   }
   .mini:hover { color: var(--ink); }
-  .row { display: flex; gap: 10px; margin-top: 10px; }
-  .row.sos { gap: 6px; margin-top: 8px; }
-  .row.sos .ghost { font-size: 11.5px; padding: 7px 4px; min-height: 38px; }
+  .row { display: flex; gap: 10px; margin-top: 8px; }
+  .row.sos { gap: 6px; margin-top: 6px; }
+  .row.sos .ghost { font-size: 11.5px; padding: 7px 4px; min-height: 48px; }
   /* secondary button: cream card (spec §6.4), 44px+ touch target */
   .ghost {
-    flex: 1; min-height: 44px; padding: 10px; background: var(--card); border: 1px solid var(--line);
+    flex: 1; min-height: 48px; padding: 10px; background: var(--card); border: 1px solid var(--line);
     color: var(--ink); font: 700 13px var(--font-sans); cursor: pointer;
     border-radius: 999px; box-shadow: var(--shadow-sm);
     transition: background .15s ease;
@@ -319,7 +359,7 @@
   .ghost:hover { background: rgba(95,150,45,.12); }
   .ghost[disabled] { opacity: .4; cursor: not-allowed; }
   .toggle {
-    width: 100%; min-height: 44px; margin-top: 8px; padding: 10px; border: 1px solid var(--line);
+    width: 100%; min-height: 48px; margin-top: 6px; padding: 10px; border: 1px solid var(--line);
     background: var(--card); color: var(--ink); font: 700 12.5px var(--font-sans);
     letter-spacing: .04em; cursor: pointer; border-radius: 999px;
     box-shadow: var(--shadow-sm); transition: background .15s ease;
@@ -329,7 +369,7 @@
   .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
   .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
   .act {
-    display: flex; align-items: center; gap: 9px; padding: 9px 11px; min-height: 44px;
+    display: flex; align-items: center; gap: 9px; padding: 9px 11px; min-height: 48px;
     background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-sm);
     color: var(--ink); cursor: pointer; font: 700 12.5px var(--font-sans);
     line-height: 1.3; text-align: left; box-shadow: var(--shadow-sm);
@@ -441,15 +481,19 @@
     font: 15px var(--font-sans); color: var(--ink); border-radius: 12px;
   }
   input[type=text]::placeholder { color: var(--muted); opacity: .8; }
+  /* MARZI-005: compact opener for the full grouped situation list */
   .picked {
     width: 100%; text-align: left; border: 1px solid var(--line); background: var(--card);
-    border-radius: var(--radius); box-shadow: var(--shadow); padding: 14px 44px 14px 16px;
-    cursor: pointer; font: inherit; display: flex; flex-direction: column; gap: 2px; position: relative;
-    transition: background .15s ease;
+    border-radius: var(--radius); box-shadow: var(--shadow-sm); padding: 0 42px 0 16px;
+    min-height: 48px; cursor: pointer; font: inherit; display: flex; align-items: center;
+    gap: 8px; position: relative; margin-top: var(--space-2); transition: background .15s ease;
   }
   .picked:hover { background: rgba(95,150,45,.10); }
-  .picked b { font-family: var(--font-sans); font-size: 16px; font-weight: 600; }
-  .picked small { font-size: 12.5px; color: var(--muted); }
+  .picked b { font-family: var(--font-sans); font-size: 13px; font-weight: 700; letter-spacing: .02em; }
+  .picked small {
+    font-size: 12px; color: var(--muted); margin-left: auto;
+    max-width: 45%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
   .picked .chev { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); font-size: 24px; color: var(--muted); }
   .menu-btn {
     width: 42px; height: 42px; flex: 0 0 42px; border: 1px solid var(--line);
@@ -478,24 +522,24 @@
   .limit-marzi { width: 96px; height: 96px; margin: 0 auto; }
   .limit-marzi svg { width: 100%; height: 100%; }
   .limit-title { font-family: var(--font-sans); font-size: 19px; font-weight: 700; margin-top: 10px; }
+  /* MARZI-005: Marzi lives in the identity row, clear of the portrait */
   .vc-marzi {
-    position: absolute; right: 4px; bottom: 2px; z-index: 2;
+    flex: 0 0 auto; z-index: 2; max-width: 116px;
     display: flex; flex-direction: column; align-items: center; gap: 1px;
     pointer-events: none;
   }
   .vc-marzi-art {
-    display: block; width: 84px; height: 84px;
-    filter: drop-shadow(0 4px 10px rgba(22,19,13,.30));
+    display: block; width: 48px; height: 48px;
+    filter: drop-shadow(0 3px 8px rgba(22,19,13,.22));
   }
   .vc-marzi-art svg { width: 100%; height: 100%; }
   /* stages 1–3 sit in a circular companion badge beside the transcript
      (review §1.1): the egg/tadpole never pretends to stand in the scene,
      but the earned stage stays visible and recognizable via the caption. */
-  .vc-marzi[data-stage="1"], .vc-marzi[data-stage="2"], .vc-marzi[data-stage="3"] { right: 12px; bottom: 10px; }
   .vc-marzi[data-stage="1"] .vc-marzi-art,
   .vc-marzi[data-stage="2"] .vc-marzi-art,
   .vc-marzi[data-stage="3"] .vc-marzi-art {
-    width: 68px; height: 68px; padding: 6px; box-sizing: border-box;
+    width: 46px; height: 46px; padding: 4px; box-sizing: border-box;
     border: 2px solid rgba(255, 255, 255, .92); border-radius: 50%;
     background: rgba(255, 253, 248, .94);
     filter: none; box-shadow: 0 3px 10px rgba(22,19,13,.20);
@@ -504,10 +548,11 @@
     font: 700 8px 'JetBrains Mono', monospace; letter-spacing: .03em;
     color: var(--marzi-dark); background: rgba(255,253,248,.92);
     border: 1px solid rgba(85,122,50,.25); border-radius: 999px;
-    padding: 2px 7px; white-space: nowrap;
+    padding: 2px 7px; max-width: 116px; text-align: center; line-height: 1.2;
+    font-size: 7.5px;
   }
   .vc-bubble {
-    position: absolute; right: 16px; bottom: 90px; z-index: 3; max-width: 62%;
+    position: absolute; right: 12px; bottom: 10px; z-index: 3; max-width: 54%; min-height: 48px;
     background: #fffdf6; color: var(--ink); border: 1.5px solid #d9e0bd;
     border-radius: 14px 14px 4px 14px; padding: 8px 12px;
     font: 600 12.5px var(--font-sans); line-height: 1.35; text-align: left;
@@ -646,6 +691,64 @@
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
   .setting-chevron { color: var(--muted); font-size: 18px; text-align: center; }
+  /* ---------- MARZI-005: practice scenario + character cards ---------- */
+  .scn-rail {
+    display: grid; grid-auto-flow: column; grid-auto-columns: 62%;
+    gap: var(--space-2); overflow-x: auto; padding: 2px 2px 6px;
+    scroll-snap-type: x mandatory; scrollbar-width: none;
+  }
+  .scn-rail::-webkit-scrollbar { display: none; }
+  .scn-card {
+    scroll-snap-align: start; text-align: left; cursor: pointer;
+    display: flex; gap: var(--space-2); align-items: flex-start; min-height: 48px;
+    padding: 10px 12px; background: var(--card); color: var(--ink);
+    border: 1.5px solid var(--line); border-radius: var(--radius);
+    box-shadow: var(--shadow-sm); font: inherit;
+  }
+  .scn-card .scn-emoji { font-size: 21px; line-height: 1.1; flex: 0 0 auto; }
+  .scn-card .scn-txt { min-width: 0; flex: 1; }
+  .scn-card b { display: block; font: 800 13.5px var(--font-sans); line-height: 1.25; }
+  .scn-card small {
+    display: block; margin-top: 2px; color: var(--muted); font-size: 11px; line-height: 1.3;
+    overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  }
+  /* selected state: ring + tint + check icon (never colour alone) */
+  .scn-card[aria-pressed="true"] {
+    border-color: var(--primary); background: var(--primary-soft);
+    box-shadow: 0 0 0 2px rgba(95,150,45,.28), var(--shadow-sm);
+  }
+  .scn-card .scn-on { display: none; color: var(--marzi-dark); flex: 0 0 auto; }
+  .scn-card[aria-pressed="true"] .scn-on { display: block; }
+  .char-card {
+    display: flex; gap: var(--space-3); align-items: center; margin-top: var(--space-2);
+    padding: 10px 12px; background: var(--card); border: 1px solid var(--line);
+    border-radius: var(--radius); box-shadow: var(--shadow-sm);
+  }
+  .char-face {
+    position: relative; width: 56px; height: 56px; flex: 0 0 56px; border-radius: 16px;
+    overflow: hidden; display: grid; place-items: center; font-size: 27px;
+    background: linear-gradient(150deg, #f7f2df, #e7edd2); border: 1.5px solid #d9e0bd;
+  }
+  .char-face img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: none; }
+  .char-face img.ok { display: block; }
+  .char-txt { min-width: 0; flex: 1; }
+  .char-txt .k { font: 700 8.5px 'JetBrains Mono', monospace; letter-spacing: .1em; color: var(--muted); text-transform: uppercase; }
+  .char-txt b { display: block; font: 800 var(--text-md) var(--font-sans); line-height: 1.25; margin-top: 1px; }
+  .char-txt small { display: block; color: var(--muted); font-size: 11.5px; line-height: 1.35; margin-top: 1px; }
+  .prep-hint {
+    display: inline-flex; align-items: center; gap: 5px; margin-top: 5px;
+    font: 700 10.5px var(--font-sans); color: var(--yellow-deep);
+    background: var(--surface-soft); border: 1px solid var(--line);
+    border-radius: 999px; padding: 3px 9px;
+  }
+  /* visible keyboard focus everywhere */
+  :focus-visible { outline: 3px solid var(--marzi-dark); outline-offset: 2px; border-radius: 8px; }
+  /* reduced motion: keep every state legible, drop the movement */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
+    .big[data-status="listening"] { animation: none; box-shadow: 0 0 0 3px rgba(95,150,45,.5); }
+    .vc-stage.speaking::after { animation: none; box-shadow: inset 0 0 0 3px rgba(95,150,45,.75); }
+  }
   /* screen-reader-only live region (review §12) */
   .sr-only {
     position: absolute !important; width: 1px !important; height: 1px !important;
@@ -728,6 +831,16 @@
   <!-- TALK: scenario setup (the original Telefontrainer core) -->
   <section id="setup" class="hidden">
     <div class="label" id="lblPick"></div>
+    <div class="scn-rail" id="scnRail" role="group"></div>
+    <div class="char-card" id="charCard">
+      <div class="char-face" id="charFace"><span id="charEmoji"></span><img id="charImg" alt="" /></div>
+      <div class="char-txt">
+        <span class="k" id="charKind"></span>
+        <b id="charName"></b>
+        <small id="charPlace"></small>
+        <span class="prep-hint hidden" id="charPrep"></span>
+      </div>
+    </div>
     <button class="picked" id="pickedCard">
       <b id="pickedTitle"></b><small id="pickedSub"></small><span class="chev">&rsaquo;</span>
     </button>
@@ -776,16 +889,27 @@
       <div class="vc-stage" id="vcAv">
         <span class="vc-emoji" id="vcEmoji">🎧</span>
         <img id="vcImg" alt="" />
-        <div class="vc-timer" id="timer">VERBUNDEN · 00:00</div>
-        <div class="vc-who" id="who"></div>
-        <div class="vc-marzi" id="vcMarzi"></div>
+        <div class="vc-chips">
+          <div class="vc-timer" id="timer">VERBUNDEN · 00:00</div>
+          <div class="vc-left" id="vcLeft"></div>
+        </div>
         <button class="vc-bubble hidden" id="vcBubble"></button>
         <button class="hang" id="hangBtn"></button>
       </div>
+      <!-- identity sits BELOW the portrait: no overlap, no truncation -->
+      <div class="vc-id">
+        <div class="vc-id-txt">
+          <div class="vc-who" id="who"></div>
+          <div class="vc-place" id="vcPlace"></div>
+        </div>
+        <div class="vc-marzi" id="vcMarzi"></div>
+      </div>
+      <div class="call-status" id="callStatus" data-state="ready"></div>
     </div>
     <div class="log" id="log"></div>
     <p class="note hidden" id="tapHint" style="margin:8px 2px 0"></p>
     <div class="row">
+      <button class="ghost" id="playBtn"></button>
       <button class="ghost" id="repeatBtn"></button>
       <button class="ghost" id="hintBtn"></button>
     </div>
@@ -1076,6 +1200,7 @@ const LEVELS = {
 const T = {
   es:{ tagline:"Practica llamadas y conversaciones reales en alemán. Tú hablas, la otra persona responde.",
     pick:"Elige la situación", level:"Nivel", helpLang:"Idioma de las correcciones", call:"LLAMAR",
+    stProcessing:"Pensando…", stSpeaking:"Hablando", stEnded:"Desconectado", stError:"Problema", playLast:"Escuchar de nuevo", contact:"Tu contacto", prepHint:"Preparación recomendada", timeLeft:"restantes",
     hangUp:"COLGAR", speak:"Pulsa y habla", listening:"Escuchando…", repeat:"Repetir despacio",
     hint:"¿Qué puedo decir?", type:"Escribir en vez de hablar", send:"Enviar", show:"Traducción",
     ended:"LLAMADA TERMINADA", review:"Tus correcciones", again:"OTRA LLAMADA", you:"TÚ",
@@ -1123,6 +1248,7 @@ const T = {
     obWish:"¡Apuntado! Te avisaremos. Mientras tanto, sigue seleccionado el idioma actual 💪", obPair:"Idiomas: hablo / aprendo" },
   en:{ tagline:"Practise real German calls and conversations. You speak, the other person answers.",
     pick:"Choose the situation", level:"Level", helpLang:"Language for corrections", call:"CALL",
+    stProcessing:"Thinking…", stSpeaking:"Speaking", stEnded:"Disconnected", stError:"Problem", playLast:"Play again", contact:"Your contact", prepHint:"Preparation recommended", timeLeft:"left",
     hangUp:"HANG UP", speak:"Tap and speak", listening:"Listening…", repeat:"Repeat slowly",
     hint:"What can I say?", type:"Type instead of speaking", send:"Send", show:"Translation",
     ended:"CALL ENDED", review:"Your corrections", again:"ANOTHER CALL", you:"YOU",
@@ -1173,6 +1299,7 @@ const T = {
 /* ---------- additional help languages ---------- */
 T.tr = { tagline:"Gerçek Almanca aramalar ve konuşmalar pratiği yap. Sen konuş, karşı taraf cevap versin.",
   pick:"Durumu seç", level:"Seviye", helpLang:"Düzeltme dili", call:"ARA",
+  stProcessing:"Düşünüyor…", stSpeaking:"Konuşuyor", stEnded:"Bağlantı kesildi", stError:"Sorun", playLast:"Tekrar dinle", contact:"Görüşeceğin kişi", prepHint:"Hazırlık önerilir", timeLeft:"kaldı",
   hangUp:"KAPAT", speak:"Bas ve konuş", listening:"Dinliyor…", repeat:"Yavaş tekrarla",
   hint:"Ne diyebilirim?", type:"Konuşmak yerine yaz", send:"Gönder", show:"Çeviri",
   ended:"GÖRÜŞME BİTTİ", review:"Düzeltmelerin", again:"YENİ ARAMA", you:"SEN",
@@ -1220,6 +1347,7 @@ T.tr = { tagline:"Gerçek Almanca aramalar ve konuşmalar pratiği yap. Sen konu
   obWish:"Not aldık! Haber vereceğiz. O zamana kadar mevcut dil seçili kalıyor 💪", obPair:"Diller: konuşurum / öğrenirim" };
 T.ar = { tagline:"تدرّب على مكالمات ومحادثات حقيقية بالألمانية. أنت تتكلم والطرف الآخر يجيب.",
   pick:"اختر الموقف", level:"المستوى", helpLang:"لغة التصحيحات", call:"اتصل",
+  stProcessing:"يفكّر…", stSpeaking:"يتحدث", stEnded:"انقطع الاتصال", stError:"مشكلة", playLast:"استمع مرة أخرى", contact:"من ستتحدث معه", prepHint:"يُنصح بالتحضير", timeLeft:"متبقّية",
   hangUp:"إنهاء", speak:"اضغط وتكلّم", listening:"يستمع…", repeat:"إعادة ببطء",
   hint:"ماذا يمكنني أن أقول؟", type:"اكتب بدلاً من الكلام", send:"إرسال", show:"الترجمة",
   ended:"انتهت المكالمة", review:"تصحيحاتك", again:"مكالمة أخرى", you:"أنت",
@@ -1267,6 +1395,7 @@ T.ar = { tagline:"تدرّب على مكالمات ومحادثات حقيقية
   obWish:"سجلنا رغبتك! سنخبرك عندما تتوفر. حتى ذلك الحين تبقى اللغة الحالية مختارة 💪", obPair:"اللغات: أتحدث / أتعلم" };
 T.uk = { tagline:"Тренуй реальні дзвінки й розмови німецькою. Ти говориш — співрозмовник відповідає.",
   pick:"Обери ситуацію", level:"Рівень", helpLang:"Мова пояснень", call:"ДЗВОНИТИ",
+  stProcessing:"Думає…", stSpeaking:"Говорить", stEnded:"Роз'єднано", stError:"Проблема", playLast:"Прослухати ще раз", contact:"Твій співрозмовник", prepHint:"Радимо підготуватися", timeLeft:"залишилось",
   hangUp:"ПОКЛАСТИ", speak:"Натисни і говори", listening:"Слухаю…", repeat:"Повторити повільно",
   hint:"Що можна сказати?", type:"Писати замість говорити", send:"Надіслати", show:"Переклад",
   ended:"ДЗВІНОК ЗАВЕРШЕНО", review:"Твої виправлення", again:"ЩЕ ДЗВІНОК", you:"ТИ",
@@ -1315,6 +1444,7 @@ T.uk = { tagline:"Тренуй реальні дзвінки й розмови �
 
 T.it = { tagline:"Allenati con telefonate e conversazioni reali in tedesco. Tu parli, l'altra persona risponde.",
   pick:"Scegli la situazione", level:"Livello", helpLang:"Lingua delle correzioni", call:"CHIAMA",
+  stProcessing:"Sta pensando…", stSpeaking:"Sta parlando", stEnded:"Disconnesso", stError:"Problema", playLast:"Ascolta di nuovo", contact:"Il tuo interlocutore", prepHint:"Preparazione consigliata", timeLeft:"rimasti",
   hangUp:"RIAGGANCIA", speak:"Premi e parla", listening:"In ascolto…", repeat:"Ripeti lentamente",
   hint:"Cosa posso dire?", type:"Scrivi invece di parlare", send:"Invia", show:"Traduzione",
   ended:"CHIAMATA TERMINATA", review:"Le tue correzioni", again:"UN'ALTRA CHIAMATA", you:"TU",
@@ -1750,7 +1880,7 @@ const SPEEDS = { slow:0.8, normal:1, fast:1.2 };
 const S = { scenario:SCENARIOS[0], level:"A1", lang:"es", targetLang:TARGET.code, speed:"normal", turns:[], busy:false,
             listening:false, handsFree:true, seconds:0, timerId:null, hint:null, voice:null, rec:null,
             currentGoal:null, wakeLock:null, active:null, customTopic:"", speaker:1,
-            callStatus:"ready", callId:null };
+            callStatus:"ready", callId:null, speaking:false, callError:false, session:null };
 
 /* ---------- settings persistence ---------- */
 const SET_KEY = "marzi.settings.v1";
@@ -1926,6 +2056,10 @@ const IC = {
   coin: (s) => ic('<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.6"/>', false, s),
   crown: (s) => ic('<path d="M4.5 18.5h15M4.5 18.5L3 8l5 3.5L12 5l4 6.5L21 8l-1.5 10.5z"/>', false, s),
   gear: (s) => ic('<circle cx="12" cy="12" r="3.4"/><path d="M12 2.6v3.2M12 18.2v3.2M2.6 12h3.2M18.2 12h3.2M5.4 5.4l2.2 2.2M16.4 16.4l2.2 2.2M18.6 5.4l-2.2 2.2M7.6 16.4l-2.2 2.2"/>', false, s),
+  speaker: (s) => ic('<path d="M4 9.5h3.2L12 5.5v13l-4.8-4H4z"/><path d="M15.8 9.2a4 4 0 0 1 0 5.6M18.4 6.6a7.6 7.6 0 0 1 0 10.8"/>', false, s),
+  warn: (s) => ic('<path d="M12 4.6L2.9 19.4h18.2z"/><path d="M12 10v4M12 16.8h.01"/>', false, s),
+  check: (s) => ic('<path d="M4.5 12.6l4.7 4.6L19.5 6.8"/>', false, s),
+  wave: (s) => ic('<path d="M3 12h2.2M8 6.5v11M12 3.6v16.8M16 7.5v9M20.8 12H19"/>', false, s),
 };
 const deckIc = (name, s) => (IC[name] ? IC[name](s) : "");
 
@@ -2168,6 +2302,8 @@ function lifeStop() {
 }
 
 function setSpeaking(on) {
+  S.speaking = !!on;
+  try { renderCallStatus(); } catch (e) {}
   const el = $("vcAv");
   if (el) el.classList.toggle("speaking", !!on);
   const dl = $("dlgAv"); // the guided-dialogue portrait shares the glow
@@ -2258,6 +2394,68 @@ function speak(text, slow, done, sp) {
 }
 
 /* ---------- setup screen ---------- */
+/* ---------- MARZI-005: practice scenario + character cards ----------
+   Cards over the existing SCENARIOS data only - no new characters, no new
+   portraits. The drawer stays the full grouped list. */
+function scenarioSubtitle(s) {
+  const loc = s[S.lang] || s.en;
+  return loc === s.de ? s.who : `${loc} · ${s.who}`;
+}
+function renderScenarioCards() {
+  const L = t();
+  // the selected scenario is always in the rail, even when picked from the
+  // drawer's full list - otherwise nothing would show as selected
+  const playable = SCENARIOS.filter((s) => s.goals);
+  const cards = playable.slice(0, 8);
+  if (!cards.some((s) => s.id === S.scenario.id)) {
+    const sel = playable.find((s) => s.id === S.scenario.id);
+    if (sel) cards.unshift(sel);
+  }
+  $("scnRail").setAttribute("aria-label", L.pick);
+  $("scnRail").innerHTML = cards.map((s) => {
+    const on = s.id === S.scenario.id;
+    return `<button class="scn-card" type="button" data-scn="${esc(s.id)}" aria-pressed="${on}">
+      <span class="scn-emoji" aria-hidden="true">${esc(s.avatar || "🎧")}</span>
+      <span class="scn-txt"><b>${esc(s.de)}</b><small>${esc(scenarioSubtitle(s))}</small></span>
+      <span class="scn-on" aria-hidden="true">${IC.check(16)}</span>
+    </button>`;
+  }).join("");
+  $("scnRail").querySelectorAll("[data-scn]").forEach((b) => {
+    b.onclick = () => {
+      S.scenario = SCENARIOS.find((x) => x.id === b.dataset.scn);
+      saveSettings(); renderSetup();
+    };
+  });
+}
+/* Identity of the person the learner will speak to - existing scenario data
+   and the existing cartoon portrait endpoint, nothing new. */
+function renderCharacterCard() {
+  const L = t();
+  const s = S.scenario;
+  $("charKind").textContent = L.contact;
+  $("charName").textContent = s.who;
+  $("charPlace").textContent = s[S.lang] || s.en || s.de || "";
+  $("charEmoji").textContent = s.avatar || "🎧";
+  $("charCard").setAttribute("aria-label", `${L.contact}: ${s.who} — ${scenarioSubtitle(s)}`);
+  const img = $("charImg");
+  const src = s.id && s.id !== "custom" && s.id !== "random"
+    ? `/api/avatar/${s.id}?v=3&pin=${encodeURIComponent(localStorage.getItem(PIN_KEY) || "")}`
+    : "";
+  if (img.dataset.src !== src) {
+    img.dataset.src = src;
+    img.classList.remove("ok");
+    if (src) {
+      img.onload = () => img.classList.add("ok");
+      img.onerror = () => img.classList.remove("ok");
+      img.src = src;
+    } else img.removeAttribute("src");
+  }
+  // advisory only - goCall gating is unchanged, the call is never blocked here
+  const advise = S.level === "A0" && canPrep() && !PREPPED.has(s.id);
+  $("charPrep").innerHTML = IC.prep(12) + " " + esc(L.prepHint);
+  $("charPrep").classList.toggle("hidden", !advise);
+  $("charFace").setAttribute("aria-hidden", "true");
+}
 function renderSetup() {
   const L = t();
   renderNav();
@@ -2290,13 +2488,15 @@ function renderSetup() {
       if (S.scenario.id !== "custom") closeDrawer();
     });
 
+  renderScenarioCards();
+  renderCharacterCard();
+
   $("drawerTitle").textContent = L.pick;
-  $("pickedTitle").textContent = S.scenario.de;
+  // the cards above cover the common situations; this opens the full list
+  $("pickedTitle").textContent = L.pick;
   $("pickedSub").textContent = S.scenario.id === "custom" && S.customTopic
     ? S.customTopic
-    : (S.scenario[S.lang] || S.scenario.en) === S.scenario.de
-      ? S.scenario.who
-      : `${S.scenario[S.lang] || S.scenario.en} · ${S.scenario.who}`;
+    : `${SCENARIOS.filter((x) => x.goals).length}+`;
 
   $("customRow").classList.toggle("hidden", S.scenario.id !== "custom");
   $("customTopic").placeholder = L.customPH;
@@ -3329,6 +3529,9 @@ function send(text) {
   // reaches the render model or the provider
   try { ses.transcript.add({ speaker: "learner", text: clean }); }
   catch (e) { return; }
+  // a new turn clears a stale error (e.g. an earlier mic warning) so the
+  // status chip shows what is happening NOW, not what failed before
+  if (S.callError) alertMsg(null);
   S.turns.push({ me:true, text:clean });
   S.hint = null;
   $("draft").value = "";
@@ -3337,8 +3540,10 @@ function send(text) {
 
 function alertMsg(msg) {
   const el = $("alert");
-  if (!msg) { el.classList.add("hidden"); return; }
+  S.callError = !!msg;
+  if (!msg) { el.classList.add("hidden"); try { renderCallStatus(); } catch (e) {} return; }
   el.textContent = msg; el.classList.remove("hidden");
+  try { renderCallStatus(); } catch (e) {}
 }
 
 async function listen() {
@@ -3424,6 +3629,40 @@ function timerText() {
 function micStatusFor(state) {
   return state.busy ? "processing" : state.listening ? "listening" : "ready";
 }
+/* MARZI-005 call state: one source for the status chip, the mic button and
+   the live region. Every state is icon + text + colour, never colour alone. */
+function callStateFor(state) {
+  if (state.session && state.session.state === "ended") return "disconnected";
+  if (state.callError) return "error";
+  if (state.speaking) return "speaking";
+  if (state.busy) return "processing";
+  if (state.listening) return "listening";
+  return "ready";
+}
+function callStateLabel(st) {
+  const L = t();
+  return { ready: L.speak, listening: L.listening, processing: L.stProcessing,
+           speaking: L.stSpeaking, disconnected: L.stEnded, error: L.stError }[st] || L.speak;
+}
+function callStateIcon(st) {
+  return { ready: IC.mic(13), listening: IC.wave(13), processing: IC.clock(13),
+           speaking: IC.speaker(13), disconnected: IC.phone(13), error: IC.warn(13) }[st] || IC.mic(13);
+}
+/* light update: status chip + live region + mic button, no full re-render */
+function renderCallStatus() {
+  const st = callStateFor(S);
+  const label = callStateLabel(st);
+  const chip = $("callStatus");
+  chip.dataset.state = st;
+  chip.innerHTML = callStateIcon(st) + `<span>${esc(label)}</span>`;
+  chip.setAttribute("role", "status");
+  $("callStatusLive").textContent = label;
+  $("micBtn").dataset.status = st === "error" ? "failed" : micStatusFor(S);
+}
+/* remaining call time from the existing plan math (read-only) */
+function callSecondsLeft() {
+  return Math.max(0, planLimitToday() - planUsedToday() - (S.seconds || 0));
+}
 function renderCall() {
   const L = t();
   const A = S.active || S.scenario;
@@ -3455,7 +3694,14 @@ function renderCall() {
     }
   }
   $("timer").textContent = timerText();
-  $("hangBtn").textContent = A.kind === "face" ? L.endTalk : L.hangUp;
+  $("vcPlace").textContent = (A[S.lang] || A.en || A.de || "");
+  const left = callSecondsLeft();
+  const lowTime = left <= 300;
+  $("vcLeft").innerHTML = IC.clock(11) + ` ${Math.ceil(left / 60)} min ${esc(L.timeLeft)}`;
+  $("vcLeft").dataset.low = lowTime ? "1" : "0";
+  $("vcLeft").setAttribute("aria-label", `${Math.ceil(left / 60)} min ${L.timeLeft}`);
+  $("hangBtn").innerHTML = IC.phone(14) + " " + esc(A.kind === "face" ? L.endTalk : L.hangUp);
+  $("playBtn").innerHTML = IC.speaker(15) + " " + esc(L.playLast);
   $("repeatBtn").textContent = L.repeat;
   $("hintBtn").textContent = L.hint;
   $("typeBtn").textContent = L.type;
@@ -3464,11 +3710,11 @@ function renderCall() {
   $("freeBtn").className = "toggle" + (S.handsFree ? " on" : "");
   $("micBtn").innerHTML = IC.mic(18) + " " + esc(S.listening ? L.listening : L.speak);
   $("micBtn").className = "big";
-  $("micBtn").dataset.status = micStatusFor(S);
   $("micBtn").disabled = S.busy;
-  $("callStatusLive").textContent = S.listening ? L.listening : S.busy ? "" : L.speak;
   $("hintBtn").disabled = !S.hint;
   $("repeatBtn").disabled = !S.turns.some((x) => !x.me);
+  $("playBtn").disabled = !S.turns.some((x) => !x.me);
+  renderCallStatus();
 
   // Marzi's speech bubble: on the learner's turn Marzi offers the hint;
   // tapping the bubble opens the same suggestion as the hint button.
@@ -3481,9 +3727,9 @@ function renderCall() {
   else $("hintBox").classList.add("hidden");
 
   $("log").innerHTML = S.turns.map((x, i) => `
-    <div class="turn">
-      <div class="tag ${x.me ? "me" : ""}">${x.me ? L.you : esc(A.tag)}</div>
-      <div style="flex:1">
+    <div class="turn ${x.me ? "me" : "char"}">
+      <div class="bub">
+        <div class="tag ${x.me ? "me" : ""}">${x.me ? L.you : esc(A.tag)}</div>
         <div class="said">${x.me ? esc(x.text) : tappable(x.text, i)}</div>
         ${!x.me && x.wsave ? `<div class="wsave">${x.wsave.pending ? "…" : `★ ${esc(x.wsave.de)} — ${esc(x.wsave.tr)}`}</div>` : ""}
         ${x.me ? "" : `<div style="margin-top:5px">
@@ -4272,6 +4518,16 @@ $("clearBtn").onclick = () => {
   if (confirm(t().clearConfirm)) { localStorage.removeItem(FIX_KEY); renderMistakes(); }
 };
 $("micBtn").onclick = () => listen();
+/* speaker replay: the last thing the character said, at normal speed,
+   through the existing voice provider (no new TTS path) */
+$("playBtn").onclick = () => {
+  for (let i = S.turns.length - 1; i >= 0; i--) {
+    if (!S.turns[i].me) {
+      ENGINE.get("voice").speak({ text: S.turns[i].text, slow: false, speaker: S.turns[i].sp || 1 });
+      return;
+    }
+  }
+};
 // SOS phrases are German in the static markup; other targets swap them in
 if (TARGET.code !== "de") {
   $("sosRow").innerHTML = TARGET.sos.map(([say, label]) =>

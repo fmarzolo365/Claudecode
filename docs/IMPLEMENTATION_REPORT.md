@@ -254,3 +254,83 @@ reply, shows the review screen and awards XP (+19).
 Single commit on the development branch — `git revert` restores the
 pre-migration flow; `history()` is still present for that path. `main`
 untouched. Pre-MARZI-004 state: 9d45a0b.
+
+---
+
+# Implementation Report — MARZI-005
+
+**Task:** Practice + call experience closer to the concept boards
+**Date:** 2026-08-01 · **Status:** Complete, tests green, NOT merged (awaiting review)
+
+## Note on the boards
+The concept boards were not readable in this session, so the visual direction
+follows the design language already codified from them: family-approved
+`marziSVG`, cream/green palette, cartoon-only portraits (ADR-6), rounded
+cards, soft shadows, MARZI-002 tokens and `.card`/`.btn` primitives. No new
+characters, portraits or avatar identities were created (approval
+constraint 2) — every face comes from existing `SCENARIOS` data and the
+existing `/api/avatar/<id>?v=3` endpoint.
+
+## Practice screen
+- **Scenario cards** (`.scn-rail`) over existing scenario data: emoji,
+  German title, localized situation + character. The selected scenario is
+  always present in the rail even when picked from the drawer.
+- **Selected state** is `aria-pressed` + ring + tint + check icon — never
+  colour alone. Exactly one card is selected at a time (asserted in tests).
+- **Character identity card**: existing portrait, `who`, and the localized
+  situation. Advisory **"Preparation recommended"** chip at A0 only.
+  `goCall` gating is byte-unchanged and the call is never blocked
+  (approval constraint 1; a test greps `goCall` for prep references).
+- The old picked-card became a compact "all situations" opener (the drawer
+  and its grouped list are unchanged).
+
+## Call screen
+- **Overlap fixed**: identity moved out of the portrait into its own row
+  below it; Marzi sits beside the text, not on the portrait (measured:
+  no intersection).
+- **Truncation fixed**: name and situation each render on one line
+  (measured: `scrollWidth === clientWidth`).
+- **One screen**: `body.in-call main` is a `100dvh` flex column with the
+  transcript as the flexible middle, so alerts or the type row can never
+  push the page taller. Measured 756–823px against an 844px viewport in
+  every state, `pageScrolls: false`.
+- **Transcript bubbles**: character left, learner right; the inner DOM
+  (word-tap spans, replay/translation/say-it buttons, translation toggle)
+  is unchanged — 20 word-tap spans and the translation toggle verified live.
+- **Remaining time** chip from existing plan math (read-only), with a
+  low-time variant that changes icon colour *and* stays labelled.
+- **Speaker replay** (`playBtn`) replays the last character line at normal
+  speed through the existing voice provider — no new TTS path.
+- **Five states** (`callStateFor`): listening / processing / speaking /
+  disconnected / error, each rendered as icon + text + colour and mirrored
+  into the existing `aria-live` region. A stale error (e.g. an earlier mic
+  warning) is cleared when a new turn is sent, so the chip shows what is
+  happening now.
+
+## Accessibility
+All call and practice controls measure **≥48px** (measured: 0 undersized).
+ARIA labels on cards, identity, chips and companion; `role="status"` on the
+status chip; visible `:focus-visible` rings; a `prefers-reduced-motion`
+block that stops the pulse/glow/bob while keeping every state visible.
+Known limit: inline word-tap spans inside sentences keep their text size —
+they are words in a sentence, not controls, and enlarging them would break
+the tap-to-save feature.
+
+## Preserved
+ConversationSession, provider adapters, the German system prompt, AI/STT/TTS
+APIs, rewards, XP, economy, call timer, character switching, translations,
+slow repeat and the end-call review are untouched. Nothing from the
+do-not-implement list was added.
+
+## Tests
+`node --check server.js` — pass. `node test/run.js` — **19/19**.
+New check covers: all six call states + precedence, icon-and-text for every
+state, the eight new i18n keys in all six languages, remaining-time math
+(never negative), exactly one selected scenario card with a non-colour
+indicator, character card from existing data, `goCall` free of prep
+references, and the bubble rewrite retaining word-tap/translation/replay.
+Chromium walkthrough at 390×844: scenario card selection moves correctly
+(kita → arzt, character card follows), a complete call runs (opening line,
+learner turn, reply, bubbles char/me/char), hang-up during a pending
+response ends the session, drops the late reply, shows the review and
+awards XP (+19).
