@@ -902,6 +902,36 @@
     position: fixed; inset: 0; z-index: 55; background: rgba(23, 20, 15, .42);
     backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);
   }
+  /* ---------- MARZI-009: plan-limit experience (board 02, panel 2) ----------
+     The shared modal surface gains a full-screen dark variant used only for
+     the daily-limit moment; the evolution showcase keeps the card form. */
+  body.modal-lock { overflow: hidden; }
+  .limit.limit-full {
+    left: 0; top: 0; transform: none; width: 100%; max-width: none;
+    height: 100dvh; min-height: 100vh; border-radius: 0;
+    background: var(--call-bg); color: var(--white); z-index: 85;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: var(--space-2); overflow-y: auto;
+    padding: calc(env(safe-area-inset-top, 0px) + var(--space-5)) var(--space-4)
+             calc(env(safe-area-inset-bottom, 0px) + var(--space-5));
+  }
+  .limit-full .limit-marzi { width: 132px; height: 132px; }
+  .limit-full .limit-title { font-size: var(--text-xl); color: var(--white); }
+  .limit-full .note { color: var(--white); opacity: .82; }
+  .limit-full .limit-plan {
+    width: min(320px, 92%); background: rgba(255,255,255,.10);
+    border: 1px solid rgba(255,255,255,.22); border-radius: var(--radius);
+    padding: var(--space-3); margin-top: var(--space-2);
+  }
+  .limit-full .limit-plan-top {
+    display: flex; justify-content: space-between; align-items: baseline;
+    font: 800 var(--text-f16) var(--font-sans);
+  }
+  .limit-full .limit-plan-top small { font: 700 var(--text-f10-5) 'JetBrains Mono', monospace; opacity: .8; }
+  .limit-full .limit-plan .xpbar { background: rgba(255,255,255,.18); height: 12px; }
+  .limit-full .limit-plan .xpbar > div { background: var(--coin); }
+  .limit-full #limitStore, .limit-full #limitOk { width: min(320px, 92%); }
+  .limit-full #limitStore { background: rgba(255,255,255,.16); color: var(--white); border-color: rgba(255,255,255,.28); }
   /* ---------- MARZI-008: reward summary + celebration ---------- */
   .rw-card {
     border: 1px solid var(--line); border-radius: var(--radius-lg); box-shadow: var(--shadow);
@@ -1437,6 +1467,8 @@
   <div class="limit-title" id="limitTitle"></div>
   <p class="note" id="limitBody" style="margin-top:8px"></p>
   <p class="note" id="limitReset" style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em"></p>
+  <div class="limit-plan hidden" id="limitPlan"></div>
+  <div id="limitLive" class="sr-only" aria-live="polite"></div>
   <button class="toggle hidden" id="limitStore" style="margin-top:16px"></button>
   <button class="big cta" id="limitOk" style="margin-top:12px;padding:13px"></button>
 </div>
@@ -3367,6 +3399,8 @@ function renderLearn() {
   // the whole hero button opens the evolution showcase (clickable + keyboard)
   $("marziBtn").setAttribute("aria-label", `Marzi · ${stageName} · ${stage}/${MARZI_STAGE_COUNT} — ${L.evoTitle}`);
   $("marziBtn").onclick = () => {
+    $("limitBox").classList.remove("limit-full");
+    $("limitPlan").classList.add("hidden");
     $("limitMarzi").innerHTML = "";
     $("limitTitle").textContent = t().evoTitle;
     $("limitBody").innerHTML = evolutionHTML(stage);
@@ -5474,28 +5508,48 @@ function showLimit() {
   const L = t();
   const st = loadStats();
   const stage = marziStageForXp(st.xp || 0);
+  const box = $("limitBox");
+  box.classList.add("limit-full");           // full-screen dark variant
+  box.setAttribute("role", "dialog");
+  box.setAttribute("aria-modal", "true");
+  box.setAttribute("aria-labelledby", "limitTitle");
   $("limitMarzi").innerHTML = marziSVG(stage, "sad");
   $("limitTitle").textContent = L.limitTitle;
   $("limitBody").textContent = L.limitMsg;
   const now = new Date(), mid = new Date(now); mid.setHours(24, 0, 0, 0);
   const mins = Math.round((mid - now) / 60000);
-  $("limitReset").textContent = `${L.resetsIn} ${Math.floor(mins / 60)} h ${String(mins % 60).padStart(2, "0")} min`;
+  const reset = `${L.resetsIn} ${Math.floor(mins / 60)} h ${String(mins % 60).padStart(2, "0")} min`;
+  $("limitReset").textContent = reset;
+  // plan detail from the EXISTING plan math - no new economy
+  const limitSec = planLimitToday(), usedSec = Math.min(planUsedToday(), limitSec);
+  $("limitPlan").innerHTML =
+    `<div class="limit-plan-top"><span>${Math.round(usedSec / 60)} / ${Math.round(limitSec / 60)} min</span>` +
+    `<small>${esc(L.today)}</small></div>` +
+    UI.xpBar({ percent: limitSec ? Math.round(100 * usedSec / limitSec) : 100 });
+  $("limitPlan").classList.remove("hidden");
   // coins can buy more minutes right away (spec §28: allowance exhausted -> buy usage)
   $("limitStore").innerHTML = `<span style="display:inline-flex;color:var(--coin)">${IC.coin(ICON.btn)}</span> ${esc(L.buyMinutes)}`;
   $("limitStore").classList.remove("hidden");
-  $("limitStore").onclick = () => {
-    $("limitBack").classList.add("hidden");
-    $("limitBox").classList.add("hidden");
-    showTab("store");
-  };
+  $("limitStore").onclick = () => { closeLimit(); showTab("store"); };
   $("limitOk").textContent = L.ok;
   $("limitBack").classList.remove("hidden");
-  $("limitBox").classList.remove("hidden");
+  box.classList.remove("hidden");
+  $("limitLive").textContent = `${L.limitTitle} ${L.limitMsg} ${reset}`;
+  try { $("limitOk").focus(); } catch (e) {}
+  if (document.body.classList) document.body.classList.add("modal-lock"); // no scroll bleed behind
+  LIMIT_OPEN = true;
 }
-$("limitOk").onclick = $("limitBack").onclick = () => {
+let LIMIT_OPEN = false;
+function limitOpen() { return LIMIT_OPEN; }
+function closeLimit() {
+  LIMIT_OPEN = false;
+  if (document.body.classList) document.body.classList.remove("modal-lock");
   $("limitBack").classList.add("hidden");
   $("limitBox").classList.add("hidden");
-};
+  $("limitBox").classList.remove("limit-full");
+  $("limitPlan").classList.add("hidden");
+}
+$("limitOk").onclick = $("limitBack").onclick = () => closeLimit();
 function goCall() {
   if (planUsedToday() >= planLimitToday()) { showLimit(); return; }
   if (S.level === "A0" && canPrep() && !PREPPED.has(S.scenario.id)) startPrep();
@@ -5618,6 +5672,7 @@ window.addEventListener("popstate", () => { if (sheetOpen()) closeCallSheet(true
 document.addEventListener("keydown", (e) => {
   if (e.key !== "Escape") return;
   if (sheetOpen()) closeCallSheet();
+  else if (limitOpen()) closeLimit();
   else if (evolutionCelebrationOpen()) closeEvolutionCelebration();
   else if (STORE_PREVIEW) closeOutfitPreview();
 });

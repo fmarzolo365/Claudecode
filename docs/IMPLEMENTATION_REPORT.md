@@ -735,3 +735,27 @@ scroll, zero targets under 48px.
 2. **Celebration art** — placeholder stages, not the board figures.
 3. No coin/XP burst artwork; effects are CSS plus the existing confetti and
    WebAudio fanfare.
+
+---
+
+# Implementation Report — MARZI-009 (queue 1/4)
+
+**Task:** Plan-limit experience (deviation H6)
+**Status:** Complete, 27/27 green, NOT merged
+
+Rebuilt the daily-limit moment to board `02_call.png` panel 2: the shared
+modal surface gains a **full-screen dark variant** (`.limit-full`) with Marzi
+in the `sad` mood, the localized message, the reset countdown, and a plan
+meter showing **used / limit minutes from the existing plan math** — no
+economy change (`PLAN_SECONDS`, `COIN_PACKS`, prices and `buyPack` asserted
+unchanged). The evolution showcase reuses the same surface and explicitly
+clears the variant, so it stays a card.
+
+Accessibility: `role="dialog"`, `aria-modal`, `aria-labelledby`, focus to the
+primary action, an `aria-live` announcement, dismissal by button, backdrop or
+Escape, and zero controls under 48px. Background scroll is locked with
+`body.modal-lock` — verified with a real wheel gesture (scrollY stays 0),
+after an initial `scrollTo` probe proved misleading.
+
+Chromium 390×844 and 360×640: full-screen, plan `30 / 30 min`, countdown,
+Escape dismissal, zero undersized targets. `sw.js` CACHE v29.

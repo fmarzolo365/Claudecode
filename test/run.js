@@ -104,7 +104,7 @@ src += `\n;globalThis.__t = { T, TARGET, TARGETS, LEVELS, LEVEL_ORDER, SCENARIOS
   createTranscript, PromptBuilder, createConversationSession, ENGINE, send, ask,
   renderLearn, renderCall, renderTranscript, openCallSheet, closeCallSheet, sheetOpen, endCall, callStateFor, callStateLabel, callStateIcon, callSecondsLeft, renderScenarioCards, renderCharacterCard, scenarioSubtitle,
   UI, IC, ICON, evolutionHTML, renderCallStatus,
-  buildRewardSummary, isHighPerformance, renderRewardSummary, animateReward, celebrateEvolution,
+  showLimit, closeLimit, limitOpen, buildRewardSummary, isHighPerformance, renderRewardSummary, animateReward, celebrateEvolution,
   closeEvolutionCelebration, evolutionCelebrationOpen, CELEBRATED_KEY, claimReward, loadRewardLedger,
   OUTFITS, STORE_CATS, LEGACY_OUTFIT_IDS, outfitById, outfitName, outfitState,
   purchaseOutfit, equipOutfit, unequipOutfit, renderStore, openOutfitPreview, normalizeWardrobe };`;
@@ -1018,6 +1018,34 @@ check("MARZI-008 rewards: summary states, thresholds, rollback, celebration", ()
   // and the Learn hero must not replay the same stage
   const learnSrc = String(src.match(/function renderLearn\(\)[\s\S]*?\n\}/)[0]);
   if (!learnSrc.includes("CELEBRATED_KEY")) throw new Error("Learn hero does not check the celebrated stage");
+});
+
+check("MARZI-009 plan limit: full-screen, plan detail, dismissal", () => {
+  const L = tt.T.en;
+  tt.S.lang = "en";
+  const today = new Date().toISOString().slice(0, 10);
+  // the daily allowance is exhausted; detail comes from the existing plan math
+  localStorage.setItem("marzi.stats.v1", JSON.stringify({ days: {}, xp: 500, coins: 50, secDays: { [today]: tt.PLAN_SECONDS } }));
+  tt.showLimit();
+  const box = document.getElementById("limitBox");
+  if (!box.classList.has("limit-full")) throw new Error("limit must use the full-screen variant");
+  if (!tt.limitOpen()) throw new Error("limit state");
+  const plan = document.getElementById("limitPlan").innerHTML;
+  if (!plan.includes(`${Math.round(tt.PLAN_SECONDS / 60)} / ${Math.round(tt.PLAN_SECONDS / 60)} min`)) throw new Error("plan detail: " + plan.slice(0, 80));
+  if (!plan.includes('role="progressbar"')) throw new Error("plan meter must expose progress");
+  if (!document.getElementById("limitReset").textContent.includes(L.resetsIn)) throw new Error("reset countdown");
+  if (!document.getElementById("limitLive").textContent.includes(L.limitTitle)) throw new Error("limit not announced");
+  if (document.getElementById("limitStore").classList.has("hidden")) throw new Error("store route missing");
+  if (!html.includes("body.modal-lock")) throw new Error("background scroll must be locked behind the overlay");
+  tt.closeLimit();
+  if (tt.limitOpen() || !box.classList.has("hidden")) throw new Error("limit not dismissible");
+  if (box.classList.has("limit-full")) throw new Error("full-screen variant must be cleared on close");
+  // the evolution showcase shares the surface and must stay a card
+  const learnSrc = String(src.match(/function renderLearn\(\)[\s\S]*?\n\}/)[0]);
+  if (!learnSrc.includes('classList.remove("limit-full")')) throw new Error("evolution showcase must clear the full-screen variant");
+  // plan math untouched
+  if (tt.PLAN_SECONDS !== 30 * 60) throw new Error("daily plan changed");
+  if (tt.COIN_PACKS.map((p) => p.price).join() !== "200,450,800,1500") throw new Error("minute-pack prices changed");
 });
 
 check("progress chart renders points, CEFR bands and a projection", () => {
