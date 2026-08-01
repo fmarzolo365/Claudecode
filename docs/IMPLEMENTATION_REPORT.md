@@ -334,3 +334,58 @@ Chromium walkthrough at 390×844: scenario card selection moves correctly
 learner turn, reply, bubbles char/me/char), hang-up during a pending
 response ends the session, drops the late reply, shows the review and
 awards XP (+19).
+
+---
+
+# Implementation Report — Marzi Design System
+
+**Task:** Canonical component library + tokens, documented
+**Date:** 2026-08-01 · **Status:** Complete, tests green, NOT merged
+
+## What was built
+- **19 canonical components** as `UI.*` builders in `public/index.html`:
+  marziAvatar, characterAvatar, topBar, coinChip, xpBar, evolutionCard,
+  characterCard, scenarioCard, bubble, storeItem, outfitCard,
+  buttonPrimary, buttonSecondary, statusBadge, progressCard, rewardPopup,
+  modal, emptyState, errorState. Each returns escaped HTML and reads
+  sizing/colour only from tokens.
+- **New token groups**: animation (`--dur-*`, `--ease`, `--ease-pop`), icon
+  sizes (`--icon-*`), touch targets (`--touch-min: 48px`, `--touch-lg`),
+  avatar sizes (`--avatar-*`) — alongside the existing colour, spacing,
+  typography, radius and shadow scales.
+- **New component CSS** for what did not exist yet: status badge (5 tones),
+  progress card, reward popup, empty state, error state, modal backdrop.
+  `.limit` and `.alert` are aliased as the canonical modal and inline-error
+  surfaces so shipped markup keeps working.
+- **docs/DESIGN_SYSTEM.md**: token tables, six global rules, and every
+  component documented with Purpose / Visual rules / States / Accessibility
+  / Responsive / Usage, plus the procedure for adding to the system.
+
+## Extraction, not duplication
+Shipped screens were rewired to COMPOSE the components: the scenario rail
+(`UI.scenarioCard`), the character card (`UI.characterCard`), the evolution
+strip (`UI.evolutionCard`), the call transcript (`UI.bubble`) and the
+mistakes empty state (`UI.emptyState`). Rendering is unchanged — verified
+pixel-wise in Chromium at 390×844 and by the full suite.
+
+## Enforcement
+The new suite check fails if: a component is missing or `UI` grows an
+undocumented member; any builder throws on default arguments; a documented
+token is absent or `--touch-min` is not 48px; a builder loses its
+accessibility contract (`role="img"`, `aria-pressed`, `role="progressbar"`
++ `aria-valuenow`, `role="dialog"`+`aria-modal`, `role="alert"`,
+`aria-live`, `data-tone`); values stop clamping or text stops being escaped;
+a shipped screen stops composing its component; or DESIGN_SYSTEM.md stops
+documenting a component or section.
+
+## Honest notes
+- The concept boards were still not readable in this session, so the system
+  codifies the shipped, family-approved language and records the boards as
+  the overriding source of truth when they disagree.
+- `rewardPopup`, `progressCard`, `outfitCard`, `storeItem`, `topBar` and
+  `modal` exist, are tested and documented, but some are not yet wired into
+  a screen (the shipped equivalents are their instances). Wiring them is
+  future work, not a claim of current use.
+
+## Tests
+`node --check server.js` — pass. `node test/run.js` — **20/20**.

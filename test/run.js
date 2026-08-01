@@ -92,7 +92,8 @@ src += `\n;globalThis.__t = { T, TARGET, TARGETS, LEVELS, LEVEL_ORDER, SCENARIOS
   TAB_HASH, tabFromHash, showTab, updateTopbar,
   ENGINE_CONTRACTS, validateProvider, createProviderRegistry, ScenarioRegistry, CharacterRegistry,
   createTranscript, PromptBuilder, createConversationSession, ENGINE, send, ask,
-  callStateFor, callStateLabel, callStateIcon, callSecondsLeft, renderScenarioCards, renderCharacterCard, scenarioSubtitle };`;
+  callStateFor, callStateLabel, callStateIcon, callSecondsLeft, renderScenarioCards, renderCharacterCard, scenarioSubtitle,
+  UI, IC, evolutionHTML };`;
 eval(src);
 const tt = globalThis.__t;
 
@@ -566,16 +567,18 @@ check("MARZI-005 practice + call UI: cards, states, bubbles, a11y", () => {
   if ((rail.match(/aria-pressed="true"/g) || []).length !== 1) throw new Error("more than one selected card");
   if (!rail.includes("scn-on")) throw new Error("selected card has no non-colour indicator");
   if (!rail.includes(tt.S.scenario.de)) throw new Error("card missing scenario title");
-  // character card uses existing scenario data only
+  // character card uses existing scenario data only (built by UI.characterCard)
   tt.renderCharacterCard();
-  if (document.getElementById("charName").textContent !== tt.S.scenario.who) throw new Error("character name");
+  const charHTML = document.getElementById("charCard").innerHTML;
+  if (!charHTML.includes(tt.S.scenario.who)) throw new Error("character name");
+  if (!charHTML.includes("char-card")) throw new Error("character card not built by the component");
   if (!tt.scenarioSubtitle(tt.S.scenario)) throw new Error("character place");
   // the preparation hint is advisory: goCall gating must be untouched
   const goCallSrc = String(src.match(/function goCall\(\)[\s\S]*?\n\}/)[0]);
   if (/charPrep|prepHint/.test(goCallSrc)) throw new Error("prep hint leaked into goCall gating");
   // markup guarantees: bubbles, identity outside the portrait, 48px targets, reduced motion
   for (const needle of [
-    'class="turn ${x.me ? "me" : "char"}"', 'class="bub"',      // left/right bubbles
+    "UI.bubble({", 'class="bub"',                               // left/right bubbles
     'id="vcPlace"', 'class="vc-id"',                            // identity below the portrait
     'id="playBtn"', 'id="callStatus"',                          // speaker replay + status chip
     "prefers-reduced-motion", ":focus-visible",                 // a11y
@@ -585,6 +588,58 @@ check("MARZI-005 practice + call UI: cards, states, bubbles, a11y", () => {
   const tpl = String(src.match(/\$\("log"\)\.innerHTML = S\.turns\.map[\s\S]*?\.join\(""\)/)[0]);
   for (const needle of ["tappable(x.text, i)", "data-play=", "data-tr=", "data-say=", "x.open"]) {
     if (!tpl.includes(needle)) throw new Error("bubble rewrite dropped: " + needle);
+  }
+});
+
+check("design system: canonical components, tokens and documentation", () => {
+  // 1. every documented component exists exactly once, as a builder
+  const COMPONENTS = ["marziAvatar", "characterAvatar", "topBar", "coinChip", "xpBar",
+    "evolutionCard", "characterCard", "scenarioCard", "bubble", "storeItem", "outfitCard",
+    "buttonPrimary", "buttonSecondary", "statusBadge", "progressCard", "rewardPopup",
+    "modal", "emptyState", "errorState"];
+  for (const c of COMPONENTS) if (typeof tt.UI[c] !== "function") throw new Error("missing component: " + c);
+  if (Object.keys(tt.UI).length !== COMPONENTS.length) {
+    throw new Error("UI has undocumented members: " + Object.keys(tt.UI).filter((k) => !COMPONENTS.includes(k)));
+  }
+  // 2. every builder renders without arguments (safe defaults) and returns markup
+  for (const c of COMPONENTS) {
+    const out = tt.UI[c]();
+    if (typeof out !== "string" || !out.trim().startsWith("<")) throw new Error(c + " did not render markup");
+  }
+  // 3. design tokens exist for every documented scale
+  const root = html.slice(html.indexOf(":root {"), html.indexOf("}", html.indexOf(":root {")));
+  for (const token of ["--bg:", "--primary:", "--ink:", "--space-3:", "--text-md:", "--radius:",
+                       "--shadow:", "--dur:", "--ease:", "--icon-md:", "--touch-min:", "--avatar-md:"]) {
+    if (!root.includes(token)) throw new Error("missing design token: " + token);
+  }
+  if (!/--touch-min:\s*48px/.test(root)) throw new Error("touch target token must be 48px");
+  // 4. accessibility contracts baked into the components
+  const sc = tt.SCENARIOS.find((x) => x.goals);
+  if (!tt.UI.marziAvatar({ stage: 3 }).includes('role="img"')) throw new Error("marzi avatar needs role=img");
+  if (!/aria-label="Marzi, [^"]+, 3\/6"/.test(tt.UI.marziAvatar({ stage: 3 }))) throw new Error("marzi avatar label");
+  if (!tt.UI.scenarioCard({ scenario: sc, selected: true }).includes('aria-pressed="true"')) throw new Error("scenario card selected state");
+  if (!tt.UI.scenarioCard({ scenario: sc, selected: true }).includes("scn-on")) throw new Error("selected state must not be colour-only");
+  if (!tt.UI.xpBar({ percent: 40 }).includes('role="progressbar"')) throw new Error("xp bar needs progressbar role");
+  if (!tt.UI.xpBar({ percent: 40 }).includes('aria-valuenow="40"')) throw new Error("xp bar value");
+  if (!tt.UI.modal({ title: "t" }).includes('role="dialog"') || !tt.UI.modal({ title: "t" }).includes('aria-modal="true"')) throw new Error("modal a11y");
+  if (!tt.UI.errorState({ title: "x" }).includes('role="alert"')) throw new Error("error state needs role=alert");
+  if (!tt.UI.rewardPopup({ title: "x", xp: 5 }).includes('aria-live="polite"')) throw new Error("reward popup must announce");
+  if (!tt.UI.statusBadge({ label: "on", icon: tt.IC.mic(12), tone: "success" }).includes('data-tone="success"')) throw new Error("status badge tone");
+  // clamping and escaping
+  if (!tt.UI.marziAvatar({ stage: 99 }).includes('data-stage="6"')) throw new Error("stage not clamped");
+  if (!tt.UI.xpBar({ percent: 999 }).includes("width:100%")) throw new Error("percent not clamped");
+  if (tt.UI.emptyState({ title: "<script>" }).includes("<script>")) throw new Error("empty state does not escape");
+  // 5. shipped screens COMPOSE the components instead of re-declaring markup
+  for (const [fn, comp] of [["renderScenarioCards", "UI.scenarioCard("], ["renderCharacterCard", "UI.characterCard("],
+                            ["evolutionHTML", "UI.evolutionCard("], ["renderCall", "UI.bubble("]]) {
+    const body = String(src.match(new RegExp("function " + fn + "\\([\\s\\S]*?\\n\\}"))[0]);
+    if (!body.includes(comp)) throw new Error(fn + " does not use " + comp);
+  }
+  // 6. the written spec documents every component and token group
+  const doc = fs.readFileSync(path.join(__dirname, "..", "docs", "DESIGN_SYSTEM.md"), "utf8");
+  for (const c of COMPONENTS) if (!doc.includes("`UI." + c)) throw new Error("undocumented component: " + c);
+  for (const sec of ["## Tokens", "Purpose", "States", "Accessibility", "Responsive", "Usage"]) {
+    if (!doc.includes(sec)) throw new Error("design doc missing section: " + sec);
   }
 });
 

@@ -49,6 +49,13 @@
        screen use these instead of ad-hoc pixel values. */
     --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 24px;
     --text-xs: 11px; --text-sm: 13px; --text-md: 15px; --text-lg: 19px; --text-xl: 26px;
+    /* Design-system tokens (docs/DESIGN_SYSTEM.md). Components below read
+       ONLY from these - no ad-hoc durations, icon sizes or hit areas. */
+    --dur-fast: .15s; --dur: .25s; --dur-slow: .6s;
+    --ease: cubic-bezier(.4, 0, .2, 1); --ease-pop: cubic-bezier(.3, 1.7, .4, 1);
+    --icon-sm: 13px; --icon-md: 16px; --icon-lg: 20px; --icon-xl: 28px;
+    --touch-min: 48px; --touch-lg: 56px;
+    --avatar-sm: 48px; --avatar-md: 56px; --avatar-lg: 92px; --avatar-xl: 112px;
   }
   * { box-sizing: border-box; }
   body {
@@ -471,7 +478,7 @@
     padding: 12px 14px; font-size: 15px; border-radius: 12px;
   }
   .hint .label { margin: 0 0 4px; }
-  .alert {
+  .alert, .ui-error-inline {
     margin-top: 12px; border: 1px solid rgba(194,70,52,.4); background: #fdf0ee;
     color: var(--red); padding: 12px 14px; font: 600 12.5px var(--font-sans);
     line-height: 1.5; border-radius: 12px;
@@ -513,7 +520,7 @@
   .evo-step.now { border-color: var(--yellow-deep); border-width: 2px; background: #f4f8ea; }
   .evo-step.now .nm { color: var(--ink); font-weight: 700; }
   .evo-here { display: block; font: 700 9px 'JetBrains Mono', monospace; letter-spacing: .08em; color: var(--yellow-deep); margin-top: 2px; }
-  .limit {
+  .limit, .ui-modal {
     position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%);
     width: min(320px, 88vw); z-index: 61; background: var(--card);
     border-radius: 20px; box-shadow: 0 20px 70px rgba(22,19,13,.35);
@@ -741,6 +748,53 @@
     background: var(--surface-soft); border: 1px solid var(--line);
     border-radius: 999px; padding: 3px 9px;
   }
+  /* ---------- Design system: canonical components (docs/DESIGN_SYSTEM.md) ----------
+     Every future screen composes these classes instead of new HTML/CSS. */
+  .ui-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    font: 700 var(--text-xs) var(--font-sans); border-radius: 999px;
+    padding: 5px 10px; border: 1px solid var(--line);
+    background: var(--surface-soft); color: var(--muted);
+  }
+  .ui-badge[data-tone="success"] { background: var(--primary-soft); color: var(--marzi-dark); border-color: rgba(85,122,50,.35); }
+  .ui-badge[data-tone="warning"] { background: #fdf4e3; color: #8a6412; border-color: rgba(138,100,18,.3); }
+  .ui-badge[data-tone="danger"] { background: #fdecea; color: #a8391f; border-color: rgba(168,57,31,.35); }
+  .ui-badge[data-tone="info"] { background: #eef3ff; color: #2f4a8a; border-color: rgba(47,74,138,.28); }
+  .ui-progress { display: block; }
+  .ui-progress .ui-progress-top {
+    display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-2);
+    font: 700 var(--text-sm) var(--font-sans);
+  }
+  .ui-progress .ui-progress-top small { font: 600 var(--text-xs) var(--font-sans); color: var(--muted); }
+  .ui-progress .ui-progress-cap { margin-top: 5px; font-size: var(--text-xs); color: var(--muted); }
+  .ui-empty, .ui-error { text-align: center; padding: var(--space-4) var(--space-3); }
+  .ui-empty .ui-ico, .ui-error .ui-ico {
+    display: grid; place-items: center; width: 52px; height: 52px; margin: 0 auto var(--space-2);
+    border-radius: 50%; background: var(--surface-soft); color: var(--muted);
+  }
+  .ui-error .ui-ico { background: #fdecea; color: #a8391f; }
+  .ui-empty b, .ui-error b { display: block; font: 800 var(--text-md) var(--font-sans); }
+  .ui-empty p, .ui-error p { margin: 5px 0 0; font-size: var(--text-sm); color: var(--muted); line-height: 1.45; }
+  .ui-empty .btn, .ui-error .btn { margin-top: var(--space-3); }
+  /* reward popup: celebratory, dismissible, announced */
+  .ui-reward {
+    position: fixed; left: 50%; bottom: calc(96px + var(--safe-bottom)); transform: translateX(-50%);
+    z-index: 60; display: flex; align-items: center; gap: var(--space-3);
+    background: var(--card); border: 1.5px solid var(--primary);
+    border-radius: var(--radius-lg); box-shadow: var(--shadow-lg);
+    padding: var(--space-3) var(--space-4); max-width: min(92vw, 340px);
+    animation: rewardPop var(--dur) var(--ease-pop);
+  }
+  @keyframes rewardPop { from { opacity: 0; transform: translate(-50%, 12px) scale(.94); } to { opacity: 1; transform: translate(-50%, 0) scale(1); } }
+  .ui-reward .ui-reward-art { width: 46px; height: 46px; flex: 0 0 46px; }
+  .ui-reward .ui-reward-art svg { width: 100%; height: 100%; }
+  .ui-reward b { display: block; font: 800 var(--text-md) var(--font-sans); }
+  .ui-reward .ui-reward-gains { display: flex; gap: 6px; margin-top: 4px; flex-wrap: wrap; }
+  /* modal: the shipped .limit box is the canonical modal surface */
+  .ui-modal-back {
+    position: fixed; inset: 0; z-index: 55; background: rgba(23, 20, 15, .42);
+    backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);
+  }
   /* visible keyboard focus everywhere */
   :focus-visible { outline: 3px solid var(--marzi-dark); outline-offset: 2px; border-radius: 8px; }
   /* reduced motion: keep every state legible, drop the movement */
@@ -832,15 +886,7 @@
   <section id="setup" class="hidden">
     <div class="label" id="lblPick"></div>
     <div class="scn-rail" id="scnRail" role="group"></div>
-    <div class="char-card" id="charCard">
-      <div class="char-face" id="charFace"><span id="charEmoji"></span><img id="charImg" alt="" /></div>
-      <div class="char-txt">
-        <span class="k" id="charKind"></span>
-        <b id="charName"></b>
-        <small id="charPlace"></small>
-        <span class="prep-hint hidden" id="charPrep"></span>
-      </div>
-    </div>
+    <div id="charCard"></div>
     <button class="picked" id="pickedCard">
       <b id="pickedTitle"></b><small id="pickedSub"></small><span class="chev">&rsaquo;</span>
     </button>
@@ -2063,14 +2109,155 @@ const IC = {
 };
 const deckIc = (name, s) => (IC[name] ? IC[name](s) : "");
 
+/* ================= Marzi Design System · canonical components =================
+   docs/DESIGN_SYSTEM.md is the written spec; this object is its implementation.
+   Every builder returns an HTML string and reads sizing/colour ONLY from the
+   design tokens in :root. New screens compose these instead of writing HTML.
+   Rule: if a screen needs a visual that is not here, add it HERE first. */
+const UI = {
+  /* --- 1. Marzi avatar: the mascot at an evolution stage (1-6) --- */
+  marziAvatar({ stage = 1, mood = "", size = "var(--avatar-md)", caption = "", cls = "" } = {}) {
+    const n = Math.min(6, Math.max(1, Number(stage) || 1));
+    const label = `Marzi, ${MARZI_NAMES[n - 1]}, ${n}/6`;
+    return `<span class="ui-marzi ${cls}" data-stage="${n}" role="img" aria-label="${esc(label)}">` +
+      `<span class="ui-marzi-art" style="display:block;width:${size};height:${size}">${marziSVG(n, mood)}</span>` +
+      (caption ? `<span class="vc-marzi-cap">${esc(caption)}</span>` : "") + `</span>`;
+  },
+  /* --- 2. Character avatar: an EXISTING scenario character (ADR-10: never new art) --- */
+  characterAvatar({ scenario, speaker = 1, size = "var(--avatar-md)", id = "" } = {}) {
+    const s = scenario || {};
+    const real = s.id && s.id !== "custom" && s.id !== "random";
+    const src = real ? `/api/avatar/${s.id}${speaker === 2 ? "2" : ""}?v=3&pin=${encodeURIComponent(localStorage.getItem(PIN_KEY) || "")}` : "";
+    return `<span class="char-face" style="width:${size};height:${size};flex:0 0 ${size}" aria-hidden="true">` +
+      `<span>${esc(s.avatar || "🎧")}</span>` +
+      (src ? `<img${id ? ` id="${id}"` : ""} alt="" data-src="${esc(src)}" />` : "") + `</span>`;
+  },
+  /* --- 3. Top bar: brand + resources + settings (the app shell chrome) --- */
+  topBar({ coins = 0, streak = 0, minutes = 0 } = {}) {
+    return `<button class="menu-btn" id="menuBtn" aria-label="Menu"><span></span><span></span><span></span></button>` +
+      `<span class="wordmark">Marzi</span><span class="grow"></span>` +
+      UI.coinChip({ id: "tbCoins", value: coins, label: "Coins" }) +
+      UI.coinChip({ id: "tbStreak", value: streak, kind: "streak", icon: IC.flame(13), label: "Streak", tag: "span" }) +
+      UI.coinChip({ id: "tbMins", value: minutes, kind: "mins", icon: IC.clock(13), label: "Call minutes left today" }) +
+      `<button class="chip-res gear" id="tbGear" aria-label="Settings">${IC.gear(15)}</button>`;
+  },
+  /* --- 4. Coin chip: a compact resource readout (coins, streak, minutes) --- */
+  coinChip({ value = 0, icon = null, kind = "", id = "", label = "", tag = "button" } = {}) {
+    const attrs = `${id ? ` id="${id}"` : ""}${label ? ` aria-label="${esc(label)}"` : ""}` +
+      (tag === "button" ? ` type="button"` : "");
+    return `<${tag} class="chip-res${kind ? " " + kind : ""}"${attrs}>${icon || IC.coin(14)} ${esc(String(value))}</${tag}>`;
+  },
+  /* --- 5. XP bar: progress toward the next learner rank --- */
+  xpBar({ percent = 0, id = "" } = {}) {
+    const pct = Math.min(100, Math.max(0, Number(percent) || 0));
+    return `<div class="xpbar" role="progressbar" aria-valuenow="${Math.round(pct)}" aria-valuemin="0" aria-valuemax="100">` +
+      `<div${id ? ` id="${id}"` : ""} style="width:${pct}%"></div></div>`;
+  },
+  /* --- 6. Evolution card: one stage in Marzi's six-stage lamina --- */
+  evolutionCard({ stage, current = 1, hereLabel = "" } = {}) {
+    const n = Number(stage);
+    const cls = n === current ? "now" : n > current ? "future" : "";
+    return `<div class="evo-step ${cls}"${n === current ? ' aria-current="step"' : ""}>` +
+      `<div class="n">${n}</div>${marziSVG(n)}<div class="nm">${esc(MARZI_NAMES[n - 1])}</div>` +
+      (n === current && hereLabel ? `<span class="evo-here">${esc(hereLabel)}</span>` : "") + `</div>`;
+  },
+  /* --- 7. Character card: who the learner will speak to --- */
+  characterCard({ scenario, kindLabel = "", subtitle = "", note = "" } = {}) {
+    const s = scenario || {};
+    return `<div class="char-card" aria-label="${esc(`${kindLabel}: ${s.who || ""}`)}">` +
+      UI.characterAvatar({ scenario: s }) +
+      `<div class="char-txt"><span class="k">${esc(kindLabel)}</span><b>${esc(s.who || "")}</b>` +
+      `<small>${esc(subtitle)}</small>` +
+      (note ? `<span class="prep-hint">${IC.prep(12)} ${esc(note)}</span>` : "") +
+      `</div></div>`;
+  },
+  /* --- 8. Scenario card: a practisable situation, selectable --- */
+  scenarioCard({ scenario, selected = false, subtitle = "" } = {}) {
+    const s = scenario || {};
+    return `<button class="scn-card" type="button" data-scn="${esc(s.id)}" aria-pressed="${selected}">` +
+      `<span class="scn-emoji" aria-hidden="true">${esc(s.avatar || "🎧")}</span>` +
+      `<span class="scn-txt"><b>${esc(s.de || "")}</b><small>${esc(subtitle)}</small></span>` +
+      `<span class="scn-on" aria-hidden="true">${IC.check(16)}</span></button>`;
+  },
+  /* --- 9. Conversation bubble: one transcript turn --- */
+  bubble({ side = "char", tag = "", body = "", extra = "" } = {}) {
+    const me = side === "me";
+    return `<div class="turn ${me ? "me" : "char"}"><div class="bub">` +
+      `<div class="tag ${me ? "me" : ""}">${esc(tag)}</div>` +
+      `<div class="said">${body}</div>${extra}</div></div>`;
+  },
+  /* --- 10. Store item: a purchasable row (minutes packs today) --- */
+  storeItem({ icon = "", name = "", sub = "", price = "", action = "", disabled = false } = {}) {
+    return `<div class="store-item">${icon}<div class="nm"><b>${esc(name)}</b>` +
+      (sub ? `<small>${esc(sub)}</small>` : "") + `</div>` +
+      (price !== "" ? `<span class="price">${IC.coin(13)} ${esc(String(price))}</span>` : "") +
+      (action ? `<button class="btn primary" type="button" ${disabled ? "disabled" : ""}>${esc(action)}</button>` : "") +
+      `</div>`;
+  },
+  /* --- 11. Outfit card: catalog entry (ADR-10: data before visuals) --- */
+  outfitCard({ id = "", name = "", group = "", price = 0, state = "locked", action = "" } = {}) {
+    return `<div class="outfit-card" data-outfit="${esc(id)}" data-state="${esc(state)}">` +
+      `<div class="outfit-preview"><div class="asset-placeholder" aria-hidden="true">${IC.star(20)}</div>` +
+      (state === "locked" ? `<span class="outfit-lock" aria-hidden="true">🔒</span>` : "") + `</div>` +
+      `<div class="outfit-copy"><small>${esc(group)}</small><strong>${esc(name)}</strong>` +
+      `<span>${IC.coin(12)} ${esc(String(price))}</span></div>` +
+      `<button type="button" ${state === "locked" ? "disabled" : ""}>${esc(action)}</button></div>`;
+  },
+  /* --- 12/13. Buttons: one primary action per screen, secondary for the rest --- */
+  buttonPrimary({ label = "", icon = "", id = "", cls = "", attrs = "" } = {}) {
+    return `<button class="btn primary ${cls}" type="button"${id ? ` id="${id}"` : ""} ${attrs}>${icon}${icon ? " " : ""}${esc(label)}</button>`;
+  },
+  buttonSecondary({ label = "", icon = "", id = "", cls = "", attrs = "" } = {}) {
+    return `<button class="btn ${cls}" type="button"${id ? ` id="${id}"` : ""} ${attrs}>${icon}${icon ? " " : ""}${esc(label)}</button>`;
+  },
+  /* --- 14. Status badge: state as icon + text + colour, never colour alone --- */
+  statusBadge({ label = "", icon = "", tone = "neutral", id = "", live = false } = {}) {
+    return `<span class="ui-badge"${id ? ` id="${id}"` : ""} data-tone="${esc(tone)}"` +
+      (live ? ` role="status"` : "") + `>${icon}<span>${esc(label)}</span></span>`;
+  },
+  /* --- 15. Progress card: a labelled measure inside a card surface --- */
+  progressCard({ title = "", value = 0, max = 100, valueLabel = "", caption = "" } = {}) {
+    const pct = max > 0 ? Math.min(100, Math.max(0, (Number(value) / Number(max)) * 100)) : 0;
+    return `<div class="card ui-progress"><div class="ui-progress-top"><span>${esc(title)}</span>` +
+      `<small>${esc(valueLabel || `${value}/${max}`)}</small></div>` +
+      UI.xpBar({ percent: pct }) +
+      (caption ? `<div class="ui-progress-cap">${esc(caption)}</div>` : "") + `</div>`;
+  },
+  /* --- 16. Reward popup: what the learner just earned --- */
+  rewardPopup({ title = "", xp = 0, coins = 0, stage = 1, id = "" } = {}) {
+    const gains = [
+      xp ? UI.statusBadge({ label: `+${xp} XP`, icon: IC.star(12), tone: "success" }) : "",
+      coins ? UI.statusBadge({ label: `+${coins}`, icon: IC.coin(12), tone: "warning" }) : "",
+    ].join("");
+    return `<div class="ui-reward"${id ? ` id="${id}"` : ""} role="status" aria-live="polite">` +
+      `<span class="ui-reward-art" aria-hidden="true">${marziSVG(stage, "happy")}</span>` +
+      `<div><b>${esc(title)}</b><div class="ui-reward-gains">${gains}</div></div></div>`;
+  },
+  /* --- 17. Modal: a focused decision on a dimmed surface --- */
+  modal({ id = "", title = "", body = "", stage = null, actions = "", labelledBy = "" } = {}) {
+    return `<div class="ui-modal"${id ? ` id="${id}"` : ""} role="dialog" aria-modal="true"` +
+      (labelledBy ? ` aria-labelledby="${esc(labelledBy)}"` : "") + `>` +
+      (stage ? `<div class="limit-marzi" aria-hidden="true">${marziSVG(stage)}</div>` : "") +
+      `<div class="limit-title"${labelledBy ? ` id="${esc(labelledBy)}"` : ""}>${esc(title)}</div>` +
+      `<p class="note">${esc(body)}</p>${actions}</div>`;
+  },
+  /* --- 18. Empty state: nothing here YET, with the way forward --- */
+  emptyState({ icon = "", title = "", body = "", action = "" } = {}) {
+    return `<div class="ui-empty"><div class="ui-ico" aria-hidden="true">${icon || IC.cards(22)}</div>` +
+      `<b>${esc(title)}</b>${body ? `<p>${esc(body)}</p>` : ""}${action}</div>`;
+  },
+  /* --- 19. Error state: what broke, and how to recover --- */
+  errorState({ title = "", body = "", action = "" } = {}) {
+    return `<div class="ui-error" role="alert"><div class="ui-ico" aria-hidden="true">${IC.warn(22)}</div>` +
+      `<b>${esc(title)}</b>${body ? `<p>${esc(body)}</p>` : ""}${action}</div>`;
+  },
+};
+
 /* ---------- Marzi's evolution strip (family lamina, never changes) ---------- */
 function evolutionHTML(current) {
   return `<div class="label" style="margin:18px 0 2px">${esc(t().evoTitle)}</div><div class="evo-strip">` +
-    MARZI_NAMES.map((nm, i) => {
-      const st = i + 1;
-      const cls = st === current ? "now" : st > current ? "future" : "";
-      return `<div class="evo-step ${cls}"><div class="n">${st}</div>${marziSVG(st)}<div class="nm">${esc(nm)}</div>${st === current ? `<span class="evo-here">${esc(t().evoHere)}</span>` : ""}</div>`;
-    }).join("") + `</div>`;
+    MARZI_NAMES.map((nm, i) => UI.evolutionCard({ stage: i + 1, current, hereLabel: t().evoHere }))
+      .join("") + `</div>`;
 }
 
 /* ---------- Marzi, the learning companion frog ----------
@@ -2412,14 +2599,9 @@ function renderScenarioCards() {
     if (sel) cards.unshift(sel);
   }
   $("scnRail").setAttribute("aria-label", L.pick);
-  $("scnRail").innerHTML = cards.map((s) => {
-    const on = s.id === S.scenario.id;
-    return `<button class="scn-card" type="button" data-scn="${esc(s.id)}" aria-pressed="${on}">
-      <span class="scn-emoji" aria-hidden="true">${esc(s.avatar || "🎧")}</span>
-      <span class="scn-txt"><b>${esc(s.de)}</b><small>${esc(scenarioSubtitle(s))}</small></span>
-      <span class="scn-on" aria-hidden="true">${IC.check(16)}</span>
-    </button>`;
-  }).join("");
+  $("scnRail").innerHTML = cards.map((s) => UI.scenarioCard({
+    scenario: s, selected: s.id === S.scenario.id, subtitle: scenarioSubtitle(s),
+  })).join("");
   $("scnRail").querySelectorAll("[data-scn]").forEach((b) => {
     b.onclick = () => {
       S.scenario = SCENARIOS.find((x) => x.id === b.dataset.scn);
@@ -2432,29 +2614,20 @@ function renderScenarioCards() {
 function renderCharacterCard() {
   const L = t();
   const s = S.scenario;
-  $("charKind").textContent = L.contact;
-  $("charName").textContent = s.who;
-  $("charPlace").textContent = s[S.lang] || s.en || s.de || "";
-  $("charEmoji").textContent = s.avatar || "🎧";
-  $("charCard").setAttribute("aria-label", `${L.contact}: ${s.who} — ${scenarioSubtitle(s)}`);
-  const img = $("charImg");
-  const src = s.id && s.id !== "custom" && s.id !== "random"
-    ? `/api/avatar/${s.id}?v=3&pin=${encodeURIComponent(localStorage.getItem(PIN_KEY) || "")}`
-    : "";
-  if (img.dataset.src !== src) {
-    img.dataset.src = src;
-    img.classList.remove("ok");
-    if (src) {
-      img.onload = () => img.classList.add("ok");
-      img.onerror = () => img.classList.remove("ok");
-      img.src = src;
-    } else img.removeAttribute("src");
-  }
   // advisory only - goCall gating is unchanged, the call is never blocked here
   const advise = S.level === "A0" && canPrep() && !PREPPED.has(s.id);
-  $("charPrep").innerHTML = IC.prep(12) + " " + esc(L.prepHint);
-  $("charPrep").classList.toggle("hidden", !advise);
-  $("charFace").setAttribute("aria-hidden", "true");
+  $("charCard").innerHTML = UI.characterCard({
+    scenario: s, kindLabel: L.contact,
+    subtitle: s[S.lang] || s.en || s.de || "",
+    note: advise ? L.prepHint : "",
+  });
+  // portraits load lazily: the component emits data-src, the screen fetches
+  const img = $("charCard").querySelector("img[data-src]");
+  if (img) {
+    img.onload = () => img.classList.add("ok");
+    img.onerror = () => img.classList.remove("ok");
+    img.src = img.dataset.src;
+  }
 }
 function renderSetup() {
   const L = t();
@@ -2765,7 +2938,7 @@ function renderMistakes() {
         ${f.corrected ? `<div style="margin-top:4px"><button class="mini" data-sayh="${i}">&#9654; ${esc(L.sayIt)}</button></div>` : ""}
         <div class="sub" style="font-size:11px">${esc(f.date)} · ${esc(f.scenario)} · ${esc(f.level)}</div>
       </div>`).join("")
-    : `<p class="note">${esc(L.noMistakes)}</p>`;
+    : UI.emptyState({ icon: IC.list(22), title: L.noMistakes, body: "" });
   $("mistakesList").querySelectorAll("[data-sayh]").forEach((b) =>
     b.onclick = () => speak(fixes[+b.dataset.sayh].corrected, true));
 }
@@ -3726,19 +3899,18 @@ function renderCall() {
   if (S.hint && S.hintOpen) { $("hintText").textContent = S.hint; $("hintBox").classList.remove("hidden"); }
   else $("hintBox").classList.add("hidden");
 
-  $("log").innerHTML = S.turns.map((x, i) => `
-    <div class="turn ${x.me ? "me" : "char"}">
-      <div class="bub">
-        <div class="tag ${x.me ? "me" : ""}">${x.me ? L.you : esc(A.tag)}</div>
-        <div class="said">${x.me ? esc(x.text) : tappable(x.text, i)}</div>
-        ${!x.me && x.wsave ? `<div class="wsave">${x.wsave.pending ? "…" : `★ ${esc(x.wsave.de)} — ${esc(x.wsave.tr)}`}</div>` : ""}
-        ${x.me ? "" : `<div style="margin-top:5px">
+  $("log").innerHTML = S.turns.map((x, i) => UI.bubble({
+    side: x.me ? "me" : "char",
+    tag: x.me ? L.you : A.tag,
+    body: x.me ? esc(x.text) : tappable(x.text, i),
+    extra:
+      (!x.me && x.wsave ? `<div class="wsave">${x.wsave.pending ? "…" : `★ ${esc(x.wsave.de)} — ${esc(x.wsave.tr)}`}</div>` : "") +
+      (x.me ? "" : `<div style="margin-top:5px">
             <button class="mini" data-play="${i}">&#9834;</button>
-            <button class="mini" data-tr="${i}">${L.show}</button></div>`}
-        ${!x.me && x.open ? `<div class="sub">${esc(x.tr)}</div>` : ""}
-        ${x.me && x.fix ? `<div class="fix">${esc(x.fix)}</div>${x.corrected ? `<div style="margin-top:4px"><button class="mini" data-say="${i}">&#9654; ${L.sayIt}</button></div>` : ""}` : ""}
-      </div>
-    </div>`).join("") + (S.busy ? '<div class="turn" style="opacity:.5">· · ·</div>' : "");
+            <button class="mini" data-tr="${i}">${L.show}</button></div>`) +
+      (!x.me && x.open ? `<div class="sub">${esc(x.tr)}</div>` : "") +
+      (x.me && x.fix ? `<div class="fix">${esc(x.fix)}</div>${x.corrected ? `<div style="margin-top:4px"><button class="mini" data-say="${i}">&#9654; ${L.sayIt}</button></div>` : ""}` : ""),
+  })).join("") + (S.busy ? '<div class="turn" style="opacity:.5">· · ·</div>' : "");
 
   const showTapHint = S.turns.some((x) => !x.me) && loadWords().length < 5;
   $("tapHint").textContent = L.tapWordHint;
