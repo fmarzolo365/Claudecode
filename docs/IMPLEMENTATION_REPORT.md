@@ -1104,3 +1104,149 @@ recommended action naming the right scenario, the list view showing the same
 19 nodes, zero undersized targets, `scrollX = 0`. Tapping a node selects it
 (`picked: "bank"`) and lands on Talk with the tab count still 4. `sw.js`
 CACHE v35.
+
+---
+
+# Implementation Report — MARZI-017
+
+**Task:** Product structure, visual refinement and first-run experience
+**Status:** Complete on `claude/marzi-017-product-refinement`, 44/44 green,
+NOT merged, NOT deployed
+
+## Feature ownership by tab
+
+Four primary tabs, unchanged; **no Training tab was added**. Each destination
+now has exactly one canonical home:
+
+| Tab | Owns |
+|---|---|
+| **Learn** | status only — hero, stage, XP, rank (secondary), practice CTA, daily mission, **compact** journey preview + "View full journey" |
+| **Talk** | the training hub — Recommended now · Call training (prepare, guided dialogue, vocabulary) · Review and improve (practise mistakes, my mistakes) · Recent activity · the **full** learning journey |
+| **Store** | the nine outfits with their five states, plus plans/minutes as their own section |
+| **Profile** | progress dashboard, stats, achievements, wardrobe, settings, languages & goal, **My progress**, **Recommend the app** |
+
+Removed from Learn: Guided dialogue, My progress, My mistakes (the duplicated
+`#learnActs` strip is gone entirely). Moved off Talk: My progress → Profile,
+Recommend the app → Profile.
+
+## Mixed-language output fixed
+
+Learn rendered `Lv. 1 · Neuling` — a German rank title beside a Spanish stage
+name. Rank titles are **interface copy, not learning content**, so `rankFor()`
+now resolves them through `rankNames()` against the help language. Verified in
+Chromium: `Lv. 1 · Principiante` with a Spanish interface. The German titles
+remain as the fallback and as the canonical rank order; thresholds
+(`0,80,200,400,700,1100,1700`) are asserted unchanged.
+
+## BrandLockup
+
+`UI.brandLockup({compact, stage, label})` — the Marzi mark **to the left** of
+the wordmark, both centred, one implementation reused by the top bar and
+onboarding. The wordmark is `flex: 0 0 auto`, so "M…" truncation is
+structurally impossible; below 380px the row sheds the settings chip instead
+(Profile is a primary tab, so nothing becomes unreachable) and chips compact
+their digits while keeping the exact value in `aria-label`.
+
+**Artwork:** the mark is the approved stage-6 `marziSVG` as a temporary
+stand-in. Contract: `public/assets/marzi/stage-6/header-neutral.svg`;
+`BRAND_MARK_REGISTERED` ships empty so the fallback always renders and no
+request is made for a missing file.
+
+## Locked outfits
+
+All nine ship visible from the start. A stage-locked card keeps its preview,
+localized name, gentle lock icon, stage badge ("Available at stage 4") and
+price, softened but never broken-looking. It uses `aria-disabled="true"` and
+**never** the `disabled` attribute, so it stays tappable and focusable —
+verified: 9 cards, 9 `aria-disabled`, **0** `disabled`. Tapping opens the
+preview modal with the larger preview, name, required stage, price and how it
+unlocks, with **no purchase action** (`hasBuy: false`) and a Cancel.
+
+The five canonical states still come from the single `outfitState()`:
+`locked · insufficient · available · owned · equipped`. State is never
+colour-only — each carries an icon and text.
+
+## Profile dashboard
+
+The concatenated `0coins 0day streak` report is replaced by `UI.statCard`:
+icon, `Intl.NumberFormat` value and a separately pluralized label as **block**
+elements. Verified rendering: `0 | monedas`, `0 | días`, `0 | llamadas`,
+`0 | minutos`, `0 | errores`, `0 | palabras`.
+
+`UI.activitySummary` renders the last seven days **only from `stats.days`**,
+which the app already writes. With no dated history `hasHistory` is false and
+the empty state shows instead — a zero-filled chart would be invented history,
+and the suite asserts it is never rendered.
+
+## Onboarding and migration
+
+Four steps — interface language, learning language, learning goal, daily goal
+— with flags as decoration and the **language code** as the stored value.
+Android Back walks back through the steps. Editable later via
+**Profile → Languages & learning goal**.
+
+**One namespaced key**, `marzi.onboarding.v1` = `{version, done, goal,
+dailyMin}` — nothing else. Language and target stay in `marzi.settings.v1`;
+no second global state exists for interface language, target language,
+navigation, wardrobe, XP, coins or call statistics.
+
+`commitOnboarding()` writes settings and the record **atomically** and reads
+back to confirm; on failure it restores the exact previous values of both keys
+and the in-memory `S`, and reports a localized recoverable error. The suite
+proves no partial save survives.
+
+**Existing installations are never re-onboarded and never reset.**
+`hasMeaningfulUserData()` treats XP, calls, coins, seconds, dated days,
+completed scenarios, wardrobe, mistakes, saved words, test history, reward
+ledger entries or a saved language pair as proof of use. Verified that a
+seeded learner's stats, fixes, words and reward ledger are **byte-for-byte
+identical** after a commit.
+
+## Standalone PWA
+
+`manifest.webmanifest`: `short_name: "Marzi"`, brand in `name`,
+`display: standalone`, `display_override: ["standalone","minimal-ui"]`,
+in-origin `start_url`/`scope`, corrected `theme_color`, production icons
+including maskable. `isStandalone()` checks `display-mode` (standalone,
+fullscreen, minimal-ui) and falls back to `navigator.standalone` for iOS.
+
+A browser-only install recommendation appears on Learn, is dismissible, and
+its dismissal persists (`marzi.install-dismissed.v1`). It never appears in
+standalone mode — asserted both ways in the suite.
+
+**Documented limitation:** browser/custom-tab chrome (X, URL, Share, overflow)
+**cannot be removed by page JavaScript**. The only real fixes are launching
+from an installed icon in standalone mode, or packaging as a **Trusted Web
+Activity** for Play Store distribution — the recorded future path. No fake
+fullscreen was implemented.
+
+## Call screen
+
+Visual only. The character emoji is a *fallback*, not an overlay:
+`.char-face:has(img.ok) > span { visibility: hidden }` hides it once the real
+portrait loads, so there is no doctor emoji on top of a doctor.
+ConversationSession, providers, prompts, transcript source, request guards,
+reward ledger, XP/coin maths, timer and character switching are untouched.
+
+## Verification
+
+`node --check server.js` · `node --check test/run.js` ·
+`node test/conflict-markers.js` · `node test/run.js` **44/44** ·
+`git diff --check` — all clean. `sw.js` CACHE v36.
+
+Chromium at **390×844 and 360×640**, new install through completed onboarding
+and every tab: `documentElement.scrollWidth === innerWidth`, `scrollX = 0`
+after a real wheel gesture on all four tabs, **zero** touch targets below 48×48
+(counting the `::after` hit area), **zero** duplicate ids, **zero** page
+errors. Learn's first viewport shows header, hero, XP, CTA, mission and the
+journey preview at 390×844 (at 360×640 the preview falls just below the fold —
+the six required elements above it are all present).
+
+## Unresolved artwork gaps
+
+1. **Header mark** — `public/assets/marzi/stage-6/header-neutral.svg` does not
+   exist. Temporary stand-in in use; registry ships empty.
+2. **Outfit previews** — all nine render one neutral shirt silhouette.
+   Contract: `public/assets/marzi/outfits/<slug>.svg`. Nothing was cropped
+   from a concept board and no finished-looking art was fabricated.
+3. **Marzi state artwork** — `MARZI_ASSETS` still ships empty (MARZI-013).

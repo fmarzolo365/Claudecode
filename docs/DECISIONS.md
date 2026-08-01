@@ -76,3 +76,34 @@ with no store review; only launcher icon/name changes need a new .aab.
 Role-play, evaluation, vocab and test prompts return strict JSON; parsing
 slices first `{`/`[` to last. The server proxies providers (Anthropic chat,
 OpenAI voice/images) and owns all keys; the client never sees them.
+
+## ADR-12 — Browser chrome is not removable; TWA is the packaging path
+
+**Context.** Launched from a link or a custom tab, the app shows browser
+chrome (X, URL, Share, overflow menu). Page JavaScript cannot remove it, and
+attempts to fake fullscreen produce a worse, less trustworthy result.
+
+**Decision.** Treat standalone as an *install-time* property, not a runtime
+one. `manifest.webmanifest` declares `display: standalone` with
+`display_override: ["standalone", "minimal-ui"]`; the app detects the mode via
+`display-mode` media queries plus the `navigator.standalone` fallback, and
+recommends installing **only** when running in a browser. The normal browser
+experience stays fully usable — the recommendation is dismissible and its
+dismissal persists. **No fake fullscreen.**
+
+For Play Store distribution the recorded path is a **Trusted Web Activity**,
+which runs the same origin without browser chrome. Documented in
+`docs/PLAY_LAUNCH.md`; not built in MARZI-017.
+
+## ADR-13 — Interface copy follows the help language; only content stays German
+
+**Context.** Learn rendered `Lv. 1 · Neuling` beside a Spanish stage name —
+three languages on one screen with no explanation.
+
+**Decision.** Rank titles, stage names, stage descriptions and every label are
+**interface copy** and follow the help language. German appears only where it
+is the learning content itself: scenario titles, prompts, corrections and
+spoken lines. The German rank titles remain in `RANKS` as the fallback and as
+the canonical order; `rankNames()` supplies the localized display. Rank
+thresholds and Marzi's six XP thresholds are unaffected and suite-frozen.
+

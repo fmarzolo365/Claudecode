@@ -159,6 +159,15 @@
     font-family: var(--font-sans); font-size: var(--text-xl); font-weight: 800;
     letter-spacing: -.04em; color: var(--marzi-dark); flex: 0 0 auto; white-space: nowrap;
   }
+  /* MARZI-017 brand lockup: mark on the inline-start side, wordmark after it,
+     both vertically centred. One component for every normal screen. */
+  .brand-lockup { display: inline-flex; align-items: center; gap: 6px; flex: 0 0 auto; min-width: 0; }
+  .brand-mark { display: block; width: 40px; height: 40px; flex: 0 0 40px; }
+  .brand-mark svg, .brand-mark img { display: block; width: 100%; height: 100%; }
+  .brand-lockup.compact .brand-mark { width: 36px; height: 36px; flex-basis: 36px; }
+  /* the wordmark must never shrink to "M…": it is fixed-size and the row
+     sheds the settings chip instead (Profile is a bottom-nav tab anyway) */
+  .brand-lockup .wordmark { flex: 0 0 auto; }
   .topbar .grow { flex: 1 1 auto; min-width: 0; }
   .chip-res {
     display: inline-flex; align-items: center; gap: 5px;
@@ -180,6 +189,11 @@
     .topbar-in { gap: 4px; }
     .chip-res { padding: 7px 6px; }
     .chip-res.gear { padding: 7px 9px; }
+    /* the brand mark costs real width, so the settings chip steps aside -
+       Profile is a primary tab, so nothing becomes unreachable */
+    .chip-res.gear { display: none; }
+    .brand-lockup.compact .brand-mark { width: 32px; height: 32px; flex-basis: 32px; }
+    .brand-lockup .wordmark { font-size: var(--text-lg); }
   }
   /* ---- MARZI-002 reusable shell primitives ----
      .card and .btn are the base components every future screen composes;
@@ -855,6 +869,9 @@
   }
   .char-face img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: none; }
   .char-face img.ok { display: block; }
+  /* MARZI-017: the emoji is a fallback, not an overlay. Once the portrait
+     loads it is the only thing shown - no doctor emoji on top of a doctor. */
+  .char-face:has(img.ok) > span { visibility: hidden; }
   .char-txt { min-width: 0; flex: 1; }
   .char-txt .k { font: 700 var(--text-f8-5) 'JetBrains Mono', monospace; letter-spacing: .1em; color: var(--muted); text-transform: uppercase; }
   .char-txt b { display: block; font: 800 var(--text-md) var(--font-sans); line-height: 1.25; margin-top: 1px; }
@@ -1091,16 +1108,32 @@
   .outfit-card .outfit-copy { display: block; padding: var(--space-2) 4px 0; }
   .outfit-card .outfit-copy strong { display: block; font: 800 var(--text-f11-5) var(--font-sans); line-height: 1.2; }
   .outfit-card .outfit-foot {
-    display: inline-flex; align-items: center; justify-content: center; gap: 3px; margin-top: 3px;
-    font: 700 var(--text-f10-5) var(--font-sans); color: var(--coin-ink);
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 3px; margin-top: 3px;
+    max-width: 100%; font: 700 var(--text-f10-5) var(--font-sans); color: var(--coin-ink);
   }
-  .outfit-card[data-state="locked"] { opacity: .72; }
-  .outfit-card[data-state="locked"] .outfit-preview { filter: grayscale(.55); }
+  /* MARZI-017: softened, not broken - the card keeps full contrast on its
+     name, price and stage badge; only the placeholder preview is muted. */
+  .outfit-card[data-state="locked"] .outfit-preview { filter: grayscale(.35); }
   .outfit-card[data-state="locked"] .outfit-foot { color: var(--muted); }
   .outfit-card[data-state="insufficient"] .outfit-foot { color: var(--muted); }
   .outfit-card[data-state="owned"] .outfit-foot { color: var(--marzi-dark); }
   .outfit-card[data-state="equipped"] { border-color: var(--primary); box-shadow: 0 0 0 2px var(--tint-primary-35), var(--shadow-sm); }
   .outfit-card[data-state="equipped"] .outfit-foot { color: var(--marzi-dark); }
+  /* MARZI-017: stage-locked cards stay inviting - softened, not disabled */
+  .outfit-card[data-state="locked"] { position: relative; }
+  .outfit-card[data-state="locked"] .outfit-preview { opacity: .55; }
+  .outfit-lock {
+    position: absolute; inset-inline-end: 6px; inset-block-start: 6px;
+    display: inline-flex; padding: 3px; border-radius: 50%;
+    background: var(--card); border: 1px solid var(--line); color: var(--muted);
+  }
+  .outfit-stage {
+    display: block; margin: 4px auto 0; padding: 2px 8px; border-radius: 999px;
+    background: var(--surface-strong); color: var(--muted);
+    font: 700 var(--text-f10-5) var(--font-sans);
+    max-width: 100%; overflow-wrap: anywhere; text-align: center;
+  }
+  .outfit-price { color: var(--coin); font-weight: 800; }
   .store-modal-art { width: 116px; height: 116px; margin: 0 auto; display: grid; place-items: center;
     border-radius: var(--radius); background: linear-gradient(150deg, var(--stage-from), var(--stage-to)); color: var(--marzi-dark); }
   .store-modal-art svg { width: 58%; height: 58%; opacity: .6; }
@@ -1276,7 +1309,7 @@
     width: 100%; height: var(--touch-min); min-width: var(--touch-min);
   }
   /* segmented controls and legal links meet the floor directly */
-  .seg button { min-height: var(--touch-min); }
+  .seg button { min-height: var(--touch-min); min-width: var(--touch-min); }
   .legal a { display: inline-flex; align-items: center; min-height: var(--touch-min); }
   /* visible keyboard focus everywhere */
   :focus-visible { outline: 3px solid var(--marzi-dark); outline-offset: 2px; border-radius: 8px; }
@@ -1316,10 +1349,79 @@
   .achv small { display: block; font: 700 var(--text-f11-5) var(--font-sans); color: var(--muted); }
   .achv-ic { display: inline-flex; flex: 0 0 auto; color: var(--muted); }
   .achv[data-state="earned"] { border-color: var(--primary); background: var(--tint-primary-04); }
+  /* ---------- MARZI-017: onboarding ---------- */
+  .ob-head { display: flex; justify-content: center; margin-top: var(--space-4); }
+  .ob-steps { display: flex; justify-content: center; gap: 6px; margin: var(--space-4) 0 var(--space-3); }
+  .ob-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--track); }
+  .ob-dot.past { background: var(--tint-primary-35); }
+  .ob-dot.on { width: 22px; border-radius: 999px; background: var(--primary); }
+  .ob-q {
+    margin: 0 0 var(--space-4); text-align: center;
+    font: 800 var(--text-lg) var(--font-sans); color: var(--ink);
+  }
+  .ob-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-2); }
+  .ob-grid.one { grid-template-columns: minmax(0, 1fr); }
+  .ob-opt {
+    position: relative; display: flex; align-items: center; gap: var(--space-2);
+    min-height: var(--touch-lg); padding: var(--space-3); cursor: pointer; text-align: start;
+    background: var(--card); border: 1.5px solid var(--line); border-radius: var(--radius);
+    box-shadow: var(--shadow-sm); font: 700 var(--text-sm) var(--font-sans); color: var(--ink);
+  }
+  /* selected state carries a tick as well as the colour change */
+  .ob-opt.on { border-color: var(--primary); background: var(--tint-primary-04); }
+  .ob-tick { margin-inline-start: auto; display: inline-flex; color: var(--primary); }
+  .ob-flag { font-size: var(--text-lg); flex: 0 0 auto; }
+  .ob-ic { display: inline-flex; flex: 0 0 auto; color: var(--primary); }
+  .ob-nm { min-width: 0; overflow-wrap: anywhere; }
+  .ob-min { font: 800 var(--text-lg) var(--font-sans); color: var(--marzi-dark); }
+  .ob-nav { display: flex; gap: var(--space-2); align-items: center; margin-top: var(--space-5); }
+  .ob-nav .toggle { flex: 0 0 auto; min-height: var(--touch-min); }
+  .ob-nav .cta { flex: 1 1 auto; margin-top: 0; }
+  .ob-nav .cta[disabled] { opacity: .5; cursor: not-allowed; }
+  /* ---------- MARZI-017: profile stat cards + activity summary ---------- */
+  .stat-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-2); }
+  .stat-card {
+    display: flex; align-items: center; gap: var(--space-2); min-height: var(--touch-lg);
+    padding: var(--space-2) var(--space-3); background: var(--card);
+    border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow-sm);
+  }
+  .stat-ic { display: inline-flex; flex: 0 0 auto; color: var(--primary); }
+  .stat-body { min-width: 0; }
+  .stat-val { display: block; font: 800 var(--text-lg) var(--font-sans); color: var(--ink); line-height: 1.15; }
+  .stat-lb { display: block; font: 700 var(--text-f11-5) var(--font-sans); color: var(--muted); overflow-wrap: anywhere; }
+  .stat-dt { display: block; font: 600 var(--text-f10-5) var(--font-sans); color: var(--muted); }
+  .stat-card[data-state="empty"] .stat-val { color: var(--muted); }
+  .act-sum { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: var(--space-3); box-shadow: var(--shadow-sm); }
+  .act-sum-hd { font: 700 var(--text-f11-5) var(--font-sans); color: var(--muted); margin-bottom: var(--space-2); }
+  .act-bars { display: flex; align-items: flex-end; gap: var(--space-2); height: 84px; }
+  .act-bar { flex: 1 1 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; gap: 4px; }
+  .act-bar-fill { width: 100%; border-radius: 5px; background: var(--track); }
+  .act-bar-fill[data-on="true"] { background: var(--xp-fill); }
+  .act-bar small { font: 700 var(--text-f10-5) var(--font-sans); color: var(--muted); }
+  /* ---------- MARZI-017: install recommendation (browser only) ---------- */
+  .install-rec {
+    display: flex; align-items: center; gap: var(--space-2);
+    margin: var(--space-3) 0 0; padding: var(--space-3);
+    background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+  }
+  .install-rec .install-tx { flex: 1 1 auto; min-width: 0; font: 700 var(--text-sm) var(--font-sans); color: var(--ink); overflow-wrap: anywhere; }
+  .install-rec button { flex: 0 0 auto; min-width: var(--touch-min); min-height: var(--touch-min); border: none; background: none; cursor: pointer; color: var(--muted); }
   /* ---------- MARZI-016: learning journey ----------
      A path over the existing scenarios. `future` is dimmer, never disabled -
      every node opens exactly as it does in the picker. */
+  /* MARZI-017: Talk hub extras */
+  .act.reco {
+    display: flex; align-items: center; gap: var(--space-3); width: 100%;
+    min-height: var(--touch-lg); padding: var(--space-3); text-align: start;
+  }
+  .reco-face { flex: 0 0 auto; font-size: var(--text-f27); }
+  .reco-tx { min-width: 0; }
+  .reco-tx b { display: block; font: 800 var(--text-sm) var(--font-sans); overflow-wrap: anywhere; }
+  .reco-tx small { display: block; font: 600 var(--text-f11-5) var(--font-sans); color: var(--muted); overflow-wrap: anywhere; }
+  .item.static { cursor: default; }
   .jr-path { list-style: none; margin: 0; padding: 0 0 0 var(--space-5); position: relative; }
+  .jr-path.compact { padding-inline-start: var(--space-5); }
   .jr-path::before {
     content: ""; position: absolute; inset-block: 12px; inset-inline-start: 9px;
     width: 2px; background: var(--track); border-radius: 2px;
@@ -1394,7 +1496,7 @@
 <header class="topbar" id="topbar">
   <div class="topbar-in">
     <button class="menu-btn" id="menuBtn" aria-label="Menu"><span></span><span></span><span></span></button>
-    <span class="wordmark">Marzi</span>
+    <span id="brandLockup"></span>
     <span class="grow"></span>
     <button class="chip-res" id="tbCoins" aria-label="Coins"></button>
     <span class="chip-res streak" id="tbStreak"></span>
@@ -1425,19 +1527,21 @@
       <div class="label" id="missionLbl" style="margin:8px 0 0"></div>
       <div class="routine" id="routine"></div>
     </div>
-    <div class="grid3" id="learnActs"></div>
+    <div id="installRec" class="install-rec hidden" role="note"></div>
     <!-- MARZI-016: the learning journey lives inside Learn, below the existing
-         hero and mission content so nothing above it moves. Tabs unchanged. -->
-    <section class="jr" aria-labelledby="jrTitle">
-      <div class="label prof-achv-lbl" style="margin-top:18px"><span id="jrTitle"></span><span class="prof-achv-n" id="jrCount"></span></div>
-      <div class="seg" id="jrSeg" role="group"></div>
-      <div id="jrBody" style="margin-top:10px"></div>
-      <button class="big cta hidden" id="jrNext" style="margin-top:12px"></button>
+         hero and mission content so nothing above it moves. Tabs unchanged.
+         MARZI-017: Learn shows a COMPACT preview; the full path lives in Talk. -->
+    <section class="jr" aria-labelledby="jrPrevTitle">
+      <div class="label prof-achv-lbl" style="margin-top:18px"><span id="jrPrevTitle"></span><span class="prof-achv-n" id="jrPrevCount"></span></div>
+      <div id="jrPreview"></div>
+      <button class="toggle" id="jrFullBtn" type="button" style="margin-top:10px"></button>
     </section>
   </section>
 
   <!-- TALK: scenario setup (the original Telefontrainer core) -->
   <section id="setup" class="hidden">
+    <div class="label" id="lblTrainNow"></div>
+    <div id="recoBody"></div>
     <div class="label" id="lblPick"></div>
     <div class="scn-rail" id="scnRail" role="group"></div>
     <div id="charCard"></div>
@@ -1456,31 +1560,41 @@
       <span class="allow-chip" id="allowMin"></span>
       <button class="allow-chip" id="allowBuy"></button>
     </div>
-    <div class="label" id="lblTrain"></div>
+    <!-- MARZI-017: Talk is the canonical training hub, in four sections.
+         My progress moved to Profile; Recommend the app moved to Profile. -->
+    <div class="label" id="lblTrainCall"></div>
     <div class="grid2">
       <button class="act" id="prepBtn"></button>
       <button class="act" id="dialogBtn"></button>
       <button class="act" id="vocabBtn"></button>
+    </div>
+    <div class="label" id="lblTrainReview"></div>
+    <div class="grid2">
       <button class="act" id="drillBtn"></button>
       <button class="act" id="mistakesBtn"></button>
-      <button class="act" id="progressBtn"></button>
-      <button class="act" id="shareBtn"></button>
     </div>
+    <div class="label" id="lblTrainRecent"></div>
+    <div id="recentBody"></div>
+    <div class="label prof-achv-lbl"><span id="lblJourney"></span><span class="prof-achv-n" id="jrCount"></span></div>
+    <div class="seg" id="jrSeg" role="group"></div>
+    <div id="jrBody" style="margin-top:10px"></div>
+    <button class="big cta hidden" id="jrNext" style="margin-top:12px"></button>
   </section>
 
   <!-- FIRST-RUN ONBOARDING: language pair picker -->
-  <section id="onboard" class="hidden">
-    <div class="ob-head">
-      <div class="ob-marzi" id="obMarzi"></div>
-      <span class="word">Marzi</span>
-    </div>
-    <div class="label" id="obIntroLbl"></div>
-    <div class="seg wrap" id="obHelp"></div>
-    <div class="label" id="obLearnLbl"></div>
-    <div class="grid2" id="obTargets"></div>
+  <!-- MARZI-017: four-step first run. One step visible at a time; Android Back
+       walks back through the steps before leaving. -->
+  <section id="onboard" class="hidden" aria-labelledby="obQuestion">
+    <div class="ob-head" id="obBrand"></div>
+    <div class="ob-steps" id="obSteps" role="progressbar" aria-valuemin="1" aria-valuemax="4"></div>
+    <h2 class="ob-q" id="obQuestion"></h2>
     <p class="note hidden" id="obWishNote"></p>
-    <div id="obEvo"></div>
-    <button class="big cta" id="obStartBtn"></button>
+    <div id="obBody"></div>
+    <div class="ob-nav">
+      <button class="toggle hidden" id="obBackBtn" type="button"></button>
+      <button class="big cta" id="obNextBtn" type="button"></button>
+    </div>
+    <p class="note hidden" id="obError" role="alert"></p>
   </section>
 
   <!-- CALL -->
@@ -1625,9 +1739,12 @@
     <div id="profBody" style="margin-top:10px"></div>
     <div class="label" style="margin-top:18px" id="profSettingsLbl"></div>
     <div class="setting-list">
+      <button class="setting-row" id="progressBtn" type="button"></button>
+      <button class="setting-row" id="obGoalBtn" type="button"></button>
       <button class="setting-row" id="pairBtn" type="button"></button>
       <button class="setting-row" id="exportBtn" type="button"></button>
       <button class="setting-row" id="importBtn" type="button"></button>
+      <button class="setting-row" id="shareBtn" type="button"></button>
     </div>
     <div class="label" style="margin-top:18px" id="profA11yLbl"></div>
     <div class="setting-list">
@@ -1846,6 +1963,19 @@ const T = {
     achStreak7:"7 días seguidos", achStreak30:"30 días seguidos", achFix25:"25 errores repasados", achOutfit1:"Primera ropa",
     jrTitle:"Tu camino", jrMap:"Mapa", jrList:"Lista", jrDone:"Hecho", jrHere:"Estás aquí",
     jrOpen:"Disponible", jrFuture:"Más adelante", jrNext:"Siguiente", jrReview:"Repasar",
+    appName:"Marzi", obQLang:"¿Qué idioma hablas?", obQTarget:"¿Qué idioma quieres aprender?",
+    obQGoal:"¿Para qué quieres aprender?", obQDaily:"¿Cuánto quieres practicar al día?", obNext:"Continuar",
+    obSaveFailed:"No se pudo guardar. Revisa el espacio del navegador e inténtalo otra vez.",
+    goalNames:["Viajar","Vida diaria","Trabajo","Estudios","Preparar llamadas","Vivir en Alemania"],
+    dayUnit:["día","días"], minUnit:["minuto","minutos"], callUnit:["llamada","llamadas"],
+    coinUnit:["moneda","monedas"], wordUnit:["palabra","palabras"], fixUnit:["error","errores"],
+    profDash:"Tu progreso", profWeek:"Últimos 7 días", profNoHistory:"Aún no hay días con práctica. Haz tu primera llamada.",
+    profGoalLbl:"Idiomas y objetivo", profNoStats:"Todavía sin datos",
+    trainNow:"Recomendado ahora", trainCall:"Entrenamiento de llamadas", trainReview:"Repasar y mejorar", trainRecent:"Actividad reciente",
+    recentNone:"Aún no hay llamadas.", journeyFull:"Ver el camino completo",
+    lockedAt:"Disponible en la etapa", lockedHow:"Sube de etapa con XP para desbloquear esta ropa.",
+    installTitle:"Instala Marzi para la experiencia completa.", installDismiss:"Cerrar",
+    rankTitles:["Principiante","Quien llama","Muy telefoneador","Profesional del teléfono","Dragón de oficina","Héroe de llamadas","Leyenda del teléfono"],
     offlineTitle:"Sin conexión", offlineMsg:"Necesitas conexión para llamar. Vuelve a intentarlo cuando tengas internet.",
     rwTime:"Duración", rwTurns:"Turnos", rwMistakes:"Correcciones", rwNormal:"¡Buen trabajo! Sigue así.",
     rwHigh:"¡Excelente llamada! Hablaste con confianza.", rwZero:"Habla la próxima vez para ganar XP.", rwEvolvedTitle:"¡Marzi ha crecido!", rwContinue:"Continuar",
@@ -1918,6 +2048,19 @@ const T = {
     achStreak7:"7 days in a row", achStreak30:"30 days in a row", achFix25:"25 mistakes reviewed", achOutfit1:"First outfit",
     jrTitle:"Your journey", jrMap:"Map", jrList:"List", jrDone:"Done", jrHere:"You are here",
     jrOpen:"Available", jrFuture:"Later on", jrNext:"Next", jrReview:"Review",
+    appName:"Marzi", obQLang:"What language do you speak?", obQTarget:"What language do you want to learn?",
+    obQGoal:"Why do you want to learn?", obQDaily:"How much do you want to practise a day?", obNext:"Continue",
+    obSaveFailed:"Could not save. Check your browser storage and try again.",
+    goalNames:["Travel","Daily life","Work","School","Prepare calls","Living in Germany"],
+    dayUnit:["day","days"], minUnit:["minute","minutes"], callUnit:["call","calls"],
+    coinUnit:["coin","coins"], wordUnit:["word","words"], fixUnit:["mistake","mistakes"],
+    profDash:"Your progress", profWeek:"Last 7 days", profNoHistory:"No practice days yet. Make your first call.",
+    profGoalLbl:"Languages & learning goal", profNoStats:"No data yet",
+    trainNow:"Recommended now", trainCall:"Call training", trainReview:"Review and improve", trainRecent:"Recent activity",
+    recentNone:"No calls yet.", journeyFull:"View full journey",
+    lockedAt:"Available at stage", lockedHow:"Reach the stage with XP to unlock this outfit.",
+    installTitle:"Install Marzi for the full app experience.", installDismiss:"Dismiss",
+    rankTitles:["Newcomer","Caller","Frequent caller","Phone pro","Office dragon","Call hero","Phone legend"],
     offlineTitle:"No connection", offlineMsg:"You need a connection to call. Try again once you are back online.",
     rwTime:"Duration", rwTurns:"Turns", rwMistakes:"Corrections", rwNormal:"Nice work! Keep going.",
     rwHigh:"Excellent call! You spoke with confidence.", rwZero:"Speak next time to earn XP.", rwEvolvedTitle:"Marzi has grown!", rwContinue:"Continue",
@@ -1993,6 +2136,19 @@ T.tr = { tagline:"Gerçek Almanca aramalar ve konuşmalar pratiği yap. Sen konu
   achStreak7:"Üst üste 7 gün", achStreak30:"Üst üste 30 gün", achFix25:"25 hata tekrar edildi", achOutfit1:"İlk kıyafet",
   jrTitle:"Yolun", jrMap:"Harita", jrList:"Liste", jrDone:"Tamam", jrHere:"Buradasın",
   jrOpen:"Hazır", jrFuture:"İleride", jrNext:"Sıradaki", jrReview:"Tekrar et",
+  appName:"Marzi", obQLang:"Hangi dili konuşuyorsun?", obQTarget:"Hangi dili öğrenmek istiyorsun?",
+  obQGoal:"Neden öğrenmek istiyorsun?", obQDaily:"Günde ne kadar pratik yapmak istersin?", obNext:"Devam",
+  obSaveFailed:"Kaydedilemedi. Tarayıcı depolamanı kontrol edip tekrar dene.",
+  goalNames:["Seyahat","Günlük hayat","İş","Okul","Aramalara hazırlık","Almanya'da yaşamak"],
+  dayUnit:["gün","gün"], minUnit:["dakika","dakika"], callUnit:["arama","arama"],
+  coinUnit:["jeton","jeton"], wordUnit:["kelime","kelime"], fixUnit:["hata","hata"],
+  profDash:"İlerlemen", profWeek:"Son 7 gün", profNoHistory:"Henüz pratik günü yok. İlk aramanı yap.",
+  profGoalLbl:"Diller ve hedef", profNoStats:"Henüz veri yok",
+  trainNow:"Şimdi önerilen", trainCall:"Arama antrenmanı", trainReview:"Gözden geçir ve geliştir", trainRecent:"Son etkinlik",
+  recentNone:"Henüz arama yok.", journeyFull:"Tüm yolu gör",
+  lockedAt:"Şu aşamada açılır:", lockedHow:"Bu kıyafeti açmak için XP ile aşamayı yükselt.",
+  installTitle:"Tam deneyim için Marzi'yi yükle.", installDismiss:"Kapat",
+  rankTitles:["Yeni başlayan","Arayan","Sık arayan","Telefon uzmanı","Ofis ejderhası","Arama kahramanı","Telefon efsanesi"],
   offlineTitle:"Bağlantı yok", offlineMsg:"Aramak için bağlantı gerekir. İnternet gelince tekrar dene.",
   rwTime:"Süre", rwTurns:"Tur", rwMistakes:"Düzeltme", rwNormal:"Güzel iş! Böyle devam.",
   rwHigh:"Harika bir görüşme! Kendinden emin konuştun.", rwZero:"XP kazanmak için konuş.", rwEvolvedTitle:"Marzi büyüdü!", rwContinue:"Devam",
@@ -2065,6 +2221,21 @@ T.ar = { tagline:"تدرّب على مكالمات ومحادثات حقيقية
   achStreak7:"7 أيام متتالية", achStreak30:"30 يومًا متتاليًا", achFix25:"مراجعة 25 خطأ", achOutfit1:"أول ملابس",
   jrTitle:"رحلتك", jrMap:"خريطة", jrList:"قائمة", jrDone:"تم", jrHere:"أنت هنا",
   jrOpen:"متاح", jrFuture:"لاحقًا", jrNext:"التالي", jrReview:"مراجعة",
+  appName:"Marzi", obQLang:"ما اللغة التي تتحدثها؟", obQTarget:"ما اللغة التي تريد تعلمها؟",
+  obQGoal:"لماذا تريد التعلم؟", obQDaily:"كم تريد أن تتدرب يوميًا؟", obNext:"متابعة",
+  obSaveFailed:"تعذر الحفظ. تحقق من مساحة المتصفح وحاول مرة أخرى.",
+  goalNames:["السفر","الحياة اليومية","العمل","الدراسة","التحضير للمكالمات","العيش في ألمانيا"],
+  dayUnit:["يوم","يوم","يومان","أيام","يومًا","يوم"], minUnit:["دقيقة","دقيقة","دقيقتان","دقائق","دقيقة","دقيقة"],
+  callUnit:["مكالمة","مكالمة","مكالمتان","مكالمات","مكالمة","مكالمة"],
+  coinUnit:["عملة","عملة","عملتان","عملات","عملة","عملة"], wordUnit:["كلمة","كلمة","كلمتان","كلمات","كلمة","كلمة"],
+  fixUnit:["خطأ","خطأ","خطآن","أخطاء","خطأ","خطأ"],
+  profDash:"تقدمك", profWeek:"آخر 7 أيام", profNoHistory:"لا توجد أيام تدريب بعد. أجرِ مكالمتك الأولى.",
+  profGoalLbl:"اللغات والهدف", profNoStats:"لا بيانات بعد",
+  trainNow:"موصى به الآن", trainCall:"تدريب المكالمات", trainReview:"راجع وحسّن", trainRecent:"النشاط الأخير",
+  recentNone:"لا مكالمات بعد.", journeyFull:"عرض الرحلة كاملة",
+  lockedAt:"متاح في المرحلة", lockedHow:"ارتقِ بالمرحلة عبر نقاط الخبرة لفتح هذه الملابس.",
+  installTitle:"ثبّت Marzi للحصول على التجربة الكاملة.", installDismiss:"إغلاق",
+  rankTitles:["مبتدئ","متصل","متصل دائم","محترف الهاتف","تنين المكتب","بطل المكالمات","أسطورة الهاتف"],
   offlineTitle:"لا يوجد اتصال", offlineMsg:"تحتاج إلى اتصال لإجراء مكالمة. حاول مرة أخرى عند عودة الإنترنت.",
   rwTime:"المدة", rwTurns:"الأدوار", rwMistakes:"التصحيحات", rwNormal:"عمل جيد! واصل.",
   rwHigh:"مكالمة ممتازة! تحدثت بثقة.", rwZero:"تحدث في المرة القادمة لتكسب XP.", rwEvolvedTitle:"لقد كبر مارزي!", rwContinue:"متابعة",
@@ -2137,6 +2308,19 @@ T.uk = { tagline:"Тренуй реальні дзвінки й розмови �
   achStreak7:"7 днів поспіль", achStreak30:"30 днів поспіль", achFix25:"25 опрацьованих помилок", achOutfit1:"Перший одяг",
   jrTitle:"Твій шлях", jrMap:"Карта", jrList:"Список", jrDone:"Готово", jrHere:"Ти тут",
   jrOpen:"Доступно", jrFuture:"Далі", jrNext:"Далі", jrReview:"Повторити",
+  appName:"Marzi", obQLang:"Якою мовою ти розмовляєш?", obQTarget:"Яку мову хочеш вивчати?",
+  obQGoal:"Навіщо ти хочеш вчитися?", obQDaily:"Скільки хочеш практикувати щодня?", obNext:"Далі",
+  obSaveFailed:"Не вдалося зберегти. Перевір сховище браузера й спробуй ще раз.",
+  goalNames:["Подорожі","Щоденне життя","Робота","Навчання","Підготовка до дзвінків","Життя в Німеччині"],
+  dayUnit:["день","дні","днів"], minUnit:["хвилина","хвилини","хвилин"], callUnit:["дзвінок","дзвінки","дзвінків"],
+  coinUnit:["монета","монети","монет"], wordUnit:["слово","слова","слів"], fixUnit:["помилка","помилки","помилок"],
+  profDash:"Твій прогрес", profWeek:"Останні 7 днів", profNoHistory:"Ще немає днів практики. Зроби перший дзвінок.",
+  profGoalLbl:"Мови та ціль", profNoStats:"Ще немає даних",
+  trainNow:"Рекомендовано зараз", trainCall:"Тренування дзвінків", trainReview:"Повтори й покращуй", trainRecent:"Остання активність",
+  recentNone:"Ще немає дзвінків.", journeyFull:"Переглянути весь шлях",
+  lockedAt:"Доступно на етапі", lockedHow:"Досягни етапу за допомогою XP, щоб відкрити цей одяг.",
+  installTitle:"Встанови Marzi для повного досвіду.", installDismiss:"Закрити",
+  rankTitles:["Новачок","Той, хто дзвонить","Частий абонент","Профі телефону","Офісний дракон","Герой дзвінків","Легенда телефону"],
   offlineTitle:"Немає зв'язку", offlineMsg:"Для дзвінка потрібне з'єднання. Спробуй ще раз, коли з'явиться інтернет.",
   rwTime:"Тривалість", rwTurns:"Репліки", rwMistakes:"Виправлення", rwNormal:"Гарна робота! Так тримати.",
   rwHigh:"Чудова розмова! Ти говорив упевнено.", rwZero:"Говори наступного разу, щоб отримати XP.", rwEvolvedTitle:"Marzi підріс!", rwContinue:"Далі",
@@ -2210,6 +2394,19 @@ T.it = { tagline:"Allenati con telefonate e conversazioni reali in tedesco. Tu p
   achStreak7:"7 giorni di fila", achStreak30:"30 giorni di fila", achFix25:"25 errori ripassati", achOutfit1:"Primo vestito",
   jrTitle:"Il tuo percorso", jrMap:"Mappa", jrList:"Elenco", jrDone:"Fatto", jrHere:"Sei qui",
   jrOpen:"Disponibile", jrFuture:"Più avanti", jrNext:"Prossimo", jrReview:"Ripassa",
+  appName:"Marzi", obQLang:"Che lingua parli?", obQTarget:"Che lingua vuoi imparare?",
+  obQGoal:"Perché vuoi imparare?", obQDaily:"Quanto vuoi esercitarti al giorno?", obNext:"Continua",
+  obSaveFailed:"Impossibile salvare. Controlla lo spazio del browser e riprova.",
+  goalNames:["Viaggi","Vita quotidiana","Lavoro","Scuola","Preparare telefonate","Vivere in Germania"],
+  dayUnit:["giorno","giorni"], minUnit:["minuto","minuti"], callUnit:["chiamata","chiamate"],
+  coinUnit:["moneta","monete"], wordUnit:["parola","parole"], fixUnit:["errore","errori"],
+  profDash:"I tuoi progressi", profWeek:"Ultimi 7 giorni", profNoHistory:"Ancora nessun giorno di pratica. Fai la tua prima chiamata.",
+  profGoalLbl:"Lingue e obiettivo", profNoStats:"Ancora nessun dato",
+  trainNow:"Consigliato ora", trainCall:"Allenamento chiamate", trainReview:"Rivedi e migliora", trainRecent:"Attività recente",
+  recentNone:"Ancora nessuna chiamata.", journeyFull:"Vedi tutto il percorso",
+  lockedAt:"Disponibile alla fase", lockedHow:"Raggiungi la fase con gli XP per sbloccare questo vestito.",
+  installTitle:"Installa Marzi per l'esperienza completa.", installDismiss:"Chiudi",
+  rankTitles:["Principiante","Chi chiama","Telefonista assiduo","Professionista del telefono","Drago d'ufficio","Eroe delle chiamate","Leggenda del telefono"],
   offlineTitle:"Nessuna connessione", offlineMsg:"Serve una connessione per chiamare. Riprova quando torni online.",
   rwTime:"Durata", rwTurns:"Turni", rwMistakes:"Correzioni", rwNormal:"Bel lavoro! Continua così.",
   rwHigh:"Ottima chiamata! Hai parlato con sicurezza.", rwZero:"Parla la prossima volta per guadagnare XP.", rwEvolvedTitle:"Marzi è cresciuto!", rwContinue:"Continua",
@@ -2659,9 +2856,13 @@ const S = { scenario:SCENARIOS[0], level:"A1", lang:"es", targetLang:TARGET.code
 
 /* ---------- settings persistence ---------- */
 const SET_KEY = "marzi.settings.v1";
+/* one shape for the settings record, so every writer persists the same fields */
+function settingsPayload() {
+  return { scenario:S.scenario.id, level:S.level, lang:S.lang, targetLang:S.targetLang, speed:S.speed, customTopic:S.customTopic, sound:S.sound !== false, reduceMotion:!!S.reduceMotion };
+}
 function saveSettings() {
   try {
-    localStorage.setItem(SET_KEY, JSON.stringify({ scenario:S.scenario.id, level:S.level, lang:S.lang, targetLang:S.targetLang, speed:S.speed, customTopic:S.customTopic, sound:S.sound !== false, reduceMotion:!!S.reduceMotion }));
+    localStorage.setItem(SET_KEY, JSON.stringify(settingsPayload()));
   } catch (e) { try { notifyStorageFailure(); } catch (e2) {} }
 }
 (function loadSettings() {
@@ -2833,6 +3034,75 @@ function commitStats(next) {
   try { localStorage.setItem(STAT_KEY, JSON.stringify(next)); return true; }
   catch (e) { return false; }
 }
+/* ---------- MARZI-017: first-run onboarding state ----------
+   One namespaced key, normalized and safely defaulted. It records only what
+   onboarding asks; every other value keeps its existing canonical home
+   (S.lang and S.targetLang stay in marzi.settings.v1, stats stay in
+   marzi.stats.v1). No second global state is introduced. */
+const ONBOARD_KEY = "marzi.onboarding.v1";
+const LEARN_GOALS = ["travel", "daily", "work", "school", "calls", "living"];
+const DAILY_MINUTES = [5, 10, 15, 20];
+const DEFAULT_ONBOARDING = Object.freeze({ version: 1, done: false, goal: null, dailyMin: null });
+function normalizeOnboarding(value) {
+  const o = value && typeof value === "object" && !Array.isArray(value) ? value : {};
+  return {
+    version: 1,
+    done: o.done === true,
+    goal: LEARN_GOALS.includes(o.goal) ? o.goal : null,
+    dailyMin: DAILY_MINUTES.includes(Number(o.dailyMin)) ? Number(o.dailyMin) : null,
+  };
+}
+function loadOnboarding() {
+  try { return normalizeOnboarding(JSON.parse(localStorage.getItem(ONBOARD_KEY))); }
+  catch (e) { return { ...DEFAULT_ONBOARDING }; }
+}
+/* Existing installations must never be sent back through onboarding, and must
+   never be reset. Any real learner data means the app has been used. */
+function hasMeaningfulUserData() {
+  let st;
+  try { st = loadStats(); } catch (e) { return false; }
+  if ((st.xp || 0) > 0 || (st.calls || 0) > 0 || (st.coins || 0) > 0 || (st.seconds || 0) > 0) return true;
+  if (Object.keys(st.days || {}).length || Object.keys(st.secDays || {}).length) return true;
+  if (Object.keys(st.scenariosDone || {}).length) return true;
+  if ((st.ownedItemIds || []).length || (st.equippedItemIds || []).length) return true;
+  const nonEmpty = (k) => { try { const v = JSON.parse(localStorage.getItem(k)); return Array.isArray(v) ? v.length > 0 : !!v; } catch (e) { return false; } };
+  if (nonEmpty(FIX_KEY) || nonEmpty(WORD_KEY) || nonEmpty(TEST_KEY)) return true;
+  try { const l = JSON.parse(localStorage.getItem(REWARD_LEDGER_KEY)); if (l && Object.keys(l).length) return true; } catch (e) {}
+  try { if (localStorage.getItem(SET_KEY)) return true; } catch (e) {} // a saved language pair
+  return false;
+}
+function onboardingComplete() {
+  return loadOnboarding().done || hasMeaningfulUserData();
+}
+/* Atomic commit: language, target, goal and daily target land together or not
+   at all. On failure the exact previous values are restored - never a partial
+   save that leaves the learner half-configured. */
+function commitOnboarding({ lang, targetLang, goal, dailyMin }) {
+  const prevSettings = (() => { try { return localStorage.getItem(SET_KEY); } catch (e) { return null; } })();
+  const prevOnboard = (() => { try { return localStorage.getItem(ONBOARD_KEY); } catch (e) { return null; } })();
+  const prevLang = S.lang, prevTarget = S.targetLang;
+  const restore = () => {
+    S.lang = prevLang; S.targetLang = prevTarget;
+    try {
+      if (prevSettings === null) localStorage.removeItem(SET_KEY); else localStorage.setItem(SET_KEY, prevSettings);
+      if (prevOnboard === null) localStorage.removeItem(ONBOARD_KEY); else localStorage.setItem(ONBOARD_KEY, prevOnboard);
+    } catch (e) {}
+  };
+  try {
+    if (T[lang]) S.lang = lang;
+    if (TARGETS[targetLang]) S.targetLang = targetLang;
+    const record = normalizeOnboarding({ done: true, goal, dailyMin });
+    localStorage.setItem(SET_KEY, JSON.stringify(settingsPayload()));
+    localStorage.setItem(ONBOARD_KEY, JSON.stringify(record));
+    // read back: a quota-silent write is still a failed write
+    const check = normalizeOnboarding(JSON.parse(localStorage.getItem(ONBOARD_KEY)));
+    if (!check.done) throw new Error("onboarding did not persist");
+    return { ok: true, targetChanged: prevTarget !== S.targetLang };
+  } catch (e) {
+    restore();
+    return { ok: false, code: "save-failed" };
+  }
+}
 /* state of one catalog item for the current learner */
 function outfitState(id, st) {
   const s = st || loadStats();
@@ -2952,10 +3222,17 @@ function markDay(kind) { // "vocabDays" | "drillDays" - calls already live in st
 }
 /* caller ranks by lifetime XP; titles stay German on purpose */
 const RANKS = [[0,"Neuling"],[80,"Anrufer"],[200,"Vieltelefonierer"],[400,"Telefonprofi"],[700,"Bürodrache"],[1100,"Anrufheld"],[1700,"Telefonlegende"]];
+/* MARZI-017: rank titles are INTERFACE copy, not learning content, so they
+   follow the help language. The German titles above stay as the fallback and
+   as the canonical id order; rankNames() supplies the localized display. */
+function rankNames() {
+  const L = t();
+  return (L && L.rankTitles && L.rankTitles.length === RANKS.length) ? L.rankTitles : T.en.rankTitles;
+}
 function rankFor(xp) {
   let i = RANKS.length - 1;
   while (i > 0 && xp < RANKS[i][0]) i--;
-  return { n: i + 1, title: RANKS[i][1], base: RANKS[i][0], next: RANKS[i + 1] ? RANKS[i + 1][0] : null };
+  return { n: i + 1, title: rankNames()[i] || RANKS[i][1], base: RANKS[i][0], next: RANKS[i + 1] ? RANKS[i + 1][0] : null };
 }
 function currentStreak(st) {
   let n = 0;
@@ -3033,10 +3310,46 @@ const UI = {
       `<span>${esc(s.avatar || "🎧")}</span>` +
       (src ? `<img${id ? ` id="${id}"` : ""} alt="" data-src="${esc(src)}" />` : "") + `</span>`;
   },
+  /* --- 26. Brand lockup: the Marzi mark to the LEFT of the wordmark ----
+     One implementation, reused by the top bar and onboarding. The mark is the
+     most advanced approved stage and is a TEMPORARY stand-in: the production
+     contract is public/assets/marzi/stage-6/header-neutral.svg (ADR-10 - the
+     final mark is family-approved artwork, never CSS-fabricated and never
+     cropped from a concept board). */
+  brandLockup({ compact = false, stage = MARZI_STAGE_COUNT, label = "Marzi" } = {}) {
+    const n = Math.min(MARZI_STAGE_COUNT, Math.max(1, Number(stage) || MARZI_STAGE_COUNT));
+    const src = BRAND_MARK_ASSET;
+    const mark = hasBrandMarkAsset()
+      ? `<img class="brand-mark-img" src="${esc(src)}" alt="" width="40" height="40" />`
+      : marziSVG(n, "neutral");
+    return `<span class="brand-lockup${compact ? " compact" : ""}" role="img" aria-label="${esc(label)}">` +
+      `<span class="brand-mark" data-stage="${n}" aria-hidden="true">${mark}</span>` +
+      `<span class="wordmark">Marzi</span></span>`;
+  },
+  /* --- 27. Stat card: one measured value with its localized label --- */
+  statCard({ icon = "", value = "", label = "", detail = "", state = "" } = {}) {
+    return `<div class="stat-card"${state ? ` data-state="${esc(state)}"` : ""}>` +
+      `<span class="stat-ic" aria-hidden="true">${icon}</span>` +
+      `<span class="stat-body"><b class="stat-val">${esc(value)}</b>` +
+      `<small class="stat-lb">${esc(label)}</small>` +
+      (detail ? `<small class="stat-dt">${esc(detail)}</small>` : "") + `</span></div>`;
+  },
+  /* --- 28. Activity summary: dated activity the app actually stored ---- */
+  activitySummary({ entries = [], period = "" } = {}) {
+    const max = entries.reduce((m, e) => Math.max(m, Number(e.value) || 0), 0);
+    return `<div class="act-sum">` + (period ? `<div class="act-sum-hd">${esc(period)}</div>` : "") +
+      `<div class="act-bars">` + entries.map((e) => {
+        const v = Number(e.value) || 0;
+        const pct = max > 0 ? Math.round((v / max) * 100) : 0;
+        return `<div class="act-bar" role="img" aria-label="${esc(e.label)}">` +
+          `<span class="act-bar-fill" data-on="${v > 0}" style="height:${Math.max(v > 0 ? 8 : 3, pct)}%"></span>` +
+          `<small>${esc(e.short || e.label)}</small></div>`;
+      }).join("") + `</div></div>`;
+  },
   /* --- 3. Top bar: brand + resources + settings (the app shell chrome) --- */
   topBar({ coins = 0, streak = 0, minutes = 0 } = {}) {
     return `<button class="menu-btn" id="menuBtn" aria-label="Menu"><span></span><span></span><span></span></button>` +
-      `<span class="wordmark">Marzi</span><span class="grow"></span>` +
+      UI.brandLockup({ compact: true }) + `<span class="grow"></span>` +
       UI.coinChip({ id: "tbCoins", value: coins, label: "Coins" }) +
       UI.coinChip({ id: "tbStreak", value: streak, kind: "streak", icon: IC.flame(ICON.sm), label: "Streak", tag: "span" }) +
       UI.coinChip({ id: "tbMins", value: minutes, kind: "mins", icon: IC.clock(ICON.sm), label: "Call minutes left today" }) +
@@ -3100,13 +3413,25 @@ const UI = {
     // state is carried by an icon AND text, never by colour alone
     const mark = { locked: IC.warn(ICON.xs), insufficient: IC.coin(ICON.xs),
                    owned: IC.check(ICON.xs), equipped: IC.check(ICON.xs), available: IC.coin(ICON.xs) }[state] || "";
+    // MARZI-017: a stage-locked outfit stays visible, tappable and priced.
+    // aria-disabled marks it unbuyable; a real `disabled` attribute would
+    // block the preview and take it out of the tab order.
     const foot = state === "owned" || state === "equipped"
       ? `${mark}<span>${esc(stateLabel)}</span>`
-      : state === "locked" ? `${mark}<span>${esc(stageLabel)}</span>`
-      : `${mark}<span>${esc(String(price))}</span>`;
+      // the stage badge above already states the requirement, so the foot of a
+      // locked card carries the price only - saying it twice reads as an error
+      : state === "locked"
+        ? `${IC.coin(ICON.xs)}<span class="outfit-price">${esc(String(price))}</span>`
+        : `${mark}<span>${esc(String(price))}</span>`;
+    const label = state === "locked" ? `${name} — ${stageLabel} — ${price}`
+      : `${name} — ${stateLabel || price}`;
     return `<button class="outfit-card" type="button" data-outfit="${esc(id)}" data-state="${esc(state)}"` +
-      ` aria-label="${esc(`${name} — ${stateLabel || stageLabel || price}`)}">` +
-      `<span class="outfit-preview" data-outfit-art="${esc(id)}" aria-hidden="true">${art}</span>` +
+      (state === "locked" ? ` aria-disabled="true"` : "") +
+      ` aria-label="${esc(label)}">` +
+      `<span class="outfit-preview" data-outfit-art="${esc(id)}" aria-hidden="true">${art}` +
+      (state === "locked" ? `<span class="outfit-lock" aria-hidden="true">${IC.warn(ICON.sm)}</span>` : "") +
+      `</span>` +
+      (state === "locked" ? `<span class="outfit-stage" aria-hidden="true">${esc(stageLabel)}</span>` : "") +
       `<span class="outfit-copy"><strong>${esc(name)}</strong>` +
       `<span class="outfit-foot">${foot}</span></span></button>`;
   },
@@ -3292,6 +3617,14 @@ const MARZI_STATE_POSE = {
   error: "error", celebrating: "reward",
 };
 const MARZI_ASSETS = Object.create(null); // filled only when approved files ship
+/* MARZI-017 brand-mark contract. Ships unregistered exactly like MARZI_ASSETS,
+   so the lockup falls back to the existing approved stage-6 SVG and no request
+   is ever made for a file that does not exist. Shipping the approved artwork
+   means dropping the file in and registering it here - no call site changes. */
+const BRAND_MARK_ASSET = "/assets/marzi/stage-6/header-neutral.svg";
+const BRAND_MARK_REGISTERED = Object.create(null);
+function hasBrandMarkAsset() { return BRAND_MARK_REGISTERED[BRAND_MARK_ASSET] === true; }
+function __registerBrandMark(on) { BRAND_MARK_REGISTERED[BRAND_MARK_ASSET] = on === true; }
 function marziAssetPath(stage, state) {
   const n = Math.min(6, Math.max(1, Number(stage) || 1));
   const st = isMarziState(state) ? state : "neutral";
@@ -3655,11 +3988,89 @@ function goToScenario(id) {
   showTab("talk");
   return true;
 }
-function renderJourney() {
+/* MARZI-017: "Recommended now" — the single next action, from the journey
+   model that already exists. No new recommendation logic, no provider call. */
+function renderRecommended() {
   const L = t();
   const J = journeyState();
+  const next = J.here || J.nodes[0];
+  const el = $("recoBody");
+  if (!el) return null;
+  if (!next) { el.innerHTML = ""; return null; }
+  el.innerHTML = `<button class="act reco" type="button" id="recoBtn"` +
+    ` aria-label="${esc(`${J.here ? L.jrNext : L.jrReview}: ${next.scenario.de}`)}">` +
+    `<span class="reco-face" aria-hidden="true">${esc(next.scenario.avatar || "🎧")}</span>` +
+    `<span class="reco-tx"><b>${esc(next.scenario.de)}</b>` +
+    `<small>${esc(scenarioSubtitle(next.scenario))}</small></span></button>`;
+  $("recoBtn").onclick = () => goToScenario(next.id);
+  return next.id;
+}
+/* Recent activity: only calls the app actually recorded, newest first. */
+function recentActivity(st, limit) {
+  const s = st || loadStats();
+  const days = s.days || {};
+  return Object.keys(days)
+    .filter((k) => /^\d{4}-\d{2}-\d{2}$/.test(k))
+    .sort().reverse().slice(0, limit || 5)
+    .map((k) => {
+      const raw = days[k];
+      const calls = typeof raw === "number" ? raw : (raw && typeof raw === "object" ? Number(raw.calls) || 0 : 0);
+      const secs = Number((s.secDays || {})[k]) || 0;
+      return { date: k, calls, minutes: Math.round(secs / 60) };
+    })
+    .filter((e) => e.calls > 0);
+}
+function renderRecentActivity() {
+  const L = t();
+  const el = $("recentBody");
+  if (!el) return 0;
+  const rows = recentActivity();
+  if (!rows.length) {
+    el.innerHTML = UI.emptyState({ icon: IC.phone(ICON.hero), title: L.recentNone, body: "" });
+    return 0;
+  }
+  const fmtDate = (iso) => {
+    try { return new Intl.DateTimeFormat(localeForLang(S.lang), { weekday: "short", day: "numeric", month: "short" }).format(new Date(iso + "T00:00:00")); }
+    catch (e) { return iso; }
+  };
+  el.innerHTML = `<div class="list">` + rows.map((r) =>
+    `<div class="item static"><b>${esc(fmtDate(r.date))}</b>` +
+    `<small>${esc(`${fmtNum(r.calls)} ${plural(r.calls, L.callUnit)} · ${fmtNum(r.minutes)} ${plural(r.minutes, L.minUnit)}`)}</small></div>`
+  ).join("") + `</div>`;
+  return rows.length;
+}
+/* MARZI-017: Learn shows a COMPACT preview - the node you are on plus the two
+   after it - and a link to the full path, which is owned by Talk. */
+const JOURNEY_PREVIEW_N = 3;
+function journeyPreview(J) {
+  const state = J || journeyState();
+  const at = Math.max(0, state.nodes.findIndex((n) => n.state === "here"));
+  return state.nodes.slice(at, at + JOURNEY_PREVIEW_N);
+}
+function renderJourneyPreview() {
+  const L = t();
+  const J = journeyState();
+  if (!$("jrPreview")) return 0;
+  $("jrPrevTitle").textContent = L.jrTitle;
+  $("jrPrevCount").textContent = `${fmtNum(J.doneCount)}/${fmtNum(J.total)}`;
   const stateLabel = { done: L.jrDone, here: L.jrHere, open: L.jrOpen, future: L.jrFuture };
-  $("jrTitle").textContent = L.jrTitle;
+  const nodes = journeyPreview(J);
+  $("jrPreview").innerHTML = `<ol class="jr-path compact">` + nodes.map((n) =>
+    `<li class="jr-li"><button class="jr-node" type="button" data-jp="${esc(n.id)}" data-state="${n.state}"` +
+    `${n.state === "here" ? ' aria-current="step"' : ""}` +
+    ` aria-label="${esc(`${n.scenario.de} · ${stateLabel[n.state]}`)}">` +
+    `<span class="jr-face" aria-hidden="true">${esc(n.scenario.avatar || "🎧")}</span>` +
+    `<span class="jr-nm">${esc(n.scenario.de)}</span></button></li>`).join("") + `</ol>`;
+  $("jrPreview").querySelectorAll("[data-jp]").forEach((b) => b.onclick = () => goToScenario(b.dataset.jp));
+  $("jrFullBtn").textContent = L.journeyFull;
+  $("jrFullBtn").onclick = () => showTab("talk");
+  return nodes.length;
+}
+function renderJourney() {
+  const L = t();
+  if (!$("jrBody")) return;
+  const J = journeyState();
+  const stateLabel = { done: L.jrDone, here: L.jrHere, open: L.jrOpen, future: L.jrFuture };
   $("jrCount").textContent = `${J.doneCount}/${J.total}`;
   $("jrSeg").innerHTML =
     `<button type="button" data-jv="map" class="${JOURNEY_VIEW === "map" ? "on" : ""}" aria-pressed="${JOURNEY_VIEW === "map"}">${esc(L.jrMap)}</button>` +
@@ -3807,7 +4218,14 @@ function renderSetup() {
   $("speeds").querySelectorAll("button").forEach((b) =>
     b.onclick = () => { S.speed = b.dataset.k; saveSettings(); renderSetup(); });
 
-  $("lblTrain").textContent = L.train;
+  $("lblTrainNow").textContent = L.trainNow;
+  $("lblTrainCall").textContent = L.trainCall;
+  $("lblTrainReview").textContent = L.trainReview;
+  $("lblTrainRecent").textContent = L.trainRecent;
+  $("lblJourney").textContent = L.jrTitle;
+  renderRecommended();
+  renderRecentActivity();
+  renderJourney();
   const n = loadFixes().length;
   $("mistakesBtn").innerHTML = IC.list() + `<span>${esc(L.mistakes)}${n ? ` (${n})` : ""}</span>`;
   const drillable = loadFixes().filter((f) => f.corrected).length;
@@ -3819,9 +4237,7 @@ function renderSetup() {
   $("prepBtn").innerHTML = IC.prep() + `<span>${esc(L.prep)}</span>`;
   $("prepBtn").disabled = S.scenario.id === "random" || (S.scenario.id === "custom" && !(S.customTopic || "").trim());
   const due = daysSinceTest() >= 7;
-  $("progressBtn").innerHTML = IC.trend() + `<span>${esc(L.progress)}</span>` + (due ? '<span class="dot-due"></span>' : "");
-  $("progressBtn").className = "act" + (due ? " due" : "");
-  $("shareBtn").innerHTML = IC.share() + `<span>${esc(L.share)}</span>`;
+  // MARZI-017: My progress and Recommend the app are owned by Profile now
 }
 
 /* ---------- LEARN home: greeting, Marzi hero, today's mission (spec §23) ---------- */
@@ -3873,7 +4289,7 @@ function renderLearn() {
   $("heroSub").textContent = `${st.calls || 0} ${L.calls}`;
   $("practiceBtn").innerHTML = IC.mic(ICON.lg) + " " + esc(L.practiceNow);
   $("practiceBtn").onclick = () => goCall();
-  renderJourney();
+  renderJourneyPreview();
 
   const strk = currentStreak(st);
   $("heroStreak").innerHTML = `${IC.flame(ICON.btn)} ${strk} <small>${esc(L.days)}</small>`;
@@ -3901,18 +4317,9 @@ function renderLearn() {
     else { renderMistakes(); show("mistakes"); }
   });
 
-  // one compact strip: guided dialogue · progress · mistakes (details open on tap;
-  // the evolution preview lives behind tap-on-Marzi to keep Learn on one screen)
-  const nFix = loadFixes().length;
-  $("learnActs").innerHTML =
-    `<button class="act col" data-la="dialog" ${dialogAvailable().length ? "" : "disabled"}>${IC.chat(ICON.lg)}<span>${esc(L.dialog)}</span></button>
-     <button class="act col" data-la="progress">${IC.trend(ICON.lg)}<span>${esc(L.progress)}</span></button>
-     <button class="act col" data-la="mistakes">${IC.list(ICON.lg)}<span>${esc(L.mistakes)}${nFix ? ` (${nFix})` : ""}</span></button>`;
-  $("learnActs").querySelectorAll("[data-la]").forEach((b) => b.onclick = () => {
-    if (b.dataset.la === "dialog") startDialog();
-    else if (b.dataset.la === "progress") startProgress();
-    else { renderMistakes(); show("mistakes"); }
-  });
+  // MARZI-017: the duplicated shortcut strip is gone. Guided dialogue and
+  // My mistakes are owned by Talk, My progress by Profile - one canonical
+  // destination each, so Learn stays a status screen.
   updateTopbar();
 }
 
@@ -4109,7 +4516,7 @@ function openOutfitPreview(id) {
     : state === "equipped" ? UI.buttonSecondary({ id: "storeUnequip", label: L.unequipBtn, cls: "store-act" })
     : "";
   // one body line: what it costs, or why it cannot be bought yet
-  const body = state === "locked" ? `${L.needStage} ${item.stage}`
+  const body = state === "locked" ? `${L.lockedAt} ${item.stage} · ${item.price} — ${L.lockedHow}`
     : state === "insufficient" ? `${L.notEnough} · ${item.price}`
     : state === "available" ? String(item.price)
     : state === "equipped" ? L.equippedLbl : L.ownedLbl;
@@ -4195,6 +4602,32 @@ function profileSnapshot(st) {
     equipped: (s.equippedItemIds || [])[0] || null,
   };
 }
+/* MARZI-017: the last seven days, built ONLY from stats.days, which the app
+   already writes per calendar day. If no day was ever recorded, hasHistory is
+   false and the caller shows an empty state - a zero-filled chart would be
+   invented history. */
+function weeklyActivity(st) {
+  const s = st || loadStats();
+  const days = s.days || {};
+  const short = (d) => {
+    try { return new Intl.DateTimeFormat(localeForLang(S.lang), { weekday: "narrow" }).format(d); }
+    catch (e) { return String(d.getDay()); }
+  };
+  const long = (d) => {
+    try { return new Intl.DateTimeFormat(localeForLang(S.lang), { weekday: "long", day: "numeric", month: "short" }).format(d); }
+    catch (e) { return d.toISOString().slice(0, 10); }
+  };
+  const entries = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const key = d.toISOString().slice(0, 10);
+    const raw = days[key];
+    const value = typeof raw === "number" ? raw : (raw && typeof raw === "object" ? Number(raw.calls) || 0 : 0);
+    entries.push({ key, value, short: short(d), label: `${long(d)}: ${fmtNum(value)} ${plural(value, (t() || T.en).callUnit)}` });
+  }
+  return { entries, hasHistory: Object.keys(days).length > 0, caption: (t() || T.en).profWeek };
+}
 /* Achievements are pure functions of the snapshot above: each names the exact
    counter it reads, so nothing can be earned that the data does not support. */
 const ACHIEVEMENTS = [
@@ -4219,14 +4652,17 @@ function renderProfile() {
   const p = profileSnapshot(st);
   const stage = p.stage;
   $("profTitle").textContent = L.tabProfile.toUpperCase();
+  /* MARZI-017: each figure is a formatted value plus a separately localized,
+     correctly pluralized label - never a value concatenated into its label. */
   const stats = [
-    [`${p.coins}`, L.coins],
-    [`${p.streak}`, L.days],
-    [`${p.calls}`, L.calls],
-    [`${p.minutes}`, L.minutes],
-    [`${p.reviewed}`, L.profReviewed],
-    [`${p.words}`, L.myWords],
+    { icon: IC.coin(ICON.lg), n: p.coins, unit: L.coinUnit },
+    { icon: IC.flame(ICON.lg), n: p.streak, unit: L.dayUnit },
+    { icon: IC.phone(ICON.lg), n: p.calls, unit: L.callUnit },
+    { icon: IC.clock(ICON.lg), n: p.minutes, unit: L.minUnit },
+    { icon: IC.check(ICON.lg), n: p.reviewed, unit: L.fixUnit, detail: L.profReviewed },
+    { icon: IC.book(ICON.lg), n: p.words, unit: L.wordUnit },
   ];
+  const week = weeklyActivity(st);
   const achv = achievementState(p);
   const earned = achv.filter((a) => a.earned).length;
   $("profBody").innerHTML =
@@ -4244,10 +4680,18 @@ function renderProfile() {
       caption: p.stageNext === null ? "" : `${p.xpToNext} XP → ${marziNames()[stage]}`,
     }) +
     `<div class="label" style="margin-top:18px">${esc(L.profStats)}</div>
-     <div class="stat-grid">` +
-    stats.map(([b, s]) => `<div class="stat"><b>${esc(b)}</b><small>${esc(s)}</small></div>`).join("") +
-    `</div>
-     <div class="label" style="margin-top:18px">${esc(L.profWardrobe)}</div>` +
+     <div class="stat-cards">` +
+    stats.map((s) => UI.statCard({
+      icon: s.icon, value: fmtNum(s.n), label: plural(s.n, s.unit),
+      detail: s.detail || "", state: s.n > 0 ? "" : "empty",
+    })).join("") +
+    `</div>` +
+    // weekly practice: only real dated activity, never a zero-filled placeholder
+    `<div class="label" style="margin-top:18px">${esc(L.profWeek)}</div>` +
+    (week.hasHistory
+      ? UI.activitySummary({ entries: week.entries, period: week.caption })
+      : UI.emptyState({ icon: IC.trend(ICON.hero), title: L.profNoHistory, body: "" })) +
+    `<div class="label" style="margin-top:18px">${esc(L.profWardrobe)}</div>` +
     (p.owned.length
       ? `<div class="outfit-grid-3">` + p.owned.map((id) => {
           const o = OUTFITS.find((x) => x.id === id);
@@ -4306,6 +4750,11 @@ function renderProfile() {
   $("pairBtn").onclick = () => showOnboarding();
   $("exportBtn").textContent = `↓ ${L.dataExport}`;
   $("importBtn").textContent = `↑ ${L.dataImport}`;
+  // MARZI-017: canonical homes - progress and sharing belong to Profile
+  $("progressBtn").textContent = `📈 ${L.progress}`;
+  $("shareBtn").textContent = `↗ ${L.share}`;
+  $("obGoalBtn").textContent = `🎯 ${L.profGoalLbl}`;
+  $("obGoalBtn").onclick = () => showOnboarding();
   updateTopbar();
 }
 
@@ -4314,6 +4763,35 @@ function renderProfile() {
 function compactNum(n) {
   const v = Math.max(0, Math.floor(Number(n) || 0));
   return v >= 10000 ? Math.floor(v / 1000) + "k" : String(v);
+}
+/* MARZI-017: locale-aware number formatting. Values are never concatenated
+   straight into a label - fmtNum produces the digits, the caller supplies the
+   spacing and the localized word. */
+function fmtNum(n) {
+  const v = Number(n) || 0;
+  try { return new Intl.NumberFormat(localeForLang(S.lang)).format(v); }
+  catch (e) { return String(v); }
+}
+function localeForLang(lang) {
+  return { es:"es-ES", en:"en-GB", it:"it-IT", tr:"tr-TR", ar:"ar-EG", uk:"uk-UA" }[lang] || "en-GB";
+}
+/* localized singular/plural via the help language's own rules */
+function plural(n, forms) {
+  const list = Array.isArray(forms) ? forms : [forms];
+  if (list.length === 1) return list[0];
+  let cat = "other";
+  try { cat = new Intl.PluralRules(localeForLang(S.lang)).select(Number(n) || 0); }
+  catch (e) { cat = (Number(n) || 0) === 1 ? "one" : "other"; }
+  // the slot depends on how many forms the language supplies:
+  // 2 = [one, other] · 3 = [one, few, many] (Slavic) · 6 = the full CLDR order
+  const SLOTS = {
+    2: { one: 0, other: 1 },
+    3: { one: 0, few: 1, many: 2, other: 2 },
+    6: { zero: 0, one: 1, two: 2, few: 3, many: 4, other: 5 },
+  };
+  const map = SLOTS[list.length] || SLOTS[2];
+  const idx = map[cat] !== undefined ? map[cat] : list.length - 1;
+  return list[idx] !== undefined && list[idx] !== null && list[idx] !== "" ? list[idx] : list[list.length - 1];
 }
 /* ---------- MARZI-010: right-to-left support ----------
    Arabic is a shipped help language; the document direction and lang must
@@ -4329,6 +4807,43 @@ function applyLangDirection(lang) {
   } catch (e) {}
   return dir;
 }
+/* ---------- MARZI-017: standalone (installed PWA) detection ----------
+   Browser chrome around a custom tab cannot be removed by page JavaScript.
+   The only real fix is being launched from an installed icon with
+   display:standalone, so the app detects the mode and recommends installing
+   when it is running in a plain browser. No fake fullscreen is attempted. */
+const INSTALL_DISMISS_KEY = "marzi.install-dismissed.v1";
+function isStandalone() {
+  try {
+    if (typeof matchMedia === "function") {
+      for (const mode of ["standalone", "fullscreen", "minimal-ui"]) {
+        if (matchMedia(`(display-mode: ${mode})`).matches) return true;
+      }
+    }
+  } catch (e) {}
+  try { if (navigator.standalone === true) return true; } catch (e) {} // iOS Safari
+  return false;
+}
+function installRecDismissed() {
+  try { return localStorage.getItem(INSTALL_DISMISS_KEY) === "1"; } catch (e) { return false; }
+}
+function dismissInstallRec() {
+  try { localStorage.setItem(INSTALL_DISMISS_KEY, "1"); } catch (e) {}
+  renderInstallRec();
+}
+function installRecVisible() { return !isStandalone() && !installRecDismissed(); }
+function renderInstallRec() {
+  const el = $("installRec");
+  if (!el) return false;
+  const on = installRecVisible();
+  el.classList.toggle("hidden", !on);
+  if (!on) { el.innerHTML = ""; return false; }
+  const L = t();
+  el.innerHTML = `<span class="install-tx">${esc(L.installTitle)}</span>` +
+    `<button type="button" id="installX" aria-label="${esc(L.installDismiss)}">${IC.check(ICON.md)}</button>`;
+  $("installX").onclick = () => dismissInstallRec();
+  return true;
+}
 /* MARZI-015: the in-app reduce-motion control. The OS preference is honoured
    by its own media query and always wins, so this can only add reduction. */
 function applyReduceMotion() {
@@ -4337,13 +4852,27 @@ function applyReduceMotion() {
   return on;
 }
 
+/* MARZI-017: chips may compact their digits so the row fits a 360px phone.
+   The exact value always stays in the accessible name - compaction is a
+   visual affordance, never a loss of information. */
+function chipNum(n) {
+  const v = Math.max(0, Math.floor(Number(n) || 0));
+  if (v < 1000) return fmtNum(v);
+  const k = v / 1000;
+  return (k >= 10 ? Math.floor(k) : Math.round(k * 10) / 10) + "k";
+}
 function updateTopbar() {
+  const L = t();
   const st = loadStats();
-  $("tbCoins").innerHTML = `${IC.coin(ICON.chip)} ${compactNum(st.coins)}`;
-  $("tbCoins").setAttribute("aria-label", `Coins: ${st.coins || 0}`);
-  $("tbStreak").innerHTML = `${IC.flame(ICON.sm)} ${currentStreak(st)}`;
+  const coins = st.coins || 0, streak = currentStreak(st);
   const minsLeft = Math.max(0, Math.ceil((planLimitToday() - planUsedToday()) / 60));
-  $("tbMins").innerHTML = `${IC.clock(ICON.sm)} ${minsLeft}`;
+  $("tbCoins").innerHTML = `${IC.coin(ICON.chip)} ${esc(chipNum(coins))}`;
+  $("tbCoins").setAttribute("aria-label", `${L.coins}: ${fmtNum(coins)}`);
+  $("tbStreak").innerHTML = `${IC.flame(ICON.sm)} ${esc(chipNum(streak))}`;
+  $("tbStreak").setAttribute("aria-label", `${fmtNum(streak)} ${plural(streak, L.dayUnit)}`);
+  $("tbMins").innerHTML = `${IC.clock(ICON.sm)} ${esc(chipNum(minsLeft))}`;
+  $("tbMins").setAttribute("aria-label", `${fmtNum(minsLeft)} ${plural(minsLeft, L.minUnit)}`);
+  $("brandLockup").innerHTML = UI.brandLockup({ compact: true, label: L.appName });
 }
 function renderNav() {
   const L = t();
@@ -6416,7 +6945,12 @@ function closeCallSheet(fromPop) {
   else SHEET_HISTORY = false;
   try { $("sheetBtn").focus(); } catch (e) {}
 }
-window.addEventListener("popstate", () => { if (sheetOpen()) closeCallSheet(true); });
+window.addEventListener("popstate", () => {
+  if (sheetOpen()) { closeCallSheet(true); return; }
+  // MARZI-017: Android Back walks back through the onboarding steps before it
+  // is allowed to leave the flow.
+  if (OB && OB.step > 0) { obBack(); try { history.pushState(null, "", location.href); } catch (e) {} }
+});
 document.addEventListener("keydown", (e) => {
   if (e.key !== "Escape") return;
   if (sheetOpen()) closeCallSheet();
@@ -6518,45 +7052,129 @@ $("draft").onkeydown = (e) => { if (e.key === "Enter") send($("draft").value); }
 /* ---------- first-run onboarding: language pair picker ---------- */
 const WISH_KEY = "telefontrainer.wish";
 const LEARN_TARGETS = [["de","Deutsch"],["en","English"],["fr","Français"],["es","Español"],["it","Italiano"],["pt","Português"],["nl","Nederlands"]];
+/* regional visual only - the stored value is always the language code */
+const OB_FLAG = { es:"🇪🇸", en:"🇬🇧", it:"🇮🇹", tr:"🇹🇷", ar:"🇸🇦", uk:"🇺🇦",
+                  de:"🇩🇪", fr:"🇫🇷", pt:"🇵🇹", nl:"🇳🇱" };
+const OB_GOAL_ICON = { travel:"bag", daily:"person", work:"prep", school:"book", calls:"phone", living:"star" };
+/* MARZI-017: four sequential steps. OB is view state only - nothing is
+   persisted until the final atomic commit, so abandoning onboarding leaves
+   storage exactly as it was. */
+const OB_STEPS = ["lang", "target", "goal", "daily"];
 let OB = null;
 function showOnboarding() {
-  OB = { target: TARGETS[S.targetLang] ? S.targetLang : "de", wish: false };
+  const saved = loadOnboarding();
+  OB = {
+    step: 0,
+    lang: T[S.lang] ? S.lang : "en",
+    target: TARGETS[S.targetLang] ? S.targetLang : "de",
+    goal: saved.goal, dailyMin: saved.dailyMin,
+    wish: false, error: null,
+  };
   renderOnboard();
   show("onboard");
 }
+function obStep() { return OB ? OB_STEPS[OB.step] : null; }
+function obCanAdvance() {
+  if (!OB) return false;
+  const k = obStep();
+  if (k === "lang") return !!T[OB.lang];
+  if (k === "target") return !!TARGETS[OB.target];
+  if (k === "goal") return LEARN_GOALS.includes(OB.goal);
+  return DAILY_MINUTES.includes(OB.dailyMin);
+}
+function obBack() {
+  if (!OB || OB.step <= 0) return false;
+  OB.step -= 1; OB.error = null; renderOnboard();
+  return true;
+}
+function obNext() {
+  if (!OB || !obCanAdvance()) return false;
+  if (OB.step < OB_STEPS.length - 1) { OB.step += 1; OB.error = null; renderOnboard(); return true; }
+  return obFinish();
+}
+function obFinish() {
+  const res = commitOnboarding({ lang: OB.lang, targetLang: OB.target, goal: OB.goal, dailyMin: OB.dailyMin });
+  if (!res.ok) { OB.error = t().obSaveFailed; renderOnboard(); return false; }
+  applyLangDirection();
+  if (res.targetChanged) { location.reload(); return true; }
+  OB = null;
+  renderSetup(); renderProfile();
+  showTab("learn");
+  return true;
+}
 function renderOnboard() {
   const L = t();
-  $("obMarzi").innerHTML = marziSVG(5);
-  $("obIntroLbl").textContent = L.obIntro;
-  $("obEvo").innerHTML = evolutionHTML(currentMarziStage());
-  $("obLearnLbl").textContent = L.obLearn;
-  $("obHelp").innerHTML = LANG_CHIPS.map(([k, n]) =>
-    `<button class="${k === S.lang ? "on" : ""}" data-k="${k}">${n}</button>`).join("");
-  $("obHelp").querySelectorAll("button").forEach((b) =>
-    b.onclick = () => { S.lang = b.dataset.k; applyLangDirection(); renderOnboard(); });
-  $("obTargets").innerHTML = LEARN_TARGETS.map(([k, n]) => {
-    const open = !!TARGETS[k];
-    return `<button class="act${open ? "" : " soon"}${k === OB.target ? " on" : ""}" data-k="${k}">
-      <span>${n}</span>${open ? "" : `<span class="soon-badge">${esc(L.obSoon)}</span>`}</button>`;
-  }).join("");
-  $("obTargets").querySelectorAll("[data-k]").forEach((b) => b.onclick = () => {
-    const k = b.dataset.k;
-    if (TARGETS[k]) { OB.target = k; OB.wish = false; }
-    else { try { localStorage.setItem(WISH_KEY, k); } catch (e) {} OB.wish = true; }
-    renderOnboard();
-  });
+  const k = obStep();
+  const n = OB.step + 1;
+  $("obBrand").innerHTML = UI.brandLockup({ label: L.appName });
+  $("obSteps").setAttribute("aria-valuenow", String(n));
+  $("obSteps").setAttribute("aria-label", `${n} / ${OB_STEPS.length}`);
+  $("obSteps").innerHTML = OB_STEPS.map((_, i) =>
+    `<span class="ob-dot${i === OB.step ? " on" : ""}${i < OB.step ? " past" : ""}"></span>`).join("");
+  $("obQuestion").textContent = { lang: L.obQLang, target: L.obQTarget, goal: L.obQGoal, daily: L.obQDaily }[k];
+
+  const pick = (id, on, label, inner, extra) =>
+    `<button class="ob-opt${on ? " on" : ""}" type="button" data-ob="${esc(id)}" role="radio"` +
+    ` aria-checked="${on}" aria-label="${esc(label)}">${inner}` +
+    `<span class="ob-tick" aria-hidden="true">${on ? IC.check(ICON.sm) : ""}</span>${extra || ""}</button>`;
+
+  if (k === "lang") {
+    // the stored value is always the language code; the flag is decoration
+    $("obBody").innerHTML = `<div class="ob-grid" role="radiogroup" aria-labelledby="obQuestion">` +
+      LANG_CHIPS.map(([code, name]) => pick(code, OB.lang === code, name,
+        `<span class="ob-flag" aria-hidden="true">${OB_FLAG[code] || ""}</span><span class="ob-nm">${esc(name)}</span>`)).join("") + `</div>`;
+  } else if (k === "target") {
+    $("obBody").innerHTML = `<div class="ob-grid" role="radiogroup" aria-labelledby="obQuestion">` +
+      LEARN_TARGETS.map(([code, name]) => {
+        const open = !!TARGETS[code];
+        const on = open && OB.target === code;
+        return pick(code, on, open ? name : `${name} — ${L.obSoon}`,
+          `<span class="ob-flag" aria-hidden="true">${OB_FLAG[code] || ""}</span><span class="ob-nm">${esc(name)}</span>`,
+          open ? "" : `<span class="soon-badge">${esc(L.obSoon)}</span>`);
+      }).join("") + `</div>`;
+  } else if (k === "goal") {
+    $("obBody").innerHTML = `<div class="ob-grid one" role="radiogroup" aria-labelledby="obQuestion">` +
+      LEARN_GOALS.map((g) => {
+        const name = L.goalNames[LEARN_GOALS.indexOf(g)] || g;
+        return pick(g, OB.goal === g, name,
+          `<span class="ob-ic" aria-hidden="true">${IC[OB_GOAL_ICON[g]](ICON.lg)}</span><span class="ob-nm">${esc(name)}</span>`);
+      }).join("") + `</div>`;
+  } else {
+    $("obBody").innerHTML = `<div class="ob-grid" role="radiogroup" aria-labelledby="obQuestion">` +
+      DAILY_MINUTES.map((m) => pick(String(m), OB.dailyMin === m, `${m} ${L.minutes}`,
+        `<span class="ob-min">${esc(fmtNum(m))}</span><span class="ob-nm">${esc(L.minutes)}</span>`)).join("") + `</div>`;
+  }
+  $("obBody").querySelectorAll("[data-ob]").forEach((b) => b.onclick = () => obPick(b.dataset.ob));
+
   $("obWishNote").textContent = L.obWish;
-  $("obWishNote").classList.toggle("hidden", !OB.wish);
-  $("obStartBtn").innerHTML = IC.phone(ICON.md) + " " + esc(L.obStart);
+  $("obWishNote").classList.toggle("hidden", !(k === "target" && OB.wish));
+  $("obBackBtn").textContent = L.back;
+  $("obBackBtn").classList.toggle("hidden", OB.step === 0);
+  $("obBackBtn").onclick = () => obBack();
+  const last = OB.step === OB_STEPS.length - 1;
+  $("obNextBtn").innerHTML = last ? IC.phone(ICON.md) + " " + esc(L.obStart) : esc(L.obNext);
+  $("obNextBtn").disabled = !obCanAdvance();
+  $("obNextBtn").onclick = () => obNext();
+  $("obError").textContent = OB.error || "";
+  $("obError").classList.toggle("hidden", !OB.error);
 }
-$("obStartBtn").onclick = () => {
-  if (!OB) return;
-  const changed = OB.target !== TARGET.code;
-  S.targetLang = OB.target;
-  saveSettings();
-  if (changed) { location.reload(); return; }
-  showTab("learn");
-};
+/* selection is a state transition, kept out of the render function */
+function obPick(value) {
+  const k = obStep();
+  if (k === "lang") {
+    if (!T[value]) return;
+    OB.lang = value; S.lang = value; applyLangDirection();   // preview only; persisted at the end
+  } else if (k === "target") {
+    if (TARGETS[value]) { OB.target = value; OB.wish = false; }
+    else { try { localStorage.setItem(WISH_KEY, value); } catch (e) {} OB.wish = true; }
+  } else if (k === "goal") {
+    if (LEARN_GOALS.includes(value)) OB.goal = value;
+  } else if (DAILY_MINUTES.includes(Number(value))) {
+    OB.dailyMin = Number(value);
+  }
+  OB.error = null;
+  renderOnboard();
+}
 
 /* bottom navigation + top-bar resources */
 $("bottomnav").querySelectorAll("[data-tab]").forEach((b) => b.onclick = () => showTab(b.dataset.tab));
@@ -6575,8 +7193,12 @@ renderNetBanner();
 window.addEventListener("online", renderNetBanner);
 window.addEventListener("offline", renderNetBanner);
 renderSetup();
-if (S.firstRun) showOnboarding();
+/* MARZI-017: onboarding is for genuinely new installations only. Any existing
+   learner data counts as completed, so an upgrade never re-onboards and never
+   resets anything. */
+if (!onboardingComplete()) showOnboarding();
 else showTab(tabFromHash(location.hash) || "learn");
+renderInstallRec();
 
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js").catch(() => {});
 </script>

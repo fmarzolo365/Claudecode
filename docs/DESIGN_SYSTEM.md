@@ -354,6 +354,40 @@ ledger or ownership — they read a frozen summary built after persistence.
 
 ---
 
+### 26. Brand lockup — `UI.brandLockup({compact, stage, label})`
+**Purpose** The single Marzi identity: the mark on the inline-start side, the
+"Marzi" wordmark after it, both vertically centred. One implementation, reused
+by the top bar and onboarding — no screen builds its own header brand.
+**Visual rules** Mark 36–42 px (36 compact, 32 below 380 px); the wordmark is
+`flex: 0 0 auto` and never shrinks, so "M…" truncation is structurally
+impossible. When the row runs out of width the settings chip steps aside
+instead (Profile is a primary tab, so nothing becomes unreachable).
+**Artwork** The mark is currently the approved stage-6 `marziSVG` as a
+**temporary stand-in**. The production contract is
+`public/assets/marzi/stage-6/header-neutral.svg`; `BRAND_MARK_REGISTERED`
+ships empty so the fallback always renders and no request is made for a file
+that does not exist. Registering the approved file is the only change needed —
+no call site moves. Never fabricate the mark in CSS, never crop a concept
+board (ADR-10).
+
+### 27. Stat card — `UI.statCard({icon, value, label, detail, state})`
+**Purpose** One measured value with its localized label, for the Profile
+dashboard grid.
+**Visual rules** Icon, then a text column holding the formatted value, the
+label and an optional detail line. Value and label are separate elements —
+values are never concatenated into their label.
+**Content rules** `value` comes from `fmtNum` (`Intl.NumberFormat`), `label`
+from `plural()` against the help language's own rules. `state="empty"` mutes
+the value when the counter is zero.
+
+### 28. Activity summary — `UI.activitySummary({entries, period})`
+**Purpose** Dated activity the app has actually stored, as a small bar strip.
+**Content rules** Renders only real dated counters. It must never be given
+invented history: when no per-day data exists the caller shows the empty
+state instead of a zero-filled chart. Bars carry an `aria-label` per column;
+a day with activity is distinguished by fill colour **and** by height, never
+by colour alone.
+
 ## Adding to the system
 
 1. Check whether an existing component covers the need (a variant usually

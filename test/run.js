@@ -99,7 +99,7 @@ const m = html.match(/<script>([\s\S]*)<\/script>/);
 if (!m) { console.error("FAIL  could not extract app script"); process.exit(1); }
 let src = m[1];
 src += `\n;globalThis.__t = { T, TARGET, TARGETS, LEVELS, LEVEL_ORDER, SCENARIOS, GROUPS, BASIC_DECKS, HELP_LANG,
-  saidWord, normDe, lev, rankFor, recordCall, addXp, loadStats, loadFixes, saveFixes,
+  saidWord, normDe, lev, rankFor, RANKS, rankNames, recordCall, addXp, loadStats, loadFixes, saveFixes,
   voiceOf, timerText, systemPrompt, S, chartSVG, loadTests, saveTestResult,
   marziNames, marziDescs, MARZI_STAGE_COUNT, marziStageForXp, currentMarziStage, renderCallCompanion, addCoins, COIN_PACKS, buyPack, planLimitToday, planUsedToday, PLAN_SECONDS,
   normalizeStats, claimReward, newRewardId, migratedName, migrateStorageKeys, micStatusFor, MARZI_KEY,
@@ -118,7 +118,13 @@ src += `\n;globalThis.__t = { T, TARGET, TARGETS, LEVELS, LEVEL_ORDER, SCENARIOS
   purchaseOutfit, equipOutfit, unequipOutfit, renderStore, openOutfitPreview, normalizeWardrobe,
   profileSnapshot, reviewedMistakeCount, ACHIEVEMENTS, achievementState, renderProfile, applyReduceMotion,
   MARZI_STAGE_XP, currentStreak, loadWords,
-  journeyNodes, journeyState, renderJourney, setJourneyView, goToScenario, renderLearn };`;
+  journeyNodes, journeyState, renderJourney, setJourneyView, goToScenario, renderLearn,
+  ONBOARD_KEY, LEARN_GOALS, DAILY_MINUTES, normalizeOnboarding, loadOnboarding, hasMeaningfulUserData,
+  onboardingComplete, commitOnboarding, showOnboarding, renderOnboard, obPick, obNext, obBack, obStep,
+  obCanAdvance, OB_STEPS, settingsPayload, fmtNum, plural, localeForLang, chipNum,
+  isStandalone, installRecVisible, renderInstallRec, dismissInstallRec, INSTALL_DISMISS_KEY,
+  weeklyActivity, recentActivity, renderRecommended, renderRecentActivity, renderJourneyPreview,
+  journeyPreview, hasBrandMarkAsset, __registerBrandMark, BRAND_MARK_ASSET };`;
 eval(src);
 const tt = globalThis.__t;
 
@@ -245,9 +251,17 @@ check("pronunciation matcher accepts honest attempts and rejects wrong words", (
 });
 
 check("XP and rank math", () => {
+  // MARZI-017: rank titles are interface copy and follow the help language;
+  // the thresholds and the rank ORDER are what must stay frozen.
+  tt.S.lang = "en";
   const r0 = tt.rankFor(0), r1 = tt.rankFor(85), rTop = tt.rankFor(99999);
-  if (r0.title !== "Neuling" || r0.next !== 80) throw new Error("rank0");
-  if (r1.title !== "Anrufer") throw new Error("rank1");
+  if (r0.n !== 1 || r0.base !== 0 || r0.next !== 80) throw new Error("rank0");
+  if (r1.n !== 2 || r1.base !== 80) throw new Error("rank1");
+  if (r0.title !== tt.T.en.rankTitles[0] || r1.title !== tt.T.en.rankTitles[1]) throw new Error("rank titles not localized");
+  tt.S.lang = "es";
+  if (tt.rankFor(0).title !== tt.T.es.rankTitles[0]) throw new Error("rank title did not follow the help language");
+  tt.S.lang = "en";
+  if (tt.RANKS.map((r) => r[0]).join() !== "0,80,200,400,700,1100,1700") throw new Error("rank thresholds changed");
   if (rTop.next !== null) throw new Error("top rank should have no next");
   tt.S.turns = [{ me: true, text: "a" }, { me: false, text: "b" }, { me: true, text: "c" }];
   tt.S.seconds = 60;
@@ -623,7 +637,8 @@ check("design system: canonical components, tokens and documentation", () => {
     "evolutionCard", "characterCard", "scenarioCard", "bubble", "storeItem", "outfitCard",
     "buttonPrimary", "buttonSecondary", "statusBadge", "progressCard", "rewardPopup",
     "modal", "emptyState", "errorState",
-    "callControl", "speechBubble", "callIdentity", "callSheet", "categoryTabs", "rewardSummary"];
+    "callControl", "speechBubble", "callIdentity", "callSheet", "categoryTabs", "rewardSummary",
+    "brandLockup", "statCard", "activitySummary"];
   for (const c of COMPONENTS) if (typeof tt.UI[c] !== "function") throw new Error("missing component: " + c);
   if (Object.keys(tt.UI).length !== COMPONENTS.length) {
     throw new Error("UI has undocumented members: " + Object.keys(tt.UI).filter((k) => !COMPONENTS.includes(k)));
@@ -1067,7 +1082,10 @@ check("MARZI-010 direction + touch targets", () => {
   if (tt.applyLangDirection("en") !== "ltr") throw new Error("English must be ltr");
   // the document is updated at boot and whenever the help language changes
   if (!/applyLangDirection\(\);\s*\n/.test(src)) throw new Error("direction not applied at boot");
-  if (!/S\.lang = b\.dataset\.k; applyLangDirection\(\)/.test(src)) throw new Error("direction not applied on language change");
+  // whatever the picker's shape, changing the help language must re-apply direction
+  const obPick = String(src.match(/function obPick\([\s\S]*?\n\}/)[0]);
+  if (!/S\.lang = value/.test(obPick) || !/applyLangDirection\(\)/.test(obPick))
+    throw new Error("direction not applied on language change");
   // layout uses logical properties so RTL mirrors without a second stylesheet
   const styles = html.slice(html.indexOf("<style>"), html.indexOf("</style>"));
   for (const needle of ["inset-inline-start", "inset-inline-end", "margin-inline-start", "text-align: start"]) {
@@ -1454,14 +1472,327 @@ check("MARZI-016 journey: existing scenarios, states, one next action, list view
   if (!list.includes(L.jrDone) || !list.includes(L.jrFuture)) throw new Error("states are not written out in the list view");
   tt.setJourneyView("map");
 
-  // the map lives inside Learn and the tab set is untouched
+  // MARZI-017: Learn keeps a COMPACT preview, the full path is owned by Talk
   const learn = html.slice(html.indexOf('<section id="learn"'), html.indexOf('<section id="setup"'));
-  if (!learn.includes('id="jrBody"')) throw new Error("the journey must live inside Learn");
+  const talk = html.slice(html.indexOf('<section id="setup"'), html.indexOf('<section id="onboard"'));
+  if (!learn.includes('id="jrPreview"')) throw new Error("Learn must keep the journey preview");
+  if (learn.includes('id="jrBody"')) throw new Error("the full journey must not be duplicated on Learn");
+  if (!talk.includes('id="jrBody"')) throw new Error("the full journey must live inside Talk");
   if (Object.keys(tt.TAB_HASH).join() !== "learn,talk,store,profile") throw new Error("navigation changed");
 
   // no new scenarios or characters were introduced
   if (tt.SCENARIOS.length !== new Set(tt.SCENARIOS.map((s) => s.id)).size) throw new Error("duplicate scenario ids");
   if (tt.GROUPS.flatMap((g) => g.ids).some((id) => !tt.SCENARIOS.find((s) => s.id === id))) throw new Error("a group points at a scenario that does not exist");
+});
+
+
+check("MARZI-017 navigation: four tabs, canonical feature ownership", () => {
+  // exactly four primary tabs, unchanged, and no Training tab
+  if (Object.keys(tt.TAB_HASH).join() !== "learn,talk,store,profile") throw new Error("tab set changed");
+  const nav = html.slice(html.indexOf('<nav class="bottomnav"'), html.indexOf("</nav>"));
+  const tabs = (nav.match(/data-tab="([a-z]+)"/g) || []).map((m) => m.slice(10, -1));
+  if (tabs.join() !== "learn,talk,store,profile") throw new Error("bottom nav tabs: " + tabs.join());
+  if (/data-tab="training"/i.test(html) || /\btraining\b/i.test(nav)) throw new Error("a fifth Training tab exists");
+  const learn = html.slice(html.indexOf('<section id="learn"'), html.indexOf('<section id="setup"'));
+  const talk = html.slice(html.indexOf('<section id="setup"'), html.indexOf('<section id="onboard"'));
+  const profile = html.slice(html.indexOf('<section id="profile"'), html.indexOf("</section>", html.indexOf('<section id="profile"')));
+  // the duplicated Learn shortcut strip is gone
+  if (html.includes('id="learnActs"')) throw new Error("the duplicated Learn shortcut strip is still present");
+  if (/data-la="(dialog|progress|mistakes)"/.test(src)) throw new Error("Learn still renders duplicate shortcuts");
+  // one canonical destination each
+  if (!talk.includes('id="dialogBtn"') || !talk.includes('id="mistakesBtn"')) throw new Error("Talk must own guided dialogue and mistakes");
+  if (learn.includes('id="dialogBtn"') || learn.includes('id="mistakesBtn"')) throw new Error("Learn duplicates a Talk destination");
+  if (!profile.includes('id="progressBtn"')) throw new Error("Profile must own My progress");
+  if (talk.includes('id="progressBtn"')) throw new Error("My progress must not stay on Talk");
+  if (!profile.includes('id="shareBtn"')) throw new Error("Profile must own Recommend the app");
+  if (talk.includes('id="shareBtn"')) throw new Error("Recommend the app must not stay on Talk");
+  // Talk is sectioned as the training hub
+  for (const id of ["lblTrainNow", "lblTrainCall", "lblTrainReview", "lblTrainRecent"])
+    if (!talk.includes(`id="${id}"`)) throw new Error("Talk missing hub section: " + id);
+});
+
+check("MARZI-017 brand lockup: mark before wordmark, one implementation", () => {
+  const L = tt.T.en;
+  tt.S.lang = "en";
+  const lock = tt.UI.brandLockup({ label: L.appName });
+  // the mark must come BEFORE the wordmark in source order
+  const iMark = lock.indexOf("brand-mark"), iWord = lock.indexOf("wordmark");
+  if (iMark < 0 || iWord < 0 || iMark > iWord) throw new Error("the Marzi mark must sit before the wordmark");
+  if (!lock.includes('role="img"') || !lock.includes(L.appName)) throw new Error("lockup is not labelled");
+  // ships unregistered -> falls back to approved SVG, never requests a missing file
+  if (tt.hasBrandMarkAsset()) throw new Error("the brand mark asset must ship unregistered");
+  if (lock.includes("<img")) throw new Error("an unregistered mark must not emit an <img>");
+  tt.__registerBrandMark(true);
+  const withAsset = tt.UI.brandLockup({});
+  if (!withAsset.includes(tt.BRAND_MARK_ASSET)) throw new Error("a registered mark is not used");
+  tt.__registerBrandMark(false);
+  // one implementation: the top bar composes it rather than building its own
+  if (!/UI\.brandLockup\(/.test(String(src.match(/topBar\(\{[\s\S]*?\n  \},/)[0]))) throw new Error("topBar does not reuse the lockup");
+  const styles = html.slice(html.indexOf("<style>"), html.indexOf("</style>"));
+  if (!/\.brand-lockup \.wordmark \{ flex: 0 0 auto; \}/.test(styles)) throw new Error("the wordmark must never shrink");
+});
+
+check("MARZI-017 formatting: localized numbers, plurals, never concatenated", () => {
+  tt.S.lang = "en";
+  if (tt.fmtNum(1234) !== new Intl.NumberFormat("en-GB").format(1234)) throw new Error("fmtNum is not locale aware");
+  if (tt.plural(1, tt.T.en.callUnit) !== "call" || tt.plural(2, tt.T.en.callUnit) !== "calls") throw new Error("English plural");
+  tt.S.lang = "es";
+  if (tt.plural(1, tt.T.es.dayUnit) !== "día" || tt.plural(3, tt.T.es.dayUnit) !== "días") throw new Error("Spanish plural");
+  tt.S.lang = "en";
+  // chips may compact, but the exact value must survive in the accessible name
+  if (tt.chipNum(999) !== "999") throw new Error("small values must not compact");
+  if (!/k$/.test(tt.chipNum(12500))) throw new Error("large values must compact");
+  // the stat card keeps value and label as separate elements
+  const card = tt.UI.statCard({ icon: "", value: "0", label: "coins" });
+  if (/>0coins/.test(card) || !/<b class="stat-val">0<\/b>/.test(card)) throw new Error("value concatenated into its label");
+});
+
+check("MARZI-017 onboarding: steps, atomic save, rollback, existing-user migration", () => {
+  const L = tt.T.en;
+  const clear = () => ["marzi.stats.v1", "marzi.settings.v1", tt.ONBOARD_KEY, "telefontrainer.fixes",
+    "telefontrainer.words", "telefontrainer.tests", "marzi.reward-ledger.v1"].forEach((k) => localStorage.removeItem(k));
+
+  // --- genuinely new install: onboarding runs
+  clear();
+  if (tt.hasMeaningfulUserData()) throw new Error("an empty install must not look like an existing user");
+  if (tt.onboardingComplete()) throw new Error("a new install must see onboarding");
+
+  // --- existing user: never re-onboarded, never reset
+  clear();
+  localStorage.setItem("marzi.stats.v1", JSON.stringify({ days: {}, xp: 420, calls: 7, coins: 300 }));
+  if (!tt.hasMeaningfulUserData()) throw new Error("XP and calls must count as meaningful data");
+  if (!tt.onboardingComplete()) throw new Error("an existing user must not be re-onboarded");
+  // every individual signal counts on its own
+  for (const [key, value] of [
+    ["marzi.stats.v1", JSON.stringify({ days: { "2026-01-01": 1 }, xp: 0, calls: 0 })],
+    ["marzi.stats.v1", JSON.stringify({ days: {}, xp: 0, calls: 0, ownedItemIds: ["sporty"] })],
+    ["marzi.stats.v1", JSON.stringify({ days: {}, xp: 0, calls: 0, scenariosDone: { arzt: 1 } })],
+  ]) { clear(); localStorage.setItem(key, value); if (!tt.hasMeaningfulUserData()) throw new Error("missed signal: " + value); }
+  clear(); localStorage.setItem("telefontrainer.fixes", JSON.stringify([{ text: "a" }]));
+  if (!tt.hasMeaningfulUserData()) throw new Error("stored mistakes must count");
+  clear(); localStorage.setItem("marzi.reward-ledger.v1", JSON.stringify({ "call:1": true }));
+  if (!tt.hasMeaningfulUserData()) throw new Error("reward-ledger entries must count");
+
+  // --- the four steps, and Back walking them in reverse
+  clear();
+  tt.S.lang = "en";
+  tt.showOnboarding();
+  if (tt.OB_STEPS.join() !== "lang,target,goal,daily") throw new Error("step order");
+  if (tt.obStep() !== "lang") throw new Error("first step");
+  tt.obPick("es");
+  if (tt.S.lang !== "es") throw new Error("language preview not applied");
+  if (!tt.obNext() || tt.obStep() !== "target") throw new Error("advance to target");
+  tt.obPick("de"); tt.obNext();
+  if (tt.obStep() !== "goal") throw new Error("advance to goal");
+  if (tt.obCanAdvance()) throw new Error("goal step must require a choice");
+  tt.obPick("work"); tt.obNext();
+  if (tt.obStep() !== "daily") throw new Error("advance to daily");
+  if (!tt.obBack() || tt.obStep() !== "goal") throw new Error("Back must return to the previous step");
+  if (!tt.obBack() || tt.obStep() !== "target") throw new Error("Back must keep walking");
+  tt.obNext(); tt.obPick("10");
+  if (tt.obStep() !== "goal") throw new Error("step tracking after back/next");
+
+  // --- atomic commit: the record holds only what onboarding asked
+  clear();
+  tt.S.lang = "en"; tt.S.targetLang = "de";
+  const res = tt.commitOnboarding({ lang: "it", targetLang: "de", goal: "travel", dailyMin: 15 });
+  if (!res.ok) throw new Error("commit failed");
+  const rec = tt.loadOnboarding();
+  if (!rec.done || rec.goal !== "travel" || rec.dailyMin !== 15) throw new Error("onboarding record");
+  if (tt.S.lang !== "it") throw new Error("interface language not applied");
+  // the canonical settings record carries it - no second language state
+  const saved = JSON.parse(localStorage.getItem("marzi.settings.v1"));
+  if (saved.lang !== "it" || saved.targetLang !== "de") throw new Error("language must live in the canonical settings record");
+  if (Object.keys(rec).sort().join() !== "dailyMin,done,goal,version") throw new Error("onboarding key duplicates other state: " + Object.keys(rec));
+
+  // --- corruption and defaults
+  localStorage.setItem(tt.ONBOARD_KEY, "{not json");
+  if (tt.loadOnboarding().done !== false) throw new Error("corrupt record must default safely");
+  localStorage.setItem(tt.ONBOARD_KEY, JSON.stringify({ done: "yes", goal: "hacking", dailyMin: 999 }));
+  const norm = tt.loadOnboarding();
+  if (norm.done !== false || norm.goal !== null || norm.dailyMin !== null) throw new Error("normalization: " + JSON.stringify(norm));
+
+  // --- storage failure rolls back EXACTLY, saving nothing partially
+  clear();
+  tt.S.lang = "en"; tt.S.targetLang = "de";
+  localStorage.setItem("marzi.settings.v1", JSON.stringify({ lang: "en", targetLang: "de" }));
+  const before = localStorage.getItem("marzi.settings.v1");
+  const realSet = localStorage.setItem;
+  localStorage.setItem = function (k, v) { if (k === tt.ONBOARD_KEY) throw new Error("quota"); return realSet.call(localStorage, k, v); };
+  let failed;
+  try { failed = tt.commitOnboarding({ lang: "tr", targetLang: "de", goal: "work", dailyMin: 20 }); }
+  finally { localStorage.setItem = realSet; }
+  if (failed.ok !== false || failed.code !== "save-failed") throw new Error("failure not reported");
+  if (localStorage.getItem("marzi.settings.v1") !== before) throw new Error("settings not restored after failure");
+  if (localStorage.getItem(tt.ONBOARD_KEY) !== null) throw new Error("a partial onboarding record survived");
+  if (tt.S.lang !== "en" || tt.S.targetLang !== "de") throw new Error("in-memory state not restored");
+  if (!L.obSaveFailed) throw new Error("no localized recoverable error");
+});
+
+check("MARZI-017 existing-user data survives onboarding byte-for-byte", () => {
+  const keys = ["marzi.stats.v1", "telefontrainer.fixes", "telefontrainer.words", "marzi.reward-ledger.v1"];
+  const seed = {
+    "marzi.stats.v1": JSON.stringify({ days: { "2026-07-30": 2 }, calls: 9, seconds: 5400, xp: 900, coins: 750,
+      ownedItemIds: ["explorer"], equippedItemIds: ["explorer"], scenariosDone: { arzt: 3 } }),
+    "telefontrainer.fixes": JSON.stringify([{ text: "a", corrected: "A", drilled: "2026-07-30" }]),
+    "telefontrainer.words": JSON.stringify(["Haus"]),
+    "marzi.reward-ledger.v1": JSON.stringify({ "call:abc": { xp: 20, coins: 20 } }),
+  };
+  keys.forEach((k) => localStorage.setItem(k, seed[k]));
+  localStorage.removeItem(tt.ONBOARD_KEY);
+  if (!tt.onboardingComplete()) throw new Error("an existing learner was sent back to onboarding");
+  // even a deliberate commit must not touch learner data
+  tt.commitOnboarding({ lang: "en", targetLang: "de", goal: "daily", dailyMin: 10 });
+  for (const k of keys) if (localStorage.getItem(k) !== seed[k]) throw new Error("mutated learner data: " + k);
+});
+
+check("MARZI-017 store: nine outfits, locked stays visible and tappable", () => {
+  const L = tt.T.en;
+  tt.S.lang = "en";
+  // the canonical catalog, unchanged
+  if (tt.OUTFITS.length !== 9) throw new Error("catalog size: " + tt.OUTFITS.length);
+  if (tt.OUTFITS.map((o) => o.id).join() !== "explorer,sporty,rainbow,classic,university,artistic,professional,adventurer,graduate")
+    throw new Error("catalog order/ids changed");
+  if (tt.OUTFITS.filter((o) => o.stage === 4).length !== 3 || tt.OUTFITS.filter((o) => o.stage === 5).length !== 3 ||
+      tt.OUTFITS.filter((o) => o.stage === 6).length !== 3) throw new Error("stage distribution changed");
+  if (tt.OUTFITS.map((o) => o.price).join() !== "800,800,800,900,900,900,1200,1200,1200") throw new Error("outfit prices changed");
+
+  // a stage-1 learner still sees all nine, every one of them tappable
+  localStorage.setItem("marzi.stats.v1", JSON.stringify({ days: {}, xp: 0, coins: 0 }));
+  tt.renderStore();
+  const body = document.getElementById("storeBody").innerHTML;
+  const cards = body.match(/data-outfit="[a-z]+"/g) || [];
+  if (cards.length !== 9) throw new Error("visible outfits: " + cards.length);
+  if (/data-outfit="[^"]*"[^>]*\sdisabled/.test(body)) throw new Error("a locked card used the disabled attribute");
+  if (!body.includes('aria-disabled="true"')) throw new Error("locked cards must be aria-disabled");
+  if (!body.includes('data-state="locked"')) throw new Error("no locked state rendered");
+  // the locked card carries a stage badge and a price, and states are not colour-only
+  const locked = tt.UI.outfitCard({ id: "graduate", name: "Graduate", price: 1200, state: "locked", stageLabel: `${L.lockedAt} 6` });
+  if (!locked.includes("outfit-stage")) throw new Error("locked card has no stage badge");
+  if (!locked.includes("outfit-lock")) throw new Error("locked card has no lock icon");
+  if (!locked.includes("1200")) throw new Error("locked card hides the price");
+  if (!/aria-label="[^"]*6[^"]*1200/.test(locked)) throw new Error("locked accessible label incomplete");
+
+  // preview opens for a locked outfit, and offers no purchase
+  tt.openOutfitPreview("graduate");
+  const modal = document.getElementById("storeModal").innerHTML;
+  if (!modal.includes("Graduate") && !modal.includes(tt.outfitName("graduate"))) throw new Error("locked preview did not open");
+  if (modal.includes('id="storeBuy"')) throw new Error("a stage-locked outfit offered a purchase");
+  if (!modal.includes(L.lockedHow)) throw new Error("the modal must explain how it unlocks");
+  if (!modal.includes('id="storeCancel"')) throw new Error("no way to close the preview");
+
+  // the five canonical states still come from one function
+  const st = { xp: 0, coins: 0, ownedItemIds: [], equippedItemIds: [] };
+  if (tt.outfitState("graduate", st) !== "locked") throw new Error("locked state");
+  if (tt.outfitState("explorer", { ...st, xp: 900, coins: 0 }) !== "insufficient") throw new Error("insufficient state");
+  if (tt.outfitState("explorer", { ...st, xp: 900, coins: 5000 }) !== "available") throw new Error("available state");
+  if (tt.outfitState("explorer", { ...st, ownedItemIds: ["explorer"] }) !== "owned") throw new Error("owned state");
+  if (tt.outfitState("explorer", { ...st, ownedItemIds: ["explorer"], equippedItemIds: ["explorer"] }) !== "equipped") throw new Error("equipped state");
+});
+
+check("MARZI-017 profile: formatted cards, truthful weekly history, empty states", () => {
+  const L = tt.T.en;
+  tt.S.lang = "en";
+  // no dated history at all -> no chart is invented
+  localStorage.setItem("marzi.stats.v1", JSON.stringify({ days: {}, calls: 0, seconds: 0, xp: 0, coins: 0 }));
+  localStorage.setItem("telefontrainer.fixes", "[]");
+  localStorage.setItem("telefontrainer.words", "[]");
+  const empty = tt.weeklyActivity();
+  if (empty.hasHistory) throw new Error("an empty profile must not claim history");
+  if (empty.entries.length !== 7) throw new Error("a week is seven days");
+  if (empty.entries.some((e) => e.value !== 0)) throw new Error("fabricated values");
+  tt.renderProfile();
+  let body = document.getElementById("profBody").innerHTML;
+  if (!body.includes(L.profNoHistory)) throw new Error("missing weekly empty state");
+  if (body.includes("act-bars")) throw new Error("a zero-filled chart was rendered as history");
+  if (!body.includes('data-state="empty"')) throw new Error("zero counters must be marked empty");
+  // values and labels are separate, spaced, and pluralized
+  if (/>0calls</.test(body) || /\d[a-z]{3,}</.test(body.replace(/<[^>]+>/g, "")))
+    throw new Error("a value ran into its label");
+  if (!body.includes(">0</b>")) throw new Error("formatted zero missing");
+  // the old defect was two INLINE elements rendering as "0coins": both are blocks now
+  const st2 = html.slice(html.indexOf("<style>"), html.indexOf("</style>"));
+  if (!/\.stat-val \{ display: block;/.test(st2)) throw new Error("stat value is not a block");
+  if (!/\.stat-lb \{ display: block;/.test(st2)) throw new Error("stat label is not a block");
+
+  // real dated activity -> a real chart, from stats.days only
+  const today = new Date().toISOString().slice(0, 10);
+  localStorage.setItem("marzi.stats.v1", JSON.stringify({ days: { [today]: 2 }, secDays: { [today]: 600 },
+    calls: 2, seconds: 600, xp: 100, coins: 1500 }));
+  const wk = tt.weeklyActivity();
+  if (!wk.hasHistory) throw new Error("real history not detected");
+  if (wk.entries[wk.entries.length - 1].value !== 2) throw new Error("today's calls not read from stats.days");
+  if (wk.entries.reduce((a, e) => a + e.value, 0) !== 2) throw new Error("values beyond the stored day");
+  tt.renderProfile();
+  body = document.getElementById("profBody").innerHTML;
+  if (!body.includes("act-bars")) throw new Error("chart missing when history exists");
+  if (!body.includes(new Intl.NumberFormat("en-GB").format(1500))) throw new Error("coins not locale-formatted");
+  // recent activity lists only recorded calls
+  if (tt.recentActivity().length !== 1) throw new Error("recent activity must list only recorded days");
+  localStorage.setItem("marzi.stats.v1", JSON.stringify({ days: {}, calls: 0, seconds: 0, xp: 0, coins: 0 }));
+  if (tt.recentActivity().length !== 0) throw new Error("recent activity invented rows");
+});
+
+check("MARZI-017 PWA: manifest contract, standalone detection, install hint", () => {
+  const m = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "public", "manifest.webmanifest"), "utf8"));
+  if (m.display !== "standalone") throw new Error("display must be standalone");
+  if (!Array.isArray(m.display_override) || m.display_override[0] !== "standalone" || m.display_override[1] !== "minimal-ui")
+    throw new Error("display_override must be [standalone, minimal-ui]");
+  if (m.short_name !== "Marzi") throw new Error("short_name must be the product name: " + m.short_name);
+  if (!/Marzi/.test(m.name)) throw new Error("name must carry the brand: " + m.name);
+  for (const k of ["start_url", "scope", "theme_color", "background_color", "id"]) if (!m[k]) throw new Error("manifest missing " + k);
+  if (m.scope !== "/" || m.start_url.indexOf("/") !== 0) throw new Error("scope/start_url must stay in-origin");
+  if (!/^#[0-9a-f]{6}$/i.test(m.theme_color) || !/^#[0-9a-f]{6}$/i.test(m.background_color)) throw new Error("colour format");
+  const sizes = (m.icons || []).map((i) => i.sizes);
+  if (!sizes.includes("192x192") || !sizes.includes("512x512")) throw new Error("production icons missing");
+  if (!(m.icons || []).some((i) => i.purpose === "maskable")) throw new Error("no maskable icon");
+
+  // standalone detection handles both display-mode and the iOS fallback
+  const detect = String(src.match(/function isStandalone\(\)[\s\S]*?\n\}/)[0]);
+  if (!/display-mode: \$\{mode\}/.test(detect)) throw new Error("display-mode not queried");
+  if (!/navigator\.standalone/.test(detect)) throw new Error("navigator.standalone fallback missing");
+  // the hint is browser-only and its dismissal persists
+  const realMM = globalThis.matchMedia;
+  globalThis.matchMedia = () => ({ matches: true });
+  if (tt.isStandalone() !== true) throw new Error("standalone not detected");
+  if (tt.installRecVisible()) throw new Error("the install hint must never show in standalone mode");
+  globalThis.matchMedia = () => ({ matches: false });
+  localStorage.removeItem(tt.INSTALL_DISMISS_KEY);
+  if (!tt.installRecVisible()) throw new Error("the install hint must show in a browser");
+  tt.dismissInstallRec();
+  if (tt.installRecVisible()) throw new Error("dismissal must persist");
+  localStorage.removeItem(tt.INSTALL_DISMISS_KEY);
+  globalThis.matchMedia = realMM;
+  // safe-area contract survives
+  const styles = html.slice(html.indexOf("<style>"), html.indexOf("</style>"));
+  if (!/env\(safe-area-inset/.test(styles)) throw new Error("safe-area insets dropped");
+  if (/100vh(?![a-z-])/.test(styles.replace(/100vh\s*\)/g, "")) && !/100dvh/.test(styles)) throw new Error("dynamic viewport units dropped");
+});
+
+check("MARZI-017 regression: economy, prompts and engine untouched", () => {
+  // the six thresholds and the reward maths
+  if (tt.MARZI_STAGE_XP.join() !== "0,150,400,800,1500,2600") throw new Error("XP thresholds changed");
+  const rc = String(src.match(/function recordCall\(\)[\s\S]*?\n\}/)[0]);
+  if (!/const gained = 15 \+ Math\.min\(20, S\.turns\.filter\(\(x\) => x\.me\)\.length \* 2\)/.test(rc)) throw new Error("XP formula changed");
+  if (!/\{ xp: gained, coins: 20 \}/.test(rc)) throw new Error("coins per call changed");
+  if (!/claimReward\("call:"/.test(rc)) throw new Error("reward idempotency changed");
+  // prices
+  if (tt.COIN_PACKS.map((p) => p.price).join() !== "200,450,800,1500") throw new Error("minute-pack prices changed");
+  if (!/function buyPack\(id\) \{\n  const p = COIN_PACKS\.find/.test(src)) throw new Error("buyPack changed");
+  if (tt.PLAN_SECONDS !== 30 * 60) throw new Error("daily allowance changed");
+  if (tt.MB_PER_MINUTE !== 10) throw new Error("MB relationship changed");
+  if (tt.isPremium() !== false) throw new Error("Premium entitlement changed");
+  // engine + providers + prompts
+  if (tt.ENGINE_CONTRACTS.ai.join() !== "complete") throw new Error("AI provider contract changed");
+  if (!/function systemPrompt\(/.test(src)) throw new Error("systemPrompt missing");
+  for (const fn of ["createConversationSession", "createTranscript", "createProviderRegistry"])
+    if (typeof tt[fn] !== "function") throw new Error("engine export missing: " + fn);
+  if (!tt.PromptBuilder || typeof tt.PromptBuilder.rolePlay !== "function") throw new Error("PromptBuilder contract changed");
+  // storage stays backwards compatible: unknown keys survive normalization
+  const norm = tt.normalizeStats({ xp: 5, coins: 6, calls: 7, ownedItemIds: ["explorer"], mystery: 1 });
+  if (norm.xp !== 5 || norm.coins !== 6 || norm.calls !== 7) throw new Error("normalizeStats lost a counter");
+  if (norm.ownedItemIds.join() !== "explorer") throw new Error("wardrobe lost on normalization");
+  if (tt.normalizeStats(null).xp !== 0) throw new Error("normalizeStats must default safely");
 });
 
 check("progress chart renders points, CEFR bands and a projection", () => {
