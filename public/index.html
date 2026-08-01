@@ -181,7 +181,7 @@
   }
   .btn {
     display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2);
-    border: none; cursor: pointer; border-radius: 999px; min-height: 40px;
+    border: none; cursor: pointer; border-radius: 999px; min-height: var(--touch-min);
     padding: 0 var(--space-4); font: 700 var(--text-sm) var(--font-sans);
     background: var(--surface-strong); color: var(--ink);
   }
@@ -902,6 +902,38 @@
     position: fixed; inset: 0; z-index: 55; background: rgba(23, 20, 15, .42);
     backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);
   }
+  /* ---------- MARZI-008: reward summary + celebration ---------- */
+  .rw-card {
+    border: 1px solid var(--line); border-radius: var(--radius-lg); box-shadow: var(--shadow);
+    background: linear-gradient(145deg, var(--paper-3), var(--leaf-soft));
+    padding: var(--space-3) var(--space-4) var(--space-4); margin-top: var(--space-3);
+  }
+  .rw-top { display: flex; gap: var(--space-3); align-items: center; }
+  .rw-gains { flex: 1; min-width: 0; }
+  .rw-gain {
+    display: inline-flex; align-items: center; gap: 5px; margin: 0 6px 4px 0;
+    background: var(--card); border: 1px solid var(--tint-leaf-35); border-radius: 999px;
+    padding: 5px var(--space-3); font: 800 var(--text-f14) var(--font-sans); color: var(--marzi-dark);
+  }
+  .rw-gain.coin { border-color: var(--tint-primary-35); color: var(--coin-ink); }
+  .rw-fly { position: fixed; z-index: 90; margin: 0; pointer-events: none;
+    transition: transform var(--dur-slow) var(--ease), opacity var(--dur-slow) var(--ease); }
+  .rw-msg { margin: 4px 0 0; font: 600 var(--text-f12-5) var(--font-sans); color: var(--muted); line-height: 1.4; }
+  .rw-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-2); margin-top: var(--space-3); }
+  .rw-stats > div { text-align: center; background: var(--card); border: 1px solid var(--line);
+    border-radius: var(--radius-sm); padding: var(--space-2) 4px; }
+  .rw-stats strong { display: block; font: 800 var(--text-f16) var(--font-sans); }
+  .rw-stats span { display: block; font: 600 var(--text-f10-5) var(--font-sans); color: var(--muted); }
+  .rw-stage { margin-top: var(--space-3); font: 700 var(--text-f12) var(--font-sans); color: var(--marzi-dark); text-align: center; }
+  .rw-card[data-state="save-failed"] { background: var(--danger-soft); border-color: var(--tint-danger-35); }
+  .rw-card[data-state="high"] { box-shadow: 0 0 0 2px var(--tint-primary-35), var(--shadow); }
+  .evo-cel { text-align: center; }
+  .evo-cel-row { display: flex; align-items: center; justify-content: center; gap: var(--space-2); margin: var(--space-2) 0; }
+  .evo-cel-row .ui-marzi-art { width: 72px; height: 72px; }
+  .evo-cel-row .evo-arrow { color: var(--primary); }
+  .evo-cel-row .was { opacity: .45; filter: grayscale(.5); }
+  .evo-cel-name { font: 800 var(--text-lg) var(--font-sans); color: var(--marzi-dark); }
+  .evo-cel-desc { font: 600 var(--text-f12-5) var(--font-sans); color: var(--muted); margin-top: 4px; line-height: 1.4; }
   /* ---------- MARZI-007: canonical store (board 04_progress panel) ---------- */
   .store-head {
     display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-2);
@@ -1304,11 +1336,15 @@
 
   <!-- DONE -->
   <section id="done" class="hidden">
-    <div class="plate"><span id="doneTitle"></span><span class="chip hidden" id="xpChip"></span><span class="chip coin hidden" id="coinChip"></span></div>
+    <div class="plate"><span id="doneTitle"></span></div>
+    <div id="rewardLive" class="sr-only" aria-live="polite"></div>
+    <div id="rewardBox"></div>
     <button class="ghost hidden" id="replayBtn" style="width:100%;margin-top:16px"></button>
     <div class="list" style="margin-top:14px;padding:16px 14px" id="review"></div>
     <div class="list" style="margin-top:14px;padding:16px 14px" id="evalBox"></div>
     <button class="big" id="againBtn"></button>
+    <div class="ui-modal-back hidden" id="evoCelBack"></div>
+    <div id="evoCelBox" class="hidden"></div>
   </section>
 
   <!-- MISTAKES HISTORY -->
@@ -1576,6 +1612,8 @@ const T = {
   es:{ tagline:"Practica llamadas y conversaciones reales en alemán. Tú hablas, la otra persona responde.",
     pick:"Elige la situación", level:"Nivel", helpLang:"Idioma de las correcciones", call:"LLAMAR",
     outfitNames:["Exploradora","Deportiva","Arcoíris","Clásica","Universitaria","Artística","Profesional","Aventurera","Graduada"], catNames:["Outfits","Sombreros","Gafas","Mochilas","Pantalones"],
+    rwTime:"Duración", rwTurns:"Turnos", rwMistakes:"Correcciones", rwNormal:"¡Buen trabajo! Sigue así.",
+    rwHigh:"¡Excelente llamada! Hablaste con confianza.", rwZero:"Habla la próxima vez para ganar XP.", rwEvolvedTitle:"¡Marzi ha crecido!", rwContinue:"Continuar",
     storeOutfits:"Tienda de outfits", collectAll:"¡Colecciona todos los outfits de Marzi!", comingLater:"Muy pronto",
     equipBtn:"Poner", unequipBtn:"Quitar", equippedLbl:"Puesto", ownedLbl:"Comprado",
     needStage:"Disponible en la etapa", buyBtn:"Comprar", cancelBtn:"Cancelar", saveFailed:"No se pudo guardar. Inténtalo de nuevo.",
@@ -1631,6 +1669,8 @@ const T = {
   en:{ tagline:"Practise real German calls and conversations. You speak, the other person answers.",
     pick:"Choose the situation", level:"Level", helpLang:"Language for corrections", call:"CALL",
     outfitNames:["Explorer","Sporty","Rainbow","Classic","University","Artistic","Professional","Adventurer","Graduate"], catNames:["Outfits","Hats","Glasses","Backpacks","Trousers"],
+    rwTime:"Duration", rwTurns:"Turns", rwMistakes:"Corrections", rwNormal:"Nice work! Keep going.",
+    rwHigh:"Excellent call! You spoke with confidence.", rwZero:"Speak next time to earn XP.", rwEvolvedTitle:"Marzi has grown!", rwContinue:"Continue",
     storeOutfits:"Outfit store", collectAll:"Collect all of Marzi's outfits!", comingLater:"Coming later",
     equipBtn:"Wear", unequipBtn:"Take off", equippedLbl:"Worn", ownedLbl:"Owned",
     needStage:"Available at stage", buyBtn:"Buy", cancelBtn:"Cancel", saveFailed:"Could not save. Please try again.",
@@ -1689,6 +1729,8 @@ const T = {
 T.tr = { tagline:"Gerçek Almanca aramalar ve konuşmalar pratiği yap. Sen konuş, karşı taraf cevap versin.",
   pick:"Durumu seç", level:"Seviye", helpLang:"Düzeltme dili", call:"ARA",
   outfitNames:["Kâşif","Sportif","Gökkuşağı","Klasik","Üniversite","Sanatçı","Profesyonel","Maceracı","Mezun"], catNames:["Kıyafetler","Şapkalar","Gözlükler","Sırt çantaları","Pantolonlar"],
+  rwTime:"Süre", rwTurns:"Tur", rwMistakes:"Düzeltme", rwNormal:"Güzel iş! Böyle devam.",
+  rwHigh:"Harika bir görüşme! Kendinden emin konuştun.", rwZero:"XP kazanmak için konuş.", rwEvolvedTitle:"Marzi büyüdü!", rwContinue:"Devam",
   storeOutfits:"Kıyafet mağazası", collectAll:"Marzi'nin tüm kıyafetlerini topla!", comingLater:"Yakında",
   equipBtn:"Giydir", unequipBtn:"Çıkar", equippedLbl:"Giyili", ownedLbl:"Alındı",
   needStage:"Şu aşamada açılır", buyBtn:"Satın al", cancelBtn:"Vazgeç", saveFailed:"Kaydedilemedi. Tekrar dene.",
@@ -1744,6 +1786,8 @@ T.tr = { tagline:"Gerçek Almanca aramalar ve konuşmalar pratiği yap. Sen konu
 T.ar = { tagline:"تدرّب على مكالمات ومحادثات حقيقية بالألمانية. أنت تتكلم والطرف الآخر يجيب.",
   pick:"اختر الموقف", level:"المستوى", helpLang:"لغة التصحيحات", call:"اتصل",
   outfitNames:["المستكشفة","الرياضية","قوس قزح","الكلاسيكية","الجامعية","الفنية","المهنية","المغامرة","الخريجة"], catNames:["الأزياء","القبعات","النظارات","الحقائب","السراويل"],
+  rwTime:"المدة", rwTurns:"الأدوار", rwMistakes:"التصحيحات", rwNormal:"عمل جيد! واصل.",
+  rwHigh:"مكالمة ممتازة! تحدثت بثقة.", rwZero:"تحدث في المرة القادمة لتكسب XP.", rwEvolvedTitle:"لقد كبر مارزي!", rwContinue:"متابعة",
   storeOutfits:"متجر الأزياء", collectAll:"اجمع كل أزياء مارزي!", comingLater:"قريبًا",
   equipBtn:"ارتداء", unequipBtn:"خلع", equippedLbl:"مُرتدى", ownedLbl:"مملوك",
   needStage:"يتوفر في المرحلة", buyBtn:"شراء", cancelBtn:"إلغاء", saveFailed:"تعذّر الحفظ. حاول مرة أخرى.",
@@ -1799,6 +1843,8 @@ T.ar = { tagline:"تدرّب على مكالمات ومحادثات حقيقية
 T.uk = { tagline:"Тренуй реальні дзвінки й розмови німецькою. Ти говориш — співрозмовник відповідає.",
   pick:"Обери ситуацію", level:"Рівень", helpLang:"Мова пояснень", call:"ДЗВОНИТИ",
   outfitNames:["Дослідниця","Спортивна","Веселка","Класична","Університетська","Артистична","Професійна","Мандрівниця","Випускниця"], catNames:["Вбрання","Капелюхи","Окуляри","Рюкзаки","Штани"],
+  rwTime:"Тривалість", rwTurns:"Репліки", rwMistakes:"Виправлення", rwNormal:"Гарна робота! Так тримати.",
+  rwHigh:"Чудова розмова! Ти говорив упевнено.", rwZero:"Говори наступного разу, щоб отримати XP.", rwEvolvedTitle:"Marzi підріс!", rwContinue:"Далі",
   storeOutfits:"Крамниця вбрання", collectAll:"Збери все вбрання Marzi!", comingLater:"Незабаром",
   equipBtn:"Вдягнути", unequipBtn:"Зняти", equippedLbl:"Вдягнено", ownedLbl:"Придбано",
   needStage:"Доступно на етапі", buyBtn:"Купити", cancelBtn:"Скасувати", saveFailed:"Не вдалося зберегти. Спробуй ще раз.",
@@ -1855,6 +1901,8 @@ T.uk = { tagline:"Тренуй реальні дзвінки й розмови �
 T.it = { tagline:"Allenati con telefonate e conversazioni reali in tedesco. Tu parli, l'altra persona risponde.",
   pick:"Scegli la situazione", level:"Livello", helpLang:"Lingua delle correzioni", call:"CHIAMA",
   outfitNames:["Esploratrice","Sportiva","Arcobaleno","Classica","Universitaria","Artistica","Professionale","Avventuriera","Laureata"], catNames:["Outfit","Cappelli","Occhiali","Zaini","Pantaloni"],
+  rwTime:"Durata", rwTurns:"Turni", rwMistakes:"Correzioni", rwNormal:"Bel lavoro! Continua così.",
+  rwHigh:"Ottima chiamata! Hai parlato con sicurezza.", rwZero:"Parla la prossima volta per guadagnare XP.", rwEvolvedTitle:"Marzi è cresciuto!", rwContinue:"Continua",
   storeOutfits:"Negozio di outfit", collectAll:"Colleziona tutti gli outfit di Marzi!", comingLater:"Presto",
   equipBtn:"Indossa", unequipBtn:"Togli", equippedLbl:"Indossato", ownedLbl:"Acquistato",
   needStage:"Disponibile alla tappa", buyBtn:"Compra", cancelBtn:"Annulla", saveFailed:"Salvataggio non riuscito. Riprova.",
@@ -2426,9 +2474,18 @@ function loadRewardLedger() {
     return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
   } catch (e) { return {}; }
 }
+/* Result of the most recent claim, so the reward summary can tell a
+   duplicate apart from a persistence failure without changing signatures. */
+let LAST_CLAIM = { claimed: false, saved: true, duplicate: false };
 function claimReward(rewardId, reward) {
   const ledger = loadRewardLedger();
-  if (ledger[rewardId]) return { claimed: false, reward: ledger[rewardId] };
+  if (ledger[rewardId]) {
+    LAST_CLAIM = { claimed: false, saved: true, duplicate: true };
+    return { claimed: false, reward: ledger[rewardId], saved: true };
+  }
+  // snapshot of the last committed state, restored if either write fails
+  const prevStats = localStorage.getItem(STAT_KEY);
+  const prevLedger = localStorage.getItem(REWARD_LEDGER_KEY);
   const st = loadStats();
   const xp = Math.max(0, Number(reward && reward.xp) || 0);
   const coins = Math.max(0, Number(reward && reward.coins) || 0);
@@ -2443,10 +2500,17 @@ function claimReward(rewardId, reward) {
   try {
     localStorage.setItem(STAT_KEY, JSON.stringify(st));
     localStorage.setItem(REWARD_LEDGER_KEY, JSON.stringify(ledger));
-  } catch (e) {}
+  } catch (e) {
+    // roll back to the snapshot: stats and ledger move together or not at all
+    try { prevStats === null ? localStorage.removeItem(STAT_KEY) : localStorage.setItem(STAT_KEY, prevStats); } catch (e2) {}
+    try { prevLedger === null ? localStorage.removeItem(REWARD_LEDGER_KEY) : localStorage.setItem(REWARD_LEDGER_KEY, prevLedger); } catch (e2) {}
+    LAST_CLAIM = { claimed: false, saved: false, duplicate: false };
+    return { claimed: false, reward: null, saved: false };
+  }
   if (coins) SFX.coin();
   updateTopbar();
-  return { claimed: true, reward: ledger[rewardId] };
+  LAST_CLAIM = { claimed: true, saved: true, duplicate: false };
+  return { claimed: true, reward: ledger[rewardId], saved: true };
 }
 
 /* ---------- MARZI-007: one canonical wallet/wardrobe transaction ----------
@@ -2492,6 +2556,47 @@ function unequipOutfit() {
   const st = loadStats();
   const next = { ...st, equippedItemIds: [] };
   return commitStats(next) ? { ok: true, code: "unequipped" } : { ok: false, code: "save-failed" };
+}
+
+/* ---------- MARZI-008: canonical reward summary ----------
+   Built AFTER persistence, from committed state only. Frozen: animation code
+   reads it and never mutates XP, coins or the ledger.
+
+   High-performance rule (transparent, no hidden scoring):
+     learner turns >= 4
+     AND the call was not abandoned (no AI request was still pending at hang-up)
+     AND corrections <= floor(learner turns / 4)   (at most one per four turns)
+*/
+const CELEBRATED_KEY = "marzi.celebrated-stage.v1";
+function isHighPerformance({ turns, mistakes, abandoned }) {
+  return turns >= 4 && !abandoned && mistakes <= Math.floor(turns / 4);
+}
+function buildRewardSummary({ xpBefore, coinsBefore, gained, claim, turns, mistakes, seconds, abandoned }) {
+  const after = loadStats();
+  const saved = claim.saved !== false;
+  // never report a gain that is not in committed storage
+  const xpAfter = saved ? (after.xp || 0) : xpBefore;
+  const coinsAfter = saved ? (after.coins || 0) : coinsBefore;
+  const xp = saved ? Math.max(0, xpAfter - xpBefore) : 0;
+  const coins = saved ? Math.max(0, coinsAfter - coinsBefore) : 0;
+  const stageBefore = marziStageForXp(xpBefore);
+  const stageAfter = marziStageForXp(xpAfter);
+  const base = MARZI_STAGE_XP[stageAfter - 1] || 0;
+  const nextAt = MARZI_STAGE_XP[stageAfter] || null;
+  const state = !saved ? "save-failed"
+    : claim.duplicate ? "duplicate"
+    : gained <= 0 ? "none"
+    : stageAfter > stageBefore ? "evolved"
+    : isHighPerformance({ turns, mistakes, abandoned }) ? "high"
+    : "normal";
+  return Object.freeze({
+    xp, coins, seconds, turns, mistakes,
+    xpBefore, xpAfter, coinsAfter,
+    stageBefore, stageAfter, evolved: stageAfter > stageBefore,
+    stagePct: nextAt ? Math.min(100, Math.round(100 * (xpAfter - base) / (nextAt - base))) : 100,
+    stagePctBefore: nextAt ? Math.min(100, Math.round(100 * (Math.max(base, xpBefore) - base) / (nextAt - base))) : 100,
+    state, saved,
+  });
 }
 
 function recordCall() {
@@ -2686,6 +2791,20 @@ const UI = {
       `<span class="outfit-preview" data-outfit-art="${esc(id)}" aria-hidden="true">${art}</span>` +
       `<span class="outfit-copy"><strong>${esc(name)}</strong>` +
       `<span class="outfit-foot">${foot}</span></span></button>`;
+  },
+  /* --- 25. Reward summary: what a finished call earned --- */
+  rewardSummary({ state = "normal", stage = 1, mood = "", message = "", xpLabel = "", coinLabel = "",
+                  stats = [], stageLine = "", xpPercent = 0 } = {}) {
+    const chips =
+      (xpLabel ? `<span class="rw-gain" id="rwXpGain">${IC.star(ICON.sm)}<span id="rwXpVal">${esc(xpLabel)}</span></span>` : "") +
+      (coinLabel ? `<span class="rw-gain coin" id="rwCoinGain">${IC.coin(ICON.sm)}<span>${esc(coinLabel)}</span></span>` : "");
+    return `<div class="rw-card" data-state="${esc(state)}">` +
+      `<div class="rw-top">${UI.marziAvatar({ stage, mood, size: "var(--avatar-lg)" })}` +
+      `<div class="rw-gains">${chips}<p class="rw-msg">${esc(message)}</p></div></div>` +
+      `<div class="rw-stats">` + stats.map((st) =>
+        `<div><strong>${esc(st.value)}</strong><span>${esc(st.label)}</span></div>`).join("") + `</div>` +
+      `<div class="rw-stage">${esc(stageLine)}</div>` +
+      UI.xpBar({ percent: xpPercent, id: "rwXpFill" }) + `</div>`;
   },
   /* --- 24. Category tabs: one row of filters over a catalog --- */
   categoryTabs({ tabs = [], active = "", label = "" } = {}) {
@@ -3257,8 +3376,13 @@ function renderLearn() {
     $("limitBack").classList.remove("hidden");
     $("limitBox").classList.remove("hidden");
   };
+  // "last celebrated stage" is its own key: the end-of-call celebration and
+  // this hero animation are the same event, shown in whichever place happens
+  // first. MARZI_KEY keeps its own meaning (last stage the hero rendered).
   const prevStage = +(localStorage.getItem(MARZI_KEY) || 0);
-  if (prevStage && stage > prevStage) {
+  const celebrated = +(localStorage.getItem(CELEBRATED_KEY) || 0);
+  if (prevStage && stage > prevStage && celebrated < stage) {
+    try { localStorage.setItem(CELEBRATED_KEY, String(stage)); } catch (e) {}
     $("marzi").classList.remove("evolve");
     void $("marzi").offsetWidth;
     $("marzi").classList.add("evolve");
@@ -4594,6 +4718,125 @@ function show(which) {
     .forEach(([id, tb]) => $(id).classList.toggle("on", tb === active));
 }
 
+/* ---------- MARZI-008: reward rendering, animation, celebration ----------
+   These functions read the frozen summary and touch the DOM only. No XP,
+   coin, ledger or ownership value is ever written here. */
+function renderRewardSummary(sum) {
+  const L = t();
+  const name = marziNames()[sum.stageAfter - 1];
+  const message = { none: L.rwZero, high: L.rwHigh,
+                    evolved: marziDescs()[sum.stageAfter - 1] || L.rwNormal,
+                    "save-failed": L.saveFailed, duplicate: L.rwNormal }[sum.state] || L.rwNormal;
+  const mood = sum.state === "none" || sum.state === "save-failed" ? "sad" : "happy";
+  $("rewardBox").innerHTML = UI.rewardSummary({
+    state: sum.state, stage: sum.stageAfter, mood, message,
+    xpLabel: sum.xp ? `+${sum.xp} XP` : "",
+    coinLabel: sum.coins ? `+${sum.coins}` : "",
+    stats: [
+      { value: mmss(), label: L.rwTime },
+      { value: String(sum.turns), label: L.rwTurns },
+      { value: String(sum.mistakes), label: L.rwMistakes },
+    ],
+    stageLine: `${L.stageWord} ${sum.stageAfter} · ${name}`,
+    xpPercent: sum.stagePctBefore, // animates up to stagePct
+  });
+  const parts = [];
+  if (sum.xp) parts.push(`+${sum.xp} XP`);
+  if (sum.coins) parts.push(`+${sum.coins} ${L.coins}`);
+  parts.push(message);
+  $("rewardLive").textContent = parts.join(" · ");
+}
+
+function prefersReducedMotion() {
+  try { return !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches); }
+  catch (e) { return false; }
+}
+/* count the XP number up and grow the canonical bar; reduced motion jumps
+   straight to the final values, which are still shown as text */
+function animateReward(sum) {
+  const fill = $("rwXpFill");
+  const val = $("rwXpVal");
+  if (!fill) return;
+  if (prefersReducedMotion() || !sum.xp) {
+    fill.style.width = sum.stagePct + "%";
+    if (val && sum.xp) val.textContent = `+${sum.xp} XP`;
+    if (sum.evolved) celebrateEvolution(sum);
+    return;
+  }
+  requestAnimationFrame(() => { fill.style.width = sum.stagePct + "%"; });
+  const t0 = (window.performance && performance.now) ? performance.now() : 0;
+  const dur = 900;
+  const step = (now) => {
+    const p = Math.min(1, ((now || t0) - t0) / dur);
+    if (val) val.textContent = `+${Math.round(sum.xp * p)} XP`;
+    if (p < 1) requestAnimationFrame(step);
+    else {
+      if (val) val.textContent = `+${sum.xp} XP`;
+      flyCoins(sum);
+      if (sum.evolved) celebrateEvolution(sum);
+    }
+  };
+  requestAnimationFrame(step);
+}
+/* the coin chip flies to the wallet chip that is actually on screen */
+function flyCoins(sum) {
+  if (!sum.coins || prefersReducedMotion()) return;
+  const from = $("rwCoinGain");
+  const visible = (el) => el && el.getBoundingClientRect && el.getBoundingClientRect().width > 0;
+  const target = visible($("tbCoins")) ? $("tbCoins") : from; // never an off-screen target
+  if (!visible(from) || !target || target === from) return;
+  const a = from.getBoundingClientRect(), b = target.getBoundingClientRect();
+  const ghost = from.cloneNode(true);
+  ghost.classList.add("rw-fly");
+  ghost.classList.remove("rw-gain");
+  ghost.setAttribute("aria-hidden", "true");
+  ghost.style.left = a.left + "px";
+  ghost.style.top = a.top + "px";
+  document.body.appendChild(ghost);
+  requestAnimationFrame(() => {
+    ghost.style.transform = `translate(${Math.round(b.left - a.left)}px, ${Math.round(b.top - a.top)}px) scale(.6)`;
+    ghost.style.opacity = "0";
+  });
+  setTimeout(() => { try { ghost.remove(); } catch (e) {} }, 900);
+}
+/* dedicated celebration for a crossed threshold: old stage -> new stage */
+let EVO_CEL_OPEN = false;
+function celebrateEvolution(sum) {
+  const L = t();
+  EVO_CEL_OPEN = true;
+  const names = marziNames(), descs = marziDescs();
+  $("evoCelBox").innerHTML = UI.modal({
+    title: L.rwEvolvedTitle, labelledBy: "evoCelTitle",
+    body: "",
+    actions: `<div class="evo-cel">
+        <div class="evo-cel-row">
+          <span class="was">${UI.marziAvatar({ stage: sum.stageBefore })}</span>
+          <span class="evo-arrow" aria-hidden="true">${IC.trend(ICON.xl)}</span>
+          ${UI.marziAvatar({ stage: sum.stageAfter, mood: "happy" })}
+        </div>
+        <div class="evo-cel-name">${esc(names[sum.stageAfter - 1])}</div>
+        <p class="evo-cel-desc">${esc(descs[sum.stageAfter - 1] || "")}</p>
+      </div>` + UI.buttonPrimary({ id: "evoCelOk", label: L.rwContinue }),
+  });
+  $("evoCelBox").classList.remove("hidden");
+  $("evoCelBack").classList.remove("hidden");
+  try { $("evoCelOk").focus(); } catch (e) {}
+  $("evoCelOk").onclick = () => closeEvolutionCelebration();
+  $("evoCelBack").onclick = () => closeEvolutionCelebration();
+  // append: the gains announcement must not be lost when a stage is crossed
+  const said = $("rewardLive").textContent;
+  $("rewardLive").textContent = (said ? said + " · " : "") + `${L.rwEvolvedTitle} ${names[sum.stageAfter - 1]}`;
+  // this stage has now been celebrated - the Learn hero must not replay it
+  try { localStorage.setItem(CELEBRATED_KEY, String(sum.stageAfter)); } catch (e) {}
+  SFX.fanfare(); confettiBurst();
+}
+function evolutionCelebrationOpen() { return EVO_CEL_OPEN; }
+function closeEvolutionCelebration() {
+  EVO_CEL_OPEN = false;
+  $("evoCelBox").classList.add("hidden");
+  $("evoCelBack").classList.add("hidden");
+}
+
 /* ---------- end-of-call evaluation ---------- */
 async function evaluateCall() {
   const spoke = S.turns.some((x) => x.me);
@@ -5281,14 +5524,23 @@ function endCall() {
     b.onclick = () => speak(fixes[+b.dataset.sayr].corrected, true));
   $("replayBtn").textContent = "▶ " + L.replayAll;
   $("replayBtn").classList.toggle("hidden", !S.turns.length);
+  // 1. persist first - the ledger and stats commit before anything animates
+  const before = loadStats();
+  const xpBefore = before.xp || 0, coinsBefore = before.coins || 0;
+  const abandoned = !!S.busy;
   const gained = recordCall();
-  $("xpChip").textContent = "+" + gained + " XP";
-  $("xpChip").classList.toggle("hidden", !gained);
-  $("coinChip").innerHTML = `+20 ${IC.coin(ICON.xxs)}`;
-  $("coinChip").classList.toggle("hidden", !gained);
-  if (gained) SFX.coin();
+  // 2. build the canonical summary from committed state only
+  const summary = buildRewardSummary({
+    xpBefore, coinsBefore, gained, claim: LAST_CLAIM,
+    turns: S.turns.filter((x) => x.me).length, mistakes: fixes.length,
+    seconds: S.seconds, abandoned,
+  });
+  S.lastReward = summary;
+  renderRewardSummary(summary);
   updateTopbar();
   show("done");
+  // 3. animate from the summary (never mutates), then celebrate a new stage
+  animateReward(summary);
   evaluateCall();
 }
 
@@ -5366,6 +5618,7 @@ window.addEventListener("popstate", () => { if (sheetOpen()) closeCallSheet(true
 document.addEventListener("keydown", (e) => {
   if (e.key !== "Escape") return;
   if (sheetOpen()) closeCallSheet();
+  else if (evolutionCelebrationOpen()) closeEvolutionCelebration();
   else if (STORE_PREVIEW) closeOutfitPreview();
 });
 $("sheetBtn").onclick = () => openCallSheet();

@@ -336,6 +336,22 @@ by colour alone. Tabs meet the 48px floor.
 **Responsive** Equal-width tabs that scroll on narrow screens.
 **Usage** `UI.categoryTabs({ tabs, active: STORE_CAT, label: L.storeOutfits })`
 
+### 25. Reward summary — `UI.rewardSummary({state, stage, mood, message, xpLabel, coinLabel, stats, stageLine, xpPercent})`
+**Purpose** What a finished call earned: gains, call facts, stage progress.
+**Visual rules** Marzi beside the gain chips, a three-cell stat row
+(duration · turns · corrections), the stage line, and the canonical XP bar
+underneath. Rendered at the **pre-call** percentage so the bar can animate up.
+**States** `normal` · `high` (ring) · `evolved` · `none` · `duplicate` ·
+`save-failed` (danger surface). The state is always paired with a message, so
+it never depends on colour.
+**Accessibility** Gains and the message are mirrored into an `aria-live`
+region; the XP bar keeps its `progressbar` semantics. Animation is skipped
+under `prefers-reduced-motion` with the final values shown as text.
+**Responsive** Full width; the stat row stays three columns at 360px.
+**Usage** `UI.rewardSummary({ state, stage, message, xpLabel: "+19 XP", stats, xpPercent })`
+**Contract** The component and its animation **never** write XP, coins, the
+ledger or ownership — they read a frozen summary built after persistence.
+
 ---
 
 ## Adding to the system

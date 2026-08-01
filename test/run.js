@@ -104,6 +104,8 @@ src += `\n;globalThis.__t = { T, TARGET, TARGETS, LEVELS, LEVEL_ORDER, SCENARIOS
   createTranscript, PromptBuilder, createConversationSession, ENGINE, send, ask,
   renderLearn, renderCall, renderTranscript, openCallSheet, closeCallSheet, sheetOpen, endCall, callStateFor, callStateLabel, callStateIcon, callSecondsLeft, renderScenarioCards, renderCharacterCard, scenarioSubtitle,
   UI, IC, ICON, evolutionHTML, renderCallStatus,
+  buildRewardSummary, isHighPerformance, renderRewardSummary, animateReward, celebrateEvolution,
+  closeEvolutionCelebration, evolutionCelebrationOpen, CELEBRATED_KEY, claimReward, loadRewardLedger,
   OUTFITS, STORE_CATS, LEGACY_OUTFIT_IDS, outfitById, outfitName, outfitState,
   purchaseOutfit, equipOutfit, unequipOutfit, renderStore, openOutfitPreview, normalizeWardrobe };`;
 eval(src);
@@ -610,7 +612,7 @@ check("design system: canonical components, tokens and documentation", () => {
     "evolutionCard", "characterCard", "scenarioCard", "bubble", "storeItem", "outfitCard",
     "buttonPrimary", "buttonSecondary", "statusBadge", "progressCard", "rewardPopup",
     "modal", "emptyState", "errorState",
-    "callControl", "speechBubble", "callIdentity", "callSheet", "categoryTabs"];
+    "callControl", "speechBubble", "callIdentity", "callSheet", "categoryTabs", "rewardSummary"];
   for (const c of COMPONENTS) if (typeof tt.UI[c] !== "function") throw new Error("missing component: " + c);
   if (Object.keys(tt.UI).length !== COMPONENTS.length) {
     throw new Error("UI has undocumented members: " + Object.keys(tt.UI).filter((k) => !COMPONENTS.includes(k)));
@@ -915,6 +917,107 @@ check("MARZI-007 store: catalog, purchase transaction, equip, migration", () => 
   tt.openOutfitPreview("graduate");
   if (!document.getElementById("storeModal").innerHTML.includes(L.unequipBtn)) throw new Error("equipped preview must offer unequip");
   if (tt.loadStats().coins !== before) throw new Error("opening a preview changed the wallet");
+});
+
+check("MARZI-008 rewards: summary states, thresholds, rollback, celebration", () => {
+  const setStats = (o) => localStorage.setItem("marzi.stats.v1", JSON.stringify(o));
+  const ledgerClear = () => localStorage.setItem("marzi.reward-ledger.v1", JSON.stringify({}));
+  tt.S.lang = "en";
+
+  // the six thresholds are untouched and every crossing is detected
+  const T6 = [0, 150, 400, 800, 1500, 2600];
+  T6.forEach((edge, i) => {
+    if (i === 0) return;
+    setStats({ xp: edge, coins: 0, days: {} });   // committed state = just crossed
+    const sum = tt.buildRewardSummary({ xpBefore: edge - 1, coinsBefore: 0, gained: 1,
+      claim: { claimed: true, saved: true, duplicate: false }, turns: 2, mistakes: 0, seconds: 60, abandoned: false });
+    if (!sum.evolved) throw new Error("no crossing detected at " + edge);
+    if (sum.stageAfter !== i + 1 || sum.stageBefore !== i) throw new Error(`stage ${sum.stageBefore}->${sum.stageAfter} at ${edge}`);
+    if (sum.state !== "evolved") throw new Error("state at " + edge + " = " + sum.state);
+    if (Object.isFrozen(sum) !== true) throw new Error("summary must be frozen");
+  });
+
+  // high-performance rule, exactly as documented
+  const hp = (turns, mistakes, abandoned) => tt.isHighPerformance({ turns, mistakes, abandoned });
+  if (!hp(4, 1, false)) throw new Error("4 turns / 1 correction should qualify");
+  if (hp(4, 2, false)) throw new Error("4 turns / 2 corrections must not qualify");
+  if (hp(3, 0, false)) throw new Error("fewer than 4 turns must not qualify");
+  if (hp(8, 2, true)) throw new Error("abandoned call must not qualify");
+  if (!hp(8, 2, false)) throw new Error("8 turns / 2 corrections should qualify");
+
+  // normal vs high vs none
+  setStats({ xp: 100, coins: 40, days: {} });
+  const normal = tt.buildRewardSummary({ xpBefore: 80, coinsBefore: 20, gained: 20,
+    claim: { claimed: true, saved: true, duplicate: false }, turns: 2, mistakes: 2, seconds: 90, abandoned: false });
+  if (normal.state !== "normal" || normal.xp !== 20 || normal.coins !== 20) throw new Error("normal summary");
+  const high = tt.buildRewardSummary({ xpBefore: 80, coinsBefore: 20, gained: 20,
+    claim: { claimed: true, saved: true, duplicate: false }, turns: 6, mistakes: 1, seconds: 90, abandoned: false });
+  if (high.state !== "high") throw new Error("high summary: " + high.state);
+  setStats({ xp: 80, coins: 20, days: {} });
+  const none = tt.buildRewardSummary({ xpBefore: 80, coinsBefore: 20, gained: 0,
+    claim: { claimed: false, saved: true, duplicate: false }, turns: 0, mistakes: 0, seconds: 5, abandoned: false });
+  if (none.state !== "none" || none.xp !== 0 || none.coins !== 0) throw new Error("zero-reward summary");
+  const dup = tt.buildRewardSummary({ xpBefore: 80, coinsBefore: 20, gained: 0,
+    claim: { claimed: false, saved: true, duplicate: true }, turns: 3, mistakes: 0, seconds: 60, abandoned: false });
+  if (dup.state !== "duplicate" || dup.xp !== 0) throw new Error("duplicate must award nothing");
+
+  // duplicate completion never replays the data award
+  ledgerClear();
+  setStats({ xp: 0, coins: 0, days: {} });
+  tt.claimReward("call:dup-test", { xp: 30, coins: 20 });
+  const afterFirst = tt.loadStats();
+  tt.claimReward("call:dup-test", { xp: 30, coins: 20 });
+  const afterSecond = tt.loadStats();
+  if (afterSecond.xp !== afterFirst.xp || afterSecond.coins !== afterFirst.coins) throw new Error("duplicate replayed the award");
+
+  // storage failure: committed state is restored and nothing is reported as earned
+  ledgerClear();
+  setStats({ xp: 500, coins: 300, days: {} });
+  const beforeRaw = localStorage.getItem("marzi.stats.v1");
+  const realSet = localStorage.setItem;
+  localStorage.setItem = () => { throw new Error("quota"); };
+  const failed = tt.claimReward("call:fail-test", { xp: 30, coins: 20 });
+  localStorage.setItem = realSet;
+  if (failed.claimed || failed.saved !== false) throw new Error("save failure not reported");
+  if (localStorage.getItem("marzi.stats.v1") !== beforeRaw) throw new Error("committed state not restored");
+  if (tt.loadRewardLedger()["call:fail-test"]) throw new Error("ledger recorded an unsaved award");
+  const sf = tt.buildRewardSummary({ xpBefore: 500, coinsBefore: 300, gained: 30,
+    claim: { claimed: false, saved: false, duplicate: false }, turns: 5, mistakes: 0, seconds: 90, abandoned: false });
+  if (sf.state !== "save-failed" || sf.xp !== 0 || sf.coins !== 0) throw new Error("save-failed must not show a gain");
+  if (sf.xpAfter !== 500) throw new Error("save-failed must report committed XP");
+
+  // rendering + animation never mutate XP, coins or the ledger
+  setStats({ xp: 420, coins: 100, days: {} });
+  const snapStats = localStorage.getItem("marzi.stats.v1");
+  const snapLedger = localStorage.getItem("marzi.reward-ledger.v1");
+  const sum = tt.buildRewardSummary({ xpBefore: 380, coinsBefore: 80, gained: 40,
+    claim: { claimed: true, saved: true, duplicate: false }, turns: 5, mistakes: 1, seconds: 120, abandoned: false });
+  tt.renderRewardSummary(sum);
+  tt.animateReward(sum);
+  if (localStorage.getItem("marzi.stats.v1") !== snapStats) throw new Error("rendering mutated stats");
+  if (localStorage.getItem("marzi.reward-ledger.v1") !== snapLedger) throw new Error("rendering mutated the ledger");
+  const box = document.getElementById("rewardBox").innerHTML;
+  if (!box.includes("+40 XP") || !box.includes("+20")) throw new Error("gains not shown");
+  if (!box.includes("rw-stats")) throw new Error("call stats not shown");
+  if (!document.getElementById("rewardLive").textContent.includes("+40 XP")) throw new Error("reward not announced");
+
+  // celebration: old -> new, localized name + description, dismissible, marks the stage
+  localStorage.removeItem(tt.CELEBRATED_KEY);
+  const evo = tt.buildRewardSummary({ xpBefore: 399, coinsBefore: 0, gained: 1,
+    claim: { claimed: true, saved: true, duplicate: false }, turns: 4, mistakes: 0, seconds: 60, abandoned: false });
+  setStats({ xp: 400, coins: 0, days: {} });
+  tt.celebrateEvolution({ ...evo, stageBefore: 2, stageAfter: 3 });
+  const cel = document.getElementById("evoCelBox").innerHTML;
+  if (!cel.includes(tt.T.en.stageNames[2])) throw new Error("celebration missing the localized name");
+  if (!cel.includes(tt.T.en.stageDescs[2].slice(0, 20))) throw new Error("celebration missing the description");
+  if (!cel.includes('role="dialog"')) throw new Error("celebration must be a dialog");
+  if (!tt.evolutionCelebrationOpen()) throw new Error("celebration state");
+  if (localStorage.getItem(tt.CELEBRATED_KEY) !== "3") throw new Error("celebrated stage not recorded");
+  tt.closeEvolutionCelebration();
+  if (tt.evolutionCelebrationOpen()) throw new Error("celebration not dismissible");
+  // and the Learn hero must not replay the same stage
+  const learnSrc = String(src.match(/function renderLearn\(\)[\s\S]*?\n\}/)[0]);
+  if (!learnSrc.includes("CELEBRATED_KEY")) throw new Error("Learn hero does not check the celebrated stage");
 });
 
 check("progress chart renders points, CEFR bands and a projection", () => {

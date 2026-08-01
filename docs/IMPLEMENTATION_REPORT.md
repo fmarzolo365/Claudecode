@@ -648,3 +648,90 @@ empty category shows "Muy pronto".
 3. **Hats / glasses / backpacks / pants** — no catalog, no art; tabs ship empty
    by design.
 4. **Category icons** come from the existing `IC` set, not board glyphs.
+
+---
+
+# Implementation Report — MARZI-008
+
+**Task:** Rewards and evolution feedback
+**Date:** 2026-08-01 · **Status:** Complete, tests green, NOT merged
+
+## Order of operations
+`endCall` now: **persist → summarise → render → animate → celebrate**.
+`recordCall()` commits through the existing ledger first; only then is the
+summary built **from committed state**. Animation code reads the frozen
+summary and touches the DOM only — it never writes XP, coins, the ledger or
+ownership (asserted by snapshotting storage around render+animate).
+
+## One canonical frozen summary
+`buildRewardSummary()` returns an `Object.freeze`d model: gains, call facts
+(duration/turns/corrections), `xpBefore/xpAfter`, `stageBefore/stageAfter`,
+`evolved`, stage percentages, `state`, `saved`.
+
+`state` ∈ **normal · high · evolved · none · duplicate · save-failed**.
+
+## High-performance rule (exact, documented, tested)
+```
+turns >= 4
+AND not abandoned          (no AI request pending when the call ended)
+AND mistakes <= floor(turns / 4)   (at most one correction per four turns)
+```
+All three inputs already exist: learner turns from `S.turns`, corrections from
+the same turns' `fix` field, abandonment from `S.busy` at hang-up. No new
+scoring system, no hidden weights.
+
+## Save-failure integrity
+`claimReward` now snapshots `marzi.stats.v1` and the ledger before writing and
+**restores both** if either write throws — closing a real pre-existing hazard
+where stats could commit while the ledger write failed, which would have
+allowed a second award. On failure the summary reports `save-failed`, shows
+**no** gain, and reports committed XP. Ledger idempotency is unchanged.
+
+## Evolution celebration
+Fires **immediately after the reward summary** for the call that crossed the
+threshold: old stage (faded) → new stage, localized name and description,
+placeholder art via `UI.marziAvatar`, fanfare + confetti, keyboard-dismissible
+(Escape or the Continue button, both ≥48px). Thresholds are read, never
+written. A dedicated key `marzi.celebrated-stage.v1` records the celebrated
+stage — `MARZI_KEY` keeps its own meaning (last stage the Learn hero
+rendered), so the hero does not replay the same evolution.
+
+## Animation
+XP counts up over 900ms while the canonical solid bar grows from the pre-call
+percentage; the coin chip then flies to the **wallet chip that is actually on
+screen** (falls back to the in-card balance, never an off-screen target).
+Under `prefers-reduced-motion` both are set to final values immediately and
+the gain is still shown as text — measured: transition `0s`, bar starts and
+ends at 25%, label `+40 XP`.
+
+## Fixes found while verifying
+- The flying coin ghost was cloned with `.rw-gain`, so it counted as a third
+  gain chip — it now carries its own class and `aria-hidden`.
+- The evolved card repeated the celebration title; it now shows the stage
+  description instead.
+- `.btn` was 40px — below the documented 48px floor — and surfaced in the
+  celebration. Raised to `--touch-min` design-system-wide.
+- The celebration overwrote the gains announcement in the live region; it now
+  appends, so screen-reader users hear both.
+
+## Tests — 26/26
+`node --check server.js` pass. New MARZI-008 check covers: **every one of the
+six thresholds** detected as a crossing with correct old→new stages; the
+high-performance rule at its boundaries; normal / high / none / duplicate /
+save-failed summaries; duplicate completion awarding nothing twice; storage
+failure restoring committed state and leaving no ledger entry; render+animate
+mutating nothing; and the celebration's localized name, description, dialog
+role, dismissal and celebrated-stage key, plus the Learn hero's guard.
+
+Chromium at 390×844 and 360×640, plus reduced motion: normal (+19 XP/+20),
+high (6 turns/1 correction), evolved (385→404 crosses 400 → stage 3 with
+celebration), zero-reward, Escape dismissal, celebrated key = 3, no horizontal
+scroll, zero targets under 48px.
+
+## Unresolved asset gaps
+1. **Marzi reactions** — placeholder art has `sad` and neutral only; `happy`
+   and `celebrating` fall back to neutral (spec P1/P2). Motion and text carry
+   the difference.
+2. **Celebration art** — placeholder stages, not the board figures.
+3. No coin/XP burst artwork; effects are CSS plus the existing confetti and
+   WebAudio fanfare.
