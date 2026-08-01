@@ -104,15 +104,18 @@ This alone lets Home, onboarding, profile, evolution, store wallet, limit
 modal and dialogue render from real assets (all use a full-body pose).
 
 ### P1 — call experience and states (24 files)
+Stages 4–6 wear the yellow hoodie in these poses; stages 1–3 are undressed.
 - `call` pose × 6 stages × `listening`, `thinking`, `speaking` → **18**
 - `reward` pose × 6 stages × `celebrating` → **6**
 
-### P2 — remaining states (12 files)
-- `empty` pose × 6 stages × `neutral` → 6
-- `error` pose × 6 stages × `error` → 6
+### P2 — remaining states (6 files) — **approved scope**
+Dedicated empty/error artwork exists for **stages 4–6 only**:
+- `empty` pose × stages 4, 5, 6 × `neutral` → 3
+- `error` pose × stages 4, 5, 6 × `error` → 3
 
-*(If budget is tight, `empty`/`error` may ship for stages 4–6 only and fall
-back to the P0 `sad` asset for 1–3 — please confirm rather than assume.)*
+**Stages 1–3 use a fallback and are not drawn for these states:** empty falls
+back to that stage's P0 `hero_neutral`, error falls back to `hero_sad`. This
+is a deliberate decision to keep the package small — do not draw them.
 
 ### P3 — outfits, stages 4–6 (9 or 18 files)
 Board 04 defines exactly nine, three per stage. Slugs are fixed:
@@ -123,6 +126,12 @@ Board 04 defines exactly nine, three per stage. Slugs are fixed:
 | 5 `studious_frog` | Clásica → `classic` · Universitaria → `university` · Artística → `artistic` |
 | 6 `expert_frog` | Profesional → `professional` · Aventurera → `adventurer` → Graduada → `graduate` |
 
+**Architecture (approved):** each outfit is a **complete, precomposed
+character figure** delivered as its own approved file. There is **no runtime
+layered composition** in the first production release — the app never
+assembles a body from parts. Layered outfits may be evaluated later as a
+separate architecture task.
+
 Minimum: `hero` + `neutral` per outfit (9 files). Preferred: also
 `store_thumb` (9 more) so the store grid does not downscale hero art.
 
@@ -131,9 +140,11 @@ and 1200 (stage 6) coins. The shipped catalog currently differs; reconciling
 it is deviation **H2** and is *not* part of this spec.
 
 ### Accessories (§5b)
-Deliver as **separate layered files only if** the illustrator builds outfits
-by composition. If outfits are drawn as complete figures, accessories are not
-separate deliverables — but each must still appear exactly as on the boards.
+**Accessories are NOT separate deliverables.** Because outfits and stages ship
+as complete precomposed figures (see P3), every accessory is drawn *into* the
+figure that needs it. The table below is therefore a **fidelity checklist**:
+each item must appear exactly as the boards show it, in every file where that
+stage or outfit calls for it.
 
 | Accessory | Slug | Appears on | Anchor requirement |
 |---|---|---|---|
@@ -142,7 +153,14 @@ separate deliverables — but each must still appear exactly as on the boards.
 | Backpack | `backpack` | Stages 5, 6 | Behind body, straps over shoulders |
 | Pencil | `pencil` | Stage 6 | Held in right hand |
 | Graduation cap | `cap` | Stage 6, outfit `graduate` | Registered to crown of head |
-| Hoodie (yellow) | `hoodie` | Call/limit poses on boards 02 | Replaces torso layer |
+| Hoodie (yellow) | — | **Default call-companion look, stages 4–6** | Drawn into the figure; see below |
+
+**Hoodie rule (approved).** The yellow hoodie is the **default
+call-companion look**, not a purchasable outfit. It **does not consume one of
+the nine store slots**. It is required on the `call`, `empty`, `error` and
+`reward` poses for **stages 4–6**, matching board `02_call.png`. **Stages 1–3
+remain undressed** in every pose, carrying only their approved
+stage-specific features (eggs on the leaf, tadpole bubbles).
 
 **The backpack and hoodie do not exist in the current implementation at all** —
 they are board-only and must be drawn.
@@ -203,6 +221,10 @@ simplify paths rather than shipping heavy files.
 marzi_<stage>_<pose>_<expression>[_<outfit>][@2x|@3x].<ext>
 ```
 Lowercase, underscores only, stage slugs from §2, outfit slugs from §5.
+
+**The product name is always "Marzi".** "Marcy" appears twice in
+`02_call.png` and is a board typo (ADR-10). **No asset, filename, folder,
+layer name or metadata field may contain "Marcy".**
 
 Examples:
 ```
@@ -273,10 +295,17 @@ outfits stay on-model.
 7. Size budgets met.
 8. Family sign-off recorded before the swap task (C1) begins.
 
-**Open questions for the illustrator brief**
-1. Should `empty`/`error` cover all six stages, or 4–6 with a fallback?
-2. Are outfits drawn as complete figures, or composed from accessory layers?
-3. Is the hoodie a default costume for call/limit poses (as on board 02), or
-   an outfit among the nine?
-4. `02_call.png` writes "Marcy" twice; the canonical spelling is **Marzi**
-   (ADR-10) and has been treated as a board typo.
+**Resolved decisions** (approved 2026-08-01 — no longer open)
+1. **Empty/error coverage:** dedicated assets for **stages 4–6 only**;
+   stages 1–3 fall back to `hero_neutral` / `hero_sad`.
+2. **Outfit architecture:** **complete precomposed figures**, one approved
+   file per outfit. No runtime layered composition in this release.
+3. **Hoodie:** the **default call-companion look for stages 4–6**, not a
+   store outfit, and it consumes **no** outfit slot. Stages 1–3 stay
+   undressed apart from approved stage-specific features.
+4. **Name:** always **Marzi**. "Marcy" is a board typo and must never appear
+   in an asset, filename or layer name.
+
+**Vendor hand-off:** `docs/design/MARZI_ASSET_DELIVERY_CHECKLIST.md` is the
+one-page brief to send an illustrator. This document remains the full
+reference.
