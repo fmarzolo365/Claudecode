@@ -389,3 +389,54 @@ documenting a component or section.
 
 ## Tests
 `node --check server.js` — pass. `node test/run.js` — **20/20**.
+
+---
+
+# Implementation Report — Design token reconciliation (findings 1–4)
+
+**Task:** MARZI-DESIGN-RECONCILIATION, mechanical part only
+**Date:** 2026-08-01 · **Status:** Complete, tests green, NOT merged
+
+## Blocked / not attempted
+The concept boards did **not** reach this environment (no image in the
+message; nothing new in the repo or on disk). The board comparison —
+Marzi proportions, glasses/book/backpack, stage styling, outfits 4–6,
+owned/equipped store states, call-screen composition, overall tone — is
+**not** in this commit and remains open. No replacement art was invented.
+
+## Done (findings 1–4)
+| Raw values | Before | After |
+|---|---|---|
+| Hex colours outside `:root` | 65 | **0** |
+| Animation timings | 22 | **0** |
+| Type sizes (`font-size` + `font:`) | 88 | **0** |
+| Icon sizes (`IC.*(px)`) | 64 | **0** |
+| One-off `rgba()` overlays | 53 | 33 (documented debt) |
+
+Every replacement is value-exact: where no token matched, a token was added
+at the shipped value rather than snapping to a near neighbour. New token
+groups: extended palette (33 named surfaces), reused tints, the full
+animation scale plus semantic ambient loops (`--loop-glow/pulse/bob/drift`),
+the fine type ramp (`--text-f7-5` … `--text-f64`), and the icon scale
+mirrored in JS as `ICON` (SVG width/height take numbers, not custom
+properties).
+
+## Deliberately NOT tokenized
+`marziSVG`'s internal colours are family-approved artwork constants
+(ADR-5/ADR-10), not UI chrome. They stay as they are and change only with
+approved art.
+
+## Proof of no visual regression
+Seven screens captured at 390×844 (deviceScaleFactor 2) before and after,
+animations frozen: learn, practice, store, profile, call, done, evolution.
+A byte-level pixel comparison reports **0 differing bytes on every screen**
+(identical file sizes as a second signal). Method: raw PNG IDAT inflate +
+per-byte compare.
+
+## Enforcement added
+A new suite check fails on any raw hex, timing, type size or icon size
+outside `:root`, and on drift between the JS `ICON` scale and the
+`--icon-*` tokens.
+
+## Tests
+`node --check server.js` — pass. `node test/run.js` — **21/21**.

@@ -93,7 +93,7 @@ src += `\n;globalThis.__t = { T, TARGET, TARGETS, LEVELS, LEVEL_ORDER, SCENARIOS
   ENGINE_CONTRACTS, validateProvider, createProviderRegistry, ScenarioRegistry, CharacterRegistry,
   createTranscript, PromptBuilder, createConversationSession, ENGINE, send, ask,
   callStateFor, callStateLabel, callStateIcon, callSecondsLeft, renderScenarioCards, renderCharacterCard, scenarioSubtitle,
-  UI, IC, evolutionHTML };`;
+  UI, IC, ICON, evolutionHTML };`;
 eval(src);
 const tt = globalThis.__t;
 
@@ -640,6 +640,30 @@ check("design system: canonical components, tokens and documentation", () => {
   for (const c of COMPONENTS) if (!doc.includes("`UI." + c)) throw new Error("undocumented component: " + c);
   for (const sec of ["## Tokens", "Purpose", "States", "Accessibility", "Responsive", "Usage"]) {
     if (!doc.includes(sec)) throw new Error("design doc missing section: " + sec);
+  }
+});
+
+check("design tokens: no raw colours, timings, type sizes or icon sizes", () => {
+  // the CSS outside :root must be token-only - this is what keeps the
+  // design system canonical as new screens are added
+  const styleBlock = html.slice(html.indexOf("<style>"), html.indexOf("</style>"));
+  const rootStart = styleBlock.indexOf(":root {");
+  const root = styleBlock.slice(rootStart, styleBlock.indexOf("}", rootStart));
+  const body = styleBlock.replace(root, "");
+  const hexes = body.match(/#[0-9a-fA-F]{3,8}\b/g) || [];
+  if (hexes.length) throw new Error("hard-coded colours outside :root: " + [...new Set(hexes)].join(" "));
+  const durs = body.match(/(?:transition|animation)[^;]*?(?<![\w-])\d*\.?\d+s/g) || [];
+  if (durs.length) throw new Error("hard-coded timings outside :root: " + durs.join(" | "));
+  const sizes = (body.match(/font-size:\s*\d+\.?\d*px/g) || [])
+    .concat((body.match(/font:\s*[^;]+;/g) || []).flatMap((f) => f.match(/(?<![\w.-])\d+\.?\d*px(?=[\s/])/g) || []));
+  if (sizes.length) throw new Error("raw type sizes outside :root: " + [...new Set(sizes)].join(" "));
+  const icons = src.match(/IC\.\w+\(\d+\)/g) || [];
+  if (icons.length) throw new Error("raw icon sizes: " + [...new Set(icons)].join(" "));
+  // the JS icon scale and the CSS icon tokens must stay in step
+  for (const [name, px] of Object.entries(tt.ICON)) {
+    if (!root.includes(`--icon-${name === "xxs" ? "xxs" : name}: ${px}px`)) {
+      throw new Error(`icon scale drift: ICON.${name}=${px} has no matching --icon-${name}`);
+    }
   }
 });
 

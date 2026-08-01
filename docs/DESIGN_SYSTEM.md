@@ -27,11 +27,14 @@ may hard-code a colour, duration, radius, hit area or icon size.
 | **Colors — brand** | `--primary` `--primary-hover` `--primary-active` `--primary-soft` `--marzi-dark` | Marzi green. `--primary` is reserved for the primary action and selected states. |
 | **Colors — accent** | `--coin` `--red` `--green` | `--coin` only for currency, `--red` only for destructive/hang-up and errors. |
 | **Spacing** | `--space-1: 4px` … `--space-5: 24px` | 4px base grid. Gaps and padding use these, never raw px. |
-| **Typography** | `--font-sans` (Nunito Sans), `--text-xs: 11px` … `--text-xl: 26px` | Monospace (`JetBrains Mono`) is reserved for labels, timers and counters. |
+| **Typography — semantic** | `--font-sans` (Nunito Sans), `--text-xs: 11px` `--text-sm: 13px` `--text-md: 15px` `--text-lg: 19px` `--text-xl: 26px` | Monospace (`JetBrains Mono`) is reserved for labels, timers and counters. Prefer these for new work. |
+| **Typography — fine ramp** | `--text-f7-5` … `--text-f64` | The exact sizes shipping today, named so no raw px survives in the CSS. **Transitional:** consolidating them into the semantic scale changes pixels and needs board sign-off — see "Known debt". |
 | **Radius** | `--radius-sm: 12px` `--radius: 18px` `--radius-lg: 26px` `--radius-xl: 34px` | Pills use `999px`. |
 | **Shadows** | `--shadow-sm` `--shadow` `--shadow-lg` | Soft, warm-tinted. `-sm` for cards in a list, plain for hero surfaces, `-lg` for floating layers. |
-| **Animation** | `--dur-fast: .15s` `--dur: .25s` `--dur-slow: .6s`, `--ease`, `--ease-pop` | `--ease-pop` only for celebratory motion (evolution, rewards). |
-| **Icon sizes** | `--icon-sm: 13px` `--icon-md: 16px` `--icon-lg: 20px` `--icon-xl: 28px` | Icons come from the `IC` stroke set and inherit `currentColor`. |
+| **Colors — extended** | `--white` `--on-primary` `--ink-hover` `--stage-line` `--stage-from` `--stage-to` `--track` `--paper*` `--leaf-soft*` `--sand*` `--danger-ink/-soft` `--info-ink/-soft` `--warn-ink/-soft` `--coin-ink/-deep/-soft` `--disabled-fill` | Named surfaces extracted from the shipped CSS. Every value is the exact colour already in production — naming them changed no pixel. |
+| **Colors — tints** | `--tint-primary-04/-12/-35` `--tint-leaf-35` `--tint-danger-35` `--tint-info-28` `--tint-ink-04/-30` `--tint-teal-12` | Alpha overlays reused in more than one place. |
+| **Animation** | `--dur-xfast: .1s` `--dur-fast: .15s` `--dur-snap: .2s` `--dur: .25s` `--dur-med: .35s` `--dur-slow: .6s` `--dur-slower: 1s`, `--ease`, `--ease-pop` | Ambient loops have their own semantic tokens: `--loop-glow` (1.3s), `--loop-pulse` (1.4s), `--loop-bob` (3.4s), `--loop-drift` (5.2s). `--ease-pop` only for celebratory motion. |
+| **Icon sizes** | `--icon-xxs: 11px` `--icon-xs: 12px` `--icon-sm: 13px` `--icon-chip: 14px` `--icon-btn: 15px` `--icon-md: 16px` `--icon-lg: 18px` `--icon-xl: 20px` `--icon-hero: 22px` `--icon-jumbo: 34px` | Mirrored in JS as the `ICON` scale, because SVG width/height attributes take numbers, not custom properties. The suite fails if the two drift apart. |
 | **Touch targets** | `--touch-min: 48px` `--touch-lg: 56px` | **48px is a hard floor** for every interactive control. |
 | **Avatars** | `--avatar-sm: 48px` `--avatar-md: 56px` `--avatar-lg: 92px` `--avatar-xl: 112px` | |
 
@@ -271,3 +274,30 @@ is the compact variant of this component.
    is exhaustive by design, so a new component fails the suite until it is
    documented.
 4. Never add a colour, duration, radius or hit area outside the tokens.
+
+## Enforcement
+
+`node test/run.js` fails on **any** raw value in the stylesheet outside
+`:root`: hard-coded hex colours, `transition`/`animation` timings, `font-size`
+(or the size inside a `font:` shorthand), and raw px in `IC.*()` icon calls.
+It also fails if the JS `ICON` scale and the `--icon-*` tokens drift apart.
+Adding a screen with a stray `#fff` or `13px` breaks the build.
+
+## Known debt
+
+These are recorded rather than silently carried:
+
+1. **Fine type ramp.** 23 distinct sizes ship today. They are all tokenized,
+   but a real scale would have ~6 steps. Consolidation changes pixels →
+   needs the concept boards and family sign-off.
+2. **Single-use alpha overlays.** 33 one-off `rgba()` values remain inline
+   (borders, shadows, glows). Deriving them from base colours needs
+   `color-mix()`, which is not safe on the older Android WebView versions our
+   TWA must support — deferred deliberately, not overlooked.
+3. **Marzi's artwork colours** (`marziSVG` internals: greens, belly, lens)
+   are **intentionally not tokenized.** They are family-approved artwork
+   constants under ADR-5/ADR-10, not UI chrome, and must only change with
+   approved art.
+4. Board reconciliation (Marzi proportions, backpack, stage styling,
+   owned/equipped store states, `happy` mood art) is still open — see the
+   MARZI-DESIGN-RECONCILIATION notes in the implementation report.
