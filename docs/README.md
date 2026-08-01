@@ -25,6 +25,12 @@ Canonical documents for the app. Read in this order when picking up the work.
 ## Process
 - **[automation/MARZI_QUEUE.md](automation/MARZI_QUEUE.md)** — the sequential
   package queue and its rules; `automation/queue-state.json` holds the state.
+- **[automation/PRODUCT_AUTOMATION_002.md](automation/PRODUCT_AUTOMATION_002.md)** —
+  the MARZI-013…016 product queue and its approved decisions;
+  `automation/product-queue-state.json` holds the state.
+- **[automation/CONSOLIDATED_REPORT_002.md](automation/CONSOLIDATED_REPORT_002.md)** —
+  the review report for that queue: what shipped, what is open, how it was
+  verified.
 - **[EXPANSION.md](EXPANSION.md)** — multi-language groundwork (TARGETS).
 
 ## Gates

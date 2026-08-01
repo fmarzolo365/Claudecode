@@ -1316,6 +1316,39 @@
   .achv small { display: block; font: 700 var(--text-f11-5) var(--font-sans); color: var(--muted); }
   .achv-ic { display: inline-flex; flex: 0 0 auto; color: var(--muted); }
   .achv[data-state="earned"] { border-color: var(--primary); background: var(--tint-primary-04); }
+  /* ---------- MARZI-016: learning journey ----------
+     A path over the existing scenarios. `future` is dimmer, never disabled -
+     every node opens exactly as it does in the picker. */
+  .jr-path { list-style: none; margin: 0; padding: 0 0 0 var(--space-5); position: relative; }
+  .jr-path::before {
+    content: ""; position: absolute; inset-block: 12px; inset-inline-start: 9px;
+    width: 2px; background: var(--track); border-radius: 2px;
+  }
+  .jr-group {
+    font-family: 'JetBrains Mono', monospace; font-size: var(--text-f10-5);
+    letter-spacing: .18em; text-transform: uppercase; color: var(--muted); margin: 14px 0 6px;
+  }
+  .jr-li { position: relative; margin-bottom: var(--space-2); }
+  .jr-node {
+    display: flex; align-items: center; gap: var(--space-2); width: 100%;
+    min-height: var(--touch-min); padding: var(--space-2) var(--space-3);
+    background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+    box-shadow: var(--shadow-sm); cursor: pointer; text-align: start;
+  }
+  .jr-node::before {
+    content: ""; position: absolute; inset-inline-start: calc(-1 * var(--space-5) + 4px); top: 50%;
+    width: 12px; height: 12px; margin-top: -6px; border-radius: 50%;
+    background: var(--track); border: 2px solid var(--card);
+  }
+  .jr-face { flex: 0 0 auto; font-size: var(--text-lg); }
+  .jr-nm { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; font: 700 var(--text-sm) var(--font-sans); color: var(--ink); }
+  .jr-st { flex: 0 0 auto; display: inline-flex; color: var(--primary); }
+  .jr-node[data-state="done"]::before { background: var(--primary); }
+  .jr-node[data-state="here"] { border-color: var(--primary); box-shadow: 0 0 0 2px var(--tint-primary-35), var(--shadow-sm); }
+  .jr-node[data-state="here"]::before { background: var(--primary); }
+  .jr-node[data-state="future"] { opacity: .62; }
+  .jr-list .item[data-state="here"] { border-color: var(--primary); }
+  .jr-list .item[data-state="future"] { opacity: .62; }
   .achv[data-state="earned"] .achv-ic { color: var(--primary); }
   /* screen-reader-only live region (review §12) */
   .sr-only {
@@ -1393,6 +1426,14 @@
       <div class="routine" id="routine"></div>
     </div>
     <div class="grid3" id="learnActs"></div>
+    <!-- MARZI-016: the learning journey lives inside Learn, below the existing
+         hero and mission content so nothing above it moves. Tabs unchanged. -->
+    <section class="jr" aria-labelledby="jrTitle">
+      <div class="label prof-achv-lbl" style="margin-top:18px"><span id="jrTitle"></span><span class="prof-achv-n" id="jrCount"></span></div>
+      <div class="seg" id="jrSeg" role="group"></div>
+      <div id="jrBody" style="margin-top:10px"></div>
+      <button class="big cta hidden" id="jrNext" style="margin-top:12px"></button>
+    </section>
   </section>
 
   <!-- TALK: scenario setup (the original Telefontrainer core) -->
@@ -1803,6 +1844,8 @@ const T = {
     profMotion:"Reducir movimiento", profReviewed:"Errores repasados", profNext:"Próxima etapa", profMax:"Etapa máxima",
     achCall1:"Primera llamada", achCall10:"10 llamadas", achCall50:"50 llamadas", achMin60:"60 minutos hablando",
     achStreak7:"7 días seguidos", achStreak30:"30 días seguidos", achFix25:"25 errores repasados", achOutfit1:"Primera ropa",
+    jrTitle:"Tu camino", jrMap:"Mapa", jrList:"Lista", jrDone:"Hecho", jrHere:"Estás aquí",
+    jrOpen:"Disponible", jrFuture:"Más adelante", jrNext:"Siguiente", jrReview:"Repasar",
     offlineTitle:"Sin conexión", offlineMsg:"Necesitas conexión para llamar. Vuelve a intentarlo cuando tengas internet.",
     rwTime:"Duración", rwTurns:"Turnos", rwMistakes:"Correcciones", rwNormal:"¡Buen trabajo! Sigue así.",
     rwHigh:"¡Excelente llamada! Hablaste con confianza.", rwZero:"Habla la próxima vez para ganar XP.", rwEvolvedTitle:"¡Marzi ha crecido!", rwContinue:"Continuar",
@@ -1873,6 +1916,8 @@ const T = {
     profMotion:"Reduce motion", profReviewed:"Mistakes reviewed", profNext:"Next stage", profMax:"Final stage",
     achCall1:"First call", achCall10:"10 calls", achCall50:"50 calls", achMin60:"60 minutes speaking",
     achStreak7:"7 days in a row", achStreak30:"30 days in a row", achFix25:"25 mistakes reviewed", achOutfit1:"First outfit",
+    jrTitle:"Your journey", jrMap:"Map", jrList:"List", jrDone:"Done", jrHere:"You are here",
+    jrOpen:"Available", jrFuture:"Later on", jrNext:"Next", jrReview:"Review",
     offlineTitle:"No connection", offlineMsg:"You need a connection to call. Try again once you are back online.",
     rwTime:"Duration", rwTurns:"Turns", rwMistakes:"Corrections", rwNormal:"Nice work! Keep going.",
     rwHigh:"Excellent call! You spoke with confidence.", rwZero:"Speak next time to earn XP.", rwEvolvedTitle:"Marzi has grown!", rwContinue:"Continue",
@@ -1946,6 +1991,8 @@ T.tr = { tagline:"Gerçek Almanca aramalar ve konuşmalar pratiği yap. Sen konu
   profMotion:"Hareketi azalt", profReviewed:"Tekrar edilen hatalar", profNext:"Sonraki aşama", profMax:"Son aşama",
   achCall1:"İlk arama", achCall10:"10 arama", achCall50:"50 arama", achMin60:"60 dakika konuşma",
   achStreak7:"Üst üste 7 gün", achStreak30:"Üst üste 30 gün", achFix25:"25 hata tekrar edildi", achOutfit1:"İlk kıyafet",
+  jrTitle:"Yolun", jrMap:"Harita", jrList:"Liste", jrDone:"Tamam", jrHere:"Buradasın",
+  jrOpen:"Hazır", jrFuture:"İleride", jrNext:"Sıradaki", jrReview:"Tekrar et",
   offlineTitle:"Bağlantı yok", offlineMsg:"Aramak için bağlantı gerekir. İnternet gelince tekrar dene.",
   rwTime:"Süre", rwTurns:"Tur", rwMistakes:"Düzeltme", rwNormal:"Güzel iş! Böyle devam.",
   rwHigh:"Harika bir görüşme! Kendinden emin konuştun.", rwZero:"XP kazanmak için konuş.", rwEvolvedTitle:"Marzi büyüdü!", rwContinue:"Devam",
@@ -2016,6 +2063,8 @@ T.ar = { tagline:"تدرّب على مكالمات ومحادثات حقيقية
   profMotion:"تقليل الحركة", profReviewed:"أخطاء تمت مراجعتها", profNext:"المرحلة التالية", profMax:"المرحلة الأخيرة",
   achCall1:"أول مكالمة", achCall10:"10 مكالمات", achCall50:"50 مكالمة", achMin60:"60 دقيقة تحدث",
   achStreak7:"7 أيام متتالية", achStreak30:"30 يومًا متتاليًا", achFix25:"مراجعة 25 خطأ", achOutfit1:"أول ملابس",
+  jrTitle:"رحلتك", jrMap:"خريطة", jrList:"قائمة", jrDone:"تم", jrHere:"أنت هنا",
+  jrOpen:"متاح", jrFuture:"لاحقًا", jrNext:"التالي", jrReview:"مراجعة",
   offlineTitle:"لا يوجد اتصال", offlineMsg:"تحتاج إلى اتصال لإجراء مكالمة. حاول مرة أخرى عند عودة الإنترنت.",
   rwTime:"المدة", rwTurns:"الأدوار", rwMistakes:"التصحيحات", rwNormal:"عمل جيد! واصل.",
   rwHigh:"مكالمة ممتازة! تحدثت بثقة.", rwZero:"تحدث في المرة القادمة لتكسب XP.", rwEvolvedTitle:"لقد كبر مارزي!", rwContinue:"متابعة",
@@ -2086,6 +2135,8 @@ T.uk = { tagline:"Тренуй реальні дзвінки й розмови �
   profMotion:"Менше руху", profReviewed:"Опрацьовані помилки", profNext:"Наступний етап", profMax:"Останній етап",
   achCall1:"Перший дзвінок", achCall10:"10 дзвінків", achCall50:"50 дзвінків", achMin60:"60 хвилин мовлення",
   achStreak7:"7 днів поспіль", achStreak30:"30 днів поспіль", achFix25:"25 опрацьованих помилок", achOutfit1:"Перший одяг",
+  jrTitle:"Твій шлях", jrMap:"Карта", jrList:"Список", jrDone:"Готово", jrHere:"Ти тут",
+  jrOpen:"Доступно", jrFuture:"Далі", jrNext:"Далі", jrReview:"Повторити",
   offlineTitle:"Немає зв'язку", offlineMsg:"Для дзвінка потрібне з'єднання. Спробуй ще раз, коли з'явиться інтернет.",
   rwTime:"Тривалість", rwTurns:"Репліки", rwMistakes:"Виправлення", rwNormal:"Гарна робота! Так тримати.",
   rwHigh:"Чудова розмова! Ти говорив упевнено.", rwZero:"Говори наступного разу, щоб отримати XP.", rwEvolvedTitle:"Marzi підріс!", rwContinue:"Далі",
@@ -2157,6 +2208,8 @@ T.it = { tagline:"Allenati con telefonate e conversazioni reali in tedesco. Tu p
   profMotion:"Riduci il movimento", profReviewed:"Errori ripassati", profNext:"Prossima fase", profMax:"Fase finale",
   achCall1:"Prima chiamata", achCall10:"10 chiamate", achCall50:"50 chiamate", achMin60:"60 minuti di parlato",
   achStreak7:"7 giorni di fila", achStreak30:"30 giorni di fila", achFix25:"25 errori ripassati", achOutfit1:"Primo vestito",
+  jrTitle:"Il tuo percorso", jrMap:"Mappa", jrList:"Elenco", jrDone:"Fatto", jrHere:"Sei qui",
+  jrOpen:"Disponibile", jrFuture:"Più avanti", jrNext:"Prossimo", jrReview:"Ripassa",
   offlineTitle:"Nessuna connessione", offlineMsg:"Serve una connessione per chiamare. Riprova quando torni online.",
   rwTime:"Durata", rwTurns:"Turni", rwMistakes:"Correzioni", rwNormal:"Bel lavoro! Continua così.",
   rwHigh:"Ottima chiamata! Hai parlato con sicurezza.", rwZero:"Parla la prossima volta per guadagnare XP.", rwEvolvedTitle:"Marzi è cresciuto!", rwContinue:"Continua",
@@ -2671,7 +2724,7 @@ function outfitName(id) {
 const DEFAULT_STATS = Object.freeze({
   version: 1, days: {}, calls: 0, seconds: 0, secDays: {}, extraSecs: {},
   vocabDays: {}, drillDays: {}, xp: 0, coins: 0, ownedItemIds: [], equippedItemIds: [],
-  legacyUnknownItemIds: [],
+  legacyUnknownItemIds: [], scenariosDone: {},
 });
 function finiteNonNegative(value, fallback = 0) {
   return Number.isFinite(value) && value >= 0 ? value : fallback;
@@ -2683,7 +2736,7 @@ function normalizeStats(value) {
   return {
     version: 1,
     days: obj(s.days), secDays: obj(s.secDays), extraSecs: obj(s.extraSecs),
-    vocabDays: obj(s.vocabDays), drillDays: obj(s.drillDays),
+    vocabDays: obj(s.vocabDays), drillDays: obj(s.drillDays), scenariosDone: obj(s.scenariosDone),
     calls: finiteNonNegative(s.calls), seconds: finiteNonNegative(s.seconds),
     xp: finiteNonNegative(s.xp), coins: finiteNonNegative(s.coins),
     ...normalizeWardrobe(idList(s.ownedItemIds), idList(s.equippedItemIds), idList(s.legacyUnknownItemIds)),
@@ -2868,6 +2921,13 @@ function recordCall() {
   st.calls += 1;
   st.seconds += S.seconds;
   st.secDays[d] = (st.secDays[d] || 0) + S.seconds;
+  // MARZI-016: which scenario this call completed, so the learning map can
+  // show real progress. Ad-hoc topics have no node and are not recorded.
+  const sid = (S.active || S.scenario || {}).id;
+  if (sid && sid !== "custom" && sid !== "random") {
+    st.scenariosDone = st.scenariosDone || {};
+    st.scenariosDone[sid] = (st.scenariosDone[sid] || 0) + 1;
+  }
   try { localStorage.setItem(STAT_KEY, JSON.stringify(st)); } catch (e) {}
   return gained;
 }
@@ -3541,6 +3601,106 @@ function speak(text, slow, done, sp) {
   deviceSpeak(text, rate, done);
 }
 
+/* ---------- MARZI-016: the learning journey ----------
+   A map over the EXISTING scenarios in the EXISTING group order - no new
+   characters, no new scenarios, no simulated town. Every node stays as
+   reachable as it is in the picker: `future` is a look-ahead marker, never a
+   lock, so navigation is unchanged. */
+function journeyNodes() {
+  const out = [];
+  GROUPS.forEach((g, gi) => {
+    g.ids.forEach((id) => {
+      const s = SCENARIOS.find((x) => x.id === id);
+      if (s && s.goals) out.push({ id, scenario: s, group: g, groupIndex: gi });
+    });
+  });
+  return out;
+}
+/* States: done · here (the one recommended next) · open (reachable and part
+   of a group already under way) · future (further along the path). */
+function journeyState(st) {
+  const done = (st || loadStats()).scenariosDone || {};
+  const nodes = journeyNodes();
+  const isDone = (n) => (done[n.id] || 0) > 0;
+  const startedGroups = new Set(nodes.filter(isDone).map((n) => n.groupIndex));
+  const hereIndex = nodes.findIndex((n) => !isDone(n));
+  const hereGroup = hereIndex < 0 ? -1 : nodes[hereIndex].groupIndex;
+  const list = nodes.map((n, i) => ({
+    ...n,
+    times: done[n.id] || 0,
+    state: isDone(n) ? "done"
+      : i === hereIndex ? "here"
+      : startedGroups.has(n.groupIndex) || n.groupIndex === hereGroup ? "open"
+      : "future",
+  }));
+  return {
+    nodes: list,
+    doneCount: list.filter((n) => n.state === "done").length,
+    total: list.length,
+    here: hereIndex < 0 ? null : list[hereIndex],
+  };
+}
+let JOURNEY_VIEW = "map"; // "map" | "list" - the accessible alternative
+function setJourneyView(v) {
+  JOURNEY_VIEW = v === "list" ? "list" : "map";
+  renderJourney();
+  return JOURNEY_VIEW;
+}
+function goToScenario(id) {
+  const s = SCENARIOS.find((x) => x.id === id);
+  if (!s) return false;
+  S.scenario = s;
+  saveSettings();
+  renderSetup();
+  showTab("talk");
+  return true;
+}
+function renderJourney() {
+  const L = t();
+  const J = journeyState();
+  const stateLabel = { done: L.jrDone, here: L.jrHere, open: L.jrOpen, future: L.jrFuture };
+  $("jrTitle").textContent = L.jrTitle;
+  $("jrCount").textContent = `${J.doneCount}/${J.total}`;
+  $("jrSeg").innerHTML =
+    `<button type="button" data-jv="map" class="${JOURNEY_VIEW === "map" ? "on" : ""}" aria-pressed="${JOURNEY_VIEW === "map"}">${esc(L.jrMap)}</button>` +
+    `<button type="button" data-jv="list" class="${JOURNEY_VIEW === "list" ? "on" : ""}" aria-pressed="${JOURNEY_VIEW === "list"}">${esc(L.jrList)}</button>`;
+  $("jrSeg").querySelectorAll("[data-jv]").forEach((b) => b.onclick = () => setJourneyView(b.dataset.jv));
+
+  const label = (n) => `${n.scenario.de} · ${stateLabel[n.state]}`;
+  if (JOURNEY_VIEW === "map") {
+    let lastGroup = -1;
+    $("jrBody").innerHTML = `<ol class="jr-path">` + J.nodes.map((n) => {
+      const head = n.groupIndex !== lastGroup
+        ? `<li class="jr-group" role="presentation">${esc(n.group[S.lang] || n.group.en)}</li>` : "";
+      lastGroup = n.groupIndex;
+      return head + `<li class="jr-li"><button class="jr-node" type="button" data-jn="${esc(n.id)}"` +
+        ` data-state="${n.state}"${n.state === "here" ? ' aria-current="step"' : ""}` +
+        ` aria-label="${esc(label(n))}"><span class="jr-face" aria-hidden="true">${esc(n.scenario.avatar || "🎧")}</span>` +
+        `<span class="jr-nm">${esc(n.scenario.de)}</span>` +
+        `<span class="jr-st" aria-hidden="true">${n.state === "done" ? IC.check(ICON.xs) : ""}</span></button></li>`;
+    }).join("") + `</ol>`;
+  } else {
+    let lastGroup = -1;
+    $("jrBody").innerHTML = `<div class="list jr-list">` + J.nodes.map((n) => {
+      const head = n.groupIndex !== lastGroup
+        ? `<div class="label" style="margin:14px 14px 6px">${esc(n.group[S.lang] || n.group.en)}</div>` : "";
+      lastGroup = n.groupIndex;
+      return head + `<button class="item" type="button" data-jn="${esc(n.id)}" data-state="${n.state}"` +
+        `${n.state === "here" ? ' aria-current="step"' : ""}><b>${esc(n.scenario.de)}</b>` +
+        `<small>${esc(scenarioSubtitle(n.scenario) + " · " + stateLabel[n.state])}</small></button>`;
+    }).join("") + `</div>`;
+  }
+  $("jrBody").querySelectorAll("[data-jn]").forEach((b) => b.onclick = () => goToScenario(b.dataset.jn));
+
+  // exactly one recommended next action
+  const next = J.here || J.nodes[0];
+  $("jrNext").innerHTML = next
+    ? IC.mic(ICON.lg) + " " + esc(`${J.here ? L.jrNext : L.jrReview}: ${next.scenario.de}`)
+    : "";
+  $("jrNext").classList.toggle("hidden", !next);
+  if (next) $("jrNext").onclick = () => goToScenario(next.id);
+}
+
 /* ---------- setup screen ---------- */
 /* ---------- MARZI-005: practice scenario + character cards ----------
    Cards over the existing SCENARIOS data only - no new characters, no new
@@ -3713,6 +3873,7 @@ function renderLearn() {
   $("heroSub").textContent = `${st.calls || 0} ${L.calls}`;
   $("practiceBtn").innerHTML = IC.mic(ICON.lg) + " " + esc(L.practiceNow);
   $("practiceBtn").onclick = () => goCall();
+  renderJourney();
 
   const strk = currentStreak(st);
   $("heroStreak").innerHTML = `${IC.flame(ICON.btn)} ${strk} <small>${esc(L.days)}</small>`;

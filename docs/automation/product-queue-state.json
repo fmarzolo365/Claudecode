@@ -22,7 +22,7 @@
     {
       "id": "MARZI-016",
       "title": "Map / Learning Journey",
-      "status": "in_progress",
+      "status": "done",
       "commit": null
     }
   ],
@@ -31,5 +31,6 @@
     "mb": "presentation of existing minutes at 10 MB = 1 minute from one canonical value"
   },
   "branch": "claude/german-phone-app-setup-bx0cr1",
-  "startedFrom": "1aeed3e"
+  "startedFrom": "1aeed3e",
+  "completed": true
 }

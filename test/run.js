@@ -115,7 +115,8 @@ src += `\n;globalThis.__t = { T, TARGET, TARGETS, LEVELS, LEVEL_ORDER, SCENARIOS
   OUTFITS, STORE_CATS, LEGACY_OUTFIT_IDS, outfitById, outfitName, outfitState,
   purchaseOutfit, equipOutfit, unequipOutfit, renderStore, openOutfitPreview, normalizeWardrobe,
   profileSnapshot, reviewedMistakeCount, ACHIEVEMENTS, achievementState, renderProfile, applyReduceMotion,
-  MARZI_STAGE_XP, currentStreak, loadWords };`;
+  MARZI_STAGE_XP, currentStreak, loadWords,
+  journeyNodes, journeyState, renderJourney, setJourneyView, goToScenario, renderLearn };`;
 eval(src);
 const tt = globalThis.__t;
 
@@ -1357,6 +1358,82 @@ check("MARZI-015 profile: verified data only, wardrobe, achievements, a11y", () 
   if (document.body.classList.has("reduce-motion")) throw new Error("reduce motion not removable");
   if (!/reduceMotion:!!S\.reduceMotion/.test(src)) throw new Error("reduce motion is not persisted");
   if (!/applyReduceMotion\(\);\s*\n/.test(src)) throw new Error("reduce motion not applied at boot");
+});
+
+check("MARZI-016 journey: existing scenarios, states, one next action, list view", () => {
+  const L = tt.T.en;
+  tt.S.lang = "en";
+
+  // the map is built from the EXISTING groups and playable scenarios only
+  const nodes = tt.journeyNodes();
+  const playable = tt.SCENARIOS.filter((s) => s.goals).map((s) => s.id).sort();
+  if (nodes.map((n) => n.id).sort().join() !== playable.join()) throw new Error("map is not the existing playable scenarios");
+  if (new Set(nodes.map((n) => n.id)).size !== nodes.length) throw new Error("a scenario appears twice on the path");
+  const groupOrder = nodes.map((n) => n.groupIndex);
+  if (groupOrder.join() !== [...groupOrder].sort((a, b) => a - b).join()) throw new Error("path does not follow the existing group order");
+  for (const n of nodes) if (!tt.GROUPS[n.groupIndex].ids.includes(n.id)) throw new Error("node outside its group");
+
+  // an untouched learner: nothing done, position at the very first node
+  localStorage.setItem("marzi.stats.v1", JSON.stringify({ days: {}, xp: 0, coins: 0 }));
+  const fresh = tt.journeyState();
+  if (fresh.doneCount !== 0) throw new Error("a fresh learner has completed nodes");
+  if (fresh.total !== nodes.length) throw new Error("total is not the node count");
+  if (!fresh.here || fresh.here.id !== nodes[0].id) throw new Error("current position is not the first node");
+  if (fresh.here.state !== "here") throw new Error("the position node is not marked");
+  // every state that exists is one of the four, and later groups read as future
+  for (const n of fresh.nodes) if (!["done", "here", "open", "future"].includes(n.state)) throw new Error("unknown state: " + n.state);
+  if (!fresh.nodes.some((n) => n.state === "future")) throw new Error("no future nodes on an untouched path");
+  if (!fresh.nodes.some((n) => n.state === "open")) throw new Error("no available nodes beside the current one");
+
+  // after finishing the first two, they read as done and the position moves on
+  const first = nodes[0].id, second = nodes[1].id;
+  localStorage.setItem("marzi.stats.v1", JSON.stringify({ days: {}, xp: 0, coins: 0, scenariosDone: { [first]: 2, [second]: 1 } }));
+  const J = tt.journeyState();
+  if (J.doneCount !== 2) throw new Error("completed count: " + J.doneCount);
+  if (J.nodes[0].state !== "done" || J.nodes[1].state !== "done") throw new Error("finished scenarios not marked done");
+  if (J.nodes[0].times !== 2) throw new Error("repeat count not kept");
+  if (!J.here || J.here.id !== nodes[2].id) throw new Error("position did not advance");
+  if (J.nodes.filter((n) => n.state === "here").length !== 1) throw new Error("more than one current position");
+  // a group with a completion is open, never future
+  const started = new Set(J.nodes.filter((n) => n.state === "done").map((n) => n.groupIndex));
+  for (const n of J.nodes) if (started.has(n.groupIndex) && n.state === "future") throw new Error("a started group must not read as future");
+
+  // completion comes from real calls: recordCall writes the scenario it finished
+  const rc = String(src.match(/function recordCall\(\)[\s\S]*?\n\}/)[0]);
+  if (!/st\.scenariosDone\[sid\] = \(st\.scenariosDone\[sid\] \|\| 0\) \+ 1/.test(rc)) throw new Error("completion is not recorded from a real call");
+  if (!/sid !== "custom" && sid !== "random"/.test(rc)) throw new Error("ad-hoc topics must not create a node");
+  if (!/scenariosDone: obj\(s\.scenariosDone\)/.test(src)) throw new Error("completion is not normalized with the rest of stats");
+
+  // rendering: map view, four states, one recommended action, nothing locked
+  tt.setJourneyView("map");
+  tt.renderJourney();
+  const map = document.getElementById("jrBody").innerHTML;
+  if (!map.includes('data-state="done"') || !map.includes('data-state="here"') || !map.includes('data-state="future"'))
+    throw new Error("map does not render the node states");
+  if (!map.includes('aria-current="step"')) throw new Error("current position not exposed to assistive tech");
+  if (/data-jn="[^"]*"[^>]*disabled/.test(map)) throw new Error("a node was disabled - the map must not lock navigation");
+  if (!map.includes(tt.GROUPS[0].en)) throw new Error("group headings missing");
+  if (document.getElementById("jrCount").textContent !== `2/${J.total}`) throw new Error("progress count");
+  const nextLabel = document.getElementById("jrNext").innerHTML;
+  if (!nextLabel.includes(L.jrNext) || !nextLabel.includes(J.here.scenario.de)) throw new Error("the one recommended action is wrong");
+  if (document.getElementById("jrNext").classList.has("hidden")) throw new Error("recommended action hidden");
+
+  // accessible list alternative renders the same nodes with their state in text
+  if (tt.setJourneyView("list") !== "list") throw new Error("list view not selectable");
+  const list = document.getElementById("jrBody").innerHTML;
+  const ids = (s) => (s.match(/data-jn="([^"]+)"/g) || []).join();
+  if (ids(list) !== ids(map)) throw new Error("the list alternative shows different nodes");
+  if (!list.includes(L.jrDone) || !list.includes(L.jrFuture)) throw new Error("states are not written out in the list view");
+  tt.setJourneyView("map");
+
+  // the map lives inside Learn and the tab set is untouched
+  const learn = html.slice(html.indexOf('<section id="learn"'), html.indexOf('<section id="setup"'));
+  if (!learn.includes('id="jrBody"')) throw new Error("the journey must live inside Learn");
+  if (Object.keys(tt.TAB_HASH).join() !== "learn,talk,store,profile") throw new Error("navigation changed");
+
+  // no new scenarios or characters were introduced
+  if (tt.SCENARIOS.length !== new Set(tt.SCENARIOS.map((s) => s.id)).size) throw new Error("duplicate scenario ids");
+  if (tt.GROUPS.flatMap((g) => g.ids).some((id) => !tt.SCENARIOS.find((s) => s.id === id))) throw new Error("a group points at a scenario that does not exist");
 });
 
 check("progress chart renders points, CEFR bands and a projection", () => {

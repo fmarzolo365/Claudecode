@@ -1041,3 +1041,66 @@ its name and its state side by side as flex siblings, so a long localized name
 pushed the card 4px past a 360px viewport (`scrollX: 4`). The text is now its
 own shrinkable column (`min-width: 0; overflow-wrap: anywhere`) — re-measured
 `scrollX = 0` and no element past the viewport edge.
+
+---
+
+# Implementation Report — MARZI-016 (PRODUCT-AUTOMATION-002, 4/4)
+
+**Task:** Map / Learning Journey · **Status:** Complete, 34/34 green, NOT merged
+
+**Existing scenarios only.** `journeyNodes()` walks the existing `GROUPS` in
+their existing order and takes the playable scenarios (`s.goals`) from each —
+19 nodes. The suite asserts the node set is exactly the playable scenarios,
+that no scenario appears twice, that the path follows the stored group order,
+and that no group points at a scenario that does not exist. **No new
+characters, no new scenarios, no simulated town.**
+
+**Four node states**, from one rule in `journeyState()`:
+
+| State | Rule |
+|---|---|
+| `done` | the learner has completed it at least once |
+| `here` | the first not-yet-completed node — the learner's current position |
+| `open` | not done, in a group that is already under way |
+| `future` | further along the path |
+
+`future` is a **look-ahead marker, never a lock**: nodes are ordinary buttons,
+none is disabled, and tapping any of them selects that scenario and opens Talk
+— exactly what the picker already does. Verified in Chromium that zero nodes
+render disabled and that the bottom navigation still has its four tabs.
+
+**Completion is real data.** Nothing existed to say *which* scenario a call
+finished, so `recordCall` now records it — after the reward claim succeeds, so
+ledger semantics are untouched, and never for ad-hoc `custom` / `random`
+topics, which have no node. `scenariosDone` is normalized with the rest of
+stats. Learners who already have calls start with an empty map and fill it in
+as they play; nothing is back-filled or guessed.
+
+**One recommended next action.** A single CTA points at the `here` node
+(`Siguiente: Termin beim Bürgeramt`). When the whole path is complete it
+becomes a review of the first node instead — never zero actions, never two.
+
+**Accessible list alternative.** A Map / List segmented control renders the
+same nodes from the same model; the list writes each state out in text
+(`Hecho`, `Estás aquí`, `Disponible`, `Más adelante`) instead of relying on
+colour and dimming. The map itself is an ordered list of buttons with
+`aria-current="step"` on the current position and a state-bearing
+`aria-label` on every node. The suite asserts both views render an identical
+node sequence.
+
+**Placement.** The journey sits inside Learn, **below** the existing hero,
+mission card and quick actions, so nothing above it moves. Navigation is
+unchanged: same four tabs, same hashes.
+
+**Progression.** Stage and XP are read, never written — no new XP source, no
+new coin source, no new gating.
+
+**i18n.** 9 new keys in all six help languages.
+
+**Verification.** Suite 34/34, `node --check server.js`. Chromium 390×844 and
+360×640 in `es`, plus 390×844 in `ar`: 19 nodes, `2/19` complete, exactly one
+`aria-current` node, all four states present, 0 disabled, the single
+recommended action naming the right scenario, the list view showing the same
+19 nodes, zero undersized targets, `scrollX = 0`. Tapping a node selects it
+(`picked: "bank"`) and lands on Talk with the tab count still 4. `sw.js`
+CACHE v35.
