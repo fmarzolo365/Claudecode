@@ -759,3 +759,38 @@ after an initial `scrollTo` probe proved misleading.
 
 Chromium 390×844 and 360×640: full-screen, plan `30 / 30 min`, countdown,
 Escape dismissal, zero undersized targets. `sw.js` CACHE v29.
+
+---
+
+# Implementation Report — MARZI-010 (queue 2/4)
+
+**Task:** Right-to-left support and accessibility sweep
+**Status:** Complete, 28/28 green, NOT merged
+
+**RTL.** Arabic has shipped as a help language since the beginning, but the
+document never changed direction. `applyLangDirection()` now sets
+`documentElement.lang` and `dir`, at boot and whenever the help language
+changes. Mirrored components were converted to **logical properties**
+(`inset-inline-*`, `margin-inline-start`, `text-align: start`,
+`border-end-start-radius`), so one stylesheet serves both directions.
+Verified in Chromium: Arabic renders `dir="rtl"` with the store close button
+at x=16 and coins at x=296 (mirrored from 326/16 in English), and the call
+companion moves from x=8 to x=256.
+
+**Sweep.** An automated pass over Learn, Talk, Store, Profile, Call, the
+transcript sheet and Done found **zero unlabelled controls** and seven kinds
+of undersized target. Result after fixes: **zero undersized targets on every
+screen**.
+
+- Compact chrome (top-bar chips, menu, drawer close, store close) keeps its
+  board size and gains a **48px hit area** via an `::after` extension — the
+  visual stays, the target meets the floor.
+- Segmented controls (level/speed), the mission routine chips and the legal
+  links were raised to `--touch-min` directly.
+
+**Honest note on pixels.** The logical-property conversion is pixel-neutral in
+LTR by construction. The touch-target minimums **intentionally** change three
+LTR heights: segmented buttons and routine chips 27→48px, legal links 15→48px.
+That is the point of the package, not a regression.
+
+`sw.js` CACHE v30.

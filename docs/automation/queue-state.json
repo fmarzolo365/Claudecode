@@ -14,12 +14,12 @@
       "id": "MARZI-009",
       "title": "Plan-limit experience",
       "status": "done",
-      "commit": null
+      "commit": "b224001"
     },
     {
       "id": "MARZI-010",
       "title": "RTL and accessibility sweep",
-      "status": "pending",
+      "status": "done",
       "commit": null
     },
     {

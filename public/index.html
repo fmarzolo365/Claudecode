@@ -504,13 +504,13 @@
   }
   .xpbar > div { height: 100%; background: var(--xp-fill); border-radius: 999px; transition: width var(--dur-slow) var(--ease); }
   .xpbar .xp-val {
-    position: absolute; top: 50%; right: 4px; transform: translateY(-50%);
+    position: absolute; top: 50%; inset-inline-end: 4px; transform: translateY(-50%);
     background: var(--card); color: var(--ink); border-radius: 999px; padding: 2px var(--space-2);
     font: 700 var(--text-f10) 'JetBrains Mono', monospace; white-space: nowrap;
   }
   .hero-sub { margin-top: 9px; font-size: var(--text-f11-5); color: var(--muted); }
   .routine { display: flex; gap: 6px; margin-top: 10px; }
-  .routine button {
+  .routine button { min-height: var(--touch-min);
     flex: 1; text-align: center; font: 600 var(--text-xs) var(--font-sans); border: none; cursor: pointer;
     padding: 7px 4px; border-radius: 99px; background: var(--track); color: var(--muted);
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
@@ -562,8 +562,8 @@
   input[type=text]::placeholder { color: var(--muted); opacity: .8; }
   /* MARZI-005: compact opener for the full grouped situation list */
   .picked {
-    width: 100%; text-align: left; border: 1px solid var(--line); background: var(--card);
-    border-radius: var(--radius); box-shadow: var(--shadow-sm); padding: 0 42px 0 16px;
+    width: 100%; text-align: start; border: 1px solid var(--line); background: var(--card);
+    border-radius: var(--radius); box-shadow: var(--shadow-sm); padding-inline: 16px 42px;
     min-height: 48px; cursor: pointer; font: inherit; display: flex; align-items: center;
     gap: 8px; position: relative; margin-top: var(--space-2); transition: background var(--dur-fast) ease;
   }
@@ -660,7 +660,7 @@
     font-size: var(--text-f16); line-height: 1.5; box-shadow: 0 1px 2px var(--tint-ink-04);
   }
   .dlg-prog { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
-  .dlg-marzi { width: 38px; height: 38px; flex: 0 0 38px; margin-left: auto; }
+  .dlg-marzi { width: 38px; height: 38px; flex: 0 0 38px; margin-inline-start: auto; }
   .dlg-marzi svg { width: 100%; height: 100%; }
   /* ---------- Marzi redesign: Learn home, Store, Profile ---------- */
   /* Learn hero: Marzi is the tappable companion hero (review §4) */
@@ -752,7 +752,7 @@
     border: 1.5px dashed var(--line); border-radius: 16px; color: var(--muted);
   }
   .outfit-card[data-state="locked"] .outfit-preview { filter: grayscale(.4); }
-  .outfit-lock { position: absolute; top: 7px; right: 8px; font-size: var(--text-f14); }
+  .outfit-lock { position: absolute; top: 7px; inset-inline-end: 8px; font-size: var(--text-f14); }
   .outfit-copy { padding: 7px 10px 2px; }
   .outfit-copy small {
     display: block; font: 700 var(--text-f8) 'JetBrains Mono', monospace; letter-spacing: .06em;
@@ -793,7 +793,7 @@
     width: 100%; min-height: 52px; display: grid;
     grid-template-columns: 34px minmax(0, 1fr) 18px; align-items: center; gap: 8px;
     padding: 7px 12px; border: 0; border-top: 1px solid var(--line);
-    background: transparent; text-align: left; cursor: pointer; font: inherit; color: var(--ink);
+    background: transparent; text-align: start; cursor: pointer; font: inherit; color: var(--ink);
   }
   .setting-row:first-child { border-top: 0; }
   .setting-row:hover { background: rgba(95,150,45,.08); }
@@ -970,7 +970,7 @@
   }
   .store-head .store-coins { font: 800 var(--text-f18) var(--font-sans); display: inline-flex; align-items: center; gap: 6px; }
   .store-head .store-coins .ic { color: var(--coin); }
-  .store-head .store-x { margin-left: auto; width: var(--touch-min); height: var(--touch-min); border-radius: 50%;
+  .store-head .store-x { margin-inline-start: auto; width: var(--touch-min); height: var(--touch-min); border-radius: 50%;
     border: 1px solid var(--line); background: var(--card); color: var(--ink); cursor: pointer; display: grid; place-items: center; }
   .cat-tabs {
     display: flex; gap: var(--space-1); padding: 4px; margin-bottom: var(--space-3);
@@ -1066,7 +1066,7 @@
   }
   /* dialogue bubbles */
   .call-bubble {
-    position: absolute; z-index: 3; max-width: 62%; text-align: left;
+    position: absolute; z-index: 3; max-width: 62%; text-align: start;
     background: var(--paper-3); color: var(--ink);
     border: 1.5px solid var(--stage-line); border-radius: 18px;
     padding: var(--space-2) var(--space-3); box-shadow: var(--shadow);
@@ -1074,15 +1074,15 @@
   }
   /* explicit widths: a right-anchored shrink-to-fit box collapses to
      min-content and clips its text */
-  .call-bubble.char { left: var(--space-3); top: 12%; width: 62%; border-bottom-left-radius: 6px; }
+  .call-bubble.char { inset-inline-start: var(--space-3); top: 12%; width: 62%; border-end-start-radius: 6px; }
   .call-bubble.marzi {
-    right: var(--space-3); bottom: var(--space-2); width: 52%;
-    cursor: pointer; border-bottom-right-radius: 6px;
+    inset-inline-end: var(--space-3); bottom: var(--space-2); width: 52%;
+    cursor: pointer; border-end-end-radius: 6px;
     background: var(--paper); border-color: var(--tint-leaf-35);
   }
   /* Marzi in-scene, lower-left, board position */
   .call-marzi {
-    position: absolute; left: var(--space-2); bottom: 0;
+    position: absolute; inset-inline-start: var(--space-2); bottom: 0;
     z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 1px;
     pointer-events: none; max-width: 128px;
   }
@@ -1168,12 +1168,22 @@
   .sheet-grab { width: 40px; height: 4px; border-radius: 999px; background: var(--line); margin: 0 auto var(--space-2); }
   .sheet-head { display: flex; align-items: center; gap: var(--space-2); }
   .sheet-head b { font: 800 var(--text-md) var(--font-sans); }
-  .sheet-head .btn { margin-left: auto; }
+  .sheet-head .btn { margin-inline-start: auto; }
   .sheet-body { min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
   .call-sheet .log {
     background: transparent; border: 0; box-shadow: none; border-radius: 0;
     min-height: 80px; max-height: none; overflow: visible;
   }
+  /* MARZI-010: compact chrome keeps its board size but gains a full 48px
+     hit area, so the touch floor is met without changing the visuals. */
+  .chip-res, .menu-btn, .drawer-close, .store-head .store-x { position: relative; }
+  .chip-res::after, .menu-btn::after, .drawer-close::after, .store-head .store-x::after {
+    content: ""; position: absolute; inset-inline: 0; top: 50%; transform: translateY(-50%);
+    height: var(--touch-min); min-width: var(--touch-min);
+  }
+  /* segmented controls and legal links meet the floor directly */
+  .seg button { min-height: var(--touch-min); }
+  .legal a { display: inline-flex; align-items: center; min-height: var(--touch-min); }
   /* visible keyboard focus everywhere */
   :focus-visible { outline: 3px solid var(--marzi-dark); outline-offset: 2px; border-radius: 8px; }
   /* reduced motion: keep every state legible, drop the movement */
@@ -1454,7 +1464,7 @@
     </div>
     <input type="file" id="importFile" accept="application/json" class="hidden" />
     <div class="premium-card" id="premiumCard"></div>
-    <p class="note" style="text-align:center;margin-top:12px">
+    <p class="note legal" style="text-align:center;margin-top:12px">
       <a href="/impressum.html" style="color:inherit">Impressum</a> ·
       <a href="/datenschutz.html" style="color:inherit">Datenschutz</a>
     </p>
@@ -3654,6 +3664,21 @@ function compactNum(n) {
   const v = Math.max(0, Math.floor(Number(n) || 0));
   return v >= 10000 ? Math.floor(v / 1000) + "k" : String(v);
 }
+/* ---------- MARZI-010: right-to-left support ----------
+   Arabic is a shipped help language; the document direction and lang must
+   follow it. Everything else uses logical CSS properties so LTR is byte
+   identical and RTL mirrors correctly. */
+const RTL_LANGS = ["ar"];
+function applyLangDirection(lang) {
+  const l = lang || S.lang || "en";
+  const dir = RTL_LANGS.includes(l) ? "rtl" : "ltr";
+  try {
+    document.documentElement.setAttribute("lang", l);
+    document.documentElement.setAttribute("dir", dir);
+  } catch (e) {}
+  return dir;
+}
+
 function updateTopbar() {
   const st = loadStats();
   $("tbCoins").innerHTML = `${IC.coin(ICON.chip)} ${compactNum(st.coins)}`;
@@ -5783,7 +5808,7 @@ function renderOnboard() {
   $("obHelp").innerHTML = LANG_CHIPS.map(([k, n]) =>
     `<button class="${k === S.lang ? "on" : ""}" data-k="${k}">${n}</button>`).join("");
   $("obHelp").querySelectorAll("button").forEach((b) =>
-    b.onclick = () => { S.lang = b.dataset.k; renderOnboard(); });
+    b.onclick = () => { S.lang = b.dataset.k; applyLangDirection(); renderOnboard(); });
   $("obTargets").innerHTML = LEARN_TARGETS.map(([k, n]) => {
     const open = !!TARGETS[k];
     return `<button class="act${open ? "" : " soon"}${k === OB.target ? " on" : ""}" data-k="${k}">
@@ -5819,6 +5844,7 @@ window.addEventListener("hashchange", () => {
   if (tab && tab !== CURRENT_TAB) showTab(tab, true);
 });
 
+applyLangDirection();
 renderSetup();
 if (S.firstRun) showOnboarding();
 else showTab(tabFromHash(location.hash) || "learn");

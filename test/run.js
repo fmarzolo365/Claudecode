@@ -104,7 +104,7 @@ src += `\n;globalThis.__t = { T, TARGET, TARGETS, LEVELS, LEVEL_ORDER, SCENARIOS
   createTranscript, PromptBuilder, createConversationSession, ENGINE, send, ask,
   renderLearn, renderCall, renderTranscript, openCallSheet, closeCallSheet, sheetOpen, endCall, callStateFor, callStateLabel, callStateIcon, callSecondsLeft, renderScenarioCards, renderCharacterCard, scenarioSubtitle,
   UI, IC, ICON, evolutionHTML, renderCallStatus,
-  showLimit, closeLimit, limitOpen, buildRewardSummary, isHighPerformance, renderRewardSummary, animateReward, celebrateEvolution,
+  showLimit, closeLimit, limitOpen, applyLangDirection, RTL_LANGS, buildRewardSummary, isHighPerformance, renderRewardSummary, animateReward, celebrateEvolution,
   closeEvolutionCelebration, evolutionCelebrationOpen, CELEBRATED_KEY, claimReward, loadRewardLedger,
   OUTFITS, STORE_CATS, LEGACY_OUTFIT_IDS, outfitById, outfitName, outfitState,
   purchaseOutfit, equipOutfit, unequipOutfit, renderStore, openOutfitPreview, normalizeWardrobe };`;
@@ -1046,6 +1046,28 @@ check("MARZI-009 plan limit: full-screen, plan detail, dismissal", () => {
   // plan math untouched
   if (tt.PLAN_SECONDS !== 30 * 60) throw new Error("daily plan changed");
   if (tt.COIN_PACKS.map((p) => p.price).join() !== "200,450,800,1500") throw new Error("minute-pack prices changed");
+});
+
+check("MARZI-010 direction + touch targets", () => {
+  // direction follows the help language and restores for LTR
+  if (tt.RTL_LANGS.join() !== "ar") throw new Error("RTL language set");
+  if (tt.applyLangDirection("ar") !== "rtl") throw new Error("Arabic must be rtl");
+  if (tt.applyLangDirection("es") !== "ltr") throw new Error("Spanish must be ltr");
+  if (tt.applyLangDirection("en") !== "ltr") throw new Error("English must be ltr");
+  // the document is updated at boot and whenever the help language changes
+  if (!src.includes("applyLangDirection();\nrenderSetup();")) throw new Error("direction not applied at boot");
+  if (!/S\.lang = b\.dataset\.k; applyLangDirection\(\)/.test(src)) throw new Error("direction not applied on language change");
+  // layout uses logical properties so RTL mirrors without a second stylesheet
+  const styles = html.slice(html.indexOf("<style>"), html.indexOf("</style>"));
+  for (const needle of ["inset-inline-start", "inset-inline-end", "margin-inline-start", "text-align: start"]) {
+    if (!styles.includes(needle)) throw new Error("missing logical property: " + needle);
+  }
+  if (/\.dlg-marzi \{[^}]*margin-left: auto/.test(styles)) throw new Error("physical margin left in a mirrored component");
+  // compact chrome keeps its size but gains a full hit area
+  if (!styles.includes(".chip-res::after")) throw new Error("hit-area extension missing");
+  if (!/\.seg button \{ min-height: var\(--touch-min\)/.test(styles)) throw new Error("segmented controls below the floor");
+  if (!/\.routine button \{ min-height: var\(--touch-min\)/.test(styles)) throw new Error("routine chips below the floor");
+  if (!/\.legal a \{[^}]*min-height: var\(--touch-min\)/.test(styles)) throw new Error("legal links below the floor");
 });
 
 check("progress chart renders points, CEFR bands and a projection", () => {
