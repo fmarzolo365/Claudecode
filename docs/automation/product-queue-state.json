@@ -1,0 +1,36 @@
+{
+  "queue": "PRODUCT-AUTOMATION-002",
+  "packages": [
+    {
+      "id": "MARZI-013",
+      "title": "Marzi States & Emotions",
+      "status": "done",
+      "commit": "d061e9f"
+    },
+    {
+      "id": "MARZI-014",
+      "title": "Premium + Internet/Minutes",
+      "status": "done",
+      "commit": "9855bb9"
+    },
+    {
+      "id": "MARZI-015",
+      "title": "Profile & Progress",
+      "status": "done",
+      "commit": "769c1d2"
+    },
+    {
+      "id": "MARZI-016",
+      "title": "Map / Learning Journey",
+      "status": "done",
+      "commit": "109ba28"
+    }
+  ],
+  "decisions": {
+    "premium": "presentation-only; no unlock; no user-facing activation switch; test-only hook",
+    "mb": "presentation of existing minutes at 10 MB = 1 minute from one canonical value"
+  },
+  "branch": "claude/german-phone-app-setup-bx0cr1",
+  "startedFrom": "1aeed3e",
+  "completed": true
+}
