@@ -119,6 +119,7 @@ src += `\n;globalThis.__t = { T, TARGET, TARGETS, LEVELS, LEVEL_ORDER, SCENARIOS
   profileSnapshot, reviewedMistakeCount, ACHIEVEMENTS, achievementState, renderProfile, applyReduceMotion,
   MARZI_STAGE_XP, currentStreak, loadWords,
   journeyNodes, journeyState, renderJourney, setJourneyView, goToScenario, renderLearn,
+  showOffline, closeOffline, offlineScreenOpen,
   CALL_POSE_STATES, CALL_POSE_TO_STATE, MARZI_CALL_ASSETS, marziCallPose, marziCallAssetPath,
   hasMarziCallAsset, marziCallArt, __registerCallAsset, renderCallCompanion,
   ONBOARD_KEY, LEARN_GOALS, DAILY_MINUTES, normalizeOnboarding, loadOnboarding, hasMeaningfulUserData,
@@ -1104,7 +1105,7 @@ check("MARZI-010 direction + touch targets", () => {
   if (/inset-inline: 0/.test(hit)) throw new Error("hit area still anchored to the inline start");
   if (!/min-width: var\(--touch-min\)/.test(hit) || !/height: var\(--touch-min\)/.test(hit)) throw new Error("hit area below the touch floor");
   // small phones tighten the top bar so four resource chips fit without scroll
-  if (!/@media \(max-width: 380px\) \{\s*\.topbar-in \{ gap: 4px; \}/.test(styles)) throw new Error("narrow top-bar rule missing");
+  if (!/@media \(max-width: 400px\) \{\s*\.topbar-in \{ gap: 4px; \}/.test(styles)) throw new Error("narrow top-bar rule missing");
   if (!/\.seg button \{ min-height: var\(--touch-min\)/.test(styles)) throw new Error("segmented controls below the floor");
   if (!/\.routine button \{ min-height: var\(--touch-min\)/.test(styles)) throw new Error("routine chips below the floor");
   if (!/\.legal a \{[^}]*min-height: var\(--touch-min\)/.test(styles)) throw new Error("legal links below the floor");
@@ -1962,6 +1963,43 @@ check("MARZI-018 Marzi presence and bubble anchoring", () => {
   if (!/\.call-mid::after \{/.test(styles)) throw new Error("no floor gradient under the companion");
   // constraint 5: UI.callStage was NOT introduced
   if (typeof tt.UI.callStage !== "undefined") throw new Error("UI.callStage was introduced without justification");
+});
+
+
+check("MARZI-018 no-internet state stays distinct from the daily limit", () => {
+  const L = tt.T.en;
+  tt.S.lang = "en";
+  const realNav = globalThis.navigator;
+  const setOnline = (v) => { try { Object.defineProperty(globalThis, "navigator", { value: { ...realNav, onLine: v }, configurable: true }); } catch (e) {} };
+
+  setOnline(false);
+  tt.showOffline();
+  if (!tt.offlineScreenOpen()) throw new Error("offline state did not open");
+  const off = document.getElementById("offlineScreen").innerHTML;
+  // names connectivity as the cause, never the allowance
+  if (!off.includes(L.offlineTitle) || !off.includes(L.offlineMsg)) throw new Error("offline copy missing");
+  if (off.includes(L.limitTitle)) throw new Error("the offline state must not claim minutes are exhausted");
+  if (!off.includes(L.offRetry)) throw new Error("no retry action");
+  if (off.includes(L.resetsIn)) throw new Error("a reset time belongs to the limit state, not offline");
+  // recovery rows plus a safe exit
+  if (!off.includes(L.planBuyNet) || !off.includes(L.premGet)) throw new Error("recovery rows missing");
+  if (!off.includes(L.premLater)) throw new Error("no safe exit");
+  // and it is a real, separate surface from the limit sheet
+  if (tt.limitOpen()) throw new Error("offline must not open the limit sheet");
+  tt.closeOffline();
+  if (tt.offlineScreenOpen()) throw new Error("offline state not dismissible");
+
+  // goCall routes the two refusals to two different screens
+  const gc = String(src.match(/function goCall\(\)[\s\S]*?\n\}/)[0]);
+  if (!/isOffline\(\)\) \{ renderNetBanner\(\); showOffline\(\); return; \}/.test(gc))
+    throw new Error("an offline call must open the offline state");
+  if (!/planUsedToday\(\) >= planLimitToday\(\)\) \{ showLimit\(\); return; \}/.test(gc))
+    throw new Error("an exhausted allowance must still open the limit sheet");
+  if (gc.indexOf("isOffline") > gc.indexOf("planUsedToday")) throw new Error("connectivity must be checked before the allowance");
+  // the retry uses its own string, not the drill's "Again"
+  if (L.offRetry === L.retry) throw new Error("connection retry must not reuse the drill string");
+  setOnline(true);
+  try { Object.defineProperty(globalThis, "navigator", { value: realNav, configurable: true }); } catch (e) {}
 });
 
 check("progress chart renders points, CEFR bands and a projection", () => {

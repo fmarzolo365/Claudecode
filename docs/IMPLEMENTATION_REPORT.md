@@ -1250,3 +1250,82 @@ the six required elements above it are all present).
    Contract: `public/assets/marzi/outfits/<slug>.svg`. Nothing was cropped
    from a concept board and no finished-looking art was fabricated.
 3. **Marzi state artwork** — `MARZI_ASSETS` still ships empty (MARZI-013).
+
+---
+
+# Implementation Report — MARZI-018
+
+**Task:** Premium visual and emotional experience (call, limit, minutes,
+Premium, offline) · **Status:** Complete on
+`claude/marzi-017-product-refinement`, NOT merged, NOT deployed
+
+Four commits, one per planned phase. Board 05 was imported onto this branch in
+commit 1 so its specification no longer references an absent image.
+
+## Behaviour observed before changing anything
+
+With a **contract-correct** stub (`/api/chat` returning the Anthropic shape
+with a strict-JSON payload carrying `reply`/`suggestion`), sampled at 400 ms
+and 1.6 s into the processing window: **the character's last line stayed
+visible throughout**, and the Marzi suggestion stepped aside. That is correct,
+so the planned M-07/D-07 correction was **withdrawn** and the behaviour locked
+with a regression check instead. The line is derived from the turn list and
+never from the busy flag, which is what makes it correct by construction.
+
+The `error` state seen after every reply was traced to headless Chromium
+having no `SpeechRecognition`, so hands-free `listen()` raises `noMic`. An
+environment artifact, not a product defect; the harness now injects a stub
+recognizer.
+
+## Measured before → after
+
+| ID | Before | After |
+|---|---|---|
+| M-01 | emoji `80×75` at `(155,216)` **visible over a loaded portrait** | `display:none` on success · `block` on failure, announced with the character name |
+| M-02 | `126×134` = 32.3% w / **15.9% h** | `179×220` = **45.9% w / 26.1% h** (390×844) · `147×173` = **40.8% w / 27.0% h** (360×640) |
+| M-03 | suggestion floating at the far edge | anchored beside Marzi with a tail pointing back at him |
+| M-04 | third identity line competing | place demoted and made optional — *partial, see below* |
+| M-05 | **mic and hang-up both red** | mic `rgb(253,244,227)` warn · hang-up `rgb(201,70,56)` the only red |
+| M-06 | `repeatBtn`/`freeBtn` **31px wide** | zero call targets below 48×48 |
+| M-07 | one 11.5px line merging three concepts | timer 15px primary, allowance marked as context |
+| M-08 | 624/640 used, 11px clearance | both safe areas applied; stack bottom 632/640 |
+| M-09 | `--safe-top` **undefined** | token added and applied to call top and stack |
+| M-10 | empty dark void in the lower third | floor gradient seats Marzi in the scene |
+
+## Decisions taken under the constraints
+
+**`UI.callStage` was declined** (constraint 5). The stage is static markup
+rendered once and mutated per element — there is no duplication to remove, and
+rebuilding it as a string would recreate `#vcImg` on every render, destroying
+the portrait's `.ok` state, `dataset.src` caching and retry timer. A test
+asserts it stays absent.
+
+**M-04 is partial.** The board's separate personal name ("Doctora Anna") would
+require new scenario identity data, which is frozen. `who` remains the largest
+line and `place` is now optional so it cannot render empty.
+
+## Call-pose asset resolver
+
+21 stable paths — `public/assets/marzi/call/stage-<4|5|6>-<pose>.svg` across
+`ready · listening · thinking · speaking · encouraging · limit · offline`. The
+registry **ships empty**, so every lookup falls back to the approved
+`marziSVG` and no request is ever made for a missing file. The seven poses map
+onto the eight canonical MARZI-013 states, so no state vocabulary forks.
+Stages below 4 always use the approved SVG.
+
+## No-internet state
+
+Now a distinct surface, not a banner: it names connectivity as the cause,
+offers a dedicated **Retry connection** action (its own string, not the
+drill's "Again"), keeps the two recovery rows and a safe exit, and never shows
+a reset time. `goCall` checks connectivity **before** the allowance, so the
+two refusals can never be confused. The transient banner remains for
+connection blips.
+
+## Unresolved production-art dependencies
+
+1. **21 call poses** — the single largest gap; every state ships on the
+   approved placeholder.
+2. **Header mark** `public/assets/marzi/stage-6/header-neutral.svg`.
+3. **Nine outfit previews** `public/assets/marzi/outfits/<slug>.svg`.
+4. **Painterly character portraits** matching the board's warmth.

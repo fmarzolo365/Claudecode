@@ -190,7 +190,10 @@
      the whole page horizontal scroll. Tighten only below the width where it
      stops fitting, so 390px and up render unchanged. The gear keeps its
      padding: it is the last chip, and its centred hit area needs the width. */
-  @media (max-width: 380px) {
+  /* MARZI-018: raised from 380px. The MARZI-017 brand mark costs 36px, so a
+     390px phone with a four-digit balance overflowed too - measured tbGear
+     right edge 406 against a 390 viewport. */
+  @media (max-width: 400px) {
     .topbar-in { gap: 4px; }
     .chip-res { padding: 7px 6px; }
     .chip-res.gear { padding: 7px 9px; }
@@ -1436,6 +1439,11 @@
   .act-bar-fill { width: 100%; border-radius: 5px; background: var(--track); }
   .act-bar-fill[data-on="true"] { background: var(--xp-fill); }
   .act-bar small { font: 700 var(--text-f10-5) var(--font-sans); color: var(--muted); }
+  /* ---------- MARZI-018: no-internet state ---------- */
+  .off-hero { display: flex; flex-direction: column; align-items: center; text-align: center; gap: var(--space-2); margin: var(--space-4) 0; }
+  .off-marzi { width: clamp(120px, 26dvh, 200px); height: clamp(120px, 26dvh, 200px); }
+  .off-marzi svg, .off-marzi img { width: 100%; height: 100%; display: block; }
+  .off-title { font: 800 var(--text-xl) var(--font-sans); color: var(--red); }
   /* ---------- MARZI-017: install recommendation (browser only) ---------- */
   .install-rec {
     display: flex; align-items: center; gap: var(--space-2);
@@ -1801,6 +1809,8 @@
 <div id="limitBack" class="drawer-back hidden" style="z-index:60"></div>
 <!-- plan / internet and Premium live at top level: a fixed overlay inside a
      hidden <section> would be display:none with it -->
+<div class="ui-modal-back hidden" id="offlineBack"></div>
+<div id="offlineScreen" class="hidden"></div>
 <div class="ui-modal-back hidden" id="planBack"></div>
 <div id="planScreen" class="hidden"></div>
 <div class="ui-modal-back hidden" id="premBack"></div>
@@ -2013,6 +2023,7 @@ const T = {
     recentNone:"Aún no hay llamadas.", journeyFull:"Ver el camino completo",
     lockedAt:"Disponible en la etapa", lockedHow:"Sube de etapa con XP para desbloquear esta ropa.",
     installTitle:"Instala Marzi para la experiencia completa.", installDismiss:"Cerrar",
+    offRetry:"Reintentar conexión",
     rankTitles:["Principiante","Quien llama","Muy telefoneador","Profesional del teléfono","Dragón de oficina","Héroe de llamadas","Leyenda del teléfono"],
     offlineTitle:"Sin conexión", offlineMsg:"Necesitas conexión para llamar. Vuelve a intentarlo cuando tengas internet.",
     rwTime:"Duración", rwTurns:"Turnos", rwMistakes:"Correcciones", rwNormal:"¡Buen trabajo! Sigue así.",
@@ -2098,6 +2109,7 @@ const T = {
     recentNone:"No calls yet.", journeyFull:"View full journey",
     lockedAt:"Available at stage", lockedHow:"Reach the stage with XP to unlock this outfit.",
     installTitle:"Install Marzi for the full app experience.", installDismiss:"Dismiss",
+    offRetry:"Retry connection",
     rankTitles:["Newcomer","Caller","Frequent caller","Phone pro","Office dragon","Call hero","Phone legend"],
     offlineTitle:"No connection", offlineMsg:"You need a connection to call. Try again once you are back online.",
     rwTime:"Duration", rwTurns:"Turns", rwMistakes:"Corrections", rwNormal:"Nice work! Keep going.",
@@ -2186,6 +2198,7 @@ T.tr = { tagline:"Gerçek Almanca aramalar ve konuşmalar pratiği yap. Sen konu
   recentNone:"Henüz arama yok.", journeyFull:"Tüm yolu gör",
   lockedAt:"Şu aşamada açılır:", lockedHow:"Bu kıyafeti açmak için XP ile aşamayı yükselt.",
   installTitle:"Tam deneyim için Marzi'yi yükle.", installDismiss:"Kapat",
+  offRetry:"Bağlantıyı yeniden dene",
   rankTitles:["Yeni başlayan","Arayan","Sık arayan","Telefon uzmanı","Ofis ejderhası","Arama kahramanı","Telefon efsanesi"],
   offlineTitle:"Bağlantı yok", offlineMsg:"Aramak için bağlantı gerekir. İnternet gelince tekrar dene.",
   rwTime:"Süre", rwTurns:"Tur", rwMistakes:"Düzeltme", rwNormal:"Güzel iş! Böyle devam.",
@@ -2273,6 +2286,7 @@ T.ar = { tagline:"تدرّب على مكالمات ومحادثات حقيقية
   recentNone:"لا مكالمات بعد.", journeyFull:"عرض الرحلة كاملة",
   lockedAt:"متاح في المرحلة", lockedHow:"ارتقِ بالمرحلة عبر نقاط الخبرة لفتح هذه الملابس.",
   installTitle:"ثبّت Marzi للحصول على التجربة الكاملة.", installDismiss:"إغلاق",
+  offRetry:"إعادة محاولة الاتصال",
   rankTitles:["مبتدئ","متصل","متصل دائم","محترف الهاتف","تنين المكتب","بطل المكالمات","أسطورة الهاتف"],
   offlineTitle:"لا يوجد اتصال", offlineMsg:"تحتاج إلى اتصال لإجراء مكالمة. حاول مرة أخرى عند عودة الإنترنت.",
   rwTime:"المدة", rwTurns:"الأدوار", rwMistakes:"التصحيحات", rwNormal:"عمل جيد! واصل.",
@@ -2358,6 +2372,7 @@ T.uk = { tagline:"Тренуй реальні дзвінки й розмови �
   recentNone:"Ще немає дзвінків.", journeyFull:"Переглянути весь шлях",
   lockedAt:"Доступно на етапі", lockedHow:"Досягни етапу за допомогою XP, щоб відкрити цей одяг.",
   installTitle:"Встанови Marzi для повного досвіду.", installDismiss:"Закрити",
+  offRetry:"Спробувати ще раз",
   rankTitles:["Новачок","Той, хто дзвонить","Частий абонент","Профі телефону","Офісний дракон","Герой дзвінків","Легенда телефону"],
   offlineTitle:"Немає зв'язку", offlineMsg:"Для дзвінка потрібне з'єднання. Спробуй ще раз, коли з'явиться інтернет.",
   rwTime:"Тривалість", rwTurns:"Репліки", rwMistakes:"Виправлення", rwNormal:"Гарна робота! Так тримати.",
@@ -2444,6 +2459,7 @@ T.it = { tagline:"Allenati con telefonate e conversazioni reali in tedesco. Tu p
   recentNone:"Ancora nessuna chiamata.", journeyFull:"Vedi tutto il percorso",
   lockedAt:"Disponibile alla fase", lockedHow:"Raggiungi la fase con gli XP per sbloccare questo vestito.",
   installTitle:"Installa Marzi per l'esperienza completa.", installDismiss:"Chiudi",
+  offRetry:"Riprova connessione",
   rankTitles:["Principiante","Chi chiama","Telefonista assiduo","Professionista del telefono","Drago d'ufficio","Eroe delle chiamate","Leggenda del telefono"],
   offlineTitle:"Nessuna connessione", offlineMsg:"Serve una connessione per chiamare. Riprova quando torni online.",
   rwTime:"Durata", rwTurns:"Turni", rwMistakes:"Correzioni", rwNormal:"Bel lavoro! Continua così.",
@@ -6899,6 +6915,53 @@ function renderNetBanner() {
   el.classList.toggle("hidden", !off);
   return off;
 }
+/* MARZI-018: the no-internet state. Distinct from the daily limit: it names
+   connectivity as the cause, offers Retry, and keeps the same two recovery
+   rows the plan screen uses. It never claims minutes are exhausted. */
+let OFFLINE_OPEN = false;
+function offlineScreenOpen() { return OFFLINE_OPEN; }
+function closeOffline() {
+  OFFLINE_OPEN = false;
+  $("offlineScreen").classList.add("hidden");
+  $("offlineBack").classList.add("hidden");
+  if (document.body.classList && !limitOpen()) document.body.classList.remove("modal-lock");
+}
+function showOffline() {
+  const L = t();
+  OFFLINE_OPEN = true;
+  const stage = currentMarziStage();
+  $("offlineScreen").innerHTML =
+    `<div class="sheet-screen">
+       <div class="ss-head">
+         <button class="ss-x" id="offX" type="button" aria-label="${esc(L.ok)}">${IC.list(ICON.lg)}</button>
+         <div class="ss-title">${esc(L.planInternet)}</div>
+       </div>
+       <div class="off-hero">
+         <div class="off-marzi" aria-hidden="true">${marziCallArt(stage, "offline")}</div>
+         <div class="off-title">${esc(L.offlineTitle)}</div>
+         <p class="note">${esc(L.offlineMsg)}</p>
+       </div>
+       <button class="big cta" id="offRetry" type="button">${esc(L.offRetry)}</button>
+       <div class="label">${esc(L.planWhat)}</div>
+       <div class="list">
+         <button class="setting-row" id="offBuy" type="button">${IC.coin(ICON.md)} ${esc(L.planBuyNet)}</button>
+         <button class="setting-row" id="offPrem" type="button">${IC.crown(ICON.md)} ${esc(L.premGet)}</button>
+       </div>
+       <button class="toggle" id="offLater" type="button" style="margin-top:12px">${esc(L.premLater)}</button>
+     </div>`;
+  $("offlineScreen").classList.remove("hidden");
+  $("offlineBack").classList.remove("hidden");
+  if (document.body.classList) document.body.classList.add("modal-lock");
+  $("offX").onclick = () => closeOffline();
+  $("offLater").onclick = () => closeOffline();
+  $("offRetry").onclick = () => {
+    renderNetBanner();
+    if (!isOffline()) { closeOffline(); goCall(); }
+  };
+  $("offBuy").onclick = () => { closeOffline(); openPlanScreen(); };
+  $("offPrem").onclick = () => { closeOffline(); openPremiumScreen(); };
+  return true;
+}
 /* a storage write that fails must never be silent */
 function notifyStorageFailure() {
   const L = t();
@@ -6908,14 +6971,10 @@ function notifyStorageFailure() {
 }
 
 function goCall() {
-  // offline: refuse with a clear recovery path instead of a generic failure.
-  // The banner is the channel - #alert lives inside the call screen and would
-  // be invisible here.
-  if (isOffline()) {
-    renderNetBanner();
-    try { $("netBanner").scrollIntoView({ block: "nearest" }); } catch (e) {}
-    return;
-  }
+  // MARZI-018 G: two different refusals, two different screens. No internet is
+  // a connectivity problem with a retry; an exhausted allowance is a product
+  // limit with a reset time. They must never be confused for one another.
+  if (isOffline()) { renderNetBanner(); showOffline(); return; }
   if (planUsedToday() >= planLimitToday()) { showLimit(); return; }
   if (S.level === "A0" && canPrep() && !PREPPED.has(S.scenario.id)) startPrep();
   else startConversation();
