@@ -1795,6 +1795,45 @@ check("MARZI-017 regression: economy, prompts and engine untouched", () => {
   if (tt.normalizeStats(null).xp !== 0) throw new Error("normalizeStats must default safely");
 });
 
+
+check("MARZI-018 call render: last character line survives processing", () => {
+  // OBSERVED BEFORE CHANGING ANYTHING (MARZI-018 constraint 4): with a
+  // contract-correct stub the character's last line stayed visible right
+  // through the processing window. That is correct behaviour and this check
+  // locks it, rather than "fixing" something that already works.
+  tt.S.lang = "es";
+  const A = tt.SCENARIOS.find((x) => x.id === "arzt");
+  tt.S.scenario = A; tt.S.active = A;
+  tt.S.hint = "Ich möchte einen Termin reservieren.";
+  tt.S.turns = [
+    { me: false, text: "Guten Tag! Praxis Dr. Wagner." },
+    { me: true, text: "Ich hätte gern einen Termin." },
+  ];
+  // idle: the line and the suggestion are both up
+  tt.S.busy = false;
+  tt.renderCall();
+  const say = document.getElementById("vcSay");
+  const bub = document.getElementById("vcBubble");
+  if (say.textContent !== "Guten Tag! Praxis Dr. Wagner.") throw new Error("character line not rendered");
+  if (say.classList.has("hidden")) throw new Error("character line hidden while idle");
+  if (bub.classList.has("hidden")) throw new Error("suggestion hidden while idle");
+
+  // processing: the character line MUST remain; the suggestion steps aside
+  tt.S.busy = true;
+  tt.renderCall();
+  if (say.textContent !== "Guten Tag! Praxis Dr. Wagner.") throw new Error("character line lost during processing");
+  if (say.classList.has("hidden")) throw new Error("character line hidden during processing");
+  if (!bub.classList.has("hidden")) throw new Error("the suggestion must not survive into processing");
+
+  // the line is derived from the render model, never from the busy flag
+  const rc = String(src.match(/const lastChar = [^\n]*/)[0]);
+  if (!/\[\.\.\.S\.turns\]\.reverse\(\)\.find\(\(x\) => !x\.me\)/.test(rc))
+    throw new Error("last character line is no longer derived from the turn list");
+  if (/S\.busy/.test(String(src.match(/\$\("vcSay"\)\.classList\.toggle[^\n]*/)[0])))
+    throw new Error("the character bubble must not depend on the busy flag");
+  tt.S.busy = false; tt.S.turns = []; tt.S.hint = null;
+});
+
 check("progress chart renders points, CEFR bands and a projection", () => {
   const tests = [
     { date: "2026-07-01", score: 20, cefr: "A1" },
