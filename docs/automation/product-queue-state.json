@@ -5,25 +5,25 @@
       "id": "MARZI-013",
       "title": "Marzi States & Emotions",
       "status": "done",
-      "commit": null
+      "commit": "d061e9f"
     },
     {
       "id": "MARZI-014",
       "title": "Premium + Internet/Minutes",
       "status": "done",
-      "commit": null
+      "commit": "9855bb9"
     },
     {
       "id": "MARZI-015",
       "title": "Profile & Progress",
       "status": "done",
-      "commit": null
+      "commit": "769c1d2"
     },
     {
       "id": "MARZI-016",
       "title": "Map / Learning Journey",
       "status": "done",
-      "commit": null
+      "commit": "109ba28"
     }
   ],
   "decisions": {

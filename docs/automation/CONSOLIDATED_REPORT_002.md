@@ -16,7 +16,7 @@ file records each package as `done`.
 | 1 | MARZI-013 — Marzi States & Emotions | `d061e9f` | 31/31 |
 | 2 | MARZI-014 — Premium + Internet/Minutes | `9855bb9` | 32/32 |
 | 3 | MARZI-015 — Profile & Progress | `769c1d2` | 33/33 |
-| 4 | MARZI-016 — Map / Learning Journey | see below | 34/34 |
+| 4 | MARZI-016 — Map / Learning Journey | `109ba28` | 34/34 |
 
 Suite grew 30 → 34 checks. `node --check server.js` clean throughout.
 Service worker cache v31 → v35.
