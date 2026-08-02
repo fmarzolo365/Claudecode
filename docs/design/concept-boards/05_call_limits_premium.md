@@ -10,13 +10,6 @@ not as a source of production raster assets (ADR-10, decision 2 below). Where
 the board and the shipped product disagree, §4 records the deviation; it does
 not silently pick a winner.
 
-> **Board availability.** At the time of writing the `.jpg` lives on
-> `claude/german-phone-app-setup-bx0cr1` (commit `860fe5c`), **not** on
-> `claude/marzi-017-product-refinement`. This document was written from that
-> blob, read directly out of the object database. The image must be brought
-> onto the branch that carries this specification before either is merged,
-> otherwise this file references an asset its own branch does not contain.
-
 > **Two things on the board are NOT canonical and must not be copied.**
 > 1. The board spells the mascot **"Marzy"** (step 4 of the explanatory strip)
 >    and **"Marcy"** (footer band). Both are wrong. ADR-10 and decision 1

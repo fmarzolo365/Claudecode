@@ -13,10 +13,6 @@ Whenever implementation differs from these concept boards, implementation must b
 
 `03_store.png` does not exist yet.
 
-`05_call_limits_premium.jpg` currently lives on
-`claude/german-phone-app-setup-bx0cr1` (commit `860fe5c`) and must be brought
-onto whichever branch carries its specification before either is merged.
-
 A board is visual and product direction only. **No board is a source of
 production raster assets** — nothing is cropped, extracted or upscaled from
 one (ADR-10). Where a board contradicts a standing decision, the decision

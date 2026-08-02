@@ -1329,3 +1329,69 @@ connection blips.
 2. **Header mark** `public/assets/marzi/stage-6/header-neutral.svg`.
 3. **Nine outfit previews** `public/assets/marzi/outfits/<slug>.svg`.
 4. **Painterly character portraits** matching the board's warmth.
+
+---
+
+# Implementation Report — MARZI-018-R2
+
+**Status:** Complete on `claude/marzi-017-product-refinement`. NOT merged, NOT
+deployed. Follows `93aadda` (MARZI-018-R1, native History restored).
+
+## Corrections
+
+1. **Stage 1–3 scale.** Early stages were pinned at a fixed `84px`, so a
+   stage-1 learner's companion sat far below the presence floor while stages
+   4–6 scaled. They now scale with the dynamic viewport and keep the circular
+   badge treatment. Measured: **45.1%w / 24.0%h** at 390×844 and
+   **37.3%w / 25.1%h** at 360×640. Stage thresholds and earned-stage
+   selection are untouched — all six stages verified to render the earned
+   stage.
+2. **Bubble touch targets.** Both call bubbles are buttons; `.call-bubble` had
+   no minimum height, so a short line produced an under-48px target. Both now
+   meet the floor. `#vcSay`'s accessible name states the **action** ("say it
+   again") before the line, and it exposes `aria-disabled` when there is no
+   line to replay.
+3. **Overlay focus / modal / dismissal.** Plan, Premium and the offline state
+   now carry `role="dialog"` + `aria-modal="true"`, move focus inside on open
+   and restore it to the opener on close; the offline state joined the central
+   Escape handler; the transcript gained focus restoration. One small shared
+   helper — no new overlay or navigation architecture.
+4. **Duplicate safe-area ownership removed.** `body.in-call main` and
+   `.call-stack` both added `--safe-bottom`, double-counting the inset. The
+   call stack is now the single owner. Verified with **injected non-zero
+   insets (top 44px, bottom 34px)**: top padding ≥44, stack padding ≥34, main
+   no longer adds it, and the control stack stays inside the viewport.
+5. **Canonical error fallback preserved; limit/encouraging connected.**
+   `marziCallArt` resolved `error` to the neutral `ready` pose because no call
+   pose maps to it. Canonical states with no pose of their own now fall
+   straight through to their own MARZI-013 artwork. The limit screen renders
+   through the resolver instead of a raw `marziSVG` call, and `encouraging`
+   is reached deterministically when Marzi is holding out a suggestion.
+6. **Top-bar breakpoint.** 400px still left **401–408px** overflowing with a
+   3–4 digit balance (+7px at 401, +3px at 404, clean from 410). Swept to
+   440px with the widest balance to find the real edge and moved the
+   breakpoint to 420px, so it has headroom instead of sitting one pixel above
+   a failure. **55 combinations** (balances 0/9/99/999/9999 × widths
+   379…421) all clean.
+
+## Validation
+
+Node suite **51/51**. Real Chromium: **484 assertions** across 390×844 and
+360×640 × Spanish and Arabic RTL × normal and reduced motion, covering native
+History, asynchronous utterance retention through an observed `processing`
+transition, all six Marzi stages, portrait success and failure, overlay focus
+and dismissal, touch targets, overflow, duplicate ids, non-zero safe areas and
+offline-vs-limit separation — plus the 55-combination top-bar matrix.
+
+Two initial failures were investigated and proved to be **harness** defects,
+not app defects: re-routing the avatar mid-session left an already-loaded
+`.ok` portrait in place, and `focus()` on a hidden opener is a no-op. Both
+harness bugs were fixed and the runtime was left alone.
+
+## Known limitations
+
+- Verification is desktop Chromium with an injected viewport and injected
+  non-zero insets, **not an installed Android Chrome build**. Real-device
+  gesture-area behaviour is unverified.
+- All 21 call-pose assets, the header mark and the nine outfit previews remain
+  undelivered; every state ships on the approved placeholder.

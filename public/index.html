@@ -137,7 +137,9 @@
     padding: 14px 16px calc(90px + var(--safe-bottom));
   }
   /* the call screen hides the bottom nav, so it doesn't need to clear it */
-  body.in-call main { padding-bottom: calc(10px + var(--safe-bottom)); }
+  /* MARZI-018-R2: the call stack owns the bottom inset while in a call, so
+     `main` must not add it again - it was being counted twice. */
+  body.in-call main { padding-bottom: 10px; }
   /* MARZI-005: the call fills exactly one screen - the transcript is the
      flexible middle, so alerts or the type row never push the page taller */
   body.in-call main {
@@ -190,10 +192,12 @@
      the whole page horizontal scroll. Tighten only below the width where it
      stops fitting, so 390px and up render unchanged. The gear keeps its
      padding: it is the last chip, and its centred hit area needs the width. */
-  /* MARZI-018: raised from 380px. The MARZI-017 brand mark costs 36px, so a
-     390px phone with a four-digit balance overflowed too - measured tbGear
-     right edge 406 against a 390 viewport. */
-  @media (max-width: 400px) {
+  /* MARZI-018-R2: raised again, from 400px. A breakpoint at 400 still left
+     401-408px overflowing with a 3-4 digit balance (measured: +7px at 401,
+     +3px at 404, clean from 410). Swept to 440 with the widest balance to
+     find the real edge, so this threshold has headroom rather than sitting
+     one pixel above a failure. */
+  @media (max-width: 420px) {
     .topbar-in { gap: 4px; }
     .chip-res { padding: 7px 6px; }
     .chip-res.gear { padding: 7px 9px; }
@@ -1207,8 +1211,12 @@
     font: 700 var(--text-f10) 'JetBrains Mono', monospace; color: var(--white); opacity: .85;
   }
   /* dialogue bubbles */
+  /* MARZI-018-R2: both bubbles are buttons (tap to replay / to use the
+     suggestion), so they are interactive targets and must meet the floor. */
   .call-bubble {
     position: absolute; z-index: 3; max-width: 62%; text-align: start;
+    min-height: var(--touch-min); box-sizing: border-box;
+    display: flex; align-items: center;
     background: var(--paper-3); color: var(--ink);
     border: 1.5px solid var(--stage-line); border-radius: 18px;
     padding: var(--space-2) var(--space-3); box-shadow: var(--shadow);
@@ -1244,10 +1252,14 @@
     filter: drop-shadow(0 6px 14px rgba(16,12,8,.55));
   }
   .call-marzi .vc-marzi-art svg, .call-marzi .vc-marzi-img { width: 100%; height: 100%; display: block; }
+  /* MARZI-018-R2: early stages keep the circular badge treatment but scale
+     with the viewport like 4-6 - a fixed 84px left a stage-1 learner with a
+     companion far below the agreed presence floor. */
   .call-marzi[data-stage="1"] .vc-marzi-art,
   .call-marzi[data-stage="2"] .vc-marzi-art,
   .call-marzi[data-stage="3"] .vc-marzi-art {
-    width: 84px; height: 84px; padding: 6px; box-sizing: border-box;
+    width: clamp(96px, 21dvh, 176px); height: clamp(96px, 21dvh, 176px);
+    padding: 6px; box-sizing: border-box;
     border: 2px solid rgba(255,255,255,.92); border-radius: 50%;
     background: var(--paper); filter: none;
   }
@@ -3632,7 +3644,11 @@ function currentMarziStage() { return marziStageForXp(loadStats().xp); }
 function renderCallCompanion() {
   const stage = currentMarziStage();
   const el = $("vcMarzi");
-  const state = marziStateForCall(callStateFor(S));   // deterministic, no new inference
+  let state = marziStateForCall(callStateFor(S));   // deterministic, no new inference
+  // MARZI-018-R2: while Marzi is holding out a suggestion and nothing else is
+  // happening, that is the encouraging pose - it connects the resolver path
+  // without inventing a new state or a new source of truth.
+  if (state === "neutral" && S.hint && !S.busy) state = CALL_POSE_TO_STATE.encouraging;
   el.dataset.stage = String(stage);
   el.dataset.state = state;
   el.setAttribute("role", "img");
@@ -3697,6 +3713,13 @@ function marziCallPose(state) {
   const hit = Object.keys(CALL_POSE_TO_STATE).find((k) => CALL_POSE_TO_STATE[k] === state);
   return hit || "ready";
 }
+/* A canonical MARZI_STATE with no call pose of its own - today only `error`
+   and `celebrating` - must keep its OWN artwork rather than silently
+   degrading to the neutral ready pose. */
+function callPoseCoversState(state) {
+  return Object.keys(CALL_POSE_TO_STATE).some((k) => CALL_POSE_TO_STATE[k] === state)
+    || CALL_POSE_STATES.includes(state);
+}
 function marziCallAssetPath(stage, state) {
   const n = Math.min(6, Math.max(4, Number(stage) || 4)); // call poses exist for stages 4-6 only
   return `/assets/marzi/call/stage-${n}-${marziCallPose(state)}.svg`;
@@ -3706,6 +3729,9 @@ function hasMarziCallAsset(stage, state) {
 }
 /* single entry point: approved art when registered, approved SVG otherwise */
 function marziCallArt(stage, state) {
+  // error/celebrating have no call pose: fall straight through to the
+  // canonical MARZI-013 artwork instead of resolving to `ready`
+  if (isMarziState(state) && !callPoseCoversState(state)) return marziArt(stage, state);
   const pose = marziCallPose(state);
   if (Number(stage) >= 4 && hasMarziCallAsset(stage, pose)) {
     return `<img class="vc-marzi-img" src="${esc(marziCallAssetPath(stage, pose))}" alt="" />`;
@@ -4526,6 +4552,7 @@ function openPlanScreen() {
   if (document.body.classList) document.body.classList.add("modal-lock");
   PLAN_OPEN = true;
   $("planX").onclick = () => closePlanScreen();
+  overlayOpened("planScreen", null);
   $("planBack").onclick = () => closePlanScreen();
   $("planBuy").onclick = () => { closePlanScreen(); showTab("store"); };
   $("planPrem").onclick = () => { closePlanScreen(); openPremiumScreen(); };
@@ -4534,7 +4561,9 @@ function openPlanScreen() {
 let PLAN_OPEN = false;
 function planScreenOpen() { return PLAN_OPEN; }
 function closePlanScreen() {
+  if (!PLAN_OPEN) return;
   PLAN_OPEN = false;
+  overlayClosed();
   $("planScreen").classList.add("hidden");
   $("planBack").classList.add("hidden");
   if (document.body.classList && !PREM_OPEN) document.body.classList.remove("modal-lock");
@@ -4585,13 +4614,16 @@ function openPremiumScreen() {
   $("premGo").onclick = () => { $("premNotice").textContent = L.premNotYet; };
   $("premLater").onclick = () => closePremiumScreen();
   $("premX").onclick = () => closePremiumScreen();
+  overlayOpened("premScreen", null);
   $("premBack").onclick = () => closePremiumScreen();
   try { $("premX").focus(); } catch (e) {}
 }
 let PREM_OPEN = false;
 function premiumScreenOpen() { return PREM_OPEN; }
 function closePremiumScreen() {
+  if (!PREM_OPEN) return;
   PREM_OPEN = false;
+  overlayClosed();
   $("premScreen").classList.add("hidden");
   $("premBack").classList.add("hidden");
   if (document.body.classList && !PLAN_OPEN) document.body.classList.remove("modal-lock");
@@ -6017,7 +6049,9 @@ function renderCall() {
   const lastChar = [...S.turns].reverse().find((x) => !x.me);
   $("vcSay").textContent = lastChar ? lastChar.text : "";
   $("vcSay").classList.toggle("hidden", !lastChar);
-  $("vcSay").setAttribute("aria-label", `${A.who}: ${lastChar ? lastChar.text : ""}`);
+  // the bubble is a control: name the ACTION, and expose the line as content
+  $("vcSay").setAttribute("aria-label", `${L.sayIt} — ${A.who}: ${lastChar ? lastChar.text : ""}`);
+  $("vcSay").setAttribute("aria-disabled", lastChar ? "false" : "true");
 
   // Marzi's bubble carries the suggestion and is attached to Marzi
   $("vcBubble").textContent = S.hint || L.hint;
@@ -6868,7 +6902,7 @@ function showLimit() {
   box.setAttribute("role", "dialog");
   box.setAttribute("aria-modal", "true");
   box.setAttribute("aria-labelledby", "limitTitle");
-  $("limitMarzi").innerHTML = marziSVG(stage, "sad");
+  $("limitMarzi").innerHTML = marziCallArt(stage, "limit");   // resolver path, not a raw SVG call
   $("limitTitle").textContent = L.limitTitle;
   $("limitBody").textContent = L.limitMsg;
   const now = new Date(), mid = new Date(now); mid.setHours(24, 0, 0, 0);
@@ -6920,13 +6954,40 @@ function renderNetBanner() {
   el.classList.toggle("hidden", !off);
   return off;
 }
+/* MARZI-018-R2: shared overlay focus + dismissal behaviour. Each overlay
+   keeps its own open/close functions; these only add the dialog semantics,
+   move focus in, restore it on close, and wire Escape. */
+let OVERLAY_RETURN_FOCUS = null;
+function overlayOpened(hostId, labelId) {
+  const el = $(hostId);
+  if (!el) return null;
+  try { OVERLAY_RETURN_FOCUS = document.activeElement; } catch (e) { OVERLAY_RETURN_FOCUS = null; }
+  el.setAttribute("role", "dialog");
+  el.setAttribute("aria-modal", "true");
+  if (labelId) el.setAttribute("aria-labelledby", labelId);
+  // focus the first control inside, so the keyboard and screen reader enter
+  // the overlay instead of staying behind it
+  let first = null;
+  try { first = el.querySelector("button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])"); } catch (e) {}
+  try { if (first && first.focus) first.focus(); } catch (e) {}
+  return first;
+}
+function overlayClosed() {
+  const back = OVERLAY_RETURN_FOCUS;
+  OVERLAY_RETURN_FOCUS = null;
+  try { if (back && back.focus && document.contains && document.contains(back)) back.focus(); } catch (e) {}
+  return back;
+}
+
 /* MARZI-018: the no-internet state. Distinct from the daily limit: it names
    connectivity as the cause, offers Retry, and keeps the same two recovery
    rows the plan screen uses. It never claims minutes are exhausted. */
 let OFFLINE_OPEN = false;
 function offlineScreenOpen() { return OFFLINE_OPEN; }
 function closeOffline() {
+  if (!OFFLINE_OPEN) return;
   OFFLINE_OPEN = false;
+  overlayClosed();
   $("offlineScreen").classList.add("hidden");
   $("offlineBack").classList.add("hidden");
   if (document.body.classList && !limitOpen()) document.body.classList.remove("modal-lock");
@@ -6957,6 +7018,8 @@ function showOffline() {
   $("offlineScreen").classList.remove("hidden");
   $("offlineBack").classList.remove("hidden");
   if (document.body.classList) document.body.classList.add("modal-lock");
+  overlayOpened("offlineScreen", null);
+  $("offlineBack").onclick = () => closeOffline();
   $("offX").onclick = () => closeOffline();
   $("offLater").onclick = () => closeOffline();
   $("offRetry").onclick = () => {
@@ -7084,12 +7147,14 @@ function openCallSheet() {
   SHEET_SHOWN = true;
   $("callSheet").classList.remove("hidden");
   $("sheetBack").classList.remove("hidden");
+  overlayOpened("callSheet", "sheetTitle");
   try { $("sheetClose").focus(); } catch (e) {}
   if (!SHEET_HISTORY) {
     try { window.history.pushState({ marziSheet: true }, ""); SHEET_HISTORY = true; } catch (e) {}
   }
 }
 function closeCallSheet(fromPop) {
+  if (SHEET_SHOWN) overlayClosed();
   SHEET_SHOWN = false;
   $("callSheet").classList.add("hidden");
   $("sheetBack").classList.add("hidden");
@@ -7106,6 +7171,7 @@ window.addEventListener("popstate", () => {
 document.addEventListener("keydown", (e) => {
   if (e.key !== "Escape") return;
   if (sheetOpen()) closeCallSheet();
+  else if (offlineScreenOpen()) closeOffline();
   else if (premiumScreenOpen()) closePremiumScreen();
   else if (planScreenOpen()) closePlanScreen();
   else if (limitOpen()) closeLimit();

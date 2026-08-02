@@ -1105,7 +1105,7 @@ check("MARZI-010 direction + touch targets", () => {
   if (/inset-inline: 0/.test(hit)) throw new Error("hit area still anchored to the inline start");
   if (!/min-width: var\(--touch-min\)/.test(hit) || !/height: var\(--touch-min\)/.test(hit)) throw new Error("hit area below the touch floor");
   // small phones tighten the top bar so four resource chips fit without scroll
-  if (!/@media \(max-width: 400px\) \{\s*\.topbar-in \{ gap: 4px; \}/.test(styles)) throw new Error("narrow top-bar rule missing");
+  if (!/@media \(max-width: 420px\) \{\s*\.topbar-in \{ gap: 4px; \}/.test(styles)) throw new Error("narrow top-bar rule missing");
   if (!/\.seg button \{ min-height: var\(--touch-min\)/.test(styles)) throw new Error("segmented controls below the floor");
   if (!/\.routine button \{ min-height: var\(--touch-min\)/.test(styles)) throw new Error("routine chips below the floor");
   if (!/\.legal a \{[^}]*min-height: var\(--touch-min\)/.test(styles)) throw new Error("legal links below the floor");
