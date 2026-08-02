@@ -289,6 +289,83 @@ const LANGS = process.argv[4] ? [process.argv[4]] : ["es", "ar"];
       }
     }
 
+
+    if (group("r4")) {
+      const { ctx, p } = await ctxFor(b, { w, h, lang, delay: 500 });
+      await enterCall(p, 2000);
+      await p.evaluate(() => document.getElementById("sheetBtn").click());
+      await p.waitForTimeout(450);
+
+      // R4-1: adjacent word hit regions must NOT overlap, or a tap near a
+      // boundary runs the wrong word's action.
+      const words = await p.evaluate(() => [...document.querySelectorAll("#log .w")].map((e, i) => {
+        const r = e.getBoundingClientRect(); const a = getComputedStyle(e, "::after");
+        const extraW = Math.max(0, (parseFloat(a.minWidth) || 0) - r.width);
+        return { i, word: e.dataset.w, left: r.left - extraW / 2, right: r.right + extraW / 2,
+          top: r.top, bottom: r.bottom, w: Math.max(r.width, parseFloat(a.minWidth) || 0),
+          h: Math.max(r.height, parseFloat(a.height) || 0) };
+      }));
+      ok(words.length > 1, `${tag} R4-1: transcript exposes multiple tappable words (${words.length})`);
+      let overlaps = 0;
+      for (let i = 0; i < words.length; i++) for (let j = i + 1; j < words.length; j++) {
+        const a = words[i], c = words[j];
+        const ox = Math.min(a.right, c.right) - Math.max(a.left, c.left);
+        const oy = Math.min(a.bottom, c.bottom) - Math.max(a.top, c.top);
+        if (ox > 0.5 && oy > 0.5) overlaps++;
+      }
+      ok(overlaps === 0, `${tag} R4-1: no overlapping word hit regions (${overlaps} overlapping pairs)`);
+      ok(words.every((x) => x.w >= 47.5 && x.h >= 47.5), `${tag} R4-1: words still meet 48x48`);
+
+      // and the tap actually runs the word under the finger
+      const hit = await p.evaluate(async () => {
+        const list = [...document.querySelectorAll("#log .w")];
+        const target = list[Math.min(1, list.length - 1)];
+        window.__word = null;
+        const r = target.getBoundingClientRect();
+        const el = document.elementFromPoint(Math.round(r.left + r.width / 2), Math.round(r.top + r.height / 2));
+        return { expected: target.dataset.w, gotEl: el && el.dataset ? el.dataset.w : null,
+          same: el === target || target.contains(el) };
+      });
+      ok(hit.same, `${tag} R4-1: the point over a word resolves to that word (${hit.expected} vs ${hit.gotEl})`);
+      await p.evaluate(() => { try { closeCallSheet(); } catch (e) {} });
+      await p.evaluate(() => { try { endCall(); } catch (e) {} });
+      await p.waitForTimeout(300);
+
+      // R4-2: the exhausted-minutes dialog must contain focus and inert the
+      // obscured background, like every other modal.
+      await p.evaluate(() => { showTab("learn"); }); await p.waitForTimeout(200);
+      await p.evaluate(() => document.getElementById("practiceBtn").focus());
+      await p.evaluate(() => showLimit()); await p.waitForTimeout(350);
+      const lim = await p.evaluate(() => { const d = document.getElementById("limitBox");
+        return { inside: d.contains(document.activeElement),
+          role: d.getAttribute("role"), modal: d.getAttribute("aria-modal"),
+          named: !!(d.getAttribute("aria-label") || d.getAttribute("aria-labelledby")),
+          bgInert: !!document.getElementById("learn").closest("[data-marzi-inert]") }; });
+      ok(lim.role === "dialog" && lim.modal === "true" && lim.named, `${tag} R4-2: limit is a named modal dialog`);
+      ok(lim.inside, `${tag} R4-2: focus enters the limit dialog`);
+      ok(lim.bgInert, `${tag} R4-2: obscured background is inert`);
+      for (const keys of ["Shift+Tab", "Tab"]) {
+        for (let i = 0; i < 12; i++) await p.keyboard.press(keys);
+        ok(await p.evaluate(() => document.getElementById("limitBox").contains(document.activeElement)),
+          `${tag} R4-2: focus contained under repeated ${keys}`);
+      }
+
+      // R4-3: limit -> plan must not lose the return target. Closing the limit
+      // blurs to <body>; the plan screen must inherit the original opener.
+      await p.evaluate(() => document.getElementById("limitStore").click());
+      await p.waitForTimeout(400);
+      const chained = await p.evaluate(() => ({ planOpen: planScreenOpen(), limitOpen: limitOpen(),
+        inside: document.getElementById("planScreen").contains(document.activeElement) }));
+      ok(chained.planOpen && !chained.limitOpen, `${tag} R4-3: limit hands off to the plan screen`);
+      ok(chained.inside, `${tag} R4-3: focus enters the plan screen`);
+      await p.keyboard.press("Escape"); await p.waitForTimeout(350);
+      const restored = await p.evaluate(() => ({ id: document.activeElement && document.activeElement.id,
+        inertGone: document.querySelectorAll("[data-marzi-inert]").length === 0 }));
+      ok(restored.id === "practiceBtn", `${tag} R4-3: focus returns to the original opener (${restored.id})`);
+      ok(restored.inertGone, `${tag} R4-3: background restored after the chain`);
+      await ctx.close();
+    }
+
     if (group("safearea")) {
       const { ctx, p } = await ctxFor(b, { w, h, lang, insets: [44, 34], delay: 500 });
       await enterCall(p, 1500);

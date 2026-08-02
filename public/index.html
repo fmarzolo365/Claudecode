@@ -441,15 +441,16 @@
   /* MARZI-018-R3 (R2-APP-05): tappable words are native buttons - focusable,
      Enter/Space activated, and carrying a 48x48 hit region via ::after so the
      inline text flow is unchanged. */
+  /* MARZI-018-R4: the hit region is the BUTTON ITSELF. An expanded ::after
+     overlapped neighbouring words, so a tap near a boundary ran the wrong
+     word's action. Own-box sizing cannot overlap a sibling. */
   .w {
-    position: relative; cursor: pointer; border-radius: 4px;
-    background: none; border: none; padding: 0; margin: 0;
-    font: inherit; color: inherit; line-height: inherit;
-  }
-  .w::after {
-    content: ""; position: absolute; left: 50%; top: 50%;
-    transform: translate(-50%, -50%);
-    width: 100%; min-width: var(--touch-min); height: var(--touch-min);
+    display: inline-block; cursor: pointer; border-radius: 4px;
+    background: none; border: none; margin: 0 1px;
+    padding: 0 var(--space-2);
+    min-width: var(--touch-min); min-height: var(--touch-min);
+    font: inherit; color: inherit; line-height: var(--touch-min);
+    text-align: center; vertical-align: middle;
   }
   .w:active { background: var(--tint-primary-35); }
   .wsave { margin-top: 6px; font: 600 var(--text-f12-5) var(--font-sans); color: var(--green); }
@@ -6952,6 +6953,7 @@ function showLimit() {
   $("limitStore").onclick = () => { closeLimit(); openPlanScreen(); };
   $("limitOk").textContent = L.ok;
   $("limitBack").classList.remove("hidden");
+  overlayOpened("limitBox", "limitTitle");   // focus entry, containment, inert background
   box.classList.remove("hidden");
   $("limitLive").textContent = `${L.limitTitle} ${L.limitMsg} ${reset}`;
   try { $("limitOk").focus(); } catch (e) {}
@@ -6961,6 +6963,7 @@ function showLimit() {
 let LIMIT_OPEN = false;
 function limitOpen() { return LIMIT_OPEN; }
 function closeLimit() {
+  if (LIMIT_OPEN) overlayClosed();
   LIMIT_OPEN = false;
   if (document.body.classList) document.body.classList.remove("modal-lock");
   $("limitBack").classList.add("hidden");
@@ -6993,7 +6996,14 @@ function overlayOpened(hostId, labelId, accessibleName) {
   if (!el) return null;
   // R2-APP-03: an asserted modal must carry a name AND behave as a modal
   if (accessibleName) el.setAttribute("aria-label", accessibleName);
-  try { OVERLAY_RETURN_FOCUS = document.activeElement; } catch (e) { OVERLAY_RETURN_FOCUS = null; }
+  // a chained overlay (limit -> plan) opens AFTER the first one blurred, so
+  // document.activeElement is <body>. Keep the earlier target in that case.
+  try {
+    const active = document.activeElement;
+    const usable = active && active !== document.body && typeof active.focus === "function"
+      && !el.contains(active);
+    if (usable) OVERLAY_RETURN_FOCUS = active;
+  } catch (e) { /* keep whatever we already had */ }
   el.setAttribute("role", "dialog");
   el.setAttribute("aria-modal", "true");
   if (labelId) el.setAttribute("aria-labelledby", labelId);
@@ -7047,7 +7057,7 @@ function overlayTrapKeydown(e) {
   try {
     items = [...OVERLAY_MODAL.querySelectorAll(
       'button:not([disabled]), [href], input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])')]
-      .filter((el) => el.offsetParent !== null || el === document.activeElement);
+      .filter((el) => el.getClientRects().length > 0 || el === document.activeElement);
   } catch (err) { return false; }
   if (!items.length) return false;
   const first = items[0], last = items[items.length - 1];
