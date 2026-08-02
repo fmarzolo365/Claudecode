@@ -1395,3 +1395,71 @@ harness bugs were fixed and the runtime was left alone.
   gesture-area behaviour is unverified.
 - All 21 call-pose assets, the header mark and the nine outfit previews remain
   undelivered; every state ships on the approved placeholder.
+
+---
+
+# Implementation Report — MARZI-018-R3 (Codex R2 remediation)
+
+Remediates the independent Codex review committed at `bfd27f0`
+(`MARZI-018-R2-CODEX-REVIEW.md`, 53,047 bytes, SHA-256 `c5e51be5…`, verified
+before reading). Five High application defects, two test findings and one
+documentation finding.
+
+## Cumulative status correction (R2-DOC-01)
+
+Earlier sections of this report are superseded on three points:
+
+- **The global `history()` helper is gone.** `93aadda` renamed it to
+  `legacyPromptHistory`; a top-level `function history()` had replaced
+  `window.history`, so `back`/`pushState`/`replaceState` were undefined and
+  every try/catch-wrapped call site failed silently.
+- **The MARZI-018 Android-Back claim was wrong.** It read as verified because
+  the walkthrough opened the transcript without first building a history
+  stack. `93aadda` corrected the defect and the claim.
+- **`94ea642` (MARZI-018-R2) did NOT remove duplicate safe-area ownership**, and
+  its overlay-accessibility claim was overstated. `.callscreen` consumed both
+  insets while `.call-top`/`.call-stack` consumed them again; with 44/34
+  injected the reservation reached 104px top / 84px bottom and Marzi overlapped
+  the character bubble by ~3,031px². Both are fixed here and proved by
+  measurement.
+
+## Corrections
+
+| Finding | Correction | Proof |
+|---|---|---|
+| **R2-APP-01** stages 1–3 kept badge treatment; artwork 20.9–21.0% high | Badge chrome removed inside the call and the **artwork** sized like 4–6. `#vcMarzi` carries both `.call-marzi` and `.vc-marzi`, so the Learn 46px chip rule was also matching — explicitly unset | 6 stages × 2 viewports × 2 languages: artwork ≥30%w, ≥24%h, `border-width: 0` |
+| **R2-APP-02** `#vcSay` announced replay but had no handler | Wired to `replayLastCharacterLine()`, the same path `#playBtn` uses — one voice implementation | click, Enter and Space each produce **exactly one** playback |
+| **R2-APP-03** focus not contained, background not inert, three dialogs unnamed | Accessible names for plan/Premium/offline; wrap-around Tab/Shift+Tab containment; background isolated by inerting **siblings up the ancestor chain** (inerting `main` would inert a dialog nested inside it) | 116/116: names, entry, containment both directions under 10–12 presses, background inert, Escape, focus restore |
+| **R2-APP-04** duplicate safe-area ownership | `.callscreen` is the **single owner** of both call insets; the R2 `.call-top`/`.call-stack` rules removed | With 44/34 injected: outer ≥44/≥34, inner <44/<34, identity clears the cutout, controls clear the gesture area, **0px² overlap** |
+| **R2-APP-05** replay control 23.67×48; `.w` words non-semantic | `.mini` meets the floor on both axes; words are native `<button>`s with a 48×48 `::after` hit region, keeping inline text flow | rendered ≥48×48, `BUTTON`, keyboard-reachable |
+| **R2-TEST-01** suite can stay green while these defects exist | Committed `test/browser/` runner: nine groups, real browser, rendered geometry and real events | 484 assertions, see below |
+| **R2-TEST-02** guard too broad and too narrow | Narrowed to forms that actually overwrite a window property (`function`/`var`/`class` at column 0), and extended to `window.x =`, `globalThis.x =` and `defineProperty` | Node suite |
+| **R2-DOC-01** contradictory status | This section | — |
+
+## Validation
+
+Node suite **51/51**. Rendered browser, committed and reproducible via
+`node test/browser/run.js`:
+
+| Group | Assertions |
+|---|---|
+| history · async · portrait | 16 · 12 · 16 |
+| stages (4 chunks) | 120 |
+| overlays | 116 |
+| targets | 36 |
+| layout | 44 |
+| safearea | 28 |
+| topbar (5 balances × 12 widths) | 120 |
+| **Total** | **508, all passing** |
+
+## Not corrected
+
+- **R2-VER-01** — installed Android Chrome, standalone display mode, real
+  cutout values, gesture navigation and device accessibility services are
+  unavailable in this environment. Evidence here is desktop Chromium in a
+  clean top-level page with mobile viewport, touch emulation and
+  deterministically injected insets. **This remains release-blocking by
+  Codex's own decision rule.**
+- **R2-GIT-01** — a trailing blank line at `docs/DECISIONS.md:109` from
+  pre-MARZI-018 commit `53929a5`. `docs/DECISIONS.md` is outside the permitted
+  file scope, and Codex asks for it to be a separately scoped correction.

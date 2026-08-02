@@ -137,18 +137,16 @@
     padding: 14px 16px calc(90px + var(--safe-bottom));
   }
   /* the call screen hides the bottom nav, so it doesn't need to clear it */
-  /* MARZI-018-R2: the call stack owns the bottom inset while in a call, so
-     `main` must not add it again - it was being counted twice. */
   body.in-call main { padding-bottom: 10px; }
   /* MARZI-005: the call fills exactly one screen - the transcript is the
      flexible middle, so alerts or the type row never push the page taller */
   body.in-call main {
     height: calc(100dvh - 64px); display: flex; flex-direction: column; overflow: hidden;
   }
-  /* MARZI-018: the immersive layer owns the whole dynamic viewport and keeps
-     its chrome inside both safe areas. */
-  body.in-call .call-top { padding-top: calc(var(--space-2) + var(--safe-top)); }
-  body.in-call .call-stack { padding-bottom: calc(var(--space-2) + var(--safe-bottom)); }
+  /* MARZI-018-R3 (R2-APP-04): `.callscreen` is the SINGLE owner of both call
+     safe-area insets. The R2 rules here consumed them a second time - with
+     44/34 injected the reservation became 104px top / 84px bottom and the
+     composition collided. One owner per edge, no exceptions. */
   body.in-call #call { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
   body.in-call #call .log { flex: 1 1 auto; min-height: 104px; max-height: none; }
   /* ---------- app shell: sticky top bar + fixed bottom navigation ---------- */
@@ -440,16 +438,31 @@
   }
   .tag.me { color: var(--marzi-dark); }
   .said { font-size: var(--text-f15-5); line-height: 1.5; }
-  .w { cursor: pointer; border-radius: 4px; }
+  /* MARZI-018-R3 (R2-APP-05): tappable words are native buttons - focusable,
+     Enter/Space activated, and carrying a 48x48 hit region via ::after so the
+     inline text flow is unchanged. */
+  .w {
+    position: relative; cursor: pointer; border-radius: 4px;
+    background: none; border: none; padding: 0; margin: 0;
+    font: inherit; color: inherit; line-height: inherit;
+  }
+  .w::after {
+    content: ""; position: absolute; left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%; min-width: var(--touch-min); height: var(--touch-min);
+  }
   .w:active { background: var(--tint-primary-35); }
   .wsave { margin-top: 6px; font: 600 var(--text-f12-5) var(--font-sans); color: var(--green); }
   .sub { font-size: var(--text-sm); color: var(--muted); margin-top: 4px; }
   .fix { font-size: var(--text-f12-5); color: var(--red); margin-top: 4px; }
   /* MARZI-005: inline transcript actions still meet the 48px target */
+  /* MARZI-018-R3 (R2-APP-05): min-height alone left the replay control at
+     23.67x48. Both axes now meet the floor. */
   .mini {
     background: none; border: none; padding: 0 8px; font: var(--text-f12) var(--font-sans);
     color: var(--muted); text-decoration: underline; cursor: pointer; margin-right: 4px;
-    display: inline-flex; align-items: center; min-height: 48px;
+    display: inline-flex; align-items: center; justify-content: center;
+    min-height: var(--touch-min); min-width: var(--touch-min);
   }
   .mini:hover { color: var(--ink); }
   .row { display: flex; gap: 10px; margin-top: 8px; }
@@ -1159,8 +1172,9 @@
     background: var(--call-bg); color: var(--white);
     height: 100dvh; min-height: 100vh;
     display: flex; flex-direction: column;
-    padding: calc(env(safe-area-inset-top, 0px) + var(--space-2)) 0
-             calc(env(safe-area-inset-bottom, 0px) + var(--space-2));
+    /* sole owner of both call insets - see R2-APP-04 */
+    padding: calc(var(--safe-top) + var(--space-2)) 0
+             calc(var(--safe-bottom) + var(--space-2));
   }
   /* the middle band owns every overlay; the bottom stack is a flex sibling,
      so controls can never collide with Marzi or the bubbles */
@@ -1248,20 +1262,25 @@
     pointer-events: none; max-width: min(46vw, 220px);
   }
   .call-marzi .vc-marzi-art {
-    width: clamp(108px, 23dvh, 196px); height: clamp(108px, 23dvh, 196px);
+    /* the ARTWORK, not just its container, carries the presence contract */
+    width: clamp(112px, 25.5dvh, 208px); height: clamp(112px, 25.5dvh, 208px);
     filter: drop-shadow(0 6px 14px rgba(16,12,8,.55));
   }
   .call-marzi .vc-marzi-art svg, .call-marzi .vc-marzi-img { width: 100%; height: 100%; display: block; }
-  /* MARZI-018-R2: early stages keep the circular badge treatment but scale
-     with the viewport like 4-6 - a fixed 84px left a stage-1 learner with a
-     companion far below the agreed presence floor. */
+  /* MARZI-018-R3 (R2-APP-01): the circular badge/chip treatment is gone.
+     Board 05 is explicit that Marzi is never reduced to a badge, and the
+     badge's border+padding meant the ARTWORK measured ~21% height while the
+     box looked larger. Early stages now size exactly like 4-6; a soft glow
+     replaces the chip so an egg still reads against a dark portrait. */
   .call-marzi[data-stage="1"] .vc-marzi-art,
   .call-marzi[data-stage="2"] .vc-marzi-art,
   .call-marzi[data-stage="3"] .vc-marzi-art {
-    width: clamp(96px, 21dvh, 176px); height: clamp(96px, 21dvh, 176px);
-    padding: 6px; box-sizing: border-box;
-    border: 2px solid rgba(255,255,255,.92); border-radius: 50%;
-    background: var(--paper); filter: none;
+    /* #vcMarzi carries BOTH .call-marzi and .vc-marzi, so the Learn badge rule
+       (46px, bordered chip) also matched here. Unset the chrome AND restore the
+       scaled size, so early stages match 4-6 inside the call (R2-APP-01). */
+    width: clamp(112px, 25.5dvh, 208px); height: clamp(112px, 25.5dvh, 208px);
+    border: 0; border-radius: 0; padding: 0; background: none; box-shadow: none;
+    filter: drop-shadow(0 0 10px rgba(255,255,255,.34)) drop-shadow(0 6px 14px rgba(16,12,8,.55));
   }
   .call-marzi .vc-marzi-cap {
     font: 700 var(--text-f8) 'JetBrains Mono', monospace; letter-spacing: .03em;
@@ -4552,7 +4571,7 @@ function openPlanScreen() {
   if (document.body.classList) document.body.classList.add("modal-lock");
   PLAN_OPEN = true;
   $("planX").onclick = () => closePlanScreen();
-  overlayOpened("planScreen", null);
+  overlayOpened("planScreen", null, t().planTitle);
   $("planBack").onclick = () => closePlanScreen();
   $("planBuy").onclick = () => { closePlanScreen(); showTab("store"); };
   $("planPrem").onclick = () => { closePlanScreen(); openPremiumScreen(); };
@@ -4614,7 +4633,7 @@ function openPremiumScreen() {
   $("premGo").onclick = () => { $("premNotice").textContent = L.premNotYet; };
   $("premLater").onclick = () => closePremiumScreen();
   $("premX").onclick = () => closePremiumScreen();
-  overlayOpened("premScreen", null);
+  overlayOpened("premScreen", null, t().premGet);
   $("premBack").onclick = () => closePremiumScreen();
   try { $("premX").focus(); } catch (e) {}
 }
@@ -5907,7 +5926,7 @@ function tappable(text, ti) {
   return String(text).split(/(\s+)/).map((tok) => {
     const clean = tok.replace(/[^A-Za-zÄÖÜäöüß-]/g, "");
     return clean.length > 1
-      ? `<span class="w" data-w="${esc(clean)}" data-ti="${ti}">${esc(tok)}</span>`
+      ? `<button type="button" class="w" data-w="${esc(clean)}" data-ti="${ti}">${esc(tok)}</button>`
       : esc(tok);
   }).join("");
 }
@@ -5972,6 +5991,17 @@ function renderCallStatus() {
 /* remaining call time from the existing plan math (read-only) */
 function callSecondsLeft() {
   return Math.max(0, planLimitToday() - planUsedToday() - (S.seconds || 0));
+}
+/* MARZI-018-R3 (R2-APP-02): the one approved replay path for the character's
+   last line. #playBtn and #vcSay both call it; neither owns its own speech. */
+function replayLastCharacterLine() {
+  for (let i = S.turns.length - 1; i >= 0; i--) {
+    if (!S.turns[i].me) {
+      ENGINE.get("voice").speak({ text: S.turns[i].text, slow: false, speaker: S.turns[i].sp || 1 });
+      return true;
+    }
+  }
+  return false;
 }
 function renderCall() {
   const L = t();
@@ -6958,9 +6988,11 @@ function renderNetBanner() {
    keeps its own open/close functions; these only add the dialog semantics,
    move focus in, restore it on close, and wire Escape. */
 let OVERLAY_RETURN_FOCUS = null;
-function overlayOpened(hostId, labelId) {
+function overlayOpened(hostId, labelId, accessibleName) {
   const el = $(hostId);
   if (!el) return null;
+  // R2-APP-03: an asserted modal must carry a name AND behave as a modal
+  if (accessibleName) el.setAttribute("aria-label", accessibleName);
   try { OVERLAY_RETURN_FOCUS = document.activeElement; } catch (e) { OVERLAY_RETURN_FOCUS = null; }
   el.setAttribute("role", "dialog");
   el.setAttribute("aria-modal", "true");
@@ -6970,9 +7002,63 @@ function overlayOpened(hostId, labelId) {
   let first = null;
   try { first = el.querySelector("button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])"); } catch (e) {}
   try { if (first && first.focus) first.focus(); } catch (e) {}
+  OVERLAY_MODAL = el;
+  setBackgroundInert(el, true);
   return first;
 }
+/* Everything outside the open dialog is removed from the keyboard and the
+   accessibility tree. Walking the ancestor chain and inerting each SIBLING is
+   what correctly isolates a dialog that lives inside <main> - inerting an
+   ancestor would inert the dialog itself. `inert` where supported, with an
+   aria-hidden fallback. */
+const INERT_MARK = "data-marzi-inert";
+function setBackgroundInert(dialog, on) {
+  if (!on) {
+    try {
+      document.querySelectorAll("[" + INERT_MARK + "]").forEach((el) => {
+        el.removeAttribute("inert"); el.removeAttribute("aria-hidden"); el.removeAttribute(INERT_MARK);
+      });
+    } catch (e) {}
+    return true;
+  }
+  if (!dialog) return false;
+  try {
+    let node = dialog;
+    while (node && node.parentElement && node !== document.body) {
+      const parent = node.parentElement;
+      for (const sib of Array.prototype.slice.call(parent.children)) {
+        if (sib === node || sib.hasAttribute(INERT_MARK)) continue;
+        if (sib.tagName === "SCRIPT" || sib.tagName === "STYLE") continue;
+        sib.setAttribute("inert", "");
+        sib.setAttribute("aria-hidden", "true");
+        sib.setAttribute(INERT_MARK, "");
+      }
+      node = parent;
+    }
+  } catch (e) { return false; }
+  return true;
+}
+let OVERLAY_MODAL = null;
+/* Wrap-around containment: Tab off the last control returns to the first and
+   Shift+Tab off the first goes to the last, so focus never leaves the dialog. */
+function overlayTrapKeydown(e) {
+  if (!OVERLAY_MODAL || e.key !== "Tab") return false;
+  let items = [];
+  try {
+    items = [...OVERLAY_MODAL.querySelectorAll(
+      'button:not([disabled]), [href], input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])')]
+      .filter((el) => el.offsetParent !== null || el === document.activeElement);
+  } catch (err) { return false; }
+  if (!items.length) return false;
+  const first = items[0], last = items[items.length - 1];
+  if (!OVERLAY_MODAL.contains(document.activeElement)) { try { first.focus(); } catch (err) {} e.preventDefault(); return true; }
+  if (e.shiftKey && document.activeElement === first) { try { last.focus(); } catch (err) {} e.preventDefault(); return true; }
+  if (!e.shiftKey && document.activeElement === last) { try { first.focus(); } catch (err) {} e.preventDefault(); return true; }
+  return false;
+}
 function overlayClosed() {
+  setBackgroundInert(OVERLAY_MODAL, false);
+  OVERLAY_MODAL = null;
   const back = OVERLAY_RETURN_FOCUS;
   OVERLAY_RETURN_FOCUS = null;
   try { if (back && back.focus && document.contains && document.contains(back)) back.focus(); } catch (e) {}
@@ -7018,7 +7104,7 @@ function showOffline() {
   $("offlineScreen").classList.remove("hidden");
   $("offlineBack").classList.remove("hidden");
   if (document.body.classList) document.body.classList.add("modal-lock");
-  overlayOpened("offlineScreen", null);
+  overlayOpened("offlineScreen", null, t().offlineTitle);
   $("offlineBack").onclick = () => closeOffline();
   $("offX").onclick = () => closeOffline();
   $("offLater").onclick = () => closeOffline();
@@ -7169,6 +7255,7 @@ window.addEventListener("popstate", () => {
   if (OB && OB.step > 0) { obBack(); try { window.history.pushState(null, "", location.href); } catch (e) {} }
 });
 document.addEventListener("keydown", (e) => {
+  if (overlayTrapKeydown(e)) return;
   if (e.key !== "Escape") return;
   if (sheetOpen()) closeCallSheet();
   else if (offlineScreenOpen()) closeOffline();
@@ -7200,6 +7287,10 @@ $("sheetBack").onclick = () => closeCallSheet();
 function wireCallControls() {
   $("micBtn").onclick = () => listen();
   $("hangBtn").onclick = () => endCall();
+  // MARZI-018-R3 (R2-APP-02): the character bubble is a control that promises
+  // replay. It now runs the SAME approved path as #playBtn - one voice
+  // implementation, and a single activation produces a single playback.
+  $("vcSay").onclick = () => replayLastCharacterLine();
   $("playBtn").onclick = () => {
     for (let i = S.turns.length - 1; i >= 0; i--) {
       if (!S.turns[i].me) {

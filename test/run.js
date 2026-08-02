@@ -1872,10 +1872,16 @@ check("MARZI-018 call chrome: emoji fallback, one danger control, targets, safe 
 
   // M-09: the call layer honours both safe areas
   if (!/--safe-top: env\(safe-area-inset-top, 0px\)/.test(styles)) throw new Error("--safe-top token missing");
-  if (!/body\.in-call \.call-top \{ padding-top: calc\(var\(--space-2\) \+ var\(--safe-top\)\); \}/.test(styles))
-    throw new Error("call top does not clear the top safe area");
-  if (!/body\.in-call \.call-stack \{ padding-bottom: calc\(var\(--space-2\) \+ var\(--safe-bottom\)\); \}/.test(styles))
-    throw new Error("call stack does not clear the bottom safe area");
+  // R2-APP-04: exactly ONE owner per call safe-area edge. .callscreen owns
+  // both; anything else consuming them again double-counts the inset.
+  if (!/\.callscreen \{[^}]*padding: calc\(var\(--safe-top\) \+ var\(--space-2\)\) 0\s*calc\(var\(--safe-bottom\) \+ var\(--space-2\)\)/.test(styles))
+    throw new Error(".callscreen must be the single owner of both call insets");
+  const dupTop = (styles.match(/var\(--safe-top\)/g) || []).length;
+  const dupBot = (styles.match(/var\(--safe-bottom\)/g) || []).length;
+  if (dupTop !== 1) throw new Error("--safe-top must have exactly ONE consumer, found " + dupTop);
+  if (dupBot > 4) throw new Error("--safe-bottom consumed by too many owners: " + dupBot);
+  if (/body\.in-call \.call-(top|stack) \{[^}]*safe-(top|bottom)/.test(styles))
+    throw new Error("call chrome consumes an inset already owned by .callscreen");
 
   // M-07: the timer reads as primary, remaining allowance as context
   if (!/\.call-meta #timer \{ font-size: var\(--text-md\)/.test(styles)) throw new Error("timer is not the primary reading");
@@ -1951,8 +1957,13 @@ check("MARZI-018 call poses: stable paths, empty registry, safe fallback", () =>
 check("MARZI-018 Marzi presence and bubble anchoring", () => {
   const styles = html.slice(html.indexOf("<style>"), html.indexOf("</style>"));
   // M-02: the art scales with the viewport instead of a fixed 108px badge
-  if (!/\.call-marzi \.vc-marzi-art \{\s*width: clamp\(108px, 23dvh, 196px\); height: clamp\(108px, 23dvh, 196px\)/.test(styles))
-    throw new Error("Marzi no longer scales with the dynamic viewport");
+  // R2-APP-01: the ARTWORK carries the presence contract, at every stage
+  if (!/\.call-marzi \.vc-marzi-art \{[^}]*width: clamp\(112px, 25\.5dvh, 208px\)/.test(styles))
+    throw new Error("Marzi artwork no longer scales with the dynamic viewport");
+  if (!/\.call-marzi\[data-stage="3"\] \.vc-marzi-art \{[^}]*width: clamp\(112px, 25\.5dvh, 208px\)/.test(styles))
+    throw new Error("early stages must scale like 4-6 inside the call");
+  if (!/\.call-marzi\[data-stage="3"\] \.vc-marzi-art \{[^}]*border: 0/.test(styles))
+    throw new Error("early stages must not keep the badge treatment in the call");
   if (/max-width: 128px/.test(styles)) throw new Error("the old 128px cap still clips Marzi");
   if (!/max-width: min\(46vw, 220px\)/.test(styles)) throw new Error("Marzi container cap missing");
   // M-03: the suggestion is anchored beside Marzi and carries a tail back to him
@@ -2010,11 +2021,17 @@ check("MARZI-018-R1: nothing may shadow the native History API", () => {
   const scriptSrc = src;
   // no global declaration may take a name the platform already owns on window
   const RESERVED = ["history", "location", "navigator", "document", "screen", "origin", "name", "length", "top", "parent", "self", "status"];
-  // TOP-LEVEL declarations only (column 0): those are what become window
-  // properties. A block-scoped `const name` inside a function is harmless.
+  // R2-TEST-02: only forms that actually OVERWRITE a window property.
+  // `function`/`var`/`class` at column 0 create window properties; `let`/`const`
+  // create script-scope bindings that do NOT overwrite window, so they are not
+  // flagged (the old rule produced false positives for them).
   for (const word of RESERVED) {
-    const decl = new RegExp("^(function|var|let|const|class)\\s+" + word + "\\b", "m");
-    if (decl.test(scriptSrc)) throw new Error(`a top-level global named "${word}" shadows a native window property`);
+    const decl = new RegExp("^(function|var|class)\\s+" + word + "\\b", "m");
+    if (decl.test(scriptSrc)) throw new Error(`a top-level global named "${word}" overwrites a native window property`);
+    const assign = new RegExp("(^|[^\\w.])(window|globalThis|self)\\." + word + "\\s*=[^=]", "m");
+    if (assign.test(scriptSrc)) throw new Error(`a direct assignment overwrites window.${word}`);
+    const define = new RegExp("defineProperty\\(\\s*(window|globalThis|self)\\s*,\\s*[\"']" + word + "[\"']", "m");
+    if (define.test(scriptSrc)) throw new Error(`defineProperty collides with window.${word}`);
   }
   // the renamed helper still exists and still returns the legacy shape
   if (!/function legacyPromptHistory\(\)/.test(scriptSrc)) throw new Error("the legacy prompt-history helper was lost, not renamed");
