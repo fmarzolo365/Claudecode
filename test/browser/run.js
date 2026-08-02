@@ -363,6 +363,23 @@ const LANGS = process.argv[4] ? [process.argv[4]] : ["es", "ar"];
         inertGone: document.querySelectorAll("[data-marzi-inert]").length === 0 }));
       ok(restored.id === "practiceBtn", `${tag} R4-3: focus returns to the original opener (${restored.id})`);
       ok(restored.inertGone, `${tag} R4-3: background restored after the chain`);
+
+      // R4A: the return-target guard is load-bearing. Re-opening an already
+      // open overlay (double activation) would otherwise capture a control
+      // INSIDE the dialog as the return target; that control is hidden on
+      // close, so focus is lost. Verified against a mutated build: without the
+      // guard this returns "" instead of the opener.
+      await p.evaluate(() => { showTab("learn"); }); await p.waitForTimeout(200);
+      await p.evaluate(() => document.getElementById("practiceBtn").focus());
+      await p.evaluate(() => openPlanScreen()); await p.waitForTimeout(250);
+      const insideFirst = await p.evaluate(() =>
+        document.getElementById("planScreen").contains(document.activeElement));
+      ok(insideFirst, `${tag} R4A: focus is inside the overlay before the second open`);
+      await p.evaluate(() => openPlanScreen()); await p.waitForTimeout(250);
+      await p.keyboard.press("Escape"); await p.waitForTimeout(320);
+      const reentrant = await p.evaluate(() => document.activeElement && document.activeElement.id);
+      ok(reentrant === "practiceBtn",
+        `${tag} R4A: re-entrant open still restores the original opener (${reentrant || "<lost>"})`);
       await ctx.close();
     }
 

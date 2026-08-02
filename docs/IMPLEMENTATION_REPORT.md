@@ -1376,7 +1376,7 @@ deployed. Follows `93aadda` (MARZI-018-R1, native History restored).
 
 ## Validation
 
-Node suite **51/51**. Real Chromium: **484 assertions** across 390×844 and
+Node suite **50/50**. Real Chromium: **484 assertions** across 390×844 and
 360×640 × Spanish and Arabic RTL × normal and reduced motion, covering native
 History, asynchronous utterance retention through an observed `processing`
 transition, all six Marzi stages, portrait success and failure, overlay focus
@@ -1438,7 +1438,7 @@ Earlier sections of this report are superseded on three points:
 
 ## Validation
 
-Node suite **51/51**. Rendered browser, committed and reproducible via
+Node suite **50/50**. Rendered browser, committed and reproducible via
 `node test/browser/run.js`:
 
 | Group | Assertions |
@@ -1463,3 +1463,63 @@ Node suite **51/51**. Rendered browser, committed and reproducible via
 - **R2-GIT-01** — a trailing blank line at `docs/DECISIONS.md:109` from
   pre-MARZI-018 commit `53929a5`. `docs/DECISIONS.md` is outside the permitted
   file scope, and Codex asks for it to be a separately scoped correction.
+
+---
+
+# Implementation Report — MARZI-018-R4A (review cleanup)
+
+Non-blocking corrections from the final review of `f1e30a0`. **No runtime
+behaviour changed** beyond one comment; no frozen contract touched.
+
+## Corrections to the record
+
+**The Node suite is 50 checks, not 51.** Every `51/51` above is corrected to
+`50/50`. The count was overstated by one in the R3 and R4 reports.
+
+**R4 defect 3 — the actual root cause.** "limit → plan loses focus" was fixed
+by routing the limit dialog through the shared overlay helper
+(`overlayOpened`/`overlayClosed` in `showLimit`/`closeLimit`), **not** by the
+return-target guard. Mutation testing confirmed it: removing the helper wiring
+reproduces the defect; reverting the guard alone does not.
+
+**The `offsetParent` → `getClientRects()` claim was wrong.** The R4 commit
+message called it "a second, real defect… containment silently did nothing."
+It is not. `#limitBox` is `position: fixed` so its *own* `offsetParent` is
+null, but its **children's** `offsetParent` is `limitBox` — the original filter
+worked. The containment failure had a single cause: `overlayOpened` was never
+called, because the insertion landed in the wrong function. The
+`getClientRects()` form is retained because it is strictly more correct for
+fixed and display-scoped subtrees, **not** because it fixed a defect. It is
+not being rolled back, and no test claims it fixes one.
+
+## The return-target guard is load-bearing — now proven
+
+The guard was flagged as unexercised. It is not. **Re-entrant open** — the same
+overlay activated twice, reachable by double activation — captures a control
+*inside* the dialog as the return target without it; that control is hidden on
+close and focus is lost. Verified against a mutated build:
+
+| Path | With guard | Without guard |
+|---|---|---|
+| Re-entrant open → Escape | focus → `#practiceBtn` | focus **lost** (`""`) |
+| Chained open after a blurred target | focus → `#practiceBtn` | focus → `#practiceBtn` |
+
+The `!el.contains(active)` clause is what carries this; the blurred-target
+clause remains defensive and is documented as such in the source. A regression
+test (`R4A` in the `r4` group) now covers it and fails against the mutated
+build.
+
+## Transcript comment corrected
+
+The comment above `.w` still described an `::after` hit region and claimed
+inline flow was unchanged. Both were untrue after R4. It now states that the
+button's own box is the target and that lines wrap sooner as an accepted
+trade-off.
+
+## Still pending
+
+**Installed Android Chrome verification remains pending.** Standalone display
+mode, real cutout values, gesture navigation and device accessibility services
+cannot be exercised in this environment. All evidence to date is desktop
+Chromium in a clean top-level page with mobile viewport, touch emulation and
+deterministically injected insets.

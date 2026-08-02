@@ -438,12 +438,12 @@
   }
   .tag.me { color: var(--marzi-dark); }
   .said { font-size: var(--text-f15-5); line-height: 1.5; }
-  /* MARZI-018-R3 (R2-APP-05): tappable words are native buttons - focusable,
-     Enter/Space activated, and carrying a 48x48 hit region via ::after so the
-     inline text flow is unchanged. */
-  /* MARZI-018-R4: the hit region is the BUTTON ITSELF. An expanded ::after
-     overlapped neighbouring words, so a tap near a boundary ran the wrong
-     word's action. Own-box sizing cannot overlap a sibling. */
+  /* Tappable transcript words are native buttons - focusable and Enter/Space
+     activated (R2-APP-05). The 48x48 target is the BUTTON'S OWN BOX: an
+     earlier ::after expansion overlapped neighbouring words, so a tap near a
+     boundary ran the wrong word's action (R4). Own-box sizing cannot overlap a
+     sibling. The trade-off is real and accepted: each word now reserves at
+     least 48px, so transcript lines wrap sooner than they did. */
   .w {
     display: inline-block; cursor: pointer; border-radius: 4px;
     background: none; border: none; margin: 0 1px;
@@ -6996,8 +6996,10 @@ function overlayOpened(hostId, labelId, accessibleName) {
   if (!el) return null;
   // R2-APP-03: an asserted modal must carry a name AND behave as a modal
   if (accessibleName) el.setAttribute("aria-label", accessibleName);
-  // a chained overlay (limit -> plan) opens AFTER the first one blurred, so
-  // document.activeElement is <body>. Keep the earlier target in that case.
+  // Only a real element OUTSIDE this dialog may become the return target.
+  // Proven by regression test: re-opening an already-open overlay (double
+  // activation) otherwise captures a control INSIDE it, which is hidden on
+  // close - focus is then lost. The blurred-target case is defensive.
   try {
     const active = document.activeElement;
     const usable = active && active !== document.body && typeof active.focus === "function"
