@@ -1,0 +1,202 @@
+{
+ "contract": "marzi.learning.evidence.v1",
+ "schemaVersion": 1,
+ "curriculumVersion": "v1-draft",
+ "reviewStatus": "pending_specialist_review",
+ "opportunity": {
+  "description": "An opportunity is valid only when the learner could reasonably respond.",
+  "requiredFields": [
+   "opportunityId",
+   "attemptId",
+   "targetLanguage",
+   "scenarioId",
+   "objectiveId",
+   "competencyId",
+   "sourceUtteranceId",
+   "expectedEvidenceType",
+   "supportedLevel",
+   "order",
+   "superseded",
+   "interrupted"
+  ],
+  "invalidatingConditions": [
+   "provider_failure",
+   "cancelled_before_response",
+   "inaudible_system_state",
+   "prompt_never_reached_learner",
+   "offline"
+  ],
+  "rule": "An invalidating condition produces no learning observation at all. It never produces a failed one."
+ },
+ "observationOutcomes": [
+  {
+   "id": "demonstrated",
+   "meaning": "The response provides the required observable evidence."
+  },
+  {
+   "id": "partially_demonstrated",
+   "meaning": "Relevant evidence exists but one or more material criteria are missing."
+  },
+  {
+   "id": "not_demonstrated",
+   "meaning": "A fair opportunity and an assessable response exist, but the criterion was not demonstrated."
+  },
+  {
+   "id": "not_observed",
+   "meaning": "No assessable response was produced for that opportunity."
+  },
+  {
+   "id": "insufficient_evidence",
+   "meaning": "Available information cannot support the judgment."
+  },
+  {
+   "id": "invalid",
+   "meaning": "The observation is malformed, duplicated, stale, cross-session, or otherwise unusable."
+  }
+ ],
+ "allowedEvidenceTypes": [
+  {
+   "id": "transcript_text",
+   "meaning": "Canonical transcript text from learner and remote utterances."
+  },
+  {
+   "id": "typed_response",
+   "meaning": "Typed learner response where that is the offered equitable path."
+  },
+  {
+   "id": "interaction_event",
+   "meaning": "Deterministic selection or confirmation event tied to an opportunity."
+  }
+ ],
+ "rejectedEvidenceTypes": [
+  {
+   "id": "raw_audio",
+   "reasonCode": "ACOUSTIC_EVIDENCE_REJECTED"
+  },
+  {
+   "id": "pronunciation_score",
+   "reasonCode": "ACOUSTIC_EVIDENCE_REJECTED"
+  },
+  {
+   "id": "accent",
+   "reasonCode": "ACOUSTIC_EVIDENCE_REJECTED"
+  },
+  {
+   "id": "speech_rate",
+   "reasonCode": "ACOUSTIC_EVIDENCE_REJECTED"
+  },
+  {
+   "id": "asr_confidence",
+   "reasonCode": "ACOUSTIC_EVIDENCE_REJECTED"
+  },
+  {
+   "id": "device_confidence",
+   "reasonCode": "ACOUSTIC_EVIDENCE_REJECTED"
+  },
+  {
+   "id": "reward_record",
+   "reasonCode": "REWARD_VALUE_PRESENT"
+  },
+  {
+   "id": "wallet_state",
+   "reasonCode": "REWARD_VALUE_PRESENT"
+  },
+  {
+   "id": "xp_total",
+   "reasonCode": "REWARD_VALUE_PRESENT"
+  },
+  {
+   "id": "scenarios_done_count",
+   "reasonCode": "ACTIVITY_PROXY_REJECTED"
+  },
+  {
+   "id": "call_duration",
+   "reasonCode": "ACTIVITY_PROXY_REJECTED"
+  },
+  {
+   "id": "hang_up_event",
+   "reasonCode": "ACTIVITY_PROXY_REJECTED"
+  },
+  {
+   "id": "ui_dom_text",
+   "reasonCode": "EVIDENCE_TYPE_UNSUPPORTED"
+  }
+ ],
+ "assistance": {
+  "description": "The learning-help context recorded at the moment of an assessable response.",
+  "modes": [
+   "OFF",
+   "HINT",
+   "FULL"
+  ],
+  "fields": [
+   "mode",
+   "exposed",
+   "opened",
+   "changedDuringResponse",
+   "helpItemId",
+   "derivationRelation",
+   "evaluatorConfidence"
+  ],
+  "derivationRelations": [
+   "identical",
+   "materially_derived",
+   "independent",
+   "undetermined"
+  ],
+  "rules": [
+   "Having a mode enabled does not prove the learner used it.",
+   "FULL support may demonstrate participation and objective completion under the approved completion policy, but cannot alone demonstrate STR.INDEPENDENT_RETRIEVAL.",
+   "HINT evidence may contribute to developing competence when the actual help item is recorded.",
+   "OFF does not guarantee independence if the response was supplied by another route.",
+   "Toggling help never creates a transcript utterance or a second provider request.",
+   "Assistance usage may become a reward input only under a later approved economy and privacy decision."
+  ]
+ },
+ "accessibilityAccommodation": {
+  "description": "Approved alternative access to the same construct. Recorded separately from learning assistance and never scored as weaker evidence.",
+  "fields": [
+   "accommodations",
+   "declaredBy",
+   "appliesToConstruct"
+  ],
+  "accommodations": [
+   "screen_reader",
+   "alternative_input",
+   "extended_time",
+   "increased_font",
+   "reduced_motion",
+   "non_audio_route",
+   "captioned_prompt"
+  ],
+  "rules": [
+   "An accessibility accommodation is never an assistance mode and never appears in the assistance object.",
+   "Using an accommodation cannot reduce an observation outcome, a mastery state, or a confidence dimension.",
+   "Where speech is not the construct being assessed, an equitable non-speech route must exist.",
+   "No learner is given a pronunciation failure derived from speech-recognition text."
+  ],
+  "separationRule": "ASSISTANCE_ACCOMMODATION_CONFLATED is raised if an accommodation value appears as an assistance mode or an assistance field carries an accommodation."
+ },
+ "validityRules": [
+  {
+   "reasonCode": "EVIDENCE_MALFORMED",
+   "rule": "A required field is absent or has the wrong type."
+  },
+  {
+   "reasonCode": "EVIDENCE_DUPLICATE",
+   "rule": "The same observation identifier appears more than once in one result."
+  },
+  {
+   "reasonCode": "EVIDENCE_CROSS_SESSION",
+   "rule": "An observation cites an attempt identifier other than the result's own."
+  },
+  {
+   "reasonCode": "EVIDENCE_STALE",
+   "rule": "An observation cites a curriculum or rubric version other than the result's own."
+  },
+  {
+   "reasonCode": "EVIDENCE_UNSOURCED",
+   "rule": "A judgment cites no canonical response or utterance identifier."
+  }
+ ]
+}

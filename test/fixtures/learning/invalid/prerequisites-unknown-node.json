@@ -1,0 +1,15 @@
+{
+ "contract": "marzi.learning.prerequisites.v1",
+ "schemaVersion": 1,
+ "curriculumVersion": "v1-draft",
+ "reviewStatus": "pending_specialist_review",
+ "hardLock": false,
+ "note": "Negative fixture: prerequisite endpoints must resolve to known competencies.",
+ "edges": [
+  {
+   "from": "INT.OPEN_CLOSE",
+   "to": "FUN.INVENTED",
+   "kind": "recommended"
+  }
+ ]
+}

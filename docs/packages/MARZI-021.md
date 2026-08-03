@@ -13,9 +13,12 @@
 | Independent reviewer | Codex |
 | Specification baseline | `ee88e0e2ecde8bcccb38c37ef7710c7e4f31bad4` |
 | Specification status | COMPLETE |
-| Implementation status | **READY FOR IMPLEMENTATION** — Product Owner gates are satisfied for static contract authoring; specialist, accessibility, and localization sign-off remain required before runtime integration or release |
-| Learning specialist status | Not yet named; assignment/sign-off is not a blocker for static contract authoring and remains mandatory before educational approval, runtime integration, or production release |
-| Runtime changes in this specification commit | None |
+| Implementation status | **READY FOR REVIEW** — the static contracts, schemas, fixtures, validator, and documentation are implemented; specialist, accessibility, and localization sign-off remain required before runtime integration or release |
+| Implementation commit | Recorded in `docs/IMPLEMENTATION_REPORT.md` under "Implementation Report — MARZI-021" |
+| Implementation baseline | `0798cd894865b57d67cff6e824f3264ccf673bc0` |
+| Curriculum version delivered | `v1-draft` — release-mode validation refuses it by design |
+| Learning specialist status | Not yet named; assignment/sign-off was not a blocker for static contract authoring and remains mandatory before educational approval, runtime integration, or production release. See `docs/learning/SPECIALIST_REVIEW.md` |
+| Runtime changes | None. `public/**` and `server.js` have an empty diff |
 
 This is the first package after MARZI-020. Its title and purpose are copied from
 the canonical roadmap and are not reinterpreted. The present commit completes

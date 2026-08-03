@@ -2,9 +2,9 @@
 
 **Package:** MARZI-021 — Learning Competency, Curriculum, and Mastery Model
 
-**Contract status:** PROPOSED v1
+**Contract status:** AUTHORED v1 (`v1-draft`), pending specialist review
 
-**Package status:** BLOCKED
+**Package status:** IMPLEMENTED (static contracts only)
 
 **Baseline:** `ee88e0e2ecde8bcccb38c37ef7710c7e4f31bad4`
 
@@ -24,30 +24,45 @@ The hierarchy in `docs/MARZI_PROGRAM_GOVERNANCE.md` applies. In particular:
 - the files in this directory refine the learning contract without overriding
   any of those sources.
 
-The proposed v1 contract cannot become implementation-ready until:
+The Product Owner recorded the following on 2026-08-03, which released static
+contract authoring:
 
-1. MARZI-D009 (placement assessment policy) is approved and recorded;
-2. MARZI-D016 (conversation/scenario completion) is approved and recorded;
-3. the Product Owner approves the objective taxonomy, completion semantics,
-   and mastery presentation; and
-4. a qualified learning specialist signs off the taxonomy, mappings, CEFR
-   interpretation, evidence rules, and rejected-edge-case fixtures.
+1. MARZI-D009 option A — optional, bounded placement calibration;
+2. MARZI-D016 option A — objective-based completion with explicit Partial and
+   Insufficient Evidence states; and
+3. in-principle approval of the taxonomy, objective families, stable
+   identifiers, and mastery presentation states.
 
-An OPEN recommendation is not approval. MARZI-D008 affects onboarding packages
-but is not listed as a MARZI-021 blocker in the Decision Register. This package
-therefore defines no onboarding step count and makes no onboarding-flow change.
+That authorization is not educational approval. A qualified learning
+specialist has **not** been named and has signed off nothing. Specialist,
+six-language linguistic, and accessibility review all remain mandatory before
+educational approval, runtime integration, or production release, and every
+pedagogical item in `contracts/v1/` is marked `pending_specialist_review`
+until then. See `SPECIALIST_REVIEW.md`.
+
+MARZI-D008 affects onboarding packages but is not a MARZI-021 blocker. This
+package therefore defines no onboarding step count and makes no
+onboarding-flow change.
 
 ## Documents
 
-- `LEARNING_MODEL.md` — proposed competency taxonomy, evidence vocabulary,
+- `LEARNING_MODEL.md` — the competency taxonomy, evidence vocabulary,
   prerequisite graph, mastery confidence, placement boundary, review rules,
   and assistance-sensitive evidence.
-- `SCENARIO_OBJECTIVE_SCHEMA.md` — proposed versioned, machine-validatable
-  scenario/objective contract and migration rules.
+- `SCENARIO_OBJECTIVE_SCHEMA.md` — the versioned, machine-validatable
+  scenario/objective contract and its migration rules.
 - `CURRENT_SCENARIO_AUDIT.md` — source-backed inventory and provisional
   coverage map for the current German and English production scenario packs.
-- `../packages/MARZI-021.md` — exact future implementation scope, gates,
-  acceptance criteria, tests, evidence, rollback, and review handoff.
+- `SPECIALIST_REVIEW.md` — what is waiting for the learning specialist, which
+  gates they close, and the empty record their findings go into.
+- `contracts/v1/` — the machine-readable contracts, their schemas, and
+  `contracts/v1/README.md` describing the whole set.
+- `../packages/MARZI-021.md` — exact implementation scope, gates, acceptance
+  criteria, tests, evidence, rollback, and review handoff.
+
+The contracts are validated by `node test/learning-contracts.js`, which is
+dependency-free, writes nothing, and fails the build if a production scenario
+or goal string drifts away from its mapping.
 
 ## Terms that must remain distinct
 

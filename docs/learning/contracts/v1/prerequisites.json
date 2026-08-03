@@ -1,0 +1,100 @@
+{
+ "contract": "marzi.learning.prerequisites.v1",
+ "schemaVersion": 1,
+ "curriculumVersion": "v1-draft",
+ "reviewStatus": "pending_specialist_review",
+ "hardLock": false,
+ "note": "Recommendation and review sequencing only. v1 supports the 'recommended' kind exclusively and cannot make any existing scenario inaccessible.",
+ "edges": [
+  {
+   "from": "INT.OPEN_CLOSE",
+   "to": "INT.STATE_PURPOSE",
+   "kind": "recommended"
+  },
+  {
+   "from": "COM.KEY_DETAIL",
+   "to": "INT.PROVIDE_DETAIL",
+   "kind": "recommended"
+  },
+  {
+   "from": "INT.STATE_PURPOSE",
+   "to": "INT.PROVIDE_DETAIL",
+   "kind": "recommended"
+  },
+  {
+   "from": "COM.KEY_DETAIL",
+   "to": "INT.CONFIRM",
+   "kind": "recommended"
+  },
+  {
+   "from": "INT.ASK_INFORMATION",
+   "to": "INT.CLARIFY_REPAIR",
+   "kind": "recommended"
+  },
+  {
+   "from": "INT.PROVIDE_DETAIL",
+   "to": "FUN.ARRANGE",
+   "kind": "recommended"
+  },
+  {
+   "from": "INT.PROVIDE_DETAIL",
+   "to": "FUN.REPORT_PROBLEM",
+   "kind": "recommended"
+  },
+  {
+   "from": "INT.ASK_INFORMATION",
+   "to": "FUN.REQUEST_INFORMATION",
+   "kind": "recommended"
+  },
+  {
+   "from": "FUN.REPORT_PROBLEM",
+   "to": "FUN.REQUEST_REMEDY",
+   "kind": "recommended"
+  },
+  {
+   "from": "INT.CONFIRM",
+   "to": "INT.NEGOTIATE",
+   "kind": "recommended"
+  },
+  {
+   "from": "COM.CONSTRAINT",
+   "to": "INT.NEGOTIATE",
+   "kind": "recommended"
+  },
+  {
+   "from": "FUN.ARRANGE",
+   "to": "INT.NEGOTIATE",
+   "kind": "recommended"
+  },
+  {
+   "from": "INT.STATE_PURPOSE",
+   "to": "FUN.SOCIAL_EXCHANGE",
+   "kind": "recommended"
+  },
+  {
+   "from": "INT.PROVIDE_DETAIL",
+   "to": "FUN.PRESENT",
+   "kind": "recommended"
+  },
+  {
+   "from": "FUN.PRESENT",
+   "to": "FUN.INTERVIEW",
+   "kind": "recommended"
+  },
+  {
+   "from": "INT.NEGOTIATE",
+   "to": "FUN.COLLABORATIVE_PLAN",
+   "kind": "recommended"
+  },
+  {
+   "from": "INT.CLARIFY_REPAIR",
+   "to": "STR.SELF_REPAIR",
+   "kind": "recommended"
+  },
+  {
+   "from": "COM.MULTISTEP",
+   "to": "FUN.COLLABORATIVE_PLAN",
+   "kind": "recommended"
+  }
+ ]
+}

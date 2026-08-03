@@ -1,0 +1,232 @@
+{
+ "contract": "marzi.learning.completion.v1",
+ "schemaVersion": 1,
+ "curriculumVersion": "v1-draft",
+ "reviewStatus": "pending_specialist_review",
+ "decision": {
+  "id": "MARZI-D016",
+  "status": "APPROVED",
+  "selectedOption": "A",
+  "summary": "Objective-based completion with explicit Partial and Insufficient Evidence states.",
+  "approvalDate": "2026-08-03",
+  "approverRole": "Product Owner",
+  "certificationClaim": false
+ },
+ "participation": {
+  "definition": "At least one valid learner contribution was accepted into the canonical interaction.",
+  "proves": [],
+  "doesNotProve": [
+   "objective_completion",
+   "scenario_completion",
+   "mastery"
+  ]
+ },
+ "meaningfulAttempt": {
+  "definition": "A pedagogical evidence definition, not a reward policy.",
+  "requiresAll": [
+   "an identified scenario objective",
+   "at least one valid opportunity tied to that objective",
+   "at least one assessable learner response to that opportunity",
+   "a terminal result that is not invalid"
+  ],
+  "excludes": [
+   "turn_count",
+   "elapsed_time",
+   "xp",
+   "coins",
+   "reward_claim",
+   "hang_up"
+  ],
+  "note": "The numeric minimum meaningful call for reward purposes is a separate open decision and is deliberately absent here."
+ },
+ "objectiveResultStates": [
+  {
+   "id": "complete",
+   "rule": "Every criterion in requiredCriteria has a valid terminal observation of demonstrated."
+  },
+  {
+   "id": "partial",
+   "rule": "At least one required criterion is demonstrated and at least one is not, while the observations remain valid."
+  },
+  {
+   "id": "not_complete",
+   "rule": "Fair evidence contradicts at least one required criterion and no required criterion remains unobserved for an invalidating reason."
+  },
+  {
+   "id": "insufficient_evidence",
+   "rule": "No truthful completion judgment is possible because required criteria have no assessable observation."
+  },
+  {
+   "id": "invalid",
+   "rule": "The result itself is malformed, duplicated, stale, or cross-session."
+  }
+ ],
+ "policies": [
+  {
+   "id": "all_required",
+   "description": "The objective is complete only when every criterion listed in requiredCriteria is demonstrated.",
+   "releaseReady": true
+  },
+  {
+   "id": "PENDING_MARZI_D016",
+   "description": "Draft placeholder retained so pre-decision contracts remain detectable.",
+   "releaseReady": false
+  }
+ ],
+ "scenarioCompletion": {
+  "derivedFrom": "the declared required objectives of the scenario",
+  "neverDerivedFrom": [
+   "hang_up",
+   "elapsed_time",
+   "reward_success",
+   "visit_count",
+   "scenariosDone",
+   "xp",
+   "coins",
+   "marzi_stage",
+   "rank"
+  ],
+  "legacyRule": "The legacy scenariosDone counter remains activity history. It is never read as objective completion and is never backfilled."
+ },
+ "absenceRule": "Absence of evidence is recorded as insufficient_evidence and is never presented as failure.",
+ "remediation": {
+  "alwaysAvailable": true,
+  "rules": [
+   "Every non-complete state offers a further-evidence opportunity.",
+   "No state removes previously earned XP, coins, or streak.",
+   "Learner-facing copy is non-punitive and avoids blame."
+  ]
+ },
+ "learnerFacingCopy": {
+  "complete": {
+   "es": {
+    "label": "Objetivo conseguido",
+    "explanation": "Has mostrado todo lo necesario para este objetivo."
+   },
+   "en": {
+    "label": "Objective achieved",
+    "explanation": "You showed everything this objective asks for."
+   },
+   "it": {
+    "label": "Obiettivo raggiunto",
+    "explanation": "Hai mostrato tutto ciò che questo obiettivo richiede."
+   },
+   "tr": {
+    "label": "Hedefe ulaşıldı",
+    "explanation": "Bu hedefin istediği her şeyi gösterdin."
+   },
+   "ar": {
+    "label": "تم تحقيق الهدف",
+    "explanation": "أظهرت كل ما يطلبه هذا الهدف."
+   },
+   "uk": {
+    "label": "Ціль досягнуто",
+    "explanation": "Ти показав усе, чого вимагає ця ціль."
+   }
+  },
+  "partial": {
+   "es": {
+    "label": "Objetivo a medias",
+    "explanation": "Has conseguido una parte. Todavía falta algo del objetivo; puedes volver a intentarlo cuando quieras."
+   },
+   "en": {
+    "label": "Partly there",
+    "explanation": "You got part of the way. Something in the objective is still missing, and you can try it again whenever you want."
+   },
+   "it": {
+    "label": "Parzialmente raggiunto",
+    "explanation": "Sei arrivato a metà strada. Manca ancora una parte dell'obiettivo e puoi riprovare quando vuoi."
+   },
+   "tr": {
+    "label": "Kısmen tamamlandı",
+    "explanation": "Bir kısmını başardın. Hedefin bir bölümü hâlâ eksik; istediğin zaman tekrar deneyebilirsin."
+   },
+   "ar": {
+    "label": "تحقّق جزئيًا",
+    "explanation": "أنجزت جزءًا منه. ما زال جزء من الهدف ناقصًا، ويمكنك المحاولة مرة أخرى متى شئت."
+   },
+   "uk": {
+    "label": "Частково виконано",
+    "explanation": "Частину ти зробив. Дещо в цілі ще лишилося, і ти можеш спробувати ще раз, коли захочеш."
+   }
+  },
+  "not_complete": {
+   "es": {
+    "label": "Objetivo no conseguido esta vez",
+    "explanation": "Esta vez no ha salido. Puedes volver a practicarlo; no pierdes nada de lo que ya has ganado."
+   },
+   "en": {
+    "label": "Not this time",
+    "explanation": "This time it did not work out. You can practise it again, and nothing you have already earned is lost."
+   },
+   "it": {
+    "label": "Non raggiunto questa volta",
+    "explanation": "Questa volta non è andata. Puoi riprovare e non perdi nulla di ciò che hai già ottenuto."
+   },
+   "tr": {
+    "label": "Bu seferlik olmadı",
+    "explanation": "Bu sefer olmadı. Tekrar çalışabilirsin ve şimdiye kadar kazandığın hiçbir şeyi kaybetmezsin."
+   },
+   "ar": {
+    "label": "لم يتحقق هذه المرة",
+    "explanation": "لم ينجح الأمر هذه المرة. يمكنك التدرب عليه مجددًا، ولن تفقد شيئًا مما حصلت عليه."
+   },
+   "uk": {
+    "label": "Цього разу не вийшло",
+    "explanation": "Цього разу не вдалося. Можеш потренуватися ще раз — нічого із заробленого не втрачається."
+   }
+  },
+  "insufficient_evidence": {
+   "es": {
+    "label": "Todavía no hay información suficiente",
+    "explanation": "No hemos visto lo suficiente para decirte cómo ha ido. No es un fallo tuyo."
+   },
+   "en": {
+    "label": "Not enough to say yet",
+    "explanation": "We did not see enough to tell you how this went. That is not a failure on your side."
+   },
+   "it": {
+    "label": "Ancora non abbastanza per dirlo",
+    "explanation": "Non abbiamo visto abbastanza per dirti com'è andata. Non è un tuo errore."
+   },
+   "tr": {
+    "label": "Söylemek için henüz yeterli değil",
+    "explanation": "Nasıl gittiğini söyleyecek kadarını görmedik. Bu senin hatan değil."
+   },
+   "ar": {
+    "label": "لا توجد معلومات كافية بعد",
+    "explanation": "لم نرَ ما يكفي لنخبرك كيف سار الأمر. هذا ليس إخفاقًا منك."
+   },
+   "uk": {
+    "label": "Поки що замало даних",
+    "explanation": "Ми побачили замало, щоб сказати, як усе пройшло. Це не твоя помилка."
+   }
+  },
+  "invalid": {
+   "es": {
+    "label": "No se ha podido evaluar",
+    "explanation": "Algo ha fallado por nuestra parte y esta práctica no se ha podido evaluar."
+   },
+   "en": {
+    "label": "Could not be assessed",
+    "explanation": "Something went wrong on our side, so this practice could not be assessed."
+   },
+   "it": {
+    "label": "Non valutabile",
+    "explanation": "Qualcosa non ha funzionato dalla nostra parte, quindi non è stato possibile valutare questa pratica."
+   },
+   "tr": {
+    "label": "Değerlendirilemedi",
+    "explanation": "Bizim tarafımızda bir sorun oldu, bu yüzden bu alıştırma değerlendirilemedi."
+   },
+   "ar": {
+    "label": "تعذّر التقييم",
+    "explanation": "حدث خطأ من جانبنا، لذلك تعذّر تقييم هذا التدريب."
+   },
+   "uk": {
+    "label": "Не вдалося оцінити",
+    "explanation": "Щось пішло не так з нашого боку, тож цю практику не вдалося оцінити."
+   }
+  }
+ }
+}

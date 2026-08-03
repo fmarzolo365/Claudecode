@@ -2,7 +2,8 @@
 
 **Contract:** `marzi.learning.v1`
 
-**Status:** PROPOSED — Product Owner and learning-specialist approval required
+**Status:** ENCODED as `docs/learning/contracts/v1` under Product Owner
+approval of 2026-08-03 — learning-specialist approval still required
 
 **Runtime effect:** None
 
@@ -267,8 +268,8 @@ duration, XP, or coin rule.
 
 ### 9.3 Objective and scenario completion
 
-The recommended MARZI-D016 option is explicit objective/terminal criteria with
-separate partial progress. If approved:
+MARZI-D016 option A is **approved and recorded**: explicit objective and
+terminal criteria with separate partial progress. Accordingly:
 
 - an objective is `complete` only when all objective fields marked `required`
   have a valid terminal observation meeting their rubric;
@@ -280,9 +281,11 @@ separate partial progress. If approved:
 - the scenario result is calculated from declared required objectives, not
   from hang-up, elapsed time, reward success, or visit count.
 
-Until MARZI-D016 is approved, these are proposed semantics only. The current
-`scenariosDone` behavior remains unchanged and must not be relabelled as
-learning mastery.
+These semantics are encoded in `contracts/v1/completion.json` and enforced by
+`test/learning-contracts.js`. The current `scenariosDone` behavior remains
+unchanged and must not be relabelled as learning mastery. The per-variant
+rubrics that decide whether a criterion was met remain pending specialist
+review.
 
 ## 10. Mastery and confidence
 
@@ -319,11 +322,12 @@ policy data with boundary fixtures, never scattered magic numbers.
 
 ## 11. Placement model boundary
 
-MARZI-D009 explicitly blocks final placement design. The recommended option is
-an optional, skippable short calibration using vocabulary, comprehension, and
-listening, with speech only after explanation and consent.
+MARZI-D009 option A is **approved and recorded**: an optional, skippable,
+bounded calibration using vocabulary, comprehension, and listening, with speech
+only after explanation and consent. The boundary is encoded in
+`contracts/v1/placement.json`; the calibration content itself is an open gate.
 
-Whatever option is approved, the placement result must:
+The placement result must:
 
 - be provisional and explain its evidence/confidence;
 - support “not enough evidence” and a learner-selected starting point;
@@ -335,7 +339,7 @@ Whatever option is approved, the placement result must:
 - use target-specific validated content and localized instructions.
 
 No placement runtime, scoring constants, persistence, onboarding step, or
-reward is authorized by this specification commit.
+reward is authorized. `contracts/v1/placement.json` records the boundary only.
 
 ## 12. Review rules
 
@@ -405,13 +409,30 @@ ownership boundaries before runtime integration.
 
 ## 16. Explicit unresolved items
 
-- **PRODUCT OWNER DECISION REQUIRED:** MARZI-D009 placement policy.
-- **PRODUCT OWNER DECISION REQUIRED:** MARZI-D016 completion definition.
-- **PRODUCT OWNER DECISION REQUIRED:** final taxonomy, objective set,
-  completion copy, and mastery presentation.
+Resolved on 2026-08-03 and encoded in `contracts/v1`:
+
+- MARZI-D009 placement policy — option A approved.
+- MARZI-D016 completion definition — option A approved.
+- Taxonomy, objective families, stable identifiers, mastery presentation
+  states, and objective-based completion copy — approved in principle for
+  static contract authoring.
+
+Still unresolved:
+
+- **LEARNING SPECIALIST REQUIRED:** taxonomy, the 94 variant mappings, bands,
+  rubrics, aggregation policy, placement content, and validation fixtures. No
+  specialist is named. See `SPECIALIST_REVIEW.md`.
+- **LINGUISTIC REVIEW REQUIRED:** the 564 localized objective titles and the
+  60 localized completion and mastery strings.
+- **ACCESSIBILITY REVIEW REQUIRED:** wording comprehension, screen-reader
+  phrasing, and non-colour semantics.
+- **PRODUCT OWNER NUMERIC DECISION REQUIRED:** mastery thresholds
+  (`MARZI-021-MASTERY-THRESHOLDS`) and the review recency window
+  (`MARZI-021-REVIEW-RECENCY`). No default was invented for either.
+- **PRODUCT OWNER DECISION REQUIRED:** whether competencies are ever surfaced
+  to learners, and their localized labels if so
+  (`MARZI-021-COMPETENCY-COPY`).
 - **TECHNICAL DISCOVERY REQUIRED:** integration event shape and ownership in
   MARZI-022.
 - **LEGAL/PRIVACY REVIEW REQUIRED:** any persisted learner-evidence retention,
   analytics, sync, research, or future acoustic evidence.
-- **LEARNING SPECIALIST REQUIRED:** taxonomy, mappings, bands, rubrics,
-  aggregation policy, placement content, and validation fixtures.

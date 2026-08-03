@@ -1523,3 +1523,330 @@ mode, real cutout values, gesture navigation and device accessibility services
 cannot be exercised in this environment. All evidence to date is desktop
 Chromium in a clean top-level page with mobile viewport, touch emulation and
 deterministically injected insets.
+
+# Implementation Report — MARZI-021 (learning competency, curriculum and mastery contracts)
+
+**Package:** MARZI-021 — Learning Competency, Curriculum, and Mastery Model
+
+**Branch:** `claude/marzi-017-product-refinement`
+
+**Implementation baseline:** `0798cd894865b57d67cff6e824f3264ccf673bc0`
+(the governance commit that recorded the Product Owner approvals)
+
+**Scope delivered:** static, versioned, dependency-free learning contracts,
+their schemas, their fixtures, a validator, and documentation. **No runtime
+change of any kind.**
+
+## Gate check
+
+| Gate | State at implementation time | Evidence |
+|---|---|---|
+| MARZI-D009 placement policy | **APPROVED**, option A, Product Owner, 2026-08-03 | `docs/MARZI_DECISION_REGISTER.md` index row and detail block |
+| MARZI-D016 completion definition | **APPROVED**, option A, Product Owner, 2026-08-03 | same |
+| Taxonomy, objective families, stable IDs, mastery presentation | **APPROVED IN PRINCIPLE** for static authoring | "MARZI-021 — Taxonomy and mastery presentation approval" record |
+| Learning specialist | **NOT NAMED, NOT CONSULTED** | `docs/learning/SPECIALIST_REVIEW.md` section 6 is deliberately empty |
+| Six-language linguistic review | **NOT PERFORMED** | same, section 4 |
+| Accessibility review | **NOT PERFORMED** | same |
+
+Nothing in this package claims educational, linguistic, accessibility, or
+production approval. Every pedagogical item carries
+`reviewStatus: "pending_specialist_review"`, the curriculum version is
+`v1-draft`, and release-mode validation refuses the set on purpose.
+
+## Source inventory — verified, not assumed
+
+The production inventory was read out of `public/index.html` at
+`0798cd8`. `public/index.html` is byte-identical to the specification baseline
+`ee88e0e` (`git diff ee88e0e HEAD -- public/ server.js` is empty), and its
+SHA-256 is `b6363ea6c86becb72e5066c17ba7fa8a356f6526279bcd1dac3f0f29513e695b`.
+
+| Target | Scenarios | Goal variants |
+|---|---:|---:|
+| German (live) | 19 | 61 |
+| English (pilot) | 10 | 33 |
+| **Total** | **29** | **94** |
+
+This matches the specification exactly. `random` and `custom` are excluded and
+the exclusion rationale is recorded machine-readably in
+`source-inventory.json`. All 94 mappings were authored from the real goal
+strings; none was inferred, sampled, or approximated.
+
+## Files added
+
+| Path | What |
+|---|---|
+| `docs/learning/contracts/v1/*.json` | 11 contract artifacts, 236.2 KiB |
+| `docs/learning/contracts/v1/schema/*.json` | 11 strict schemas, 57.5 KiB |
+| `docs/learning/contracts/v1/README.md` | Contract-set navigation |
+| `docs/learning/SPECIALIST_REVIEW.md` | Specialist handoff and empty review record |
+| `test/learning-contracts.js` | Dependency-free validator, 28 checks |
+| `test/fixtures/learning/valid/*.json` | 9 positive fixtures |
+| `test/fixtures/learning/invalid/*.json` | 37 negative fixtures + manifest |
+| `test/fixtures/learning/README.md` | Fixture map and reason-code index |
+
+## Files modified
+
+| Path | Change |
+|---|---|
+| `docs/learning/README.md` | Status, approvals, document index |
+| `docs/learning/LEARNING_MODEL.md` | D009/D016 recorded as approved; section 16 rewritten into resolved and still-unresolved |
+| `docs/learning/SCENARIO_OBJECTIVE_SCHEMA.md` | Layout as implemented, completion policy, approval boundary |
+| `docs/learning/CURRENT_SCENARIO_AUDIT.md` | Coverage table now shows delivered vs required; gates split into closed and open |
+| `docs/packages/MARZI-021.md` | Status rows only — no scope change |
+| `docs/IMPLEMENTATION_REPORT.md` | This section |
+
+## Architectural compliance
+
+- `public/**`, `server.js`, `sw.js`, `manifest.webmanifest`, `icons/`,
+  `package.json`, `.github/**`, `test/run.js`, `test/browser/**` and
+  `test/conflict-markers.js` have an **empty diff**
+  (`git status --porcelain -- public/ server.js ... ` returns nothing).
+- No prompt, provider, `ConversationSession`, `createTranscript`,
+  `PromptBuilder`, scenario identity, goal string, or goal order changed.
+- No storage key, XP formula, coin value, price, entitlement, streak, rank,
+  Marzi stage, outfit, or Premium behaviour changed.
+- No dependency, lockfile, build script, CI config, deployment config or
+  secret changed. No service-worker cache bump, because no static asset
+  changed.
+- Nothing in `docs/learning/contracts/**` is imported, fetched, bundled or
+  rendered by the application.
+- `main` is untouched at `7395cd0a75fc206077e19ecc60e4c1e978dd2c89`. No merge,
+  rebase, squash, force-push, tag or deploy was performed.
+
+## What the contracts fix
+
+- **25 competencies** in 6 families, language-neutral and immutable.
+- **6 bands** `A0`–`C1` with opportunity-design descriptors; `A0` is explicitly
+  an internal pre-A1 label and `certificationClaim` is hard-`false`.
+- **18 recommended prerequisite edges**, proven acyclic, `hardLock: false`.
+- **94 objective variants** with stable IDs of the form
+  `<target>.<scenario>.<outcome>.<variant>`, each carrying 282 required and 94
+  optional criteria in total, a level interval, review tags, and the exact
+  source goal index and text.
+- **564 localized objective titles** (94 × 6 languages) plus 60 localized
+  completion and mastery strings, all pending linguistic review.
+- **Completion** under MARZI-D016 option A: `complete`, `partial`,
+  `not_complete`, `insufficient_evidence`, `invalid`. Absence of evidence is
+  recorded as `insufficient_evidence` and is never presented as failure;
+  remediation is always available; no state removes earned XP.
+- **Mastery** with 5 presentation states defaulting to `not_enough_evidence`,
+  8 explainable confidence dimensions, and 10 forbidden inputs
+  (XP, coins, rank, Marzi stage, elapsed time, hang-up, reward claim,
+  `scenariosDone`, map node count, streak).
+- **Placement** under MARZI-D009 option A: optional, skippable, bounded,
+  provisional, revisable, with a required non-audio route and no microphone
+  permission before explanation. No UI, no persistence, no content.
+- **Assistance** (`OFF`/`HINT`/`FULL`) and **accessibility accommodation** are
+  structurally separate, and conflating them is a validation error.
+
+## Decisions deliberately left open
+
+No default was invented for any of these. Release-mode validation reports every
+one, and check 25 fails if a gate silently disappears.
+
+| Gate | Absent value |
+|---|---|
+| `MARZI-021-MASTERY-THRESHOLDS` | Minimum opportunities, minimum contexts, recency window, aggregation weights — all `null` |
+| `MARZI-021-REVIEW-RECENCY` | Review recency window — `null` |
+| `MARZI-021-PLACEMENT-CONTENT` | Validated per-target calibration items |
+| `MARZI-021-COMPETENCY-COPY` | Localized learner-facing competency labels |
+
+MARZI-D011 and MARZI-D014–D019 are supported as future inputs but not selected;
+no economy value appears anywhere in the contracts.
+
+## Validation results
+
+All commands were executed at the implementation commit.
+
+| Command | Result |
+|---|---|
+| `node --check server.js` | PASS |
+| `node --check test/run.js` | PASS |
+| `node --check test/learning-contracts.js` | PASS |
+| `node test/conflict-markers.js` | PASS — no conflict markers |
+| `node test/learning-contracts.js` | **PASS — 28/28 checks**, exit 0 |
+| `node test/run.js` | **PASS — 50/50 checks**, 0 failures |
+| `git diff --check` | PASS — clean |
+| `.ai/bin/docs-validate` | **FAIL — 9 failures, all pre-existing.** See below |
+
+The application suite is **50/50**, not the 47/47 quoted in the task brief. 50
+is the count at `701bbcd` before this work and at the implementation commit
+after it: this package adds no check to `test/run.js` and removes none.
+
+The learning-contract validator runs in **146–155 ms** across three runs, well
+inside the 2-second budget in section 18.
+
+### The `docs-validate` failure is pre-existing and not mine
+
+`.ai/bin/docs-validate` exits 1 with these 9 failures:
+
+```text
+MARZI-D009 missing field: Recommended option
+MARZI-D009 missing field: Rationale
+MARZI-D009 missing field: Deadline
+MARZI-D009 missing field: Packages blocked
+MARZI-D016 missing field: Recommended option
+MARZI-D016 missing field: Rationale
+MARZI-D016 missing field: Deadline
+MARZI-D016 missing field: Packages blocked
+Decision Register must have exactly 25 OPEN index records
+```
+
+Measured, not assumed:
+
+| Commit | `docs-validate` exit |
+|---|---|
+| `701bbcd` (before the governance commit) | **0** |
+| `0798cd8` (governance commit, before any of my work) | **1** |
+| implementation commit (with all my changes) | **1**, failure set byte-identical to `0798cd8` |
+
+The cause is the governance commit itself: recording the approvals replaced the
+"Recommended option", "Rationale", "Deadline" and "Packages blocked" rows of the
+D009 and D016 detail blocks with approval rows, and moved two decisions out of
+OPEN so the index now holds 23 rather than 25 OPEN records. `docs-validate`
+still expects the pre-approval shape.
+
+I did not fix it. `docs/MARZI_DECISION_REGISTER.md` and `.ai/bin/**` are both on
+the MARZI-021 forbidden list (section 21), and the Decision Register belongs to
+its owner. The fix is one of: restore the four fields to the approved detail
+blocks, or update `.ai/bin/docs-validate` to accept an APPROVED record shape and
+an OPEN count of 23. Either is an owner-side change, not a MARZI-021 change.
+
+## The validator, and proof that it can fail
+
+`test/learning-contracts.js` is dependency-free and self-constrained:
+
+- it blocks `http`, `https`, `net`, `dns`, `tls`, `http2`, `dgram`,
+  `child_process` and `worker_threads` at `Module._load`, and replaces `fetch`;
+- it blocks every path-based `fs` writer, and permits `fs.write`/`fs.writeSync`
+  only for descriptors 1 and 2, because Node uses those to flush this process's
+  own stdout when the output is a pipe;
+- it fingerprints `docs/learning/` and `test/fixtures/learning/` before
+  validating and compares the fingerprint afterwards;
+- it **never evaluates** `public/index.html`. Section 19 forbids `eval`, so the
+  production inventory is recovered by slicing string literals out of the source
+  text. The single dynamic construction in the file writes `goals:[topic]` and
+  therefore cannot match the `goals:["` literal marker.
+
+Assertions that cannot fail are worthless, so each was mutated against an
+isolated copy of the tree. Every mutation was detected and every one was
+reverted:
+
+| Mutation | Detected as |
+|---|---|
+| Drop one German objective | `COVERAGE_VARIANT_COUNT` 60 ≠ 61, total 93 ≠ 94, plus `SOURCE_COVERAGE_MISSING` |
+| Edit a mapped goal string in the contract | `SOURCE_TEXT_DRIFT` with both strings printed |
+| **Reorder two goals in `public/index.html`** | `SOURCE_TEXT_DRIFT` on both affected variants |
+| Change a scenario's mode | `MODE_MISMATCH at de/arzt: contract face vs source phone` |
+| Add a cycle to the real prerequisite graph | `PREREQ_CYCLE` with the full path printed |
+| Invent a mastery threshold (`recencyWindowDays: 30`) | `INVENTED_DEFAULT` |
+| Mark everything `specialist_reviewed`, version `v1`, close the gates | `SCHEMA_CONST_INVALID` — a gate cannot be closed by editing a string |
+| Rename an open gate so release mode stops reporting it | `RELEASE_GATE_MISSING: MARZI-021-REVIEW-RECENCY` |
+| Make the validator itself write a file | `FAIL 28 — filesystem write attempted: fs.writeFileSync` |
+
+The 37 negative fixtures prove 32 distinct reason codes; check 27 fails if any
+fixture is accepted, fails for a different reason, is undeclared, is missing, or
+if the suite stops covering the 29 codes named as mandatory.
+
+Release-mode validation currently reports **179** open-gate and unreviewed
+items. That is the intended state, and check 25 fails if it ever reaches zero
+without a recorded decision.
+
+## Browser comprehension evidence — measured, and bounded
+
+Section 24 asks for a temporary, task-owned prototype, not a runtime change. A
+scratch page rendering the longest authored objective title per language plus
+all ten completion and mastery states was measured in Chromium. **It was never
+copied into `public/**`** and it is not committed.
+
+| Case | Horizontal overflow | Clipped elements | Widest element |
+|---|---|---|---|
+| 320×568, Spanish LTR, default font | none | none | 278 px in a 294 px box |
+| 360×640, Spanish LTR, default font | none | none | 318 px in a 334 px box |
+| 390×844, Arabic RTL, default font | none | none | 348 px; mixed-direction title renders in logical order |
+| 412×915, English LTR, 200% text | none | none | 330 px in a 362 px box |
+
+The mixed-direction case is real content, not a mock: the Arabic title of
+`de.empfang.request_document.sick_note` embeds the German proper noun
+`Krankschreibung`, which section 16 requires to be preserved.
+
+**One finding, from a case I added beyond the required matrix.** At 320×568
+*and* 200% text — the worst realistic combination — that same Arabic title
+overflows: document scroll width 387 px against a 320 px viewport, and the
+title itself needs 378 px in a 238 px box. The cause is isolated: a 15-character
+unbreakable Latin proper noun inside a narrow RTL box. Adding
+`overflow-wrap: anywhere` returns scroll width to exactly 320 px and the title
+to 238 px.
+
+This is a **presentation-layer requirement for the later integration package**,
+not a contract defect — the title is correct and the proper noun must stay. It
+is recorded here so the integration package inherits it rather than rediscovers
+it.
+
+No screenshot proves comprehension, and none is claimed. These are measured
+box metrics only.
+
+## What was not done, and why
+
+- **Moderated real-device Android study (section 25): NOT PERFORMED.** It needs
+  a physical small Android device, TalkBack, and human participants reading
+  Spanish and Arabic copy. This container has none of those. No claim is made
+  about whether learners understand the wording, whether they distinguish XP
+  from mastery, or whether assistance attribution reads correctly. The
+  contracts must not be treated as comprehension-validated.
+- **Learning-specialist review: NOT PERFORMED.** No specialist is named. The
+  94 mappings, band intervals, rubrics and prerequisite edges are the
+  implementer's reading of the approved-in-principle model, and are marked as
+  such in every artifact.
+- **Six-language linguistic review: NOT PERFORMED.** The 564 localized titles
+  and 60 state strings were authored by the implementer, who is not a qualified
+  reviewer for `es`, `en`, `it`, `tr`, `ar`, `uk`. Arabic and Ukrainian in
+  particular need native review.
+- **Per-variant rubrics: NOT AUTHORED.** Criteria say what must be observed;
+  they do not say how well. Rubric bands are a specialist decision.
+- **`exam` mode is unused.** The proposed schema offers `phone`, `face` and
+  `exam`, but the frozen runtime marks the three DTZ scenarios `kind:"face"`.
+  Mode is derived from the runtime metadata and the validator enforces
+  agreement, so `exam` stays reserved rather than being asserted against the
+  frozen source.
+
+## Rollback
+
+Reverting this package is a clean file revert with no data, cache, deployment
+or learner-state consequence:
+
+```text
+git revert --no-commit <implementation commit>
+```
+
+or equivalently, delete `docs/learning/contracts/`,
+`docs/learning/SPECIALIST_REVIEW.md`, `test/learning-contracts.js` and
+`test/fixtures/learning/`, and restore the five modified documents. Nothing
+reads these files at runtime, so no reader parity or feature flag is needed.
+This command is recorded, not executed.
+
+## Contract artifact hashes
+
+```text
+30b5fe521d1cb163b78cb6189a2d5dde75c3e563b7196d042d81686be89352d2  competencies.json
+1b01a282da52185957325deb9db7c2daf443676dea93c530e32dafc8089a933e  completion.json
+9f7c4acbb92fead88ebc089986e43b614dbdaab2f8df4fca98fd1495742fede3  evidence.json
+e811b52b5b6be4ffc18835f2f819ba369230467aaa99255ddd9e6c24b8e70b8c  levels.json
+a7845393422c0d9cffa51ebf47f48600fbdbe049756213cb7c7605226fa711fe  mastery.json
+5d801e3834ac3e1785cbd308985ece84a0550b71d4c772c03119cc7d83b4c3cf  placement.json
+c1db724e96d2e91a48e552a469220c962bdd0e7474e1d1cd314232e90e36126a  prerequisites.json
+7bed97720cd5dc84a4cfa9d8a161b75b8ff67c981acde7e108b101fba269d70b  review.json
+986fdd0b502acaa46c9143606598e083b6898eb698adea624de13ceabafff06d  scenarios.de.json
+e0f1aa367a3cc1a054bf2c16450bd9811f0507188f4ada29addc45ffb79eafd2  scenarios.en.json
+754b663a470e0ed5333b40e755526a3a58d2b7b83d45f7bcc951fe17d81f79e1  source-inventory.json
+```
+
+## Size budget
+
+| Measure | Value | Budget |
+|---|---:|---|
+| Contract JSON (`contracts/v1/*.json`) | 236.2 KiB | ≤ 250 KiB (section 18) |
+| Contract JSON + schemas | 293.8 KiB | schemas are validation code, not curriculum payload |
+
+The contract JSON uses one-space indentation. That is what keeps the set inside
+the budget: at two spaces it is 283.0 KiB.

@@ -1,0 +1,73 @@
+{
+ "contract": "marzi.learning.objective-result.v1",
+ "schemaVersion": 1,
+ "attemptId": "attempt-1",
+ "objectiveId": "de.arzt.book_appointment.cough",
+ "curriculumVersion": "v1-draft",
+ "rubricVersion": "v1-draft",
+ "result": "not_complete",
+ "criteria": [
+  {
+   "criterionId": "purpose_stated",
+   "attemptId": "attempt-1",
+   "curriculumVersion": "v1-draft",
+   "outcome": "demonstrated",
+   "opportunityIds": [
+    "opp-purpose-stated"
+   ],
+   "responseIds": [
+    "turn-3"
+   ],
+   "assistance": {
+    "mode": "OFF",
+    "exposed": false,
+    "opened": false,
+    "changedDuringResponse": false,
+    "helpItemId": null,
+    "derivationRelation": "independent",
+    "evaluatorConfidence": "high"
+   }
+  },
+  {
+   "criterionId": "symptom_given",
+   "attemptId": "attempt-1",
+   "curriculumVersion": "v1-draft",
+   "outcome": "not_demonstrated",
+   "opportunityIds": [
+    "opp-symptom-given"
+   ],
+   "responseIds": [
+    "turn-3"
+   ],
+   "assistance": {
+    "mode": "OFF",
+    "exposed": false,
+    "opened": false,
+    "changedDuringResponse": false,
+    "helpItemId": null,
+    "derivationRelation": "independent",
+    "evaluatorConfidence": "high"
+   }
+  },
+  {
+   "criterionId": "appointment_resolved",
+   "attemptId": "attempt-1",
+   "curriculumVersion": "v1-draft",
+   "outcome": "not_observed",
+   "opportunityIds": [],
+   "responseIds": [],
+   "assistance": {
+    "mode": "OFF",
+    "exposed": false,
+    "opened": false,
+    "changedDuringResponse": false,
+    "helpItemId": null,
+    "derivationRelation": "independent",
+    "evaluatorConfidence": "high"
+   }
+  }
+ ],
+ "reasonCodes": [
+  "REQUIRED_CRITERION_NOT_DEMONSTRATED"
+ ]
+}

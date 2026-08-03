@@ -1,0 +1,209 @@
+{
+ "contract": "marzi.learning.scenario-objectives.v1",
+ "schemaVersion": 1,
+ "curriculumVersion": "v1-draft",
+ "targetLanguage": "de",
+ "sourceBaseline": "ee88e0e2ecde8bcccb38c37ef7710c7e4f31bad4",
+ "reviewStatus": "pending_specialist_review",
+ "excludedScenarioIds": [
+  "random",
+  "custom"
+ ],
+ "scenarios": [
+  {
+   "schemaVersion": 1,
+   "curriculumVersion": "v1-draft",
+   "targetLanguage": "de",
+   "scenarioId": "kita",
+   "mode": "phone",
+   "scenarioGroup": "Home & daily life",
+   "sourceGoalCount": 3,
+   "reviewStatus": "pending_specialist_review",
+   "objectives": [
+    {
+     "id": "de.kita.report_absence.child_sick",
+     "scenarioObjectiveId": "de.kita.report_absence",
+     "sourceGoalIndex": 0,
+     "sourceGoalText": "tell them your child is sick and will stay home today",
+     "title": {
+      "es": "Avisar de que tu hijo está enfermo y se queda hoy en casa",
+      "en": "Tell them your child is sick and will stay home today",
+      "it": "Comunicare che tuo figlio è malato e oggi resta a casa",
+      "tr": "Çocuğunun hasta olduğunu ve bugün evde kalacağını bildirmek",
+      "ar": "إبلاغهم بأن طفلك مريض وسيبقى في المنزل اليوم",
+      "uk": "Повідомити, що дитина захворіла і сьогодні залишиться вдома"
+     },
+     "supportedLevels": {
+      "min": "A1",
+      "max": "C1"
+     },
+     "competencies": [
+      "FUN.REPORT_PROBLEM",
+      "INT.OPEN_CLOSE",
+      "INT.PROVIDE_DETAIL",
+      "INT.STATE_PURPOSE"
+     ],
+     "requiredCriteria": [
+      {
+       "id": "absence_reported",
+       "competencyId": "INT.STATE_PURPOSE",
+       "observation": "learner makes clear that the child will not come today"
+      },
+      {
+       "id": "reason_given",
+       "competencyId": "INT.PROVIDE_DETAIL",
+       "observation": "learner explains that the child is ill"
+      },
+      {
+       "id": "acknowledgement_taken_up",
+       "competencyId": "FUN.REPORT_PROBLEM",
+       "observation": "learner takes up the acknowledgement or the next step the kindergarten states"
+      }
+     ],
+     "optionalCriteria": [
+      {
+       "id": "close_appropriate",
+       "competencyId": "INT.OPEN_CLOSE",
+       "observation": "learner closes the exchange appropriately for the channel"
+      }
+     ],
+     "allowedEvidence": [
+      "transcript_text",
+      "typed_response",
+      "interaction_event"
+     ],
+     "completionPolicy": "all_required",
+     "reviewTags": [
+      "home",
+      "health",
+      "absence"
+     ],
+     "reviewStatus": "pending_specialist_review",
+     "supersedes": null,
+     "xpValue": 15
+    },
+    {
+     "id": "de.kita.request_information.summer_party",
+     "scenarioObjectiveId": "de.kita.request_information",
+     "sourceGoalIndex": 1,
+     "sourceGoalText": "ask about the schedule for the summer party and what to bring",
+     "title": {
+      "es": "Preguntar por el horario de la fiesta de verano y qué hay que llevar",
+      "en": "Ask about the schedule for the summer party and what to bring",
+      "it": "Chiedere il programma della festa d'estate e cosa portare",
+      "tr": "Yaz şenliğinin programını ve ne getirilmesi gerektiğini sormak",
+      "ar": "السؤال عن برنامج حفلة الصيف وما الذي يجب إحضاره",
+      "uk": "Запитати про розклад літнього свята і що потрібно принести"
+     },
+     "supportedLevels": {
+      "min": "A2",
+      "max": "C1"
+     },
+     "competencies": [
+      "COM.MULTISTEP",
+      "INT.ASK_INFORMATION",
+      "INT.CONFIRM"
+     ],
+     "requiredCriteria": [
+      {
+       "id": "schedule_question_asked",
+       "competencyId": "INT.ASK_INFORMATION",
+       "observation": "learner asks about the time or programme of the summer party"
+      },
+      {
+       "id": "contribution_question_asked",
+       "competencyId": "INT.ASK_INFORMATION",
+       "observation": "learner asks what to bring"
+      },
+      {
+       "id": "arrangements_understood",
+       "competencyId": "COM.MULTISTEP",
+       "observation": "learner responds consistently with the connected arrangements given"
+      }
+     ],
+     "optionalCriteria": [
+      {
+       "id": "outcome_confirmed",
+       "competencyId": "INT.CONFIRM",
+       "observation": "learner confirms or checks the agreed detail before the exchange ends"
+      }
+     ],
+     "allowedEvidence": [
+      "transcript_text",
+      "typed_response",
+      "interaction_event"
+     ],
+     "completionPolicy": "all_required",
+     "reviewTags": [
+      "information",
+      "home",
+      "event"
+     ],
+     "reviewStatus": "pending_specialist_review",
+     "supersedes": null
+    },
+    {
+     "id": "de.kita.arrange_pickup.grandmother",
+     "scenarioObjectiveId": "de.kita.arrange_pickup",
+     "sourceGoalIndex": 2,
+     "sourceGoalText": "tell them the grandmother will pick up the child today",
+     "title": {
+      "es": "Avisar de que hoy recoge al niño la abuela",
+      "en": "Tell them the grandmother will pick up the child today",
+      "it": "Avvisare che oggi il bambino lo prende la nonna",
+      "tr": "Çocuğu bugün büyükannesinin alacağını bildirmek",
+      "ar": "إبلاغهم بأن الجدة ستأخذ الطفل اليوم",
+      "uk": "Повідомити, що сьогодні дитину забере бабуся"
+     },
+     "supportedLevels": {
+      "min": "A1",
+      "max": "C1"
+     },
+     "competencies": [
+      "INT.CONFIRM",
+      "INT.OPEN_CLOSE",
+      "INT.PROVIDE_DETAIL",
+      "INT.STATE_PURPOSE"
+     ],
+     "requiredCriteria": [
+      {
+       "id": "change_stated",
+       "competencyId": "INT.STATE_PURPOSE",
+       "observation": "learner makes clear that someone else will collect the child today"
+      },
+      {
+       "id": "person_identified",
+       "competencyId": "INT.PROVIDE_DETAIL",
+       "observation": "learner identifies the person who will collect the child"
+      },
+      {
+       "id": "arrangement_confirmed",
+       "competencyId": "INT.CONFIRM",
+       "observation": "learner confirms or checks that the change has been understood"
+      }
+     ],
+     "optionalCriteria": [
+      {
+       "id": "close_appropriate",
+       "competencyId": "INT.OPEN_CLOSE",
+       "observation": "learner closes the exchange appropriately for the channel"
+      }
+     ],
+     "allowedEvidence": [
+      "transcript_text",
+      "typed_response",
+      "interaction_event"
+     ],
+     "completionPolicy": "all_required",
+     "reviewTags": [
+      "home",
+      "arrangement",
+      "pickup"
+     ],
+     "reviewStatus": "pending_specialist_review",
+     "supersedes": null
+    }
+   ]
+  }
+ ]
+}

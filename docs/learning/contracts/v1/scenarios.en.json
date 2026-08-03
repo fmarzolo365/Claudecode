@@ -1,0 +1,2155 @@
+{
+ "contract": "marzi.learning.scenario-objectives.v1",
+ "schemaVersion": 1,
+ "curriculumVersion": "v1-draft",
+ "targetLanguage": "en",
+ "sourceBaseline": "ee88e0e2ecde8bcccb38c37ef7710c7e4f31bad4",
+ "reviewStatus": "pending_specialist_review",
+ "excludedScenarioIds": [
+  "random",
+  "custom"
+ ],
+ "scenarios": [
+  {
+   "schemaVersion": 1,
+   "curriculumVersion": "v1-draft",
+   "targetLanguage": "en",
+   "scenarioId": "endoctor",
+   "mode": "phone",
+   "scenarioGroup": "Health & money",
+   "sourceGoalCount": 4,
+   "reviewStatus": "pending_specialist_review",
+   "objectives": [
+    {
+     "id": "en.endoctor.book_appointment.cough",
+     "scenarioObjectiveId": "en.endoctor.book_appointment",
+     "sourceGoalIndex": 0,
+     "sourceGoalText": "book an appointment because of a persistent cough",
+     "title": {
+      "es": "Pedir cita en la consulta por una tos persistente",
+      "en": "Book an appointment for a persistent cough",
+      "it": "Prenotare una visita per una tosse persistente",
+      "tr": "Geçmeyen bir öksürük için randevu almak",
+      "ar": "حجز موعد بسبب سعال مستمر",
+      "uk": "Записатися на прийом через тривалий кашель"
+     },
+     "supportedLevels": {
+      "min": "A1",
+      "max": "C1"
+     },
+     "competencies": [
+      "FUN.ARRANGE",
+      "INT.OPEN_CLOSE",
+      "INT.PROVIDE_DETAIL",
+      "INT.STATE_PURPOSE"
+     ],
+     "requiredCriteria": [
+      {
+       "id": "purpose_stated",
+       "competencyId": "INT.STATE_PURPOSE",
+       "observation": "learner makes clear that they want an appointment at the practice"
+      },
+      {
+       "id": "symptom_given",
+       "competencyId": "INT.PROVIDE_DETAIL",
+       "observation": "learner names a persistent cough or an equivalent relevant symptom"
+      },
+      {
+       "id": "appointment_resolved",
+       "competencyId": "FUN.ARRANGE",
+       "observation": "an appointment time or a truthful next step is mutually established"
+      }
+     ],
+     "optionalCriteria": [
+      {
+       "id": "close_appropriate",
+       "competencyId": "INT.OPEN_CLOSE",
+       "observation": "learner closes the exchange appropriately for the channel"
+      }
+     ],
+     "allowedEvidence": [
+      "transcript_text",
+      "typed_response",
+      "interaction_event"
+     ],
+     "completionPolicy": "all_required",
+     "reviewTags": [
+      "appointment",
+      "health",
+      "symptom"
+     ],
+     "reviewStatus": "pending_specialist_review",
+     "supersedes": null
+    },
+    {
+     "id": "en.endoctor.book_appointment.back_pain",
+     "scenarioObjectiveId": "en.endoctor.book_appointment",
+     "sourceGoalIndex": 1,
+     "sourceGoalText": "book an appointment because of strong back pain",
+     "title": {
+      "es": "Pedir cita en la consulta por un dolor de espalda fuerte",
+      "en": "Book an appointment for strong back pain",
+      "it": "Prenotare una visita per un forte mal di schiena",
+      "tr": "Şiddetli sırt ağrısı için randevu almak",
+      "ar": "حجز موعد بسبب ألم شديد في الظهر",
+      "uk": "Записатися на прийом через сильний біль у спині"
+     },
+     "supportedLevels": {
+      "min": "A1",
+      "max": "C1"
+     },
+     "competencies": [
+      "FUN.ARRANGE",
+      "INT.OPEN_CLOSE",
+      "INT.PROVIDE_DETAIL",
+      "INT.STATE_PURPOSE"
+     ],
+     "requiredCriteria": [
+      {
+       "id": "purpose_stated",
+       "competencyId": "INT.STATE_PURPOSE",
+       "observation": "learner makes clear that they want an appointment at the practice"
+      },
+      {
+       "id": "symptom_given",
+       "competencyId": "INT.PROVIDE_DETAIL",
+       "observation": "learner names strong back pain or an equivalent relevant symptom"
+      },
+      {
+       "id": "appointment_resolved",
+       "competencyId": "FUN.ARRANGE",
+       "observation": "an appointment time or a truthful next step is mutually established"
+      }
+     ],
+     "optionalCriteria": [
+      {
+       "id": "close_appropriate",
+       "competencyId": "INT.OPEN_CLOSE",
+       "observation": "learner closes the exchange appropriately for the channel"
+      }
+     ],
+     "allowedEvidence": [
+      "transcript_text",
+      "typed_response",
+      "interaction_event"
+     ],
+     "completionPolicy": "all_required",
+     "reviewTags": [
+      "appointment",
+      "health",
+      "symptom"
+     ],
+     "reviewStatus": "pending_specialist_review",
+     "supersedes": null
+    },
+    {
+     "id": "en.endoctor.request_prescription.repeat_and_visit_check",
+     "scenarioObjectiveId": "en.endoctor.request_prescription",
+     "sourceGoalIndex": 2,
+     "sourceGoalText": "ask for a repeat prescription and whether you need to come in",
+     "title": {
+      "es": "Pedir una receta repetida y preguntar si hay que ir a la consulta",
+      "en": "Ask for a repeat prescription and whether a visit is needed",
+      "it": "Chiedere una ricetta ripetibile e se serve andare di persona",
+      "tr": "Tekrar reçete istemek ve muayeneye gelmek gerekip gerekmediğini sormak",
+      "ar": "طلب وصفة طبية متكررة والسؤال عمّا إذا كان الحضور ضروريًا",
+      "uk": "Попросити повторний рецепт і запитати, чи потрібно приходити"
+     },
+     "supportedLevels": {
+      "min": "A2",
+      "max": "C1"
+     },
+     "competencies": [
+      "COM.KEY_DETAIL",
+      "INT.ASK_INFORMATION",
+      "INT.OPEN_CLOSE",
+      "INT.STATE_PURPOSE"
+     ],
+     "requiredCriteria": [
+      {
+       "id": "prescription_requested",
+       "competencyId": "INT.STATE_PURPOSE",
+       "observation": "learner asks for a repeat prescription"
+      },
+      {
+       "id": "visit_question_asked",
+       "competencyId": "INT.ASK_INFORMATION",
+       "observation": "learner asks whether an in-person visit is necessary"
+      },
+      {
+       "id": "answer_understood",
+       "competencyId": "COM.KEY_DETAIL",
+       "observation": "learner responds consistently with the answer given about the prescription or the visit"
+      }
+     ],
+     "optionalCriteria": [
+      {
+       "id": "close_appropriate",
+       "competencyId": "INT.OPEN_CLOSE",
+       "observation": "learner closes the exchange appropriately for the channel"
+      }
+     ],
+     "allowedEvidence": [
+      "transcript_text",
+      "typed_response",
+      "interaction_event"
+     ],
+     "completionPolicy": "all_required",
+     "reviewTags": [
+      "prescription",
+      "health",
+      "information"
+     ],
+     "reviewStatus": "pending_specialist_review",
+     "supersedes": null
+    },
+    {
+     "id": "en.endoctor.change_appointment.reschedule",
+     "scenarioObjectiveId": "en.endoctor.change_appointment",
+     "sourceGoalIndex": 3,
+     "sourceGoalText": "reschedule an existing appointment because something came up",
+     "title": {
+      "es": "Cambiar una cita ya reservada porque te ha surgido algo",
+      "en": "Reschedule an existing appointment because something came up",
+      "it": "Spostare un appuntamento già fissato perché è successo un imprevisto",
+      "tr": "Bir şey çıktığı için mevcut randevuyu ertelemek",
+      "ar": "تغيير موعد قائم بسبب ظرف طارئ",
+      "uk": "Перенести призначений візит через непередбачені обставини"
+     },
+     "supportedLevels": {
+      "min": "A2",
+      "max": "C1"
+     },
+     "competencies": [
+      "FUN.ARRANGE",
+      "INT.NEGOTIATE",
+      "INT.OPEN_CLOSE",
+      "INT.STATE_PURPOSE"
+     ],
+     "requiredCriteria": [
+      {
+       "id": "change_requested",
+       "competencyId": "INT.STATE_PURPOSE",
+       "observation": "learner makes clear that an existing appointment has to be moved"
+      },
+      {
+       "id": "alternative_proposed",
+       "competencyId": "INT.NEGOTIATE",
+       "observation": "learner gives a reason or proposes an alternative time"
+      },
+      {
+       "id": "new_arrangement_resolved",
+       "competencyId": "FUN.ARRANGE",
+       "observation": "a new appointment or a truthful next step is mutually established"
+      }
+     ],
+     "optionalCriteria": [
+      {
+       "id": "close_appropriate",
+       "competencyId": "INT.OPEN_CLOSE",
+       "observation": "learner closes the exchange appropriately for the channel"
+      }
+     ],
+     "allowedEvidence": [
+      "transcript_text",
+      "typed_response",
+      "interaction_event"
+     ],
+     "completionPolicy": "all_required",
+     "reviewTags": [
+      "appointment",
+      "health",
+      "reschedule"
+     ],
+     "reviewStatus": "pending_specialist_review",
+     "supersedes": null
+    }
+   ]
+  },
+  {
+   "schemaVersion": 1,
+   "curriculumVersion": "v1-draft",
+   "targetLanguage": "en",
+   "scenarioId": "enbank",
+   "mode": "phone",
+   "scenarioGroup": "Health & money",
+   "sourceGoalCount": 3,
+   "reviewStatus": "pending_specialist_review",
+   "objectives": [
+    {
+     "id": "en.enbank.report_problem.lost_debit_card_block",
+     "scenarioObjectiveId": "en.enbank.report_problem",
+     "sourceGoalIndex": 0,
+     "sourceGoalText": "report a lost debit card and ask to block it",
+     "title": {
+      "es": "Avisar de que has perdido la tarjeta de débito y pedir que la bloqueen",
+      "en": "Report a lost debit card and ask to block it",
+      "it": "Segnalare la perdita della carta di debito e chiederne il blocco",
+      "tr": "Banka kartını kaybettiğini bildirip bloke edilmesini istemek",
+      "ar": "الإبلاغ عن فقدان بطاقة الخصم وطلب إيقافها",
+      "uk": "Повідомити про втрату дебетової картки та попросити її заблокувати"
+     },
+     "supportedLevels": {
+      "min": "A2",
+      "max": "C1"
+     },
+     "competencies": [
+      "FUN.REPORT_PROBLEM",
+      "FUN.REQUEST_REMEDY",
+      "INT.CONFIRM",
+      "INT.PROVIDE_DETAIL"
+     ],
+     "requiredCriteria": [
+      {
+       "id": "loss_reported",
+       "competencyId": "FUN.REPORT_PROBLEM",
+       "observation": "learner reports that the debit card is lost"
+      },
+      {
+       "id": "identification_given",
+       "competencyId": "INT.PROVIDE_DETAIL",
+       "observation": "learner supplies the identifying detail the bank asks for"
+      },
+      {
+       "id": "block_resolved",
+       "competencyId": "FUN.REQUEST_REMEDY",
+       "observation": "blocking the card or a truthful next step is mutually established"
+      }
+     ],
+     "optionalCriteria": [
+      {
+       "id": "outcome_confirmed",
+       "competencyId": "INT.CONFIRM",
+       "observation": "learner confirms or checks the agreed detail before the exchange ends"
+      }
+     ],
+     "allowedEvidence": [
+      "transcript_text",
+      "typed_response",
+      "interaction_event"
+     ],
+     "completionPolicy": "all_required",
+     "reviewTags": [
+      "problem",
+      "money",
+      "urgent",
+      "remedy"
+     ],
+     "reviewStatus": "pending_specialist_review",
+     "supersedes": null
+    },
+    {
+     "id": "en.enbank.request_information.unknown_charge",
+     "scenarioObjectiveId": "en.enbank.request_information",
+     "sourceGoalIndex": 1,
+     "sourceGoalText": "ask about a charge on your account you do not recognize",
+     "title": {
+      "es": "Preguntar por un cargo en tu cuenta que no reconoces",
+      "en": "Ask about a charge on your account you do not recognise",
+      "it": "Chiedere di un addebito sul conto che non riconosci",
+      "tr": "Hesabındaki tanımadığın bir işlemi sormak",
+      "ar": "السؤال عن خصم في حسابك لا تعرفه",
+      "uk": "Запитати про незрозумілу операцію на твоєму рахунку"
+     },
+     "supportedLevels": {
+      "min": "B1",
+      "max": "C1"
+     },
+     "competencies": [
+      "COM.KEY_DETAIL",
+      "INT.ASK_INFORMATION",
+      "INT.CLARIFY_REPAIR",
+      "INT.PROVIDE_DETAIL"
+     ],
+     "requiredCriteria": [
+      {
+       "id": "charge_question_asked",
+       "competencyId": "INT.ASK_INFORMATION",
+       "observation": "learner asks about a charge they do not recognise"
+      },
+      {
+       "id": "reference_given",
+       "competencyId": "INT.PROVIDE_DETAIL",
+       "observation": "learner identifies the amount, date, or account concerned"
+      },
+      {
+       "id": "explanation_understood",
+       "competencyId": "COM.KEY_DETAIL",
+       "observation": "learner responds consistently with the explanation given"
+      }
+     ],
+     "optionalCriteria": [
+      {
+       "id": "repair_used",
+       "competencyId": "INT.CLARIFY_REPAIR",
+       "observation": "learner signals non-understanding or asks for repetition when something is unclear"
+      }
+     ],
+     "allowedEvidence": [
+      "transcript_text",
+      "typed_response",
+      "interaction_event"
+     ],
+     "completionPolicy": "all_required",
+     "reviewTags": [
+      "information",
+      "money",
+      "account"
+     ],
+     "reviewStatus": "pending_specialist_review",
+     "supersedes": null
+    },
+    {
+     "id": "en.enbank.book_appointment.open_checking_account",
+     "scenarioObjectiveId": "en.enbank.book_appointment",
+     "sourceGoalIndex": 2,
+     "sourceGoalText": "make an appointment to open a checking account",
+     "title": {
+      "es": "Pedir cita para abrir una cuenta corriente",
+      "en": "Make an appointment to open a checking account",
+      "it": "Fissare un appuntamento per aprire un conto corrente",
+      "tr": "Vadesiz hesap açmak için randevu almak",
+      "ar": "تحديد موعد لفتح حساب جارٍ",
+      "uk": "Записатися на зустріч, щоб відкрити поточний рахунок"
+     },
+     "supportedLevels": {
+      "min": "A2",
+      "max": "C1"
+     },
+     "competencies": [
+      "FUN.ARRANGE",
+      "INT.OPEN_CLOSE",
+      "INT.PROVIDE_DETAIL",
+      "INT.STATE_PURPOSE"
+     ],
+     "requiredCriteria": [
+      {
+       "id": "purpose_stated",
+       "competencyId": "INT.STATE_PURPOSE",
+       "observation": "learner makes clear that they want an appointment to open an account"
+      },
+      {
+       "id": "detail_given",
+       "competencyId": "INT.PROVIDE_DETAIL",
+       "observation": "learner supplies the personal or scheduling detail the bank asks for"
+      },
+      {
+       "id": "appointment_resolved",
+       "competencyId": "FUN.ARRANGE",
+       "observation": "an appointment or a truthful next step is mutually established"
+      }
+     ],
+     "optionalCriteria": [
+      {
+       "id": "close_appropriate",
+       "competencyId": "INT.OPEN_CLOSE",
+       "observation": "learner closes the exchange appropriately for the channel"
+      }
+     ],
+     "allowedEvidence": [
+      "transcript_text",
+      "typed_response",
+      "interaction_event"
+     ],
+     "completionPolicy": "all_required",
+     "reviewTags": [
+      "appointment",
+      "money",
+      "account"
+     ],
+     "reviewStatus": "pending_specialist_review",
+     "supersedes": null
+    }
+   ]
+  },
+  {
+   "schemaVersion": 1,
+   "curriculumVersion": "v1-draft",
+   "targetLanguage": "en",
+   "scenarioId": "enlandlord",
+   "mode": "phone",
+   "scenarioGroup": "Home & daily life",
+   "sourceGoalCount": 3,
+   "reviewStatus": "pending_specialist_review",
+   "objectives": [
+    {
+     "id": "en.enlandlord.report_problem.heating_repair",
+     "scenarioObjectiveId": "en.enlandlord.report_problem",
+     "sourceGoalIndex": 0,
+     "sourceGoalText": "report that the heating is not working and ask for a repair",
+     "title": {
+      "es": "Avisar de que la calefacción no funciona y pedir una reparación",
+      "en": "Report that the heating is not working and ask for a repair",
+      "it": "Segnalare che il riscaldamento non funziona e chiedere una riparazione",
+      "tr": "Kaloriferin çalışmadığını bildirip tamir istemek",
+      "ar": "الإبلاغ عن عطل في التدفئة وطلب إصلاحها",
+      "uk": "Повідомити, що не працює опалення, і попросити ремонт"
+     },
+     "supportedLevels": {
+      "min": "A1",
+      "max": "C1"
+     },
+     "competencies": [
+      "FUN.REPORT_PROBLEM",
+      "FUN.REQUEST_REMEDY",
+      "INT.CONFIRM",
+      "INT.PROVIDE_DETAIL"
+     ],
+     "requiredCriteria": [
+      {
+       "id": "problem_described",
+       "competencyId": "FUN.REPORT_PROBLEM",
+       "observation": "learner explains that the heating is not working"
+      },
+      {
+       "id": "detail_given",
+       "competencyId": "INT.PROVIDE_DETAIL",
+       "observation": "learner supplies the flat, room, or timing detail the property manager asks for"
+      },
+      {
+       "id": "repair_resolved",
+       "competencyId": "FUN.REQUEST_REMEDY",
+       "observation": "a repair or a truthful next step is mutually established"
+      }
+     ],
+     "optionalCriteria": [
+      {
+       "id": "outcome_confirmed",
+       "competencyId": "INT.CONFIRM",
+       "observation": "learner confirms or checks the agreed detail before the exchange ends"
+      }
+     ],
+     "allowedEvidence": [
+      "transcript_text",
+      "typed_response",
+      "interaction_event"
+     ],
+     "completionPolicy": "all_required",
+     "reviewTags": [
+      "problem",
+      "home",
+      "repair"
+     ],
+     "reviewStatus": "pending_specialist_review",
+     "supersedes": null
+    },
+    {
+     "id": "en.enlandlord.report_problem.dripping_tap_visit",
+     "scenarioObjectiveId": "en.enlandlord.report_problem",
+     "sourceGoalIndex": 1,
+     "sourceGoalText": "report a dripping tap in the bathroom and arrange a visit",
+     "title": {
+      "es": "Avisar de un grifo que gotea en el baño y concertar una visita",
+      "en": "Report a dripping tap in the bathroom and arrange a visit",
+      "it": "Segnalare un rubinetto che gocciola in bagno e fissare una visita",
+      "tr": "Banyodaki damlayan musluğu bildirip bir ziyaret ayarlamak",
+      "ar": "الإبلاغ عن صنبور يقطر في الحمام وتحديد موعد للمعاينة",
+      "uk": "Повідомити про кран, що тече у ванній, і домовитися про візит"
+     },
+     "supportedLevels": {
+      "min": "A2",
+      "max": "C1"
+     },
+     "competencies": [
+      "FUN.ARRANGE",
+      "FUN.REPORT_PROBLEM",
+      "INT.CONFIRM",
+      "INT.PROVIDE_DETAIL"
+     ],
+     "requiredCriteria": [
+      {
+       "id": "problem_described",
+       "competencyId": "FUN.REPORT_PROBLEM",
+       "observation": "learner describes a dripping tap in the bathroom"
+      },
+      {
+       "id": "access_detail_given",
+       "competencyId": "INT.PROVIDE_DETAIL",
+       "observation": "learner supplies the access or timing detail needed for a visit"
+      },
+      {
+       "id": "visit_resolved",
+       "competencyId": "FUN.ARRANGE",
+       "observation": "a visit time or a truthful next step is mutually established"
+      }
+     ],
+     "optionalCriteria": [
+      {
+       "id": "outcome_confirmed",
+       "competencyId": "INT.CONFIRM",
+       "observation": "learner confirms or checks the agreed detail before the exchange ends"
+      }
+     ],
+     "allowedEvidence": [
+      "transcript_text",
+      "typed_response",
+      "interaction_event"
+     ],
+     "completionPolicy": "all_required",
+     "reviewTags": [
+      "problem",
+      "home",
+      "appointment"
+     ],
+     "reviewStatus": "pending_specialist_review",
+     "supersedes": null
+    },
+    {
+     "id": "en.enlandlord.request_information.rent_statement",
+     "scenarioObjectiveId": "en.enlandlord.request_information",
+     "sourceGoalIndex": 2,
+     "sourceGoalText": "ask a question about this month's rent statement",
+     "title": {
+      "es": "Preguntar por el recibo del alquiler de este mes",
+      "en": "Ask a question about this month's rent statement",
+      "it": "Fare una domanda sul rendiconto dell'affitto di questo mese",
+      "tr": "Bu ayki kira ekstresi hakkında soru sormak",
+      "ar": "طرح سؤال عن كشف إيجار هذا الشهر",
+      "uk": "Запитати про рахунок за оренду за цей місяць"
+     },
+     "supportedLevels": {
+      "min": "B1",
+      "max": "C1"
+     },
+     "competencies": [
+      "COM.KEY_DETAIL",
+      "INT.ASK_INFORMATION",
+      "INT.CLARIFY_REPAIR",
+      "INT.PROVIDE_DETAIL"
+     ],
+     "requiredCriteria": [
+      {
+       "id": "statement_question_asked",
+       "competencyId": "INT.ASK_INFORMATION",
+       "observation": "learner asks a specific question about the statement they received"
+      },
+      {
+       "id": "reference_given",
+       "competencyId": "INT.PROVIDE_DETAIL",
+       "observation": "learner identifies the statement, period, or amount concerned"
+      },
+      {
+       "id": "explanation_understood",
+       "competencyId": "COM.KEY_DETAIL",
+       "observation": "learner responds consistently with the explanation given"
+      }
+     ],
+     "optionalCriteria": [
+      {
+       "id": "repair_used",
+       "competencyId": "INT.CLARIFY_REPAIR",
+       "observation": "learner signals non-understanding or asks for repetition when something is unclear"
+      }
+     ],
+     "allowedEvidence": [
+      "transcript_text",
+      "typed_response",
+      "interaction_event"
+     ],
+     "completionPolicy": "all_required",
+     "reviewTags": [
+      "information",
+      "home",
+      "bill"
+     ],
+     "reviewStatus": "pending_specialist_review",
+     "supersedes": null
+    }
+   ]
+  },
+  {
+   "schemaVersion": 1,
+   "curriculumVersion": "v1-draft",
+   "targetLanguage": "en",
+   "scenarioId": "endelivery",
+   "mode": "phone",
+   "scenarioGroup": "Home & daily life",
+   "sourceGoalCount": 3,
+   "reviewStatus": "pending_specialist_review",
+   "objectives": [
+    {
+     "id": "en.endelivery.report_problem.marked_delivered",
+     "scenarioObjectiveId": "en.endelivery.report_problem",
+     "sourceGoalIndex": 0,
+     "sourceGoalText": "report that a package marked as delivered never arrived",
+     "title": {
+      "es": "Avisar de que un paquete marcado como entregado nunca llegó",
+      "en": "Report that a package marked as delivered never arrived",
+      "it": "Segnalare che un pacco risultato consegnato non è mai arrivato",
+      "tr": "Teslim edildi görünen bir paketin hiç gelmediğini bildirmek",
+      "ar": "الإبلاغ عن طرد مسجَّل كمُسلَّم لكنه لم يصل",
+      "uk": "Повідомити, що пакунок, позначений як доставлений, не надійшов"
+     },
+     "supportedLevels": {
+      "min": "A2",
+      "max": "C1"
+     },
+     "competencies": [
+      "FUN.REPORT_PROBLEM",
+      "FUN.REQUEST_REMEDY",
+      "INT.CONFIRM",
+      "INT.PROVIDE_DETAIL"
+     ],
+     "requiredCriteria": [
+      {
+       "id": "problem_described",
+       "competencyId": "FUN.REPORT_PROBLEM",
+       "observation": "learner explains that a package shown as delivered was not received"
+      },
+      {
+       "id": "detail_given",
+       "competencyId": "INT.PROVIDE_DETAIL",
+       "observation": "learner supplies the tracking, address, or date detail the agent asks for"
+      },
+      {
+       "id": "remedy_resolved",
+       "competencyId": "FUN.REQUEST_REMEDY",
+       "observation": "an investigation, replacement, refund, or truthful next step is mutually established"
+      }
+     ],
+     "optionalCriteria": [
+      {
+       "id": "outcome_confirmed",
+       "competencyId": "INT.CONFIRM",
+       "observation": "learner confirms or checks the agreed detail before the exchange ends"
+      }
+     ],
+     "allowedEvidence": [
+      "transcript_text",
+      "typed_response",
+      "interaction_event"
+     ],
+     "completionPolicy": "all_required",
+     "reviewTags": [
+      "problem",
+      "delivery",
+      "remedy"
+     ],
+     "reviewStatus": "pending_specialist_review",
+     "supersedes": null
+    },
+    {
+     "id": "en.endelivery.arrange_delivery.new_date",
+     "scenarioObjectiveId": "en.endelivery.arrange_delivery",
+     "sourceGoalIndex": 1,
+     "sourceGoalText": "arrange a new delivery date because you were not at home",
+     "title": {
+      "es": "Acordar una nueva fecha de entrega porque no estabas en casa",
+      "en": "Arrange a new delivery date because you were not at home",
+      "it": "Concordare una nuova data di consegna perché non eri a casa",
+      "tr": "Evde olmadığın için yeni bir teslimat günü ayarlamak",
+      "ar": "الاتفاق على موعد تسليم جديد لأنك لم تكن في المنزل",
+      "uk": "Домовитися про нову дату доставки, бо тебе не було вдома"
+     },
+     "supportedLevels": {
+      "min": "A2",
+      "max": "C1"
+     },
+     "competencies": [
+      "FUN.ARRANGE",
+      "INT.CONFIRM",
+      "INT.NEGOTIATE",
+      "INT.STATE_PURPOSE"
+     ],
+     "requiredCriteria": [
+      {
+       "id": "purpose_stated",
+       "competencyId": "INT.STATE_PURPOSE",
+       "observation": "learner makes clear that a new delivery is needed because they were not at home"
+      },
+      {
+       "id": "date_proposed",
+       "competencyId": "INT.NEGOTIATE",
+       "observation": "learner proposes or accepts a delivery day or time"
+      },
+      {
+       "id": "delivery_resolved",
+       "competencyId": "FUN.ARRANGE",
+       "observation": "a new delivery arrangement or a truthful next step is mutually established"
+      }
+     ],
+     "optionalCriteria": [
+      {
+       "id": "outcome_confirmed",
+       "competencyId": "INT.CONFIRM",
+       "observation": "learner confirms or checks the agreed detail before the exchange ends"
+      }
+     ],
+     "allowedEvidence": [
+      "transcript_text",
+      "typed_response",
+      "interaction_event"
+     ],
+     "completionPolicy": "all_required",
+     "reviewTags": [
+      "delivery",
+      "appointment",
+      "time"
+     ],
+     "reviewStatus": "pending_specialist_review",
+     "supersedes": null
+    },
+    {
+     "id": "en.endelivery.request_information.package_location",
+     "scenarioObjectiveId": "en.endelivery.request_information",
+     "sourceGoalIndex": 2,
+     "sourceGoalText": "ask where a package is that has been in transit for two weeks",
+     "title": {
+      "es": "Preguntar dónde está un paquete que lleva dos semanas en tránsito",
+      "en": "Ask where a package that has been in transit for two weeks is",
+      "it": "Chiedere dov'è un pacco in transito da due settimane",
+      "tr": "İki haftadır yolda görünen paketin nerede olduğunu sormak",
+      "ar": "السؤال عن مكان طرد ما زال في الطريق منذ أسبوعين",
+      "uk": "Запитати, де пакунок, який уже два тижні в дорозі"
+     },
+     "supportedLevels": {
+      "min": "A2",
+      "max": "C1"
+     },
+     "competencies": [
+      "COM.KEY_DETAIL",
+      "INT.ASK_INFORMATION",
+      "INT.CLARIFY_REPAIR",
+      "INT.PROVIDE_DETAIL"
+     ],
+     "requiredCriteria": [
+      {
+       "id": "location_question_asked",
+       "competencyId": "INT.ASK_INFORMATION",
+       "observation": "learner asks where the package currently is"
+      },
+      {
+       "id": "context_given",
+       "competencyId": "INT.PROVIDE_DETAIL",
+       "observation": "learner explains how long the package has been in transit"
+      },
+      {
+       "id": "status_understood",
+       "competencyId": "COM.KEY_DETAIL",
+       "observation": "learner responds consistently with the status or next step the agent gives"
+      }
+     ],
+     "optionalCriteria": [
+      {
+       "id": "repair_used",
+       "competencyId": "INT.CLARIFY_REPAIR",
+       "observation": "learner signals non-understanding or asks for repetition when something is unclear"
+      }
+     ],
+     "allowedEvidence": [
+      "transcript_text",
+      "typed_response",
+      "interaction_event"
+     ],
+     "completionPolicy": "all_required",
+     "reviewTags": [
+      "delivery",
+      "information",
+      "status"
+     ],
+     "reviewStatus": "pending_specialist_review",
+     "supersedes": null
+    }
+   ]
+  },
+  {
+   "schemaVersion": 1,
+   "curriculumVersion": "v1-draft",
+   "targetLanguage": "en",
+   "scenarioId": "enrestaurant",
+   "mode": "phone",
+   "scenarioGroup": "Leisure & bookings",
+   "sourceGoalCount": 3,
+   "reviewStatus": "pending_specialist_review",
+   "objectives": [
+    {
+     "id": "en.enrestaurant.reserve_table.four_friday",
+     "scenarioObjectiveId": "en.enrestaurant.reserve_table",
+     "sourceGoalIndex": 0,
+     "sourceGoalText": "reserve a table for four people on Friday evening",
+     "title": {
+      "es": "Reservar una mesa para cuatro personas el viernes por la noche",
+      "en": "Reserve a table for four people on Friday evening",
+      "it": "Prenotare un tavolo per quattro persone venerdì sera",
+      "tr": "Cuma akşamı dört kişilik bir masa ayırtmak",
+      "ar": "حجز طاولة لأربعة أشخاص مساء الجمعة",
+      "uk": "Забронювати столик на чотирьох у п'ятницю ввечері"
+     },
+     "supportedLevels": {
+      "min": "A1",
+      "max": "C1"
+     },
+     "competencies": [
+      "FUN.ARRANGE",
+      "INT.CONFIRM",
+      "INT.PROVIDE_DETAIL",
+      "INT.STATE_PURPOSE"
+     ],
+     "requiredCriteria": [
+      {
+       "id": "purpose_stated",
+       "competencyId": "INT.STATE_PURPOSE",
+       "observation": "learner makes clear that they want to reserve a table"
+      },
+      {
+       "id": "party_and_time_given",
+       "competencyId": "INT.PROVIDE_DETAIL",
+       "observation": "learner names the number of people and the requested day or time"
+      },
+      {
+       "id": "reservation_resolved",
+       "competencyId": "FUN.ARRANGE",
+       "observation": "a reservation or a truthful alternative is mutually established"
+      }
+     ],
+     "optionalCriteria": [
+      {
+       "id": "outcome_confirmed",
+       "competencyId": "INT.CONFIRM",
+       "observation": "learner confirms or checks the agreed detail before the exchange ends"
+      }
+     ],
+     "allowedEvidence": [
+      "transcript_text",
+      "typed_response",
+      "interaction_event"
+     ],
+     "completionPolicy": "all_required",
+     "reviewTags": [
+      "reservation",
+      "leisure",
+      "time"
+     ],
+     "reviewStatus": "pending_specialist_review",
+     "supersedes": null
+    },
+    {
+     "id": "en.enrestaurant.reserve_table.two_saturday_vegetarian",
+     "scenarioObjectiveId": "en.enrestaurant.reserve_table",
+     "sourceGoalIndex": 1,
+     "sourceGoalText": "reserve a table for two on Saturday and ask about vegetarian options",
+     "title": {
+      "es": "Reservar mesa para dos el sábado y preguntar por las opciones vegetarianas",
+      "en": "Reserve a table for two on Saturday and ask about vegetarian options",
+      "it": "Prenotare un tavolo per due sabato e chiedere le opzioni vegetariane",
+      "tr": "Cumartesi iki kişilik masa ayırtıp vejetaryen seçenekleri sormak",
+      "ar": "حجز طاولة لشخصين يوم السبت والسؤال عن الأطباق النباتية",
+      "uk": "Забронювати столик на двох у суботу й запитати про вегетаріанські страви"
+     },
+     "supportedLevels": {
+      "min": "A2",
+      "max": "C1"
+     },
+     "competencies": [
+      "COM.KEY_DETAIL",
+      "FUN.ARRANGE",
+      "INT.ASK_INFORMATION",
+      "INT.PROVIDE_DETAIL"
+     ],
+     "requiredCriteria": [
+      {
+       "id": "party_and_time_given",
+       "competencyId": "INT.PROVIDE_DETAIL",
+       "observation": "learner names the number of people and the requested day or time"
+      },
+      {
+       "id": "vegetarian_question_asked",
+       "competencyId": "INT.ASK_INFORMATION",
+       "observation": "learner asks about vegetarian dishes or options"
+      },
+      {
+       "id": "reservation_resolved",
+       "competencyId": "FUN.ARRANGE",
+       "observation": "a reservation or a truthful alternative is mutually established"
+      }
+     ],
+     "optionalCriteria": [
+      {
+       "id": "follow_up_handled",
+       "competencyId": "COM.KEY_DETAIL",
+       "observation": "learner answers the follow-up question consistently with what was asked"
+      }
+     ],
+     "allowedEvidence": [
+      "transcript_text",
+      "typed_response",
+      "interaction_event"
+     ],
+     "completionPolicy": "all_required",
+     "reviewTags": [
+      "reservation",
+      "leisure",
+      "food",
+      "information"
+     ],
+     "reviewStatus": "pending_specialist_review",
+     "supersedes": null
+    },
+    {
+     "id": "en.enrestaurant.cancel_reservation.apologise_and_rebook",
+     "scenarioObjectiveId": "en.enrestaurant.cancel_reservation",
+     "sourceGoalIndex": 2,
+     "sourceGoalText": "cancel a reservation and apologize, ask to rebook next week",
+     "title": {
+      "es": "Cancelar una reserva, disculparte y pedir otra para la semana que viene",
+      "en": "Cancel a reservation, apologise, and ask to rebook next week",
+      "it": "Disdire una prenotazione, scusarsi e chiedere di riprenotare la settimana prossima",
+      "tr": "Rezervasyonu iptal edip özür dilemek ve gelecek hafta için yeniden ayırtmak",
+      "ar": "إلغاء حجز والاعتذار وطلب حجز جديد الأسبوع المقبل",
+      "uk": "Скасувати бронювання, вибачитися й попросити перенести на наступний тиждень"
+     },
+     "supportedLevels": {
+      "min": "A2",
+      "max": "C1"
+     },
+     "competencies": [
+      "FUN.ARRANGE",
+      "INT.OPEN_CLOSE",
+      "INT.STATE_PURPOSE",
+      "SOC.REGISTER"
+     ],
+     "requiredCriteria": [
+      {
+       "id": "cancellation_stated",
+       "competencyId": "INT.STATE_PURPOSE",
+       "observation": "learner makes clear that an existing reservation is being cancelled"
+      },
+      {
+       "id": "apology_expressed",
+       "competencyId": "SOC.REGISTER",
+       "observation": "learner apologises in a way that fits the situation"
+      },
+      {
+       "id": "rebooking_resolved",
+       "competencyId": "FUN.ARRANGE",
+       "observation": "a new reservation or a truthful next step for the following week is mutually established"
+      }
+     ],
+     "optionalCriteria": [
+      {
+       "id": "close_appropriate",
+       "competencyId": "INT.OPEN_CLOSE",
+       "observation": "learner closes the exchange appropriately for the channel"
+      }
+     ],
+     "allowedEvidence": [
+      "transcript_text",
+      "typed_response",
+      "interaction_event"
+     ],
+     "completionPolicy": "all_required",
+     "reviewTags": [
+      "reservation",
+      "leisure",
+      "cancellation",
+      "politeness"
+     ],
+     "reviewStatus": "pending_specialist_review",
+     "supersedes": null
+    }
+   ]
+  },
+  {
+   "schemaVersion": 1,
+   "curriculumVersion": "v1-draft",
+   "targetLanguage": "en",
+   "scenarioId": "enhair",
+   "mode": "phone",
+   "scenarioGroup": "Leisure & bookings",
+   "sourceGoalCount": 3,
+   "reviewStatus": "pending_specialist_review",
+   "objectives": [
+    {
+     "id": "en.enhair.book_appointment.saturday_morning",
+     "scenarioObjectiveId": "en.enhair.book_appointment",
+     "sourceGoalIndex": 0,
+     "sourceGoalText": "book a haircut for Saturday morning",
+     "title": {
+      "es": "Reservar un corte de pelo para el sábado por la mañana",
+      "en": "Book a haircut for Saturday morning",
+      "it": "Prenotare un taglio di capelli per sabato mattina",
+      "tr": "Cumartesi sabahı için saç kesimi randevusu almak",
+      "ar": "حجز موعد لقص الشعر صباح السبت",
+      "uk": "Записатися на стрижку в суботу вранці"
+     },
+     "supportedLevels": {
+      "min": "A1",
+      "max": "C1"
+     },
+     "competencies": [
+      "FUN.ARRANGE",
+      "INT.CONFIRM",
+      "INT.PROVIDE_DETAIL",
+      "INT.STATE_PURPOSE"
+     ],
+     "requiredCriteria": [
+      {
+       "id": "purpose_stated",
+       "competencyId": "INT.STATE_PURPOSE",
+       "observation": "learner makes clear that they want a haircut appointment"
+      },
+      {
+       "id": "time_requested",
+       "competencyId": "INT.PROVIDE_DETAIL",
+       "observation": "learner names Saturday morning or an equivalent requested time"
+      },
+      {
+       "id": "appointment_resolved",
+       "competencyId": "FUN.ARRANGE",
+       "observation": "an appointment or a truthful alternative is mutually established"
+      }
+     ],
+     "optionalCriteria": [
+      {
+       "id": "outcome_confirmed",
+       "competencyId": "INT.CONFIRM",
+       "observation": "learner confirms or checks the agreed detail before the exchange ends"
+      }
+     ],
+     "allowedEvidence": [
+      "transcript_text",
+      "typed_response",
+      "interaction_event"
+     ],
+     "completionPolicy": "all_required",
+     "reviewTags": [
+      "appointment",
+      "leisure",
+      "time"
+     ],
+     "reviewStatus": "pending_specialist_review",
+     "supersedes": null
+    },
+    {
+     "id": "en.enhair.book_appointment.after_work",
+     "scenarioObjectiveId": "en.enhair.book_appointment",
+     "sourceGoalIndex": 1,
+     "sourceGoalText": "book a haircut after work this week, you can only come after 5 pm",
+     "title": {
+      "es": "Reservar un corte después del trabajo: solo puedes ir a partir de las cinco",
+      "en": "Book a haircut after work this week — you can only come after 5 pm",
+      "it": "Prenotare un taglio dopo il lavoro: puoi andare solo dopo le 17",
+      "tr": "Bu hafta iş çıkışı saç kesimi randevusu almak: ancak 17.00'den sonra gidebilirsin",
+      "ar": "حجز موعد لقص الشعر بعد العمل هذا الأسبوع: لا يمكنك الحضور إلا بعد الخامسة",
+      "uk": "Записатися на стрижку після роботи цього тижня — ти можеш прийти лише після 17:00"
+     },
+     "supportedLevels": {
+      "min": "A2",
+      "max": "C1"
+     },
+     "competencies": [
+      "COM.CONSTRAINT",
+      "FUN.ARRANGE",
+      "INT.CONFIRM",
+      "INT.PROVIDE_DETAIL",
+      "INT.STATE_PURPOSE"
+     ],
+     "requiredCriteria": [
+      {
+       "id": "purpose_stated",
+       "competencyId": "INT.STATE_PURPOSE",
+       "observation": "learner makes clear that they want a haircut appointment"
+      },
+      {
+       "id": "availability_stated",
+       "competencyId": "INT.PROVIDE_DETAIL",
+       "observation": "learner makes clear that they can only come after the stated time"
+      },
+      {
+       "id": "constraint_handled",
+       "competencyId": "COM.CONSTRAINT",
+       "observation": "learner responds appropriately to the times the salon can actually offer"
+      },
+      {
+       "id": "appointment_resolved",
+       "competencyId": "FUN.ARRANGE",
+       "observation": "an appointment or a truthful alternative is mutually established"
+      }
+     ],
+     "optionalCriteria": [
+      {
+       "id": "outcome_confirmed",
+       "competencyId": "INT.CONFIRM",
+       "observation": "learner confirms or checks the agreed detail before the exchange ends"
+      }
+     ],
+     "allowedEvidence": [
+      "transcript_text",
+      "typed_response",
+      "interaction_event"
+     ],
+     "completionPolicy": "all_required",
+     "reviewTags": [
+      "appointment",
+      "leisure",
+      "constraint"
+     ],
+     "reviewStatus": "pending_specialist_review",
+     "supersedes": null
+    },
+    {
+     "id": "en.enhair.change_appointment.move_day",
+     "scenarioObjectiveId": "en.enhair.change_appointment",
+     "sourceGoalIndex": 2,
+     "sourceGoalText": "move your existing appointment to another day",
+     "title": {
+      "es": "Cambiar tu cita a otro día",
+      "en": "Move your existing appointment to another day",
+      "it": "Spostare il tuo appuntamento a un altro giorno",
+      "tr": "Mevcut randevunu başka bir güne almak",
+      "ar": "نقل موعدك الحالي إلى يوم آخر",
+      "uk": "Перенести наявний запис на інший день"
+     },
+     "supportedLevels": {
+      "min": "A2",
+      "max": "C1"
+     },
+     "competencies": [
+      "FUN.ARRANGE",
+      "INT.NEGOTIATE",
+      "INT.OPEN_CLOSE",
+      "INT.STATE_PURPOSE"
+     ],
+     "requiredCriteria": [
+      {
+       "id": "change_requested",
+       "competencyId": "INT.STATE_PURPOSE",
+       "observation": "learner makes clear that an existing appointment has to be moved"
+      },
+      {
+       "id": "alternative_proposed",
+       "competencyId": "INT.NEGOTIATE",
+       "observation": "learner proposes or accepts another day"
+      },
+      {
+       "id": "new_arrangement_resolved",
+       "competencyId": "FUN.ARRANGE",
+       "observation": "a new appointment or a truthful next step is mutually established"
+      }
+     ],
+     "optionalCriteria": [
+      {
+       "id": "close_appropriate",
+       "competencyId": "INT.OPEN_CLOSE",
+       "observation": "learner closes the exchange appropriately for the channel"
+      }
+     ],
+     "allowedEvidence": [
+      "transcript_text",
+      "typed_response",
+      "interaction_event"
+     ],
+     "completionPolicy": "all_required",
+     "reviewTags": [
+      "appointment",
+      "leisure",
+      "reschedule"
+     ],
+     "reviewStatus": "pending_specialist_review",
+     "supersedes": null
+    }
+   ]
+  },
+  {
+   "schemaVersion": 1,
+   "curriculumVersion": "v1-draft",
+   "targetLanguage": "en",
+   "scenarioId": "enjob",
+   "mode": "phone",
+   "scenarioGroup": "Work",
+   "sourceGoalCount": 3,
+   "reviewStatus": "pending_specialist_review",
+   "objectives": [
+    {
+     "id": "en.enjob.present_experience.warehouse_role",
+     "scenarioObjectiveId": "en.enjob.present_experience",
+     "sourceGoalIndex": 0,
+     "sourceGoalText": "introduce yourself and describe your experience for a warehouse job",
+     "title": {
+      "es": "Presentarte y describir tu experiencia para un puesto en un almacén",
+      "en": "Introduce yourself and describe your experience for a warehouse job",
+      "it": "Presentarti e descrivere la tua esperienza per un lavoro in magazzino",
+      "tr": "Kendini tanıtıp depo işi için deneyimini anlatmak",
+      "ar": "أن تقدّم نفسك وتصف خبرتك للعمل في مستودع",
+      "uk": "Представитися й описати свій досвід для роботи на складі"
+     },
+     "supportedLevels": {
+      "min": "B1",
+      "max": "C1"
+     },
+     "competencies": [
+      "COM.KEY_DETAIL",
+      "FUN.INTERVIEW",
+      "FUN.PRESENT",
+      "SOC.REGISTER"
+     ],
+     "requiredCriteria": [
+      {
+       "id": "self_presented",
+       "competencyId": "FUN.PRESENT",
+       "observation": "learner introduces themselves for the role"
+      },
+      {
+       "id": "experience_described",
+       "competencyId": "FUN.INTERVIEW",
+       "observation": "learner describes experience relevant to the advertised job"
+      },
+      {
+       "id": "register_maintained",
+       "competencyId": "SOC.REGISTER",
+       "observation": "learner keeps a register suitable for a screening interview"
+      }
+     ],
+     "optionalCriteria": [
+      {
+       "id": "follow_up_handled",
+       "competencyId": "COM.KEY_DETAIL",
+       "observation": "learner answers the follow-up question consistently with what was asked"
+      }
+     ],
+     "allowedEvidence": [
+      "transcript_text",
+      "typed_response",
+      "interaction_event"
+     ],
+     "completionPolicy": "all_required",
+     "reviewTags": [
+      "work",
+      "interview",
+      "presentation"
+     ],
+     "reviewStatus": "pending_specialist_review",
+     "supersedes": null
+    },
+    {
+     "id": "en.enjob.answer_questions.availability_and_start",
+     "scenarioObjectiveId": "en.enjob.answer_questions",
+     "sourceGoalIndex": 1,
+     "sourceGoalText": "answer questions about your availability and when you can start",
+     "title": {
+      "es": "Responder a preguntas sobre tu disponibilidad y cuándo puedes empezar",
+      "en": "Answer questions about your availability and when you can start",
+      "it": "Rispondere a domande sulla tua disponibilità e su quando puoi iniziare",
+      "tr": "Uygunluğun ve ne zaman başlayabileceğin hakkındaki soruları yanıtlamak",
+      "ar": "الإجابة عن أسئلة حول توفّرك وموعد بدء العمل",
+      "uk": "Відповісти на запитання про твою доступність і коли можеш почати"
+     },
+     "supportedLevels": {
+      "min": "A2",
+      "max": "C1"
+     },
+     "competencies": [
+      "COM.KEY_DETAIL",
+      "INT.CLARIFY_REPAIR",
+      "INT.PROVIDE_DETAIL"
+     ],
+     "requiredCriteria": [
+      {
+       "id": "availability_given",
+       "competencyId": "INT.PROVIDE_DETAIL",
+       "observation": "learner states when they are available"
+      },
+      {
+       "id": "start_date_given",
+       "competencyId": "INT.PROVIDE_DETAIL",
+       "observation": "learner states when they could start"
+      },
+      {
+       "id": "questions_answered",
+       "competencyId": "COM.KEY_DETAIL",
+       "observation": "learner answers the recruiter's questions consistently with what was asked"
+      }
+     ],
+     "optionalCriteria": [
+      {
+       "id": "repair_used",
+       "competencyId": "INT.CLARIFY_REPAIR",
+       "observation": "learner signals non-understanding or asks for repetition when something is unclear"
+      }
+     ],
+     "allowedEvidence": [
+      "transcript_text",
+      "typed_response",
+      "interaction_event"
+     ],
+     "completionPolicy": "all_required",
+     "reviewTags": [
+      "work",
+      "interview",
+      "availability"
+     ],
+     "reviewStatus": "pending_specialist_review",
+     "supersedes": null
+    },
+    {
+     "id": "en.enjob.request_information.salary_hours_next_steps",
+     "scenarioObjectiveId": "en.enjob.request_information",
+     "sourceGoalIndex": 2,
+     "sourceGoalText": "ask about the salary, the working hours and the next steps",
+     "title": {
+      "es": "Preguntar por el sueldo, el horario de trabajo y los siguientes pasos",
+      "en": "Ask about the salary, the working hours and the next steps",
+      "it": "Chiedere lo stipendio, l'orario di lavoro e i prossimi passi",
+      "tr": "Maaşı, çalışma saatlerini ve sonraki adımları sormak",
+      "ar": "السؤال عن الراتب وساعات العمل والخطوات التالية",
+      "uk": "Запитати про зарплату, робочі години та наступні кроки"
+     },
+     "supportedLevels": {
+      "min": "B1",
+      "max": "C1"
+     },
+     "competencies": [
+      "COM.MULTISTEP",
+      "INT.ASK_INFORMATION",
+      "INT.OPEN_CLOSE"
+     ],
+     "requiredCriteria": [
+      {
+       "id": "pay_question_asked",
+       "competencyId": "INT.ASK_INFORMATION",
+       "observation": "learner asks about the pay for the role"
+      },
+      {
+       "id": "hours_question_asked",
+       "competencyId": "INT.ASK_INFORMATION",
+       "observation": "learner asks about the working hours"
+      },
+      {
+       "id": "next_steps_understood",
+       "competencyId": "COM.MULTISTEP",
+       "observation": "learner responds consistently with the connected next steps described"
+      }
+     ],
+     "optionalCriteria": [
+      {
+       "id": "close_appropriate",
+       "competencyId": "INT.OPEN_CLOSE",
+       "observation": "learner closes the exchange appropriately for the channel"
+      }
+     ],
+     "allowedEvidence": [
+      "transcript_text",
+      "typed_response",
+      "interaction_event"
+     ],
+     "completionPolicy": "all_required",
+     "reviewTags": [
+      "work",
+      "interview",
+      "information"
+     ],
+     "reviewStatus": "pending_specialist_review",
+     "supersedes": null
+    }
+   ]
+  },
+  {
+   "schemaVersion": 1,
+   "curriculumVersion": "v1-draft",
+   "targetLanguage": "en",
+   "scenarioId": "enservice",
+   "mode": "phone",
+   "scenarioGroup": "Home & daily life",
+   "sourceGoalCount": 3,
+   "reviewStatus": "pending_specialist_review",
+   "objectives": [
+    {
+     "id": "en.enservice.report_problem.internet_down",
+     "scenarioObjectiveId": "en.enservice.report_problem",
+     "sourceGoalIndex": 0,
+     "sourceGoalText": "your internet is not working, ask them to fix it",
+     "title": {
+      "es": "Tu internet no funciona: pedir que lo arreglen",
+      "en": "Your internet is not working — ask them to fix it",
+      "it": "Internet non funziona: chiedere di risolvere il problema",
+      "tr": "İnternetin çalışmıyor: sorunu gidermelerini istemek",
+      "ar": "الإنترنت لديك لا يعمل: اطلب منهم إصلاحه",
+      "uk": "Твій інтернет не працює — попросити його полагодити"
+     },
+     "supportedLevels": {
+      "min": "A2",
+      "max": "C1"
+     },
+     "competencies": [
+      "FUN.REPORT_PROBLEM",
+      "FUN.REQUEST_REMEDY",
+      "INT.CONFIRM",
+      "INT.PROVIDE_DETAIL"
+     ],
+     "requiredCriteria": [
+      {
+       "id": "problem_described",
+       "competencyId": "FUN.REPORT_PROBLEM",
+       "observation": "learner explains that the internet connection is not working"
+      },
+      {
+       "id": "detail_given",
+       "competencyId": "INT.PROVIDE_DETAIL",
+       "observation": "learner supplies the account, device, or timing detail the agent asks for"
+      },
+      {
+       "id": "remedy_resolved",
+       "competencyId": "FUN.REQUEST_REMEDY",
+       "observation": "a fix, technician visit, or truthful next step is mutually established"
+      }
+     ],
+     "optionalCriteria": [
+      {
+       "id": "outcome_confirmed",
+       "competencyId": "INT.CONFIRM",
+       "observation": "learner confirms or checks the agreed detail before the exchange ends"
+      }
+     ],
+     "allowedEvidence": [
+      "transcript_text",
+      "typed_response",
+      "interaction_event"
+     ],
+     "completionPolicy": "all_required",
+     "reviewTags": [
+      "problem",
+      "service",
+      "remedy"
+     ],
+     "reviewStatus": "pending_specialist_review",
+     "supersedes": null
+    },
+    {
+     "id": "en.enservice.request_information.high_bill",
+     "scenarioObjectiveId": "en.enservice.request_information",
+     "sourceGoalIndex": 1,
+     "sourceGoalText": "a bill is much higher than usual, ask why",
+     "title": {
+      "es": "Una factura es mucho más alta de lo normal: preguntar por qué",
+      "en": "A bill is much higher than usual — ask why",
+      "it": "Una bolletta è molto più alta del solito: chiedere perché",
+      "tr": "Bir fatura her zamankinden çok yüksek: nedenini sormak",
+      "ar": "فاتورة أعلى بكثير من المعتاد: اسأل عن السبب",
+      "uk": "Рахунок значно більший, ніж зазвичай — запитати чому"
+     },
+     "supportedLevels": {
+      "min": "B1",
+      "max": "C1"
+     },
+     "competencies": [
+      "COM.KEY_DETAIL",
+      "INT.ASK_INFORMATION",
+      "INT.CLARIFY_REPAIR",
+      "INT.PROVIDE_DETAIL"
+     ],
+     "requiredCriteria": [
+      {
+       "id": "bill_question_asked",
+       "competencyId": "INT.ASK_INFORMATION",
+       "observation": "learner asks why the bill is higher than usual"
+      },
+      {
+       "id": "reference_given",
+       "competencyId": "INT.PROVIDE_DETAIL",
+       "observation": "learner identifies the bill, period, or amount concerned"
+      },
+      {
+       "id": "explanation_understood",
+       "competencyId": "COM.KEY_DETAIL",
+       "observation": "learner responds consistently with the explanation given"
+      }
+     ],
+     "optionalCriteria": [
+      {
+       "id": "repair_used",
+       "competencyId": "INT.CLARIFY_REPAIR",
+       "observation": "learner signals non-understanding or asks for repetition when something is unclear"
+      }
+     ],
+     "allowedEvidence": [
+      "transcript_text",
+      "typed_response",
+      "interaction_event"
+     ],
+     "completionPolicy": "all_required",
+     "reviewTags": [
+      "information",
+      "service",
+      "bill"
+     ],
+     "reviewStatus": "pending_specialist_review",
+     "supersedes": null
+    },
+    {
+     "id": "en.enservice.cancel_contract.notice_period",
+     "scenarioObjectiveId": "en.enservice.cancel_contract",
+     "sourceGoalIndex": 2,
+     "sourceGoalText": "cancel your contract politely and ask about the notice period",
+     "title": {
+      "es": "Cancelar tu contrato con educación y preguntar por el plazo de preaviso",
+      "en": "Cancel your contract politely and ask about the notice period",
+      "it": "Disdire il contratto con garbo e chiedere il periodo di preavviso",
+      "tr": "Sözleşmeni kibarca iptal edip ihbar süresini sormak",
+      "ar": "إلغاء عقدك بلباقة والسؤال عن مدة الإشعار",
+      "uk": "Ввічливо розірвати договір і запитати про строк попередження"
+     },
+     "supportedLevels": {
+      "min": "B1",
+      "max": "C1"
+     },
+     "competencies": [
+      "INT.ASK_INFORMATION",
+      "INT.CONFIRM",
+      "INT.STATE_PURPOSE",
+      "SOC.REGISTER"
+     ],
+     "requiredCriteria": [
+      {
+       "id": "cancellation_stated",
+       "competencyId": "INT.STATE_PURPOSE",
+       "observation": "learner makes clear that they want to cancel the contract"
+      },
+      {
+       "id": "notice_question_asked",
+       "competencyId": "INT.ASK_INFORMATION",
+       "observation": "learner asks about the notice period"
+      },
+      {
+       "id": "politeness_maintained",
+       "competencyId": "SOC.REGISTER",
+       "observation": "learner keeps the cancellation polite"
+      }
+     ],
+     "optionalCriteria": [
+      {
+       "id": "outcome_confirmed",
+       "competencyId": "INT.CONFIRM",
+       "observation": "learner confirms or checks the agreed detail before the exchange ends"
+      }
+     ],
+     "allowedEvidence": [
+      "transcript_text",
+      "typed_response",
+      "interaction_event"
+     ],
+     "completionPolicy": "all_required",
+     "reviewTags": [
+      "service",
+      "cancellation",
+      "politeness",
+      "information"
+     ],
+     "reviewStatus": "pending_specialist_review",
+     "supersedes": null
+    }
+   ]
+  },
+  {
+   "schemaVersion": 1,
+   "curriculumVersion": "v1-draft",
+   "targetLanguage": "en",
+   "scenarioId": "enneighbor",
+   "mode": "face",
+   "scenarioGroup": "Face to face",
+   "sourceGoalCount": 5,
+   "reviewStatus": "pending_specialist_review",
+   "objectives": [
+    {
+     "id": "en.enneighbor.request_favour.accept_package",
+     "scenarioObjectiveId": "en.enneighbor.request_favour",
+     "sourceGoalIndex": 0,
+     "sourceGoalText": "ask her to accept a package for you tomorrow",
+     "title": {
+      "es": "Pedirle que te recoja un paquete mañana",
+      "en": "Ask her to accept a package for you tomorrow",
+      "it": "Chiederle di ritirare un pacco per te domani",
+      "tr": "Yarın senin için bir paket almasını rica etmek",
+      "ar": "أن تطلب منها استلام طرد بالنيابة عنك غدًا",
+      "uk": "Попросити її прийняти для тебе пакунок завтра"
+     },
+     "supportedLevels": {
+      "min": "A1",
+      "max": "C1"
+     },
+     "competencies": [
+      "FUN.SOCIAL_EXCHANGE",
+      "INT.PROVIDE_DETAIL",
+      "INT.STATE_PURPOSE",
+      "SOC.REGISTER"
+     ],
+     "requiredCriteria": [
+      {
+       "id": "request_made",
+       "competencyId": "INT.STATE_PURPOSE",
+       "observation": "learner asks the neighbour to accept a package"
+      },
+      {
+       "id": "timing_given",
+       "competencyId": "INT.PROVIDE_DETAIL",
+       "observation": "learner says when the package is expected"
+      },
+      {
+       "id": "response_handled",
+       "competencyId": "FUN.SOCIAL_EXCHANGE",
+       "observation": "learner responds appropriately to the neighbour's agreement, refusal, or condition"
+      }
+     ],
+     "optionalCriteria": [
+      {
+       "id": "register_appropriate",
+       "competencyId": "SOC.REGISTER",
+       "observation": "learner uses a level of politeness and address that fits the relationship"
+      }
+     ],
+     "allowedEvidence": [
+      "transcript_text",
+      "typed_response",
+      "interaction_event"
+     ],
+     "completionPolicy": "all_required",
+     "reviewTags": [
+      "social",
+      "favour",
+      "delivery"
+     ],
+     "reviewStatus": "pending_specialist_review",
+     "supersedes": null
+    },
+    {
+     "id": "en.enneighbor.raise_issue.loud_music",
+     "scenarioObjectiveId": "en.enneighbor.raise_issue",
+     "sourceGoalIndex": 1,
+     "sourceGoalText": "politely mention that the music was very loud last night and ask her to keep it down",
+     "title": {
+      "es": "Comentarle con educación que anoche la música estaba muy alta y pedirle que la baje",
+      "en": "Politely mention that the music was very loud last night and ask her to keep it down",
+      "it": "Far notare con garbo che ieri sera la musica era altissima e chiederle di abbassarla",
+      "tr": "Dün gece müziğin çok yüksek olduğunu kibarca söyleyip sesi kısmasını rica etmek",
+      "ar": "أن تذكر بلباقة أن الموسيقى كانت عالية جدًا ليلة أمس وتطلب منها خفضها",
+      "uk": "Ввічливо сказати, що вчора музика була дуже гучною, і попросити зробити тихіше"
+     },
+     "supportedLevels": {
+      "min": "A2",
+      "max": "C1"
+     },
+     "competencies": [
+      "FUN.SOCIAL_EXCHANGE",
+      "INT.CLARIFY_REPAIR",
+      "INT.NEGOTIATE",
+      "SOC.REGISTER"
+     ],
+     "requiredCriteria": [
+      {
+       "id": "issue_raised",
+       "competencyId": "FUN.SOCIAL_EXCHANGE",
+       "observation": "learner mentions that the music was very loud the previous night"
+      },
+      {
+       "id": "request_made",
+       "competencyId": "INT.NEGOTIATE",
+       "observation": "learner asks for the volume to be kept down or proposes a workable arrangement"
+      },
+      {
+       "id": "politeness_maintained",
+       "competencyId": "SOC.REGISTER",
+       "observation": "learner keeps the exchange polite while raising the issue"
+      }
+     ],
+     "optionalCriteria": [
+      {
+       "id": "repair_used",
+       "competencyId": "INT.CLARIFY_REPAIR",
+       "observation": "learner signals non-understanding or asks for repetition when something is unclear"
+      }
+     ],
+     "allowedEvidence": [
+      "transcript_text",
+      "typed_response",
+      "interaction_event"
+     ],
+     "completionPolicy": "all_required",
+     "reviewTags": [
+      "social",
+      "conflict",
+      "politeness"
+     ],
+     "reviewStatus": "pending_specialist_review",
+     "supersedes": null
+    },
+    {
+     "id": "en.enneighbor.request_favour.borrow_ladder",
+     "scenarioObjectiveId": "en.enneighbor.request_favour",
+     "sourceGoalIndex": 2,
+     "sourceGoalText": "ask to borrow a ladder for the weekend",
+     "title": {
+      "es": "Pedirle prestada una escalera para el fin de semana",
+      "en": "Ask to borrow a ladder for the weekend",
+      "it": "Chiederle in prestito una scala per il fine settimana",
+      "tr": "Hafta sonu için merdiven ödünç istemek",
+      "ar": "أن تطلب استعارة سلّم لعطلة نهاية الأسبوع",
+      "uk": "Попросити позичити драбину на вихідні"
+     },
+     "supportedLevels": {
+      "min": "A1",
+      "max": "C1"
+     },
+     "competencies": [
+      "FUN.SOCIAL_EXCHANGE",
+      "INT.PROVIDE_DETAIL",
+      "INT.STATE_PURPOSE",
+      "SOC.REGISTER"
+     ],
+     "requiredCriteria": [
+      {
+       "id": "request_made",
+       "competencyId": "INT.STATE_PURPOSE",
+       "observation": "learner asks to borrow a ladder"
+      },
+      {
+       "id": "timeframe_given",
+       "competencyId": "INT.PROVIDE_DETAIL",
+       "observation": "learner says when they need it and when they would return it"
+      },
+      {
+       "id": "response_handled",
+       "competencyId": "FUN.SOCIAL_EXCHANGE",
+       "observation": "learner responds appropriately to the neighbour's agreement, refusal, or condition"
+      }
+     ],
+     "optionalCriteria": [
+      {
+       "id": "register_appropriate",
+       "competencyId": "SOC.REGISTER",
+       "observation": "learner uses a level of politeness and address that fits the relationship"
+      }
+     ],
+     "allowedEvidence": [
+      "transcript_text",
+      "typed_response",
+      "interaction_event"
+     ],
+     "completionPolicy": "all_required",
+     "reviewTags": [
+      "social",
+      "favour",
+      "borrowing"
+     ],
+     "reviewStatus": "pending_specialist_review",
+     "supersedes": null
+    },
+    {
+     "id": "en.enneighbor.small_talk.weather_and_new_neighbours",
+     "scenarioObjectiveId": "en.enneighbor.small_talk",
+     "sourceGoalIndex": 3,
+     "sourceGoalText": "make small talk about the weather and the new neighbours moving in downstairs",
+     "title": {
+      "es": "Charlar sobre el tiempo y sobre los nuevos vecinos del piso de abajo",
+      "en": "Make small talk about the weather and the new neighbours moving in downstairs",
+      "it": "Fare due chiacchiere sul tempo e sui nuovi vicini del piano di sotto",
+      "tr": "Hava durumu ve alt kata taşınan yeni komşular hakkında sohbet etmek",
+      "ar": "الدردشة عن الطقس وعن الجيران الجدد في الطابق السفلي",
+      "uk": "Поговорити про погоду й нових сусідів, що поселяються поверхом нижче"
+     },
+     "supportedLevels": {
+      "min": "A0",
+      "max": "C1"
+     },
+     "competencies": [
+      "FUN.SOCIAL_EXCHANGE",
+      "INT.ASK_INFORMATION",
+      "INT.OPEN_CLOSE",
+      "LNG.COHERENCE"
+     ],
+     "requiredCriteria": [
+      {
+       "id": "topic_opened",
+       "competencyId": "FUN.SOCIAL_EXCHANGE",
+       "observation": "learner starts or takes up small talk about the weather"
+      },
+      {
+       "id": "question_asked",
+       "competencyId": "INT.ASK_INFORMATION",
+       "observation": "learner asks about the new neighbours moving in downstairs"
+      },
+      {
+       "id": "exchange_sustained",
+       "competencyId": "LNG.COHERENCE",
+       "observation": "learner connects contributions so the small talk remains followable rather than a single isolated reply"
+      }
+     ],
+     "optionalCriteria": [
+      {
+       "id": "close_appropriate",
+       "competencyId": "INT.OPEN_CLOSE",
+       "observation": "learner closes the exchange appropriately for the channel"
+      }
+     ],
+     "allowedEvidence": [
+      "transcript_text",
+      "typed_response",
+      "interaction_event"
+     ],
+     "completionPolicy": "all_required",
+     "reviewTags": [
+      "social",
+      "small_talk"
+     ],
+     "reviewStatus": "pending_specialist_review",
+     "supersedes": null
+    },
+    {
+     "id": "en.enneighbor.announce_event.party_apology",
+     "scenarioObjectiveId": "en.enneighbor.announce_event",
+     "sourceGoalIndex": 4,
+     "sourceGoalText": "tell her you are having a small party on Saturday and apologise in advance for the noise",
+     "title": {
+      "es": "Contarle que el sábado tienes una fiesta pequeña y disculparte de antemano por el ruido",
+      "en": "Tell her you are having a small party on Saturday and apologise in advance for the noise",
+      "it": "Dirle che sabato fai una piccola festa e scusarti in anticipo per il rumore",
+      "tr": "Cumartesi küçük bir parti vereceğini söyleyip gürültü için önceden özür dilemek",
+      "ar": "أن تخبرها بأن لديك حفلة صغيرة يوم السبت وتعتذر مسبقًا عن الضجيج",
+      "uk": "Сказати, що в суботу в тебе невелика вечірка, і заздалегідь вибачитися за шум"
+     },
+     "supportedLevels": {
+      "min": "A2",
+      "max": "C1"
+     },
+     "competencies": [
+      "FUN.SOCIAL_EXCHANGE",
+      "INT.CLARIFY_REPAIR",
+      "INT.PROVIDE_DETAIL",
+      "SOC.REGISTER"
+     ],
+     "requiredCriteria": [
+      {
+       "id": "announcement_made",
+       "competencyId": "FUN.SOCIAL_EXCHANGE",
+       "observation": "learner tells the neighbour about the party"
+      },
+      {
+       "id": "detail_given",
+       "competencyId": "INT.PROVIDE_DETAIL",
+       "observation": "learner gives the day, time, or expected noise"
+      },
+      {
+       "id": "apology_expressed",
+       "competencyId": "SOC.REGISTER",
+       "observation": "learner apologises in advance in a way that fits the relationship"
+      }
+     ],
+     "optionalCriteria": [
+      {
+       "id": "repair_used",
+       "competencyId": "INT.CLARIFY_REPAIR",
+       "observation": "learner signals non-understanding or asks for repetition when something is unclear"
+      }
+     ],
+     "allowedEvidence": [
+      "transcript_text",
+      "typed_response",
+      "interaction_event"
+     ],
+     "completionPolicy": "all_required",
+     "reviewTags": [
+      "social",
+      "politeness",
+      "event"
+     ],
+     "reviewStatus": "pending_specialist_review",
+     "supersedes": null
+    }
+   ]
+  },
+  {
+   "schemaVersion": 1,
+   "curriculumVersion": "v1-draft",
+   "targetLanguage": "en",
+   "scenarioId": "encafe",
+   "mode": "face",
+   "scenarioGroup": "Face to face",
+   "sourceGoalCount": 3,
+   "reviewStatus": "pending_specialist_review",
+   "objectives": [
+    {
+     "id": "en.encafe.order_items.coffee_and_sandwich",
+     "scenarioObjectiveId": "en.encafe.order_items",
+     "sourceGoalIndex": 0,
+     "sourceGoalText": "order a coffee and a sandwich to take away",
+     "title": {
+      "es": "Pedir un café y un sándwich para llevar",
+      "en": "Order a coffee and a sandwich to take away",
+      "it": "Ordinare un caffè e un panino da portare via",
+      "tr": "Bir kahve ve bir sandviçi paket olarak sipariş etmek",
+      "ar": "طلب قهوة وشطيرة للاستلام الخارجي",
+      "uk": "Замовити каву та сендвіч із собою"
+     },
+     "supportedLevels": {
+      "min": "A0",
+      "max": "C1"
+     },
+     "competencies": [
+      "FUN.TRANSACT",
+      "INT.CONFIRM",
+      "INT.PROVIDE_DETAIL",
+      "SOC.REGISTER"
+     ],
+     "requiredCriteria": [
+      {
+       "id": "order_placed",
+       "competencyId": "FUN.TRANSACT",
+       "observation": "learner orders a coffee and a sandwich"
+      },
+      {
+       "id": "takeaway_specified",
+       "competencyId": "INT.PROVIDE_DETAIL",
+       "observation": "learner makes clear that the order is to take away"
+      },
+      {
+       "id": "exchange_settled",
+       "competencyId": "INT.CONFIRM",
+       "observation": "learner confirms the items, the total, or the payment step"
+      }
+     ],
+     "optionalCriteria": [
+      {
+       "id": "register_appropriate",
+       "competencyId": "SOC.REGISTER",
+       "observation": "learner uses a level of politeness and address that fits the relationship"
+      }
+     ],
+     "allowedEvidence": [
+      "transcript_text",
+      "typed_response",
+      "interaction_event"
+     ],
+     "completionPolicy": "all_required",
+     "reviewTags": [
+      "transaction",
+      "food",
+      "takeaway"
+     ],
+     "reviewStatus": "pending_specialist_review",
+     "supersedes": null
+    },
+    {
+     "id": "en.encafe.request_recommendation.cake_slice",
+     "scenarioObjectiveId": "en.encafe.request_recommendation",
+     "sourceGoalIndex": 1,
+     "sourceGoalText": "ask what they recommend and order a slice of cake",
+     "title": {
+      "es": "Preguntar qué recomiendan y pedir un trozo de tarta",
+      "en": "Ask what they recommend and order a slice of cake",
+      "it": "Chiedere cosa consigliano e ordinare una fetta di torta",
+      "tr": "Ne önerdiklerini sorup bir dilim pasta sipariş etmek",
+      "ar": "السؤال عمّا يوصون به وطلب قطعة كعك",
+      "uk": "Запитати, що порадять, і замовити шматок торта"
+     },
+     "supportedLevels": {
+      "min": "A1",
+      "max": "C1"
+     },
+     "competencies": [
+      "COM.KEY_DETAIL",
+      "FUN.TRANSACT",
+      "INT.ASK_INFORMATION",
+      "SOC.REGISTER"
+     ],
+     "requiredCriteria": [
+      {
+       "id": "question_asked",
+       "competencyId": "INT.ASK_INFORMATION",
+       "observation": "learner asks what the staff recommend"
+      },
+      {
+       "id": "answer_used",
+       "competencyId": "COM.KEY_DETAIL",
+       "observation": "learner chooses consistently with the recommendation given"
+      },
+      {
+       "id": "order_placed",
+       "competencyId": "FUN.TRANSACT",
+       "observation": "learner orders a slice of cake or a truthful alternative"
+      }
+     ],
+     "optionalCriteria": [
+      {
+       "id": "register_appropriate",
+       "competencyId": "SOC.REGISTER",
+       "observation": "learner uses a level of politeness and address that fits the relationship"
+      }
+     ],
+     "allowedEvidence": [
+      "transcript_text",
+      "typed_response",
+      "interaction_event"
+     ],
+     "completionPolicy": "all_required",
+     "reviewTags": [
+      "transaction",
+      "food",
+      "recommendation"
+     ],
+     "reviewStatus": "pending_specialist_review",
+     "supersedes": null
+    },
+    {
+     "id": "en.encafe.report_problem.wrong_order_fix",
+     "scenarioObjectiveId": "en.encafe.report_problem",
+     "sourceGoalIndex": 2,
+     "sourceGoalText": "your order came out wrong - politely ask them to fix it",
+     "title": {
+      "es": "Tu pedido ha salido mal: pedir con educación que lo arreglen",
+      "en": "Your order came out wrong — politely ask them to fix it",
+      "it": "L'ordine è arrivato sbagliato: chiedere con garbo di sistemarlo",
+      "tr": "Siparişin yanlış geldi: kibarca düzeltmelerini istemek",
+      "ar": "طلبك جاء خطأ: اطلب بلباقة تصحيحه",
+      "uk": "Твоє замовлення принесли не те — ввічливо попросити виправити"
+     },
+     "supportedLevels": {
+      "min": "A2",
+      "max": "C1"
+     },
+     "competencies": [
+      "FUN.REPORT_PROBLEM",
+      "FUN.REQUEST_REMEDY",
+      "INT.CONFIRM",
+      "SOC.REGISTER"
+     ],
+     "requiredCriteria": [
+      {
+       "id": "problem_described",
+       "competencyId": "FUN.REPORT_PROBLEM",
+       "observation": "learner explains what is wrong with the order"
+      },
+      {
+       "id": "remedy_requested",
+       "competencyId": "FUN.REQUEST_REMEDY",
+       "observation": "learner asks for the order to be corrected or an equivalent remedy"
+      },
+      {
+       "id": "politeness_maintained",
+       "competencyId": "SOC.REGISTER",
+       "observation": "learner keeps the complaint polite"
+      }
+     ],
+     "optionalCriteria": [
+      {
+       "id": "outcome_confirmed",
+       "competencyId": "INT.CONFIRM",
+       "observation": "learner confirms or checks the agreed detail before the exchange ends"
+      }
+     ],
+     "allowedEvidence": [
+      "transcript_text",
+      "typed_response",
+      "interaction_event"
+     ],
+     "completionPolicy": "all_required",
+     "reviewTags": [
+      "transaction",
+      "complaint",
+      "remedy",
+      "politeness"
+     ],
+     "reviewStatus": "pending_specialist_review",
+     "supersedes": null
+    }
+   ]
+  }
+ ]
+}

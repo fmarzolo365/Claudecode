@@ -1,0 +1,869 @@
+{
+ "dialect": "marzi.schema-subset.v1",
+ "title": "Marzi completion contract",
+ "type": "object",
+ "additionalProperties": false,
+ "required": [
+  "contract",
+  "schemaVersion",
+  "curriculumVersion",
+  "reviewStatus",
+  "decision",
+  "participation",
+  "meaningfulAttempt",
+  "objectiveResultStates",
+  "policies",
+  "scenarioCompletion",
+  "absenceRule",
+  "remediation",
+  "learnerFacingCopy"
+ ],
+ "properties": {
+  "contract": {
+   "const": "marzi.learning.completion.v1"
+  },
+  "schemaVersion": {
+   "const": 1
+  },
+  "curriculumVersion": {
+   "type": "string",
+   "pattern": "^v[0-9]+(-draft)?$"
+  },
+  "reviewStatus": {
+   "enum": [
+    "pending_specialist_review",
+    "specialist_reviewed"
+   ]
+  },
+  "decision": {
+   "type": "object",
+   "additionalProperties": false,
+   "required": [
+    "id",
+    "status",
+    "selectedOption",
+    "summary",
+    "approvalDate",
+    "approverRole",
+    "certificationClaim"
+   ],
+   "properties": {
+    "id": {
+     "const": "MARZI-D016"
+    },
+    "status": {
+     "const": "APPROVED"
+    },
+    "selectedOption": {
+     "const": "A"
+    },
+    "summary": {
+     "type": "string",
+     "minLength": 10
+    },
+    "approvalDate": {
+     "type": "string",
+     "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+    },
+    "approverRole": {
+     "const": "Product Owner"
+    },
+    "certificationClaim": {
+     "const": false
+    }
+   }
+  },
+  "participation": {
+   "type": "object",
+   "additionalProperties": false,
+   "required": [
+    "definition",
+    "proves",
+    "doesNotProve"
+   ],
+   "properties": {
+    "definition": {
+     "type": "string",
+     "minLength": 20
+    },
+    "proves": {
+     "type": "array",
+     "maxItems": 0,
+     "items": {
+      "type": "string",
+      "pattern": "^[a-z0-9_]+$"
+     }
+    },
+    "doesNotProve": {
+     "type": "array",
+     "minItems": 1,
+     "items": {
+      "type": "string",
+      "pattern": "^[a-z0-9_]+$"
+     }
+    }
+   }
+  },
+  "meaningfulAttempt": {
+   "type": "object",
+   "additionalProperties": false,
+   "required": [
+    "definition",
+    "requiresAll",
+    "excludes",
+    "note"
+   ],
+   "properties": {
+    "definition": {
+     "type": "string",
+     "minLength": 10
+    },
+    "requiresAll": {
+     "type": "array",
+     "minItems": 4,
+     "items": {
+      "type": "string",
+      "minLength": 10
+     }
+    },
+    "excludes": {
+     "type": "array",
+     "minItems": 1,
+     "items": {
+      "type": "string",
+      "pattern": "^[a-z0-9_]+$"
+     }
+    },
+    "note": {
+     "type": "string",
+     "minLength": 20
+    }
+   }
+  },
+  "objectiveResultStates": {
+   "type": "array",
+   "minItems": 5,
+   "maxItems": 5,
+   "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+     "id",
+     "rule"
+    ],
+    "properties": {
+     "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9_]+$"
+     },
+     "rule": {
+      "type": "string",
+      "minLength": 20
+     }
+    }
+   }
+  },
+  "policies": {
+   "type": "array",
+   "minItems": 1,
+   "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+     "id",
+     "description",
+     "releaseReady"
+    ],
+    "properties": {
+     "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]+$"
+     },
+     "description": {
+      "type": "string",
+      "minLength": 20
+     },
+     "releaseReady": {
+      "type": "boolean"
+     }
+    }
+   }
+  },
+  "scenarioCompletion": {
+   "type": "object",
+   "additionalProperties": false,
+   "required": [
+    "derivedFrom",
+    "neverDerivedFrom",
+    "legacyRule"
+   ],
+   "properties": {
+    "derivedFrom": {
+     "type": "string",
+     "minLength": 10
+    },
+    "neverDerivedFrom": {
+     "type": "array",
+     "minItems": 1,
+     "uniqueItems": true,
+     "items": {
+      "type": "string",
+      "pattern": "^[a-zA-Z][a-zA-Z0-9_]*$"
+     }
+    },
+    "legacyRule": {
+     "type": "string",
+     "minLength": 20
+    }
+   }
+  },
+  "absenceRule": {
+   "type": "string",
+   "minLength": 20
+  },
+  "remediation": {
+   "type": "object",
+   "additionalProperties": false,
+   "required": [
+    "alwaysAvailable",
+    "rules"
+   ],
+   "properties": {
+    "alwaysAvailable": {
+     "const": true
+    },
+    "rules": {
+     "type": "array",
+     "minItems": 1,
+     "items": {
+      "type": "string",
+      "minLength": 20
+     }
+    }
+   }
+  },
+  "learnerFacingCopy": {
+   "type": "object",
+   "additionalProperties": false,
+   "required": [
+    "complete",
+    "partial",
+    "not_complete",
+    "insufficient_evidence",
+    "invalid"
+   ],
+   "properties": {
+    "complete": {
+     "type": "object",
+     "additionalProperties": false,
+     "required": [
+      "es",
+      "en",
+      "it",
+      "tr",
+      "ar",
+      "uk"
+     ],
+     "properties": {
+      "es": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "label",
+        "explanation"
+       ],
+       "properties": {
+        "label": {
+         "type": "string",
+         "minLength": 2
+        },
+        "explanation": {
+         "type": "string",
+         "minLength": 10
+        }
+       }
+      },
+      "en": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "label",
+        "explanation"
+       ],
+       "properties": {
+        "label": {
+         "type": "string",
+         "minLength": 2
+        },
+        "explanation": {
+         "type": "string",
+         "minLength": 10
+        }
+       }
+      },
+      "it": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "label",
+        "explanation"
+       ],
+       "properties": {
+        "label": {
+         "type": "string",
+         "minLength": 2
+        },
+        "explanation": {
+         "type": "string",
+         "minLength": 10
+        }
+       }
+      },
+      "tr": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "label",
+        "explanation"
+       ],
+       "properties": {
+        "label": {
+         "type": "string",
+         "minLength": 2
+        },
+        "explanation": {
+         "type": "string",
+         "minLength": 10
+        }
+       }
+      },
+      "ar": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "label",
+        "explanation"
+       ],
+       "properties": {
+        "label": {
+         "type": "string",
+         "minLength": 2
+        },
+        "explanation": {
+         "type": "string",
+         "minLength": 10
+        }
+       }
+      },
+      "uk": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "label",
+        "explanation"
+       ],
+       "properties": {
+        "label": {
+         "type": "string",
+         "minLength": 2
+        },
+        "explanation": {
+         "type": "string",
+         "minLength": 10
+        }
+       }
+      }
+     }
+    },
+    "partial": {
+     "type": "object",
+     "additionalProperties": false,
+     "required": [
+      "es",
+      "en",
+      "it",
+      "tr",
+      "ar",
+      "uk"
+     ],
+     "properties": {
+      "es": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "label",
+        "explanation"
+       ],
+       "properties": {
+        "label": {
+         "type": "string",
+         "minLength": 2
+        },
+        "explanation": {
+         "type": "string",
+         "minLength": 10
+        }
+       }
+      },
+      "en": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "label",
+        "explanation"
+       ],
+       "properties": {
+        "label": {
+         "type": "string",
+         "minLength": 2
+        },
+        "explanation": {
+         "type": "string",
+         "minLength": 10
+        }
+       }
+      },
+      "it": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "label",
+        "explanation"
+       ],
+       "properties": {
+        "label": {
+         "type": "string",
+         "minLength": 2
+        },
+        "explanation": {
+         "type": "string",
+         "minLength": 10
+        }
+       }
+      },
+      "tr": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "label",
+        "explanation"
+       ],
+       "properties": {
+        "label": {
+         "type": "string",
+         "minLength": 2
+        },
+        "explanation": {
+         "type": "string",
+         "minLength": 10
+        }
+       }
+      },
+      "ar": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "label",
+        "explanation"
+       ],
+       "properties": {
+        "label": {
+         "type": "string",
+         "minLength": 2
+        },
+        "explanation": {
+         "type": "string",
+         "minLength": 10
+        }
+       }
+      },
+      "uk": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "label",
+        "explanation"
+       ],
+       "properties": {
+        "label": {
+         "type": "string",
+         "minLength": 2
+        },
+        "explanation": {
+         "type": "string",
+         "minLength": 10
+        }
+       }
+      }
+     }
+    },
+    "not_complete": {
+     "type": "object",
+     "additionalProperties": false,
+     "required": [
+      "es",
+      "en",
+      "it",
+      "tr",
+      "ar",
+      "uk"
+     ],
+     "properties": {
+      "es": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "label",
+        "explanation"
+       ],
+       "properties": {
+        "label": {
+         "type": "string",
+         "minLength": 2
+        },
+        "explanation": {
+         "type": "string",
+         "minLength": 10
+        }
+       }
+      },
+      "en": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "label",
+        "explanation"
+       ],
+       "properties": {
+        "label": {
+         "type": "string",
+         "minLength": 2
+        },
+        "explanation": {
+         "type": "string",
+         "minLength": 10
+        }
+       }
+      },
+      "it": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "label",
+        "explanation"
+       ],
+       "properties": {
+        "label": {
+         "type": "string",
+         "minLength": 2
+        },
+        "explanation": {
+         "type": "string",
+         "minLength": 10
+        }
+       }
+      },
+      "tr": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "label",
+        "explanation"
+       ],
+       "properties": {
+        "label": {
+         "type": "string",
+         "minLength": 2
+        },
+        "explanation": {
+         "type": "string",
+         "minLength": 10
+        }
+       }
+      },
+      "ar": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "label",
+        "explanation"
+       ],
+       "properties": {
+        "label": {
+         "type": "string",
+         "minLength": 2
+        },
+        "explanation": {
+         "type": "string",
+         "minLength": 10
+        }
+       }
+      },
+      "uk": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "label",
+        "explanation"
+       ],
+       "properties": {
+        "label": {
+         "type": "string",
+         "minLength": 2
+        },
+        "explanation": {
+         "type": "string",
+         "minLength": 10
+        }
+       }
+      }
+     }
+    },
+    "insufficient_evidence": {
+     "type": "object",
+     "additionalProperties": false,
+     "required": [
+      "es",
+      "en",
+      "it",
+      "tr",
+      "ar",
+      "uk"
+     ],
+     "properties": {
+      "es": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "label",
+        "explanation"
+       ],
+       "properties": {
+        "label": {
+         "type": "string",
+         "minLength": 2
+        },
+        "explanation": {
+         "type": "string",
+         "minLength": 10
+        }
+       }
+      },
+      "en": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "label",
+        "explanation"
+       ],
+       "properties": {
+        "label": {
+         "type": "string",
+         "minLength": 2
+        },
+        "explanation": {
+         "type": "string",
+         "minLength": 10
+        }
+       }
+      },
+      "it": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "label",
+        "explanation"
+       ],
+       "properties": {
+        "label": {
+         "type": "string",
+         "minLength": 2
+        },
+        "explanation": {
+         "type": "string",
+         "minLength": 10
+        }
+       }
+      },
+      "tr": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "label",
+        "explanation"
+       ],
+       "properties": {
+        "label": {
+         "type": "string",
+         "minLength": 2
+        },
+        "explanation": {
+         "type": "string",
+         "minLength": 10
+        }
+       }
+      },
+      "ar": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "label",
+        "explanation"
+       ],
+       "properties": {
+        "label": {
+         "type": "string",
+         "minLength": 2
+        },
+        "explanation": {
+         "type": "string",
+         "minLength": 10
+        }
+       }
+      },
+      "uk": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "label",
+        "explanation"
+       ],
+       "properties": {
+        "label": {
+         "type": "string",
+         "minLength": 2
+        },
+        "explanation": {
+         "type": "string",
+         "minLength": 10
+        }
+       }
+      }
+     }
+    },
+    "invalid": {
+     "type": "object",
+     "additionalProperties": false,
+     "required": [
+      "es",
+      "en",
+      "it",
+      "tr",
+      "ar",
+      "uk"
+     ],
+     "properties": {
+      "es": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "label",
+        "explanation"
+       ],
+       "properties": {
+        "label": {
+         "type": "string",
+         "minLength": 2
+        },
+        "explanation": {
+         "type": "string",
+         "minLength": 10
+        }
+       }
+      },
+      "en": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "label",
+        "explanation"
+       ],
+       "properties": {
+        "label": {
+         "type": "string",
+         "minLength": 2
+        },
+        "explanation": {
+         "type": "string",
+         "minLength": 10
+        }
+       }
+      },
+      "it": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "label",
+        "explanation"
+       ],
+       "properties": {
+        "label": {
+         "type": "string",
+         "minLength": 2
+        },
+        "explanation": {
+         "type": "string",
+         "minLength": 10
+        }
+       }
+      },
+      "tr": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "label",
+        "explanation"
+       ],
+       "properties": {
+        "label": {
+         "type": "string",
+         "minLength": 2
+        },
+        "explanation": {
+         "type": "string",
+         "minLength": 10
+        }
+       }
+      },
+      "ar": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "label",
+        "explanation"
+       ],
+       "properties": {
+        "label": {
+         "type": "string",
+         "minLength": 2
+        },
+        "explanation": {
+         "type": "string",
+         "minLength": 10
+        }
+       }
+      },
+      "uk": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "label",
+        "explanation"
+       ],
+       "properties": {
+        "label": {
+         "type": "string",
+         "minLength": 2
+        },
+        "explanation": {
+         "type": "string",
+         "minLength": 10
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+ }
+}

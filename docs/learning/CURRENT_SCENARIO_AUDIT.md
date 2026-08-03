@@ -4,9 +4,9 @@
 
 **Inspection date:** 2026-08-03
 
-**Status:** Source-backed discovery; mappings below are provisional and require
-
-Product Owner plus learning-specialist approval.
+**Status:** Source-backed discovery. The proposed competencies below were the
+input to `docs/learning/contracts/v1`; the authored mappings there supersede
+this table and still require learning-specialist approval.
 
 ## 1. Executive finding
 
@@ -24,10 +24,12 @@ contract. The baseline contains:
   test; and
 - six runtime difficulty bands in order `A0`, `A1`, `A2`, `B1`, `B2`, `C1`.
 
-The 94 production goal strings have no stable variant IDs, typed competencies,
-prerequisite references, evidence rules, level ranges, completion criteria, or
-mastery meaning. Current “done” map state is a scenario call count, not a
-validated learning outcome.
+At the time of this audit the 94 production goal strings had no stable variant
+IDs, typed competencies, prerequisite references, evidence rules, level ranges,
+completion criteria, or mastery meaning. All 94 now have them in
+`contracts/v1/scenarios.de.json` and `contracts/v1/scenarios.en.json`, pending
+specialist review. Current “done” map state is still a scenario call count,
+not a validated learning outcome, and MARZI-021 does not change that.
 
 ## 2. Exact source evidence
 
@@ -108,19 +110,20 @@ objective criteria and mapping are subject to MARZI-D016 and specialist review.
 
 ## 6. Coverage gap report
 
-| Contract element | Current coverage | Required MARZI-021 result |
-|---|---:|---:|
-| Production scenarios with stable objective metadata | 0 / 29 | 29 / 29 |
-| Goal variants with stable IDs | 0 / 94 | 94 / 94 |
-| Goal variants with typed competency references | 0 / 94 | 94 / 94 |
-| Scenarios with explicit completion criteria | 0 / 29 | 29 / 29 after MARZI-D016 |
-| Scenarios with level interval/rubric boundaries | 0 / 29 | 29 / 29 |
-| Scenarios with prerequisite references | 0 / 29 | Deliberate coverage or explicit none |
-| Objective titles localized in six explanation languages | 0 / 94 | 94 / 94 |
-| Objective evidence tied to canonical response IDs | 0 / 94 | Schema-valid contract; runtime later |
-| Assistance-sensitive evidence | 0 / 94 | Schema-valid contract; runtime later |
-| Valid acoustic/pronunciation evidence | 0 | Remains 0 in v1 by design |
-| “Not enough evidence” learning result | 0 | Required in all result schemas |
+| Contract element | Before MARZI-021 | Required | Delivered |
+|---|---:|---:|---:|
+| Production scenarios with stable objective metadata | 0 / 29 | 29 / 29 | 29 / 29 |
+| Goal variants with stable IDs | 0 / 94 | 94 / 94 | 94 / 94 |
+| Goal variants with typed competency references | 0 / 94 | 94 / 94 | 94 / 94 |
+| Scenarios with explicit completion criteria | 0 / 29 | 29 / 29 | 29 / 29 |
+| Scenarios with level intervals | 0 / 29 | 29 / 29 | 29 / 29 |
+| Prerequisite references | 0 / 29 | Deliberate coverage or explicit none | 18 recommended competency edges, acyclic |
+| Objective titles localized in six explanation languages | 0 / 94 | 94 / 94 | 94 / 94 (564 strings, pending linguistic review) |
+| Objective evidence tied to canonical response IDs | 0 / 94 | Schema-valid contract; runtime later | Schema and fixtures only |
+| Assistance-sensitive evidence | 0 / 94 | Schema-valid contract; runtime later | Schema and fixtures only |
+| Valid acoustic/pronunciation evidence | 0 | Remains 0 in v1 by design | 0, and actively rejected |
+| “Not enough evidence” learning result | 0 | Required in all result schemas | Present in completion, mastery and placement |
+| Per-variant rubrics | 0 / 94 | Specialist-approved | **0 / 94 — pending specialist review** |
 
 ## 7. Confirmed terminology conflict
 
@@ -141,15 +144,20 @@ No runtime terminology or storage migration occurs in this specification task.
 
 ## 8. Product and specialist gates
 
-The discovery is complete enough to prepare implementation, but the learning
-contract is not approved. The exact blockers are:
+Closed on 2026-08-03:
 
-1. **MARZI-D009:** choose placement option and modalities.
-2. **MARZI-D016:** choose completion semantics.
-3. Product Owner approval of taxonomy, objective families, mastery states, and
-   learner-facing presentation.
+1. **MARZI-D009** — option A, optional and bounded placement calibration.
+2. **MARZI-D016** — option A, objective-based completion with explicit Partial
+   and Insufficient Evidence states.
+3. Product Owner approval in principle of the taxonomy, objective families,
+   stable identifiers, mastery states, and learner-facing presentation.
+
+Still open:
+
 4. Learning-specialist review of all 94 variant mappings, band boundaries,
-   rubrics, and negative fixtures.
+   rubrics, and negative fixtures. **No specialist is named.** See
+   `SPECIALIST_REVIEW.md`.
+5. Qualified six-language linguistic review and accessibility review.
 
 Economy decisions MARZI-D014–D019 are not selected here. MARZI-021 supplies
 future evidence inputs only and preserves every current XP/reward value.

@@ -1,8 +1,9 @@
 # Marzi Scenario Objective Schema
 
-**Proposed schema:** `marzi.learning.scenario-objectives.v1`
+**Schema:** `marzi.learning.scenario-objectives.v1`
 
-**Status:** PROPOSED — not a runtime contract until MARZI-021 approval
+**Status:** IMPLEMENTED as `docs/learning/contracts/v1/scenarios.de.json` and
+`scenarios.en.json` — a static content contract, not a runtime contract
 
 **Purpose:** Give every production scenario goal a stable, testable learning
 identity without changing the existing prompt or scenario identity.
@@ -22,28 +23,27 @@ identity without changing the existing prompt or scenario identity.
 7. The schema contains no XP, coin, price, entitlement, or reward values.
 8. Pronunciation is not an allowed v1 evidence construct.
 
-## 2. Proposed artifact layout
-
-The future MARZI-021 implementation should create dependency-free static
-contracts under:
+## 2. Artifact layout as implemented
 
 ```text
 docs/learning/contracts/v1/
-├── competencies.json
-├── prerequisites.json
-├── scenarios.de.json
-├── scenarios.en.json
-├── schema/
-│   ├── competencies.schema.json
-│   ├── prerequisites.schema.json
-│   └── scenarios.schema.json
-└── fixtures/
-    ├── valid/
-    └── invalid/
+├── README.md
+├── competencies.json      levels.json        prerequisites.json
+├── evidence.json          completion.json    mastery.json
+├── placement.json         review.json        source-inventory.json
+├── scenarios.de.json      scenarios.en.json
+└── schema/*.schema.json   (one per artifact, plus objective-result)
+
+test/fixtures/learning/
+├── README.md
+├── valid/                 9 fixtures that must pass
+└── invalid/               37 fixtures + manifest.json, each with a reason code
 ```
 
-These artifacts are content contracts, not browser runtime modules. Runtime
-integration belongs to later architecture/content packages.
+The fixtures live under `test/` rather than beside the contracts because
+MARZI-021 section 20 puts them there. These artifacts are content contracts,
+not browser runtime modules. Runtime integration belongs to later
+architecture and content packages.
 
 ## 3. Top-level scenario record
 
@@ -193,14 +193,15 @@ transcript may support language/content judgments but not acoustic claims.
 
 ### 5.7 Completion policy
 
-Until MARZI-D016 is recorded, every draft objective must use
-`PENDING_MARZI_D016`. A validator must reject that value for a release contract.
-If recommended option A is approved, the intended release enum is:
+MARZI-D016 option A is recorded, so every authored objective uses
+`all_required`: the objective is complete only when every criterion in
+`requiredCriteria` has a valid terminal observation of `demonstrated`.
 
-- `all_required`; or
-- a separately approved explicit rule whose operands are criterion IDs.
-
-No implicit LLM-only completion rule is permitted.
+`PENDING_MARZI_D016` is retained in `completion.json` as a non-release-ready
+policy so that any pre-decision contract stays detectable; the validator
+raises `DRAFT_POLICY_IN_RELEASE` for it. A future alternative rule must be
+separately approved and must have criterion IDs as its only operands. No
+implicit LLM-only completion rule is permitted.
 
 ## 6. Objective result record
 
@@ -293,9 +294,16 @@ The dependency-free MARZI-021 validator must prove:
 
 ## 10. Approval boundary
 
-This schema design is a technical recommendation. It does not approve the
-illustrative objective, translations, criteria, placement behavior, completion
-policy, mastery thresholds, or learning bands. Claude Code must stop before
-creating release contracts until MARZI-D009 and MARZI-D016 are recorded and a
-learning specialist is assigned. Any requested change to scenario identities,
-prompts, reward behavior, or runtime storage is outside MARZI-021.
+MARZI-D009 and MARZI-D016 are recorded, which released static authoring of the
+contracts described above. That is where the authorization stops.
+
+The authored translations, criteria, rubrics, band intervals and mastery
+thresholds are **not** approved. No learning specialist is assigned, so every
+pedagogical item carries `reviewStatus: "pending_specialist_review"`, the
+curriculum version is `v1-draft`, and release-mode validation refuses the set.
+A release contract may not be published until a named specialist, a qualified
+six-language linguistic review and an accessibility review have signed off and
+the open numeric gates are closed in the Decision Register.
+
+Any requested change to scenario identities, prompts, reward behavior, or
+runtime storage is outside MARZI-021.

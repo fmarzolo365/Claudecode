@@ -1,0 +1,99 @@
+{
+ "dialect": "marzi.schema-subset.v1",
+ "title": "Marzi internal learning bands",
+ "type": "object",
+ "additionalProperties": false,
+ "required": [
+  "contract",
+  "schemaVersion",
+  "curriculumVersion",
+  "reviewStatus",
+  "certificationClaim",
+  "note",
+  "order",
+  "bands"
+ ],
+ "properties": {
+  "contract": {
+   "const": "marzi.learning.levels.v1"
+  },
+  "schemaVersion": {
+   "const": 1
+  },
+  "curriculumVersion": {
+   "type": "string",
+   "pattern": "^v[0-9]+(-draft)?$"
+  },
+  "reviewStatus": {
+   "enum": [
+    "pending_specialist_review",
+    "specialist_reviewed"
+   ]
+  },
+  "certificationClaim": {
+   "const": false
+  },
+  "note": {
+   "type": "string",
+   "minLength": 20
+  },
+  "order": {
+   "type": "array",
+   "minItems": 6,
+   "maxItems": 6,
+   "uniqueItems": true,
+   "items": {
+    "enum": [
+     "A0",
+     "A1",
+     "A2",
+     "B1",
+     "B2",
+     "C1"
+    ]
+   }
+  },
+  "bands": {
+   "type": "array",
+   "minItems": 6,
+   "maxItems": 6,
+   "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+     "id",
+     "ordinal",
+     "opportunityDesign",
+     "reviewStatus"
+    ],
+    "properties": {
+     "id": {
+      "enum": [
+       "A0",
+       "A1",
+       "A2",
+       "B1",
+       "B2",
+       "C1"
+      ]
+     },
+     "ordinal": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 5
+     },
+     "opportunityDesign": {
+      "type": "string",
+      "minLength": 20
+     },
+     "reviewStatus": {
+      "enum": [
+       "pending_specialist_review",
+       "specialist_reviewed"
+      ]
+     }
+    }
+   }
+  }
+ }
+}

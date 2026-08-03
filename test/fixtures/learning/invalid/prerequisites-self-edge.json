@@ -1,0 +1,15 @@
+{
+ "contract": "marzi.learning.prerequisites.v1",
+ "schemaVersion": 1,
+ "curriculumVersion": "v1-draft",
+ "reviewStatus": "pending_specialist_review",
+ "hardLock": false,
+ "note": "Negative fixture: a competency may never be its own prerequisite.",
+ "edges": [
+  {
+   "from": "INT.CONFIRM",
+   "to": "INT.CONFIRM",
+   "kind": "recommended"
+  }
+ ]
+}

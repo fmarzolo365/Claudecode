@@ -1,0 +1,66 @@
+{
+ "dialect": "marzi.schema-subset.v1",
+ "title": "Marzi recommended prerequisite graph",
+ "type": "object",
+ "additionalProperties": false,
+ "required": [
+  "contract",
+  "schemaVersion",
+  "curriculumVersion",
+  "reviewStatus",
+  "hardLock",
+  "note",
+  "edges"
+ ],
+ "properties": {
+  "contract": {
+   "const": "marzi.learning.prerequisites.v1"
+  },
+  "schemaVersion": {
+   "const": 1
+  },
+  "curriculumVersion": {
+   "type": "string",
+   "pattern": "^v[0-9]+(-draft)?$"
+  },
+  "reviewStatus": {
+   "enum": [
+    "pending_specialist_review",
+    "specialist_reviewed"
+   ]
+  },
+  "hardLock": {
+   "const": false
+  },
+  "note": {
+   "type": "string",
+   "minLength": 20
+  },
+  "edges": {
+   "type": "array",
+   "minItems": 1,
+   "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+     "from",
+     "to",
+     "kind"
+    ],
+    "properties": {
+     "from": {
+      "type": "string",
+      "pattern": "^(COM|INT|FUN|SOC|LNG|STR)\\.[A-Z][A-Z_]*$"
+     },
+     "to": {
+      "type": "string",
+      "pattern": "^(COM|INT|FUN|SOC|LNG|STR)\\.[A-Z][A-Z_]*$"
+     },
+     "kind": {
+      "type": "string"
+     }
+    }
+   }
+  }
+ }
+}
