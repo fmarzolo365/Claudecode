@@ -53,7 +53,7 @@
    "criterionId": "appointment_resolved",
    "attemptId": "attempt-1",
    "curriculumVersion": "v1-draft",
-   "outcome": "demonstrated",
+   "outcome": "partially_demonstrated",
    "opportunityIds": [
     "opp-appointment-resolved"
    ],
@@ -71,7 +71,5 @@
    }
   }
  ],
- "reasonCodes": [
-  "XP_AWARDED"
- ]
+ "reasonCodes": []
 }

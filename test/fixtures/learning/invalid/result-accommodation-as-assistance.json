@@ -19,13 +19,13 @@
     "turn-3"
    ],
    "assistance": {
-    "mode": "screen_reader",
-    "exposed": false,
+    "mode": "HINT",
+    "exposed": true,
     "opened": false,
     "changedDuringResponse": false,
-    "helpItemId": null,
-    "derivationRelation": "independent",
-    "evaluatorConfidence": "high"
+    "helpItemId": "screen_reader",
+    "derivationRelation": "materially_derived",
+    "evaluatorConfidence": "medium"
    }
   },
   {

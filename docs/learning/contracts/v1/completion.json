@@ -13,7 +13,7 @@
   "certificationClaim": false
  },
  "participation": {
-  "definition": "At least one valid learner contribution was accepted into the canonical interaction.",
+  "definition": "At least one valid learner contribution was accepted into the canonical interaction. Participation is not evidence, not objective completion, and not mastery.",
   "proves": [],
   "doesNotProve": [
    "objective_completion",
@@ -37,28 +37,28 @@
    "reward_claim",
    "hang_up"
   ],
-  "note": "The numeric minimum meaningful call for reward purposes is a separate open decision and is deliberately absent here."
+  "note": "The numeric minimum meaningful call for reward purposes is a separate open decision and is deliberately absent here. A meaningful attempt does not by itself determine any of the five objective result states."
  },
  "objectiveResultStates": [
   {
    "id": "complete",
-   "rule": "Every criterion in requiredCriteria has a valid terminal observation of demonstrated."
+   "rule": "Every required criterion has a valid demonstrated outcome. Optional criteria do not determine objective completion. This is the only state that represents successful objective completion."
   },
   {
    "id": "partial",
-   "rule": "At least one required criterion is demonstrated and at least one is not, while the observations remain valid."
+   "rule": "Every required criterion has a valid observed outcome; none is invalid, absent, not_observed, insufficient_evidence, or not_demonstrated; at least one is partially_demonstrated; and not all are demonstrated."
   },
   {
    "id": "not_complete",
-   "rule": "Fair evidence contradicts at least one required criterion and no required criterion remains unobserved for an invalidating reason."
+   "rule": "At least one required criterion has a valid not_demonstrated outcome. This is a non-punitive, recoverable not-yet-complete result and removes no earned value."
   },
   {
    "id": "insufficient_evidence",
-   "rule": "No truthful completion judgment is possible because required criteria have no assessable observation."
+   "rule": "No required criterion is invalid or not_demonstrated, and at least one required criterion is absent, not_observed, or insufficient_evidence. Absence or unusable evidence is not learner failure."
   },
   {
    "id": "invalid",
-   "rule": "The result itself is malformed, duplicated, stale, or cross-session."
+   "rule": "Required evidence or the evaluation context is invalid, malformed, stale, duplicated, or cross-session. This is a system or evaluation result, not learner failure and not negative mastery evidence."
   }
  ],
  "policies": [
@@ -74,7 +74,7 @@
   }
  ],
  "scenarioCompletion": {
-  "derivedFrom": "the declared required objectives of the scenario",
+  "derivedFrom": "the explicitly declared required objectives of the scenario; a scenario may be complete only when every declared required objective is complete",
   "neverDerivedFrom": [
    "hang_up",
    "elapsed_time",
@@ -86,15 +86,24 @@
    "marzi_stage",
    "rank"
   ],
-  "legacyRule": "The legacy scenariosDone counter remains activity history. It is never read as objective completion and is never backfilled."
+  "legacyRule": "The legacy scenariosDone counter remains activity history. It is never read as objective completion and is never backfilled.",
+  "aggregateRule": "No separate aggregate result property or algorithm exists in v1. Aggregate completion is only the conjunction of the declared required objective results under this same policy."
  },
- "absenceRule": "Absence of evidence is recorded as insufficient_evidence and is never presented as failure.",
+ "absenceRule": "Absence of evidence is recorded as insufficient_evidence and is never presented as failure, never converted to not_demonstrated, and never treated as negative mastery evidence.",
  "remediation": {
   "alwaysAvailable": true,
   "rules": [
-   "Every non-complete state offers a further-evidence opportunity.",
-   "No state removes previously earned XP, coins, or streak.",
-   "Learner-facing copy is non-punitive and avoids blame."
+   "Every state other than complete offers a further-evidence opportunity.",
+   "A non-complete state finalizes one attempt but stays eligible for new evidence.",
+   "No state removes previously earned XP, coins, streak, rank, evolution, or outfits.",
+   "Learner-facing copy is non-punitive and avoids blame.",
+   "Remediation is separate from review; review recency remains an open gate."
+  ],
+  "appliesToStates": [
+   "partial",
+   "not_complete",
+   "insufficient_evidence",
+   "invalid"
   ]
  },
  "learnerFacingCopy": {
@@ -228,5 +237,50 @@
     "explanation": "Щось пішло не так з нашого боку, тож цю практику не вдалося оцінити."
    }
   }
+ },
+ "derivationPrecedence": [
+  {
+   "order": 1,
+   "condition": "any required observation is invalid, or the evaluation context is invalid, stale, duplicated, or cross-session",
+   "result": "invalid"
+  },
+  {
+   "order": 2,
+   "condition": "otherwise any required outcome is not_demonstrated",
+   "result": "not_complete"
+  },
+  {
+   "order": 3,
+   "condition": "otherwise any required criterion is absent, not_observed, or insufficient_evidence",
+   "result": "insufficient_evidence"
+  },
+  {
+   "order": 4,
+   "condition": "otherwise every required outcome is demonstrated",
+   "result": "complete"
+  },
+  {
+   "order": 5,
+   "condition": "otherwise at least one required outcome is partially_demonstrated and every remaining required outcome is demonstrated or partially_demonstrated",
+   "result": "partial"
+  }
+ ],
+ "derivationRules": [
+  "The five states are mutually exclusive and exhaustive under this precedence.",
+  "Any combination not covered by the precedence is a validation error and is never silently defaulted.",
+  "An objective with no required criterion cannot produce a completion result.",
+  "Only required criteria participate in the derivation; optional criteria never gate completion.",
+  "Accessibility accommodation is not an input and cannot change the derived result.",
+  "Assistance cannot substitute for evidence.",
+  "Missing evidence is never converted into not_demonstrated.",
+  "Provider failure, cancellation, inaudibility, offline interruption, or an opportunity never offered cannot create negative learner evidence.",
+  "The derivation is provisional and pending learning-specialist review."
+ ],
+ "separationOfConcerns": {
+  "evidence": "One observation tied to one criterion, attempt, opportunity, response, and curriculum version.",
+  "objectiveCompletion": "Classifies one objective attempt using only required criterion outcomes.",
+  "mastery": "A separate longitudinal projection that cannot be assigned directly from one completion result.",
+  "placement": "Initializes revisable recommendations only and can never mark an objective complete or mastered.",
+  "aggregate": "Only the conjunction of declared required objective results; never time, hang-up, reward, visit count, scenariosDone, XP, coins, rank, or stage."
  }
 }

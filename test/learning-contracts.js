@@ -27,11 +27,18 @@ const NETWORK_MODULES = new Set([
   "node:http", "node:https", "node:net", "node:dgram", "node:dns", "node:tls", "node:http2",
   "node:child_process", "node:worker_threads"
 ]);
+/* MARZI-021-C008: the virtual machine module is an execution route, not a
+   network route, and is refused for that reason. */
+const EXECUTION_MODULES = new Set(["vm", "node:vm"]);
 const originalLoad = Module._load;
 Module._load = function (request, parent, isMain) {
   if (NETWORK_MODULES.has(request)) {
     guardViolations.push("network or process module requested: " + request);
     throw new Error("network access is not permitted in the learning-contract validator");
+  }
+  if (EXECUTION_MODULES.has(request)) {
+    guardViolations.push("DYNAMIC_EXECUTION_FORBIDDEN: execution module requested: " + request);
+    throw new Error("dynamic execution is not permitted in the learning-contract validator");
   }
   return originalLoad.call(this, request, parent, isMain);
 };
@@ -39,28 +46,35 @@ Module._load = function (request, parent, isMain) {
 const fs = require("node:fs");
 const path = require("node:path");
 
-/* Path-based writers are blocked outright. fs.write/fs.writeSync are left
-   reachable for file descriptors 1 and 2 only, because Node itself uses them
-   to flush this process's own stdout and stderr when the output is a pipe. */
+/* MARZI-021-C004: every path-based write route is blocked outright, across the
+   synchronous, callback, and promise APIs, including write-mode opens that
+   would otherwise yield a writable descriptor or FileHandle.
+   fs.write/fs.writeSync stay reachable for descriptors 1 and 2 only, because
+   Node itself uses them to flush this process's stdout and stderr when the
+   output is a pipe. */
 const WRITE_METHODS = [
   "writeFile", "writeFileSync", "appendFile", "appendFileSync", "createWriteStream",
-  "mkdir", "mkdirSync", "rm", "rmSync", "unlink", "unlinkSync", "rename", "renameSync",
-  "truncate", "truncateSync", "copyFile", "copyFileSync", "open", "openSync"
+  "mkdir", "mkdirSync", "mkdtemp", "mkdtempSync", "rm", "rmSync", "rmdir", "rmdirSync",
+  "unlink", "unlinkSync", "rename", "renameSync", "truncate", "truncateSync",
+  "ftruncate", "ftruncateSync", "copyFile", "copyFileSync", "cp", "cpSync",
+  "link", "linkSync", "symlink", "symlinkSync", "chmod", "chmodSync",
+  "chown", "chownSync", "utimes", "utimesSync", "open", "openSync"
 ];
-for (const name of WRITE_METHODS) {
-  if (typeof fs[name] !== "function") continue;
-  const original = fs[name];
-  fs[name] = function (...args) {
-    if (name === "open" || name === "openSync") {
-      const flags = args[1];
-      const readOnly = flags === undefined || flags === "r" || flags === 0;
-      if (readOnly) return original.apply(fs, args);
+const READ_ONLY_FLAGS = new Set(["r", "rs", "sr", 0]);
+const isReadOnlyOpen = (flags) => flags === undefined || READ_ONLY_FLAGS.has(flags);
+function blockWrite(target, name, label) {
+  if (typeof target[name] !== "function") return;
+  const original = target[name];
+  target[name] = function (...args) {
+    if ((name === "open" || name === "openSync") && isReadOnlyOpen(args[1])) {
+      return original.apply(target, args);
     }
-    guardViolations.push("filesystem write attempted: fs." + name);
+    guardViolations.push("filesystem write attempted: " + label + "." + name);
     throw new Error("the learning-contract validator must not write files");
   };
-  fs[name].__original = original;
+  target[name].__original = original;
 }
+for (const name of WRITE_METHODS) blockWrite(fs, name, "fs");
 for (const name of ["write", "writeSync"]) {
   const original = fs[name];
   fs[name] = function (...args) {
@@ -72,6 +86,15 @@ for (const name of ["write", "writeSync"]) {
   };
   fs[name].__original = original;
 }
+/* fs.promises is the same object that require("node:fs/promises") resolves to,
+   so guarding it once covers both entry points and every FileHandle obtained
+   through it. */
+const fsp = fs.promises;
+const PROMISE_WRITE_METHODS = [
+  "writeFile", "appendFile", "mkdir", "mkdtemp", "rm", "rmdir", "unlink", "rename",
+  "truncate", "copyFile", "cp", "link", "symlink", "chmod", "chown", "utimes", "open"
+];
+for (const name of PROMISE_WRITE_METHODS) blockWrite(fsp, name, "fs.promises");
 if (typeof globalThis.fetch === "function") {
   globalThis.fetch = function () {
     guardViolations.push("fetch attempted");
@@ -86,22 +109,37 @@ const CONTRACTS = path.join(ROOT, "docs/learning/contracts/v1");
 const SCHEMAS = path.join(CONTRACTS, "schema");
 const FIXTURES = path.join(ROOT, "test/fixtures/learning");
 
-/* An independent proof that nothing was written: the tree is fingerprinted
-   before any validation runs and compared again at the end. */
+/* MARZI-021-C004: an independent proof that nothing was written. Protected
+   trees are fingerprinted by content hash, not by size and mtime, so a
+   same-size same-timestamp rewrite cannot pass. */
+const crypto = require("node:crypto");
 function fingerprint(dir) {
   const entries = [];
   const walk = (current) => {
     for (const name of fs.readdirSync(current).sort()) {
       const full = path.join(current, name);
-      const info = fs.statSync(full);
+      const info = fs.lstatSync(full);
       if (info.isDirectory()) walk(full);
-      else entries.push(path.relative(ROOT, full) + ":" + info.size + ":" + info.mtimeMs);
+      else {
+        const digest = info.isFile()
+          ? crypto.createHash("sha256").update(fs.readFileSync(full)).digest("hex")
+          : "non-regular:" + info.mode;
+        entries.push(path.relative(ROOT, full) + ":" + digest);
+      }
     }
   };
   walk(dir);
   return entries.join("\n");
 }
-const fingerprintBefore = fingerprint(path.join(ROOT, "docs/learning")) + "\n" + fingerprint(FIXTURES);
+const PROTECTED_TREES = [path.join(ROOT, "docs/learning"), FIXTURES, __filename];
+function protectedFingerprint() {
+  return PROTECTED_TREES.map((target) =>
+    fs.statSync(target).isDirectory()
+      ? fingerprint(target)
+      : path.relative(ROOT, target) + ":" + crypto.createHash("sha256").update(fs.readFileSync(target)).digest("hex")
+  ).join("\n");
+}
+const fingerprintBefore = protectedFingerprint();
 
 let failures = 0;
 let passes = 0;
@@ -235,6 +273,69 @@ const LEVEL_ORDER = ["A0", "A1", "A2", "B1", "B2", "C1"];
 const ALLOWED_EVIDENCE = ["transcript_text", "typed_response", "interaction_event"];
 const ASSISTANCE_MODES = ["OFF", "HINT", "FULL"];
 const EXCLUDED_SCENARIOS = ["random", "custom"];
+const RESULT_STATES = ["complete", "partial", "not_complete", "insufficient_evidence", "invalid"];
+const OBSERVATION_OUTCOMES = [
+  "demonstrated", "partially_demonstrated", "not_demonstrated",
+  "not_observed", "insufficient_evidence", "invalid"
+];
+const OBJECTIVE_ID_PATTERN = /^(de|en)\.[a-z0-9_]+\.[a-z0-9_]+\.[a-z0-9_]+$/;
+
+/* MARZI-021-C008: bounded detection of dynamic code execution. The patterns are
+   assembled from fragments so that this helper can never match its own source,
+   and they target executable syntax rather than the words themselves, so prose
+   and comments that merely mention the constructs do not fail. */
+const DYNAMIC_EXECUTION_PATTERNS = [
+  ["eval", new RegExp("(^|[^.\\w])" + "eval" + "\\s*\\(")],
+  ["new Function", new RegExp("\\bnew\\s+" + "Function" + "\\s*\\(")],
+  ["Function constructor", new RegExp("(^|[^.\\w])" + "Function" + "\\s*\\(\\s*[\"'`]")],
+  ["AsyncFunction", new RegExp("\\b" + "AsyncFunction" + "\\s*\\(")],
+  ["GeneratorFunction", new RegExp("\\b" + "GeneratorFunction" + "\\s*\\(")],
+  ["node:vm require", new RegExp("require\\s*\\(\\s*[\"'`]" + "(node:)?vm" + "[\"'`]")],
+  ["vm execution API", new RegExp("\\.\\s*(runIn[A-Za-z]*Context|compileFunction)\\s*\\(")]
+];
+function dynamicExecutionIssues(source, where) {
+  const issues = [];
+  for (const [label, pattern] of DYNAMIC_EXECUTION_PATTERNS) {
+    if (pattern.test(source)) {
+      issues.push({ code: "DYNAMIC_EXECUTION_FORBIDDEN", where, detail: label });
+    }
+  }
+  return issues;
+}
+
+/**
+ * MARZI-021-C001 — the single canonical completion derivation.
+ *
+ * Pure and bounded. Given the required criterion identifiers, the outcome
+ * observed for each, and whether the evaluation context itself is unusable, it
+ * returns exactly one of the five states or an explicit error. It never
+ * defaults silently, and optional criteria are never passed in.
+ */
+function deriveObjectiveResult(requiredIds, observed, contextInvalid) {
+  if (!Array.isArray(requiredIds) || requiredIds.length === 0) {
+    return { state: null, error: "COMPLETION_POLICY_CONTRADICTION",
+      detail: "an objective with no required criterion cannot produce a completion result" };
+  }
+  const get = (id) => (observed instanceof Map ? observed.get(id) : (observed || {})[id]);
+  const outcomes = requiredIds.map(get);
+  for (const outcome of outcomes) {
+    if (outcome !== undefined && !OBSERVATION_OUTCOMES.includes(outcome)) {
+      return { state: null, error: "COMPLETION_POLICY_CONTRADICTION",
+        detail: "unknown observation outcome " + JSON.stringify(outcome) };
+    }
+  }
+  const missing = (o) => o === undefined || o === "not_observed" || o === "insufficient_evidence";
+  if (contextInvalid || outcomes.includes("invalid")) return { state: "invalid", outcomes };
+  if (outcomes.includes("not_demonstrated")) return { state: "not_complete", outcomes };
+  if (outcomes.some(missing)) return { state: "insufficient_evidence", outcomes };
+  if (outcomes.every((o) => o === "demonstrated")) return { state: "complete", outcomes };
+  if (outcomes.includes("partially_demonstrated") &&
+      outcomes.every((o) => o === "demonstrated" || o === "partially_demonstrated")) {
+    return { state: "partial", outcomes };
+  }
+  return { state: null, error: "COMPLETION_POLICY_CONTRADICTION",
+    detail: "outcome combination is not covered by the truth table: " + outcomes.map(String).join(",") };
+}
 
 /* Tokens that may never appear as an object key or as an identifier-shaped
    value outside a declared denylist. Prose is exempt on purpose: the contracts
@@ -410,19 +511,16 @@ const fmt = (issues) => issues.map((i) => i.code + " at " + i.where + ": " + i.d
 
 /* ---------------- 01 environment ---------------- */
 
-check("01 environment: guards installed, no dependency imported", () => {
+check("01 environment: guards installed, no dependency imported, no dynamic execution", () => {
   const problems = [];
   if (fs.writeFileSync.__original === undefined) problems.push("filesystem write guard is not installed");
+  if (fs.promises.writeFile.__original === undefined) problems.push("fs.promises write guard is not installed");
+  if (fs.openSync.__original === undefined) problems.push("write-mode open guard is not installed");
   if (Module._load === originalLoad) problems.push("module guard is not installed");
   const loaded = Object.keys(require.cache);
   const outside = loaded.filter((file) => file.includes("node_modules"));
   if (outside.length) problems.push("dependency loaded: " + outside[0]);
-  if (/\beval\s*\(|new\s+Function\s*\(/.test(read(__filename).replace(/new\s+Function\s*\(/g, (m) => m))) {
-    /* the validator itself must contain no dynamic code construction */
-    const self = read(__filename);
-    const dynamic = self.match(/\beval\s*\(/g) || [];
-    if (dynamic.length) problems.push("validator constructs dynamic code");
-  }
+  problems.push(...fmt(dynamicExecutionIssues(read(__filename), "test/learning-contracts.js")));
   return problems;
 });
 
@@ -504,6 +602,7 @@ function prerequisiteIssues(doc, knownNodes) {
         issues.push({ code: "PREREQ_UNKNOWN_NODE", where: "prerequisites:" + key, detail: node });
       }
     }
+    if (edge.from === edge.to) continue;
     if (!adjacency.has(edge.from)) adjacency.set(edge.from, []);
     adjacency.get(edge.from).push(edge.to);
   }
@@ -792,9 +891,11 @@ function levelIssues(objective) {
   const issues = [];
   const min = LEVEL_ORDER.indexOf(objective.supportedLevels.min);
   const max = LEVEL_ORDER.indexOf(objective.supportedLevels.max);
-  if (min < 0) issues.push({ code: "LEVEL_UNKNOWN", where: objective.id, detail: objective.supportedLevels.min });
-  if (max < 0) issues.push({ code: "LEVEL_UNKNOWN", where: objective.id, detail: objective.supportedLevels.max });
-  if (min >= 0 && max >= 0 && min > max) {
+  /* An unknown band is rejected by the schema enum, which owns that rule; this
+     semantic check owns interval ordering only, so a single defect reports a
+     single reason code (MARZI-021-C007). */
+  if (min < 0 || max < 0) return issues;
+  if (min > max) {
     issues.push({ code: "LEVEL_RANGE_REVERSED", where: objective.id, detail: objective.supportedLevels.min + " > " + objective.supportedLevels.max });
   }
   return issues;
@@ -1048,12 +1149,16 @@ function objectiveResultIssues(doc, where) {
   const accommodations = new Set(contract["evidence.json"].accessibilityAccommodation.accommodations);
   const observed = new Map();
   const seen = new Set();
+  /* An unusable evaluation context makes the attempt invalid rather than a
+     learner failure (MARZI-021-C001 precedence step 1). */
+  let contextInvalid = false;
 
   for (const [index, observation] of (Array.isArray(doc.criteria) ? doc.criteria : []).entries()) {
     const at = where + ".criteria[" + index + "]";
     if (!observation || typeof observation !== "object") continue;
     if (seen.has(observation.criterionId)) {
       issues.push({ code: "EVIDENCE_DUPLICATE", where: at, detail: observation.criterionId });
+      contextInvalid = true;
     }
     seen.add(observation.criterionId);
     if (entry && !knownCriteria.has(observation.criterionId)) {
@@ -1061,9 +1166,11 @@ function objectiveResultIssues(doc, where) {
     }
     if (observation.attemptId !== undefined && observation.attemptId !== doc.attemptId) {
       issues.push({ code: "EVIDENCE_CROSS_SESSION", where: at, detail: observation.attemptId + " != " + doc.attemptId });
+      contextInvalid = true;
     }
     if (observation.curriculumVersion !== undefined && observation.curriculumVersion !== doc.curriculumVersion) {
       issues.push({ code: "EVIDENCE_STALE", where: at, detail: observation.curriculumVersion + " != " + doc.curriculumVersion });
+      contextInvalid = true;
     }
     if (["demonstrated", "partially_demonstrated", "not_demonstrated"].includes(observation.outcome)) {
       if (!Array.isArray(observation.responseIds) || observation.responseIds.length === 0) {
@@ -1077,6 +1184,9 @@ function objectiveResultIssues(doc, where) {
     if (accommodations.has(assistance.mode)) {
       issues.push({ code: "ASSISTANCE_ACCOMMODATION_CONFLATED", where: at, detail: "accommodation " + assistance.mode + " used as an assistance mode" });
     }
+    if (accommodations.has(assistance.helpItemId)) {
+      issues.push({ code: "ASSISTANCE_ACCOMMODATION_CONFLATED", where: at, detail: "accommodation " + assistance.helpItemId + " recorded as a learning-help item" });
+    }
     observed.set(observation.criterionId, observation.outcome);
   }
 
@@ -1084,37 +1194,75 @@ function objectiveResultIssues(doc, where) {
     for (const value of doc.accessibility.accommodations) {
       if (ASSISTANCE_MODES.includes(value)) {
         issues.push({ code: "ASSISTANCE_ACCOMMODATION_CONFLATED", where: where + ".accessibility", detail: "assistance mode " + value + " declared as an accommodation" });
-      }
-      if (!accommodations.has(value)) {
+      } else if (!accommodations.has(value)) {
         issues.push({ code: "UNKNOWN_ACCOMMODATION_REF", where: where + ".accessibility", detail: value });
       }
     }
   }
 
-  /* Derive the result from the observations under the all_required policy and
-     prove the stored result matches. Accessibility accommodation is never an
-     input here, so using one can never change the derived result. */
-  if (entry && entry.objective.completionPolicy === "all_required" && requiredIds.length) {
-    const outcomes = requiredIds.map((id) => observed.get(id));
-    let derived;
-    if (outcomes.includes("invalid")) derived = "invalid";
-    else if (outcomes.every((o) => o === "demonstrated")) derived = "complete";
-    else if (outcomes.some((o) => o === undefined || o === "not_observed" || o === "insufficient_evidence")) {
-      derived = outcomes.some((o) => o === "not_demonstrated") ? "not_complete" : "insufficient_evidence";
-    } else if (outcomes.some((o) => o === "demonstrated" || o === "partially_demonstrated")) {
-      derived = outcomes.some((o) => o === "not_demonstrated") ? "not_complete" : "partial";
-    } else derived = "not_complete";
-    if (derived !== doc.result) {
-      issues.push({ code: "COMPLETION_RESULT_MISMATCH", where, detail: "stored " + doc.result + ", derived " + derived });
+  /* MARZI-021-C001: one canonical derivation, applied here and nowhere else.
+     Only required criteria are passed in, so an optional criterion can never
+     gate completion, and accessibility accommodation is never an input, so
+     using one can never change the derived result. A declared result outside
+     the five-state enum is left to the schema so the reason stays isolated. */
+  if (entry && RESULT_STATES.includes(doc.result)) {
+    if (entry.objective.completionPolicy !== "all_required") {
+      issues.push({ code: "COMPLETION_POLICY_INVALID", where, detail: entry.objective.completionPolicy });
+    } else {
+      const derived = deriveObjectiveResult(requiredIds, observed, contextInvalid);
+      if (derived.error) {
+        issues.push({ code: derived.error, where, detail: derived.detail });
+      } else if (derived.state !== doc.result) {
+        const optionalBlocking = entry.objective.optionalCriteria
+          .some((c) => observed.has(c.id) && observed.get(c.id) !== "demonstrated");
+        if (derived.state === "complete" && optionalBlocking) {
+          issues.push({ code: "COMPLETION_OPTIONAL_CRITERION_GATED", where,
+            detail: "optional criteria cannot gate completion; declared " + doc.result + ", derived complete" });
+        } else {
+          issues.push({ code: "COMPLETION_RESULT_MISMATCH", where, detail: "stored " + doc.result + ", derived " + derived.state });
+        }
+      }
     }
+  }
+  return issues;
+}
+
+/* MARZI-021-C006: v1 has no predecessor registry, so a non-null supersession
+   cannot resolve. Syntax is owned by the schema pattern, which reuses the
+   objective identifier syntax; this check owns resolution only. */
+function supersedesIssues(objective, curriculumVersion, predecessors) {
+  const issues = [];
+  const value = objective.supersedes;
+  if (value === null || value === undefined) return issues;
+  if (typeof value !== "string" || !OBJECTIVE_ID_PATTERN.test(value)) return issues;
+  if (value === objective.id) {
+    issues.push({ code: "SUPERSEDES_REF_INVALID", where: objective.id, detail: "an objective cannot supersede itself" });
+    return issues;
+  }
+  if (!predecessors || predecessors.size === 0) {
+    issues.push({ code: "SUPERSEDES_REF_INVALID", where: objective.id,
+      detail: "curriculum " + curriculumVersion + " has no predecessor registry, so " + value + " cannot resolve" });
+    return issues;
+  }
+  if (!predecessors.has(value)) {
+    issues.push({ code: "SUPERSEDES_REF_INVALID", where: objective.id, detail: "unknown predecessor " + value });
   }
   return issues;
 }
 
 /* ---------------- contract-fragment validation for fixtures --------------- */
 
+const FRAGMENT_DENYLIST = {
+  "marzi.learning.mastery.v1": DENYLIST_PATHS["mastery.json"],
+  "marzi.learning.completion.v1": DENYLIST_PATHS["completion.json"],
+  "marzi.learning.evidence.v1": DENYLIST_PATHS["evidence.json"],
+  "marzi.learning.review.v1": DENYLIST_PATHS["review.json"],
+  "marzi.learning.placement.v1": DENYLIST_PATHS["placement.json"]
+};
+
 function fragmentIssues(doc, where) {
-  const issues = scanTokens(doc, where, [], []);
+  const exempt = (doc && FRAGMENT_DENYLIST[doc.contract]) || [];
+  const issues = scanTokens(doc, where, exempt, []);
   if (doc && doc.contract === "marzi.learning.scenario-objectives.v1") {
     issues.push(...validateSchema(schema["scenarios.schema.json"], doc, where));
     const seen = new Set();
@@ -1148,6 +1296,7 @@ function fragmentIssues(doc, where) {
         if (objective.completionPolicy === "PENDING_MARZI_D016") {
           issues.push({ code: "DRAFT_POLICY_IN_RELEASE", where: where + ":" + objective.id, detail: objective.completionPolicy });
         }
+        issues.push(...supersedesIssues(objective, doc.curriculumVersion, null));
       }
       const covered = new Map();
       for (const objective of scenario.objectives || []) {
@@ -1204,6 +1353,194 @@ function fragmentIssues(doc, where) {
   return issues;
 }
 
+
+/* ---------------- MARZI-021-C005: fixture path containment ---------------- */
+
+const FIXTURE_NAME_PATTERN = /^[a-z0-9][a-z0-9-]*\.json$/;
+
+/**
+ * A manifest entry names a fixture, never a path. The name is checked against a
+ * strict pattern, then the resolved real path is confirmed to be a regular file
+ * directly inside the canonical fixture directory. Fixture content is data and
+ * is never executed.
+ */
+function fixturePathIssues(name, directory) {
+  const at = "invalid/manifest.json";
+  if (typeof name !== "string" || name.length === 0) {
+    return [{ code: "FIXTURE_PATH_INVALID", where: at, detail: "fixture name is not a string" }];
+  }
+  if (name !== path.basename(name) || !FIXTURE_NAME_PATTERN.test(name)) {
+    return [{ code: "FIXTURE_PATH_INVALID", where: at, detail: JSON.stringify(name) + " is not a bare lowercase .json filename" }];
+  }
+  const resolved = path.resolve(directory, name);
+  if (path.dirname(resolved) !== path.resolve(directory)) {
+    return [{ code: "FIXTURE_PATH_INVALID", where: at, detail: JSON.stringify(name) + " escapes the fixture directory" }];
+  }
+  let info;
+  try {
+    info = fs.lstatSync(resolved);
+  } catch (error) {
+    return [{ code: "FIXTURE_PATH_INVALID", where: at, detail: JSON.stringify(name) + " does not exist" }];
+  }
+  if (info.isSymbolicLink()) {
+    return [{ code: "FIXTURE_PATH_INVALID", where: at, detail: JSON.stringify(name) + " is a symbolic link" }];
+  }
+  if (!info.isFile()) {
+    return [{ code: "FIXTURE_PATH_INVALID", where: at, detail: JSON.stringify(name) + " is not a regular file" }];
+  }
+  const real = fs.realpathSync(resolved);
+  if (path.dirname(real) !== fs.realpathSync(directory)) {
+    return [{ code: "FIXTURE_PATH_INVALID", where: at, detail: JSON.stringify(name) + " resolves outside the fixture directory" }];
+  }
+  return [];
+}
+
+/* ---------------- MARZI-021-C003: external review evidence ---------------- */
+
+const REVIEW_GATES = ["specialist", "linguistic", "accessibility"];
+const REVIEW_COLUMNS = [
+  "Date", "Review type", "Reviewer", "Role and qualification",
+  "Contract version or hash", "Items reviewed", "Outcome", "Findings reference"
+];
+const PLACEHOLDER = /^[\s—-]*$/;
+
+/**
+ * Reads the one canonical review record — the table in the existing
+ * docs/learning/SPECIALIST_REVIEW.md handoff — and returns its rows. No parallel
+ * review store is introduced.
+ */
+function parseReviewRecords(markdown) {
+  const marker = "## 6. Review record";
+  const start = markdown.indexOf(marker);
+  if (start < 0) return { columns: [], rows: [], missingSection: true };
+  const section = markdown.slice(start);
+  const lines = section.split("\n").filter((line) => line.trim().startsWith("|"));
+  if (lines.length < 2) return { columns: [], rows: [], missingSection: true };
+  const cells = (line) => line.trim().replace(/^\||\|$/g, "").split("|").map((cell) => cell.trim());
+  const columns = cells(lines[0]);
+  const rows = lines.slice(2).map((line) => {
+    const values = cells(line);
+    const row = {};
+    columns.forEach((column, index) => { row[column] = values[index] === undefined ? "" : values[index]; });
+    return row;
+  }).filter((row) => !REVIEW_COLUMNS.every((column) => PLACEHOLDER.test(row[column] || "")));
+  return { columns, rows, missingSection: false };
+}
+
+/**
+ * An approved review status is only credible when the canonical record carries
+ * complete evidence for that specific gate at the current contract version.
+ * One review never satisfies another gate.
+ */
+function reviewEvidenceIssues(gate, status, record, version, where) {
+  const issues = [];
+  if (status === "PENDING" || status === "pending_specialist_review") return issues;
+  const rows = (record.rows || []).filter((row) => (row["Review type"] || "").toLowerCase() === gate);
+  if (rows.length === 0) {
+    issues.push({ code: "STATUS_REVIEW_EVIDENCE_MISSING", where, detail: "no " + gate + " review record for status " + status });
+    return issues;
+  }
+  const complete = rows.some((row) => {
+    if (REVIEW_COLUMNS.some((column) => PLACEHOLDER.test(row[column] || ""))) return false;
+    return row["Contract version or hash"] === version;
+  });
+  if (!complete) {
+    issues.push({ code: "STATUS_REVIEW_EVIDENCE_MISSING", where,
+      detail: gate + " review record is incomplete or does not match contract version " + version });
+  }
+  return issues;
+}
+
+/* ---------------- MARZI-021-C002: canonical package status ---------------- */
+
+const STATUS_EXPECTED = {
+  "MARZI-D009": "APPROVED",
+  "MARZI-D016": "APPROVED",
+  "Taxonomy and mastery presentation": "APPROVED IN PRINCIPLE",
+  "Static authoring": "AUTHORIZED",
+  "Static implementation": "COMPLETE",
+  "Package governance status": "READY FOR REVIEW",
+  "Independent approval": "NOT GRANTED",
+  "Learning-specialist review": "PENDING",
+  "Six-language linguistic review": "PENDING",
+  "Accessibility review": "PENDING",
+  "Moderated Android study": "PENDING",
+  "Runtime integration": "NOT AUTHORIZED",
+  "Production approval": "NOT AUTHORIZED",
+  "Deployment": "NOT DEPLOYED",
+  "Release": "NOT RELEASED"
+};
+const STALE_STATUS_PHRASES = [
+  "does not implement the machine-readable learning contracts",
+  "explicitly block implementation",
+  "learning/product decisions are not approved",
+  "After the blocking gates are satisfied"
+];
+
+function parseStatusTable(markdown) {
+  const marker = "### Canonical status";
+  const start = markdown.indexOf(marker);
+  if (start < 0) return null;
+  const lines = markdown.slice(start).split("\n");
+  const status = {};
+  for (const line of lines.slice(1)) {
+    const trimmed = line.trim();
+    if (!trimmed.startsWith("|")) { if (Object.keys(status).length) break; else continue; }
+    const cells = trimmed.replace(/^\||\|$/g, "").split("|").map((cell) => cell.trim());
+    if (cells.length < 2 || cells[0] === "Dimension" || /^-+$/.test(cells[0])) continue;
+    status[cells[0]] = cells[1].replace(/\*\*/g, "");
+  }
+  return status;
+}
+
+/**
+ * Rejects every prohibited status combination. Pure over a parsed status map so
+ * the adversarial cases can exercise it without touching the repository.
+ */
+function packageStatusIssues(status, where) {
+  const issues = [];
+  if (!status) {
+    return [{ code: "STATUS_STATIC_SCOPE_CONTRADICTION", where, detail: "no canonical status section" }];
+  }
+  const at = (dimension) => where + ":" + dimension;
+  for (const [dimension, expected] of Object.entries(STATUS_EXPECTED)) {
+    if (!(dimension in status)) {
+      issues.push({ code: "STATUS_STATIC_SCOPE_CONTRADICTION", where: at(dimension), detail: "dimension is absent" });
+    }
+  }
+  for (const decision of ["MARZI-D009", "MARZI-D016"]) {
+    if (status[decision] !== undefined && status[decision] !== "APPROVED") {
+      issues.push({ code: "STATUS_DECISION_DRIFT", where: at(decision), detail: "recorded as " + status[decision] });
+    }
+  }
+  if (status["Static implementation"] === "COMPLETE" && status["Static authoring"] !== "AUTHORIZED") {
+    issues.push({ code: "STATUS_STATIC_SCOPE_CONTRADICTION", where, detail: "static implementation complete without authorized authoring" });
+  }
+  if (status["Static implementation"] === "COMPLETE" && status["Runtime integration"] !== "NOT AUTHORIZED") {
+    issues.push({ code: "STATUS_STATIC_SCOPE_CONTRADICTION", where, detail: "static completion represented as runtime completion" });
+  }
+  if (status["Package governance status"] !== "READY FOR REVIEW") {
+    issues.push({ code: "STATUS_STATIC_SCOPE_CONTRADICTION", where, detail: "governance status is " + status["Package governance status"] });
+  }
+  if (status["Independent approval"] !== "NOT GRANTED") {
+    issues.push({ code: "STATUS_EXTERNAL_GATE_BYPASS", where, detail: "independent approval is self-declared" });
+  }
+  for (const gate of ["Learning-specialist review", "Six-language linguistic review", "Accessibility review", "Moderated Android study"]) {
+    if (status[gate] !== undefined && status[gate] !== "PENDING") {
+      issues.push({ code: "STATUS_EXTERNAL_GATE_BYPASS", where: at(gate), detail: "external gate recorded as " + status[gate] });
+    }
+  }
+  if (status["Runtime integration"] !== "NOT AUTHORIZED" && status["Production approval"] === "AUTHORIZED") {
+    issues.push({ code: "STATUS_RELEASE_GATE_BYPASS", where, detail: "production approved without runtime authorization" });
+  }
+  for (const [gate, expected] of [["Production approval", "NOT AUTHORIZED"], ["Deployment", "NOT DEPLOYED"], ["Release", "NOT RELEASED"]]) {
+    if (status[gate] !== undefined && status[gate] !== expected) {
+      issues.push({ code: "STATUS_RELEASE_GATE_BYPASS", where: at(gate), detail: gate + " is " + status[gate] });
+    }
+  }
+  return issues;
+}
+
 /* ---------------- 26 positive fixtures ---------------- */
 
 check("26 fixtures: every valid fixture passes with no issue", () => {
@@ -1221,7 +1558,7 @@ check("26 fixtures: every valid fixture passes with no issue", () => {
 
 /* ---------------- 27 negative fixtures ---------------- */
 
-check("27 fixtures: every invalid fixture fails for its declared reason code", () => {
+check("27 fixtures: every invalid fixture fails for exactly its declared reason code", () => {
   const problems = [];
   const dir = path.join(FIXTURES, "invalid");
   const manifest = readJson(path.join(dir, "manifest.json"));
@@ -1231,6 +1568,11 @@ check("27 fixtures: every invalid fixture fails for its declared reason code", (
     if (!declared.has(file)) problems.push("FIXTURE_UNDECLARED: " + file + " has no manifest entry");
   }
   for (const entry of manifest.fixtures) {
+    const pathIssues = fixturePathIssues(entry.file, dir);
+    if (pathIssues.length) {
+      problems.push(...fmt(pathIssues));
+      continue;
+    }
     if (!files.includes(entry.file)) {
       problems.push("FIXTURE_MISSING: " + entry.file + " is declared but absent");
       continue;
@@ -1247,9 +1589,14 @@ check("27 fixtures: every invalid fixture fails for its declared reason code", (
       problems.push("FIXTURE_DID_NOT_FAIL: " + entry.file + " was accepted but must fail with " + entry.expectedReason);
       continue;
     }
-    const codes = issues.map((i) => i.code);
-    if (!codes.includes(entry.expectedReason)) {
-      problems.push("FIXTURE_WRONG_REASON: " + entry.file + " expected " + entry.expectedReason + ", got " + Array.from(new Set(codes)).join(", "));
+    /* MARZI-021-C007: the deduplicated code set must equal the declared reason,
+       so a fixture can neither miss its defect nor smuggle in an unrelated one. */
+    const unique = Array.from(new Set(issues.map((i) => i.code))).sort();
+    if (!unique.includes(entry.expectedReason)) {
+      problems.push("FIXTURE_WRONG_REASON: " + entry.file + " expected " + entry.expectedReason + ", got " + unique.join(", "));
+    } else if (unique.length !== 1) {
+      problems.push("FIXTURE_UNEXPECTED_REASON: " + entry.file + " must isolate " + entry.expectedReason +
+        " but also reported " + unique.filter((c) => c !== entry.expectedReason).join(", "));
     }
   }
   const reasons = new Set(manifest.fixtures.map((f) => f.expectedReason));
@@ -1262,7 +1609,8 @@ check("27 fixtures: every invalid fixture fails for its declared reason code", (
     "EVIDENCE_UNSOURCED", "ASSISTANCE_ACCOMMODATION_CONFLATED", "COMPLETION_RESULT_MISMATCH",
     "UNKNOWN_OBJECTIVE_REF", "UNKNOWN_CRITERION_REF", "SCHEMA_ENUM_INVALID",
     "SCHEMA_REQUIRED_MISSING", "SCHEMA_UNKNOWN_FIELD", "UNSAFE_CONTENT",
-    "INVENTED_DEFAULT", "LEVEL_ORDER_INVALID"
+    "INVENTED_DEFAULT", "LEVEL_ORDER_INVALID", "SUPERSEDES_REF_INVALID",
+    "COMPLETION_OPTIONAL_CRITERION_GATED", "SCHEMA_PATTERN_INVALID"
   ]) {
     if (!reasons.has(required)) problems.push("FIXTURE_COVERAGE_MISSING: no negative fixture proves " + required);
   }
@@ -1273,9 +1621,405 @@ check("27 fixtures: every invalid fixture fails for its declared reason code", (
 
 check("28 guards: no file was written and no network call was attempted", () => {
   const problems = guardViolations.slice();
-  const after = fingerprint(path.join(ROOT, "docs/learning")) + "\n" + fingerprint(FIXTURES);
-  if (after !== fingerprintBefore) {
-    problems.push("VALIDATOR_MUTATED_TREE: the contract or fixture tree changed while validating");
+  if (protectedFingerprint() !== fingerprintBefore) {
+    problems.push("VALIDATOR_MUTATED_TREE: a protected file's content hash changed while validating");
+  }
+  return problems;
+});
+
+/* ---------------- 29 completion truth table ---------------- */
+
+const TRUTH_TABLE = [
+  { name: "all demonstrated", outcomes: ["demonstrated", "demonstrated", "demonstrated"], expected: "complete" },
+  { name: "demonstrated + partial", outcomes: ["demonstrated", "demonstrated", "partially_demonstrated"], expected: "partial" },
+  { name: "all partial", outcomes: ["partially_demonstrated", "partially_demonstrated", "partially_demonstrated"], expected: "partial" },
+  { name: "demonstrated + not observed", outcomes: ["demonstrated", "not_observed", "demonstrated"], expected: "insufficient_evidence" },
+  { name: "demonstrated + criterion absent", outcomes: ["demonstrated", undefined, "demonstrated"], expected: "insufficient_evidence" },
+  { name: "all not observed", outcomes: ["not_observed", "not_observed", "not_observed"], expected: "insufficient_evidence" },
+  { name: "all insufficient evidence", outcomes: ["insufficient_evidence", "insufficient_evidence", "insufficient_evidence"], expected: "insufficient_evidence" },
+  { name: "partial + not observed", outcomes: ["partially_demonstrated", "not_observed", "demonstrated"], expected: "insufficient_evidence" },
+  { name: "demonstrated + not demonstrated", outcomes: ["demonstrated", "not_demonstrated", "demonstrated"], expected: "not_complete" },
+  { name: "not demonstrated + missing", outcomes: ["not_demonstrated", undefined, "demonstrated"], expected: "not_complete" },
+  { name: "not demonstrated + partial", outcomes: ["not_demonstrated", "partially_demonstrated", "demonstrated"], expected: "not_complete" },
+  { name: "invalid + demonstrated", outcomes: ["invalid", "demonstrated", "demonstrated"], expected: "invalid" },
+  { name: "invalid + not demonstrated", outcomes: ["invalid", "not_demonstrated", "demonstrated"], expected: "invalid" },
+  { name: "invalid + missing", outcomes: ["invalid", undefined, "demonstrated"], expected: "invalid" },
+  { name: "invalid context with all demonstrated", outcomes: ["demonstrated", "demonstrated", "demonstrated"], contextInvalid: true, expected: "invalid" }
+];
+
+check("29 completion: the five-state truth table is mutually exclusive and exhaustive", () => {
+  const problems = [];
+  const ids = ["c1", "c2", "c3"];
+  for (const row of TRUTH_TABLE) {
+    const observed = new Map();
+    row.outcomes.forEach((outcome, index) => { if (outcome !== undefined) observed.set(ids[index], outcome); });
+    const derived = deriveObjectiveResult(ids, observed, Boolean(row.contextInvalid));
+    if (derived.error) {
+      problems.push("COMPLETION_POLICY_CONTRADICTION at truth table '" + row.name + "': " + derived.detail);
+    } else if (derived.state !== row.expected) {
+      problems.push("COMPLETION_RESULT_MISMATCH at truth table '" + row.name + "': expected " + row.expected + ", derived " + derived.state);
+    }
+  }
+  /* Exhaustive over every combination of the six outcomes across three
+     required criteria plus absence: each must land on exactly one state. */
+  const domain = OBSERVATION_OUTCOMES.concat([undefined]);
+  let covered = 0;
+  for (const a of domain) for (const b of domain) for (const c of domain) {
+    const observed = new Map();
+    [a, b, c].forEach((outcome, index) => { if (outcome !== undefined) observed.set(ids[index], outcome); });
+    const derived = deriveObjectiveResult(ids, observed, false);
+    if (derived.error || !RESULT_STATES.includes(derived.state)) {
+      problems.push("COMPLETION_POLICY_CONTRADICTION at [" + [a, b, c].map(String).join(",") + "]: " + (derived.detail || derived.state));
+    } else covered++;
+  }
+  if (covered !== domain.length ** 3) {
+    problems.push("COMPLETION_POLICY_CONTRADICTION: only " + covered + " of " + domain.length ** 3 + " combinations resolved");
+  }
+  /* An empty required set can never produce a result, least of all complete. */
+  const empty = deriveObjectiveResult([], new Map(), false);
+  if (empty.error !== "COMPLETION_POLICY_CONTRADICTION") {
+    problems.push("COMPLETION_POLICY_CONTRADICTION: an empty required set produced " + JSON.stringify(empty.state));
+  }
+  /* An unknown outcome is an error, never a silent default. */
+  const unknown = deriveObjectiveResult(ids, new Map([["c1", "passed"], ["c2", "demonstrated"], ["c3", "demonstrated"]]), false);
+  if (unknown.error !== "COMPLETION_POLICY_CONTRADICTION") {
+    problems.push("COMPLETION_POLICY_CONTRADICTION: an unknown outcome produced " + JSON.stringify(unknown.state));
+  }
+  return problems;
+});
+
+/* ---------------- 30 contract prose matches the derivation ---------------- */
+
+check("30 completion: contract precedence, states, and remediation match the derivation", () => {
+  const doc = contract["completion.json"];
+  const problems = [];
+  const precedence = doc.derivationPrecedence;
+  const orders = precedence.map((rule) => rule.order);
+  if (orders.join(",") !== "1,2,3,4,5") problems.push("COMPLETION_POLICY_CONTRADICTION at completion.json: precedence order is " + orders.join(","));
+  const expectedResults = ["invalid", "not_complete", "insufficient_evidence", "complete", "partial"];
+  precedence.forEach((rule, index) => {
+    if (rule.result !== expectedResults[index]) {
+      problems.push("COMPLETION_POLICY_CONTRADICTION at completion.json.derivationPrecedence[" + index + "]: " +
+        rule.result + " != " + expectedResults[index]);
+    }
+  });
+  /* The contract states and the validator states are one set, not two. */
+  const contractStates = doc.objectiveResultStates.map((state) => state.id).sort();
+  if (contractStates.join(",") !== RESULT_STATES.slice().sort().join(",")) {
+    problems.push("COMPLETION_POLICY_CONTRADICTION at completion.json: state set is " + contractStates.join(","));
+  }
+  const schemaStates = schema["objective-result.schema.json"].properties.result.enum.slice().sort();
+  if (schemaStates.join(",") !== contractStates.join(",")) {
+    problems.push("COMPLETION_POLICY_CONTRADICTION: schema result enum is " + schemaStates.join(","));
+  }
+  for (const state of RESULT_STATES.filter((value) => value !== "complete")) {
+    if (!doc.remediation.appliesToStates.includes(state)) {
+      problems.push("COMPLETION_REMEDIATION_POLICY_INVALID at completion.json: " + state + " has no remediation");
+    }
+  }
+  if (doc.remediation.appliesToStates.includes("complete")) {
+    problems.push("COMPLETION_REMEDIATION_POLICY_INVALID at completion.json: complete is not a remediation state");
+  }
+  if (doc.remediation.alwaysAvailable !== true) {
+    problems.push("COMPLETION_REMEDIATION_POLICY_INVALID at completion.json: remediation is not always available");
+  }
+  if (!/never converted to not_demonstrated/.test(doc.absenceRule)) {
+    problems.push("COMPLETION_POLICY_CONTRADICTION at completion.json.absenceRule: absence may become learner failure");
+  }
+  /* No aggregate algorithm exists; only the conjunction of required objectives. */
+  if (!/every declared required objective is complete/.test(doc.scenarioCompletion.derivedFrom)) {
+    problems.push("COMPLETION_AGGREGATE_CONTRADICTION at completion.json.scenarioCompletion");
+  }
+  return problems;
+});
+
+/* ---------------- 31 optional criteria and accommodation invariance -------- */
+
+check("31 completion: optional criteria never gate, accommodation never changes the result", () => {
+  const problems = [];
+  const entry = objectiveIndex.get("de.arzt.book_appointment.cough");
+  if (!entry) return ["UNKNOWN_OBJECTIVE_REF: de.arzt.book_appointment.cough is absent"];
+  const requiredIds = entry.objective.requiredCriteria.map((c) => c.id);
+  const optionalIds = entry.objective.optionalCriteria.map((c) => c.id);
+  if (optionalIds.length === 0) return ["the invariance fixture objective declares no optional criterion"];
+
+  /* Every required criterion demonstrated: the objective is complete no matter
+     what the optional criteria did, because they are never passed in. */
+  const observed = new Map(requiredIds.map((id) => [id, "demonstrated"]));
+  const base = deriveObjectiveResult(requiredIds, observed, false);
+  if (base.state !== "complete") problems.push("COMPLETION_RESULT_MISMATCH: required-only baseline derived " + base.state);
+  for (const outcome of ["not_demonstrated", "not_observed", "insufficient_evidence", "invalid"]) {
+    const withOptional = new Map(observed);
+    for (const id of optionalIds) withOptional.set(id, outcome);
+    const derived = deriveObjectiveResult(requiredIds, withOptional, false);
+    if (derived.state !== "complete") {
+      problems.push("COMPLETION_OPTIONAL_CRITERION_GATED: optional " + outcome + " changed the result to " + derived.state);
+    }
+  }
+
+  /* Identical evidence with and without an accommodation must validate
+     identically, including the derived result. */
+  const plain = readJson(path.join(FIXTURES, "valid/objective-result-complete.json"));
+  const accommodated = JSON.parse(JSON.stringify(plain));
+  accommodated.accessibility = {
+    accommodations: ["screen_reader", "extended_time"],
+    declaredBy: "learner",
+    appliesToConstruct: false
+  };
+  const plainIssues = objectiveResultIssues(plain, "invariance/plain");
+  const accommodatedIssues = objectiveResultIssues(accommodated, "invariance/accommodated");
+  if (plainIssues.length !== 0 || accommodatedIssues.length !== 0) {
+    problems.push("ASSISTANCE_ACCOMMODATION_CONFLATED: accommodation changed validation outcome (" +
+      plainIssues.length + " vs " + accommodatedIssues.length + ")");
+  }
+  return problems;
+});
+
+/* ---------------- 32 external review evidence binding ---------------- */
+
+check("32 review evidence: an approved review status requires a complete canonical record", () => {
+  const problems = [];
+  const markdown = read(path.join(ROOT, "docs/learning/SPECIALIST_REVIEW.md"));
+  const record = parseReviewRecords(markdown);
+  if (record.missingSection) return ["STATUS_REVIEW_EVIDENCE_MISSING: SPECIALIST_REVIEW.md has no review record table"];
+  for (const column of REVIEW_COLUMNS) {
+    if (!record.columns.includes(column)) {
+      problems.push("STATUS_REVIEW_EVIDENCE_MISSING at SPECIALIST_REVIEW.md: the record has no '" + column + "' column");
+    }
+  }
+  const version = contract["source-inventory.json"].curriculumVersion;
+  /* Every contract is still pending, so no evidence is required and none is
+     fabricated; the record is expected to be empty. */
+  for (const [name, doc] of Object.entries(contract)) {
+    if (doc.reviewStatus && doc.reviewStatus !== "pending_specialist_review") {
+      problems.push(...fmt(reviewEvidenceIssues("specialist", doc.reviewStatus, record, version, name)));
+    }
+  }
+  if (record.rows.length !== 0) {
+    problems.push("STATUS_REVIEW_EVIDENCE_MISSING: the review record claims " + record.rows.length +
+      " review(s) while every contract is still pending_specialist_review");
+  }
+  /* Adversarial: an approved status without evidence, with incomplete
+     evidence, with a mismatched version, or borrowed from another gate. */
+  const full = {
+    "Date": "2026-08-03", "Review type": "specialist", "Reviewer": "R. Example",
+    "Role and qualification": "Learning specialist", "Contract version or hash": version,
+    "Items reviewed": "94 variants", "Outcome": "approved", "Findings reference": "none"
+  };
+  const cases = [
+    ["no evidence", { columns: REVIEW_COLUMNS, rows: [] }, "specialist"],
+    ["incomplete evidence", { columns: REVIEW_COLUMNS, rows: [Object.assign({}, full, { Outcome: "—" })] }, "specialist"],
+    ["mismatched version", { columns: REVIEW_COLUMNS, rows: [Object.assign({}, full, { "Contract version or hash": "v9" })] }, "specialist"],
+    ["one review reused for another gate", { columns: REVIEW_COLUMNS, rows: [full] }, "linguistic"]
+  ];
+  for (const [label, fakeRecord, gate] of cases) {
+    const issues = reviewEvidenceIssues(gate, "specialist_reviewed", fakeRecord, version, "adversarial/" + label);
+    if (!issues.some((issue) => issue.code === "STATUS_REVIEW_EVIDENCE_MISSING")) {
+      problems.push("STATUS_REVIEW_EVIDENCE_MISSING was not raised for: " + label);
+    }
+  }
+  /* A structurally complete record passes without claiming a real review. */
+  const accepted = reviewEvidenceIssues("specialist", "specialist_reviewed", { columns: REVIEW_COLUMNS, rows: [full] }, version, "adversarial/complete");
+  if (accepted.length !== 0) problems.push("a structurally complete review record was rejected: " + fmt(accepted).join("; "));
+  return problems;
+});
+
+/* ---------------- 33 canonical package status ---------------- */
+
+check("33 status: the canonical MARZI-021 status admits no prohibited combination", () => {
+  const problems = [];
+  const packageDoc = read(path.join(ROOT, "docs/packages/MARZI-021.md"));
+  const status = parseStatusTable(packageDoc);
+  problems.push(...fmt(packageStatusIssues(status, "docs/packages/MARZI-021.md")));
+  for (const phrase of STALE_STATUS_PHRASES) {
+    if (packageDoc.includes(phrase)) {
+      problems.push("STATUS_STATIC_SCOPE_CONTRADICTION at docs/packages/MARZI-021.md: stale statement " + JSON.stringify(phrase));
+    }
+  }
+  const required = "MARZI-D009 and MARZI-D016 are formally APPROVED.";
+  if (!packageDoc.includes(required)) {
+    problems.push("STATUS_DECISION_DRIFT at docs/packages/MARZI-021.md: the canonical status wording is absent");
+  }
+  /* The satellite documents must not restate a contradicting status. */
+  for (const relative of ["docs/learning/SPECIALIST_REVIEW.md", "docs/learning/contracts/v1/README.md"]) {
+    const text = read(path.join(ROOT, relative));
+    for (const phrase of STALE_STATUS_PHRASES) {
+      if (text.includes(phrase)) {
+        problems.push("STATUS_STATIC_SCOPE_CONTRADICTION at " + relative + ": stale statement " + JSON.stringify(phrase));
+      }
+    }
+    if (/\bspecialist[- ]approved\b/i.test(text) || /APPROVED FOR SPECIALIST REVIEW/.test(text)) {
+      problems.push("STATUS_EXTERNAL_GATE_BYPASS at " + relative + ": self-declared external approval");
+    }
+  }
+  /* Adversarial: each prohibited combination must be refused. */
+  const good = Object.assign({}, STATUS_EXPECTED);
+  const prohibited = [
+    ["D009 open", { "MARZI-D009": "OPEN" }, "STATUS_DECISION_DRIFT"],
+    ["D016 blocking", { "MARZI-D016": "BLOCKING" }, "STATUS_DECISION_DRIFT"],
+    ["static complete plus runtime authorized", { "Runtime integration": "AUTHORIZED" }, "STATUS_STATIC_SCOPE_CONTRADICTION"],
+    ["self-approved", { "Independent approval": "GRANTED" }, "STATUS_EXTERNAL_GATE_BYPASS"],
+    ["specialist approved", { "Learning-specialist review": "APPROVED" }, "STATUS_EXTERNAL_GATE_BYPASS"],
+    ["linguistic approved", { "Six-language linguistic review": "APPROVED" }, "STATUS_EXTERNAL_GATE_BYPASS"],
+    ["production authorized", { "Production approval": "AUTHORIZED" }, "STATUS_RELEASE_GATE_BYPASS"],
+    ["deployed", { "Deployment": "DEPLOYED" }, "STATUS_RELEASE_GATE_BYPASS"],
+    ["released", { "Release": "RELEASED" }, "STATUS_RELEASE_GATE_BYPASS"]
+  ];
+  for (const [label, patch, expected] of prohibited) {
+    const issues = packageStatusIssues(Object.assign({}, good, patch), "adversarial/" + label);
+    if (!issues.some((issue) => issue.code === expected)) {
+      problems.push(expected + " was not raised for prohibited combination: " + label);
+    }
+  }
+  if (packageStatusIssues(good, "adversarial/canonical").length !== 0) {
+    problems.push("the canonical status map was rejected by its own rules");
+  }
+  return problems;
+});
+
+/* ---------------- 34 supersession ---------------- */
+
+check("34 supersession: v1 accepts only null and resolves nothing else", () => {
+  const problems = [];
+  for (const { objective } of objectiveIndex.values()) {
+    if (objective.supersedes !== null) {
+      problems.push("SUPERSEDES_REF_INVALID at " + objective.id + ": v1 must declare null, found " + JSON.stringify(objective.supersedes));
+    }
+    problems.push(...fmt(supersedesIssues(objective, "v1-draft", null)));
+  }
+  const sample = objectiveIndex.get("de.arzt.book_appointment.cough").objective;
+  const cases = [
+    ["syntactically valid predecessor in v1", "de.arzt.book_appointment.legacy", null],
+    ["self reference", sample.id, new Set([sample.id])],
+    ["unknown predecessor", "de.arzt.book_appointment.absent", new Set(["de.arzt.book_appointment.other"])]
+  ];
+  for (const [label, value, predecessors] of cases) {
+    const issues = supersedesIssues(Object.assign({}, sample, { supersedes: value }), "v1-draft", predecessors);
+    if (!issues.some((issue) => issue.code === "SUPERSEDES_REF_INVALID")) {
+      problems.push("SUPERSEDES_REF_INVALID was not raised for: " + label);
+    }
+  }
+  /* A known predecessor in an explicitly versioned context resolves. */
+  const resolved = supersedesIssues(
+    Object.assign({}, sample, { supersedes: "de.arzt.book_appointment.legacy" }),
+    "v2-draft", new Set(["de.arzt.book_appointment.legacy"]));
+  if (resolved.length !== 0) problems.push("a known predecessor was rejected: " + fmt(resolved).join("; "));
+  if (supersedesIssues(Object.assign({}, sample, { supersedes: null }), "v1-draft", null).length !== 0) {
+    problems.push("null supersession was rejected");
+  }
+  return problems;
+});
+
+/* ---------------- 35 fixture path containment ---------------- */
+
+check("35 fixtures: manifest entries are contained basename JSON files", () => {
+  const problems = [];
+  const dir = path.join(FIXTURES, "invalid");
+  const hostile = [
+    "../manifest.json", "../../learning-contracts.js", "/etc/passwd",
+    "nested/result.json", "result.json; rm -rf /", "result\nname.json",
+    "Result-Upper.json", "-leading-dash.json", "result.txt", "", "absent-fixture.json"
+  ];
+  for (const name of hostile) {
+    const issues = fixturePathIssues(name, dir);
+    if (!issues.some((issue) => issue.code === "FIXTURE_PATH_INVALID")) {
+      problems.push("FIXTURE_PATH_INVALID was not raised for: " + JSON.stringify(name));
+    }
+  }
+  const manifest = readJson(path.join(dir, "manifest.json"));
+  for (const entry of manifest.fixtures) {
+    problems.push(...fmt(fixturePathIssues(entry.file, dir)));
+  }
+  return problems;
+});
+
+/* ---------------- 36 write, network and execution guard routes ------------- */
+
+check("36 guards: every write, network and dynamic-execution route is refused", () => {
+  const problems = [];
+  /* A path that does not exist and never will: the guard must throw before any
+     filesystem work, so nothing is created even if a guard were missing. */
+  const target = path.join("/tmp", "marzi-021-r1-guard-probe", "must-never-exist.txt");
+  const before = guardViolations.length;
+  const routes = [
+    ["fs.writeFileSync", () => fs.writeFileSync(target, "x")],
+    ["fs.appendFileSync", () => fs.appendFileSync(target, "x")],
+    ["fs.mkdirSync", () => fs.mkdirSync(target)],
+    ["fs.rmSync", () => fs.rmSync(target)],
+    ["fs.unlinkSync", () => fs.unlinkSync(target)],
+    ["fs.renameSync", () => fs.renameSync(target, target + "2")],
+    ["fs.truncateSync", () => fs.truncateSync(target)],
+    ["fs.copyFileSync", () => fs.copyFileSync(target, target + "2")],
+    ["fs.linkSync", () => fs.linkSync(target, target + "2")],
+    ["fs.symlinkSync", () => fs.symlinkSync(target, target + "2")],
+    ["fs.chmodSync", () => fs.chmodSync(target, 0o600)],
+    ["fs.utimesSync", () => fs.utimesSync(target, 0, 0)],
+    ["fs.createWriteStream", () => fs.createWriteStream(target)],
+    ["fs.openSync write mode", () => fs.openSync(target, "w")],
+    ["fs.openSync append mode", () => fs.openSync(target, "a")],
+    ["fs.writeSync on a data descriptor", () => fs.writeSync(9, "x")],
+    ["fs.promises.writeFile", () => fs.promises.writeFile(target, "x")],
+    ["fs.promises.appendFile", () => fs.promises.appendFile(target, "x")],
+    ["fs.promises.mkdir", () => fs.promises.mkdir(target)],
+    ["fs.promises.rm", () => fs.promises.rm(target)],
+    ["fs.promises.rename", () => fs.promises.rename(target, target + "2")],
+    ["fs.promises.open write mode (FileHandle)", () => fs.promises.open(target, "w")],
+    ["fetch", () => globalThis.fetch("https://example.invalid")],
+    ["require node:http", () => require("node:http")],
+    ["require child_process", () => require("child_process")],
+    ["require node:vm", () => require("node" + ":vm")]
+  ];
+  for (const [label, invoke] of routes) {
+    let threw = false;
+    try { invoke(); } catch (error) { threw = true; }
+    if (!threw) problems.push("guard did not refuse: " + label);
+  }
+  if (fs.existsSync(path.dirname(target))) {
+    problems.push("VALIDATOR_MUTATED_TREE: the guard probe created " + path.dirname(target));
+  }
+  /* Read-only routes stay usable, otherwise the validator could not work. */
+  try {
+    const descriptor = fs.openSync(path.join(CONTRACTS, "levels.json"), "r");
+    fs.closeSync(descriptor);
+  } catch (error) {
+    problems.push("read-only open was refused: " + error.message);
+  }
+  /* Those deliberate probes are the only recorded violations; drop them so the
+     final guard check reports genuine ones. */
+  const recorded = guardViolations.length - before;
+  if (recorded < routes.length - 1) {
+    problems.push("guard violations recorded (" + recorded + ") do not account for every refused route");
+  }
+  guardViolations.length = before;
+
+  /* MARZI-021-C008: executable constructs are refused, prose is not. */
+  /* Assembled from fragments so this file never contains a literal executable
+     construct that its own self-scan in check 01 would have to flag. */
+  const executable = [
+    "const value = " + "eval" + "(payload);",
+    "const fn = new " + "Function" + "('a', 'return a');",
+    "const fn = " + "Function" + "('return 1');",
+    "const fn = new " + "AsyncFunction" + "('await x');",
+    "const fn = new " + "GeneratorFunction" + "('yield 1');",
+    "const sandbox = require('" + "node:vm" + "');",
+    "sandbox." + "runInNewContext" + "(source);"
+  ];
+  for (const sample of executable) {
+    if (dynamicExecutionIssues(sample, "adversarial").length === 0) {
+      problems.push("DYNAMIC_EXECUTION_FORBIDDEN was not raised for: " + sample);
+    }
+  }
+  const benign = [
+    "The validator never evaluates repository source as code.",
+    "Section 19 forbids eval, dynamic code, and shell interpolation.",
+    "A Function is a first-class value in JavaScript.",
+    "See the note about vm isolation in the design document."
+  ];
+  for (const sample of benign) {
+    const issues = dynamicExecutionIssues(sample, "adversarial");
+    if (issues.length !== 0) {
+      problems.push("benign prose was rejected as dynamic execution: " + sample + " (" + issues[0].detail + ")");
+    }
   }
   return problems;
 });

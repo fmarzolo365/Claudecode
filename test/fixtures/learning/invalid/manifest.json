@@ -51,7 +51,7 @@
   {
    "file": "result-accommodation-as-assistance.json",
    "expectedReason": "ASSISTANCE_ACCOMMODATION_CONFLATED",
-   "description": "records an accessibility accommodation in the assistance mode field"
+   "description": "records an accessibility accommodation as a learning-help item"
   },
   {
    "file": "result-acoustic-evidence.json",
@@ -62,6 +62,11 @@
    "file": "result-assistance-as-accommodation.json",
    "expectedReason": "ASSISTANCE_ACCOMMODATION_CONFLATED",
    "description": "declares a learning-assistance mode as an accessibility accommodation"
+  },
+  {
+   "file": "result-complete-with-partial-required.json",
+   "expectedReason": "COMPLETION_RESULT_MISMATCH",
+   "description": "declares complete although a required criterion is only partially demonstrated"
   },
   {
    "file": "result-completion-mismatch.json",
@@ -76,7 +81,12 @@
   {
    "file": "result-duplicate-observation.json",
    "expectedReason": "EVIDENCE_DUPLICATE",
-   "description": "records the same criterion observation twice"
+   "description": "records the same criterion observation twice, which makes the evaluation context unusable"
+  },
+  {
+   "file": "result-insufficient-with-not-demonstrated.json",
+   "expectedReason": "COMPLETION_RESULT_MISMATCH",
+   "description": "declares insufficient evidence although valid negative evidence exists"
   },
   {
    "file": "result-malformed-missing-field.json",
@@ -84,9 +94,29 @@
    "description": "omits the rubric version required by every judgment"
   },
   {
+   "file": "result-not-complete-from-missing-only.json",
+   "expectedReason": "COMPLETION_RESULT_MISMATCH",
+   "description": "treats absence of evidence as learner failure"
+  },
+  {
+   "file": "result-optional-criterion-gates-completion.json",
+   "expectedReason": "COMPLETION_OPTIONAL_CRITERION_GATED",
+   "description": "lets an optional criterion prevent an otherwise complete objective"
+  },
+  {
+   "file": "result-partial-with-missing-evidence.json",
+   "expectedReason": "COMPLETION_RESULT_MISMATCH",
+   "description": "declares partial while a required criterion has no assessable observation"
+  },
+  {
+   "file": "result-partial-with-not-demonstrated.json",
+   "expectedReason": "COMPLETION_RESULT_MISMATCH",
+   "description": "declares partial while a required criterion was not demonstrated"
+  },
+  {
    "file": "result-reward-value.json",
    "expectedReason": "REWARD_VALUE_PRESENT",
-   "description": "attaches a reward value to a learning judgment"
+   "description": "records a reward outcome as a reason for a learning judgment"
   },
   {
    "file": "result-stale-curriculum.json",
@@ -172,6 +202,16 @@
    "file": "scenarios-reward-value.json",
    "expectedReason": "REWARD_VALUE_PRESENT",
    "description": "attaches an XP value to a curriculum objective"
+  },
+  {
+   "file": "scenarios-supersedes-invalid-syntax.json",
+   "expectedReason": "SCHEMA_PATTERN_INVALID",
+   "description": "declares a supersession that does not use the objective identifier syntax"
+  },
+  {
+   "file": "scenarios-supersedes-non-null-v1.json",
+   "expectedReason": "SUPERSEDES_REF_INVALID",
+   "description": "declares a syntactically valid supersession although v1 has no predecessor registry"
   },
   {
    "file": "scenarios-unknown-competency.json",

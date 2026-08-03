@@ -1850,3 +1850,276 @@ e0f1aa367a3cc1a054bf2c16450bd9811f0507188f4ada29addc45ffb79eafd2  scenarios.en.j
 
 The contract JSON uses one-space indentation. That is what keeps the set inside
 the budget: at two spaces it is 283.0 KiB.
+
+# Implementation Report — MARZI-021-R1 (completion contracts and package status)
+
+**Package:** MARZI-021-R1 — bounded correction of the static MARZI-021 learning
+contracts
+
+**Branch:** `claude/marzi-017-product-refinement`
+
+**Governance baseline:** `0798cd894865b57d67cff6e824f3264ccf673bc0`
+
+**Corrected implementation:** `4ec0123198ba830320fdca7e20b25b53c84bb0d1`
+
+**Mandate transfer commit:** `b47a9eb7db9e8b4e1476f5eb799b9610ada794c1`
+(`MARZI-021-R1_CLAUDE_CODE_MANDATE.md`, 46744 bytes, SHA-256
+`628f1360c54db0f7f6e0f0a255ad4d55947039e02e0871bc1a16bcd6e53144b1`, measured
+before the file was read)
+
+This section appends correction evidence. It does not rewrite the MARZI-021
+implementation report above it, which remains the record of `4ec0123`.
+
+## Correction dispositions
+
+| ID | Severity | Disposition |
+|---|---|---|
+| C001 completion-result ambiguity | HIGH, approval blocking | **RESOLVED** |
+| C002 canonical package status | MEDIUM, approval blocking | **RESOLVED** |
+| C003 external-review evidence binding | MEDIUM | **RESOLVED** |
+| C004 validator no-write assurance | MEDIUM | **RESOLVED** |
+| C005 fixture path containment | MEDIUM | **RESOLVED** |
+| C006 supersession reference integrity | MEDIUM | **RESOLVED** |
+| C007 negative-fixture reason isolation | LOW | **RESOLVED** |
+| C008 dynamic-execution guard completeness | LOW | **RESOLVED** |
+
+## C001 — completion-result resolution
+
+`partial` previously overlapped `not_complete` and `insufficient_evidence`, and
+the validator applied a narrower precedence than the prose expressed. The five
+states are now mutually exclusive and exhaustive under one precedence, recorded
+once in `completion.json` as `derivationPrecedence` and implemented once as the
+pure function `deriveObjectiveResult`:
+
+| Order | Condition | Result |
+|---:|---|---|
+| 1 | any required observation is invalid, or the evaluation context is invalid, stale, duplicated, or cross-session | `invalid` |
+| 2 | otherwise any required outcome is `not_demonstrated` | `not_complete` |
+| 3 | otherwise any required criterion is absent, `not_observed`, or `insufficient_evidence` | `insufficient_evidence` |
+| 4 | otherwise every required outcome is `demonstrated` | `complete` |
+| 5 | otherwise at least one is `partially_demonstrated` and the rest are `demonstrated` or `partially_demonstrated` | `partial` |
+
+Anything outside that table is a validation error, never a silent default. An
+objective with no required criterion cannot produce a result at all, and an
+unknown outcome value is an error rather than a default.
+
+Check 29 proves exhaustiveness by enumerating **every** combination of the six
+observation outcomes plus absence across three required criteria — 343 cases —
+and requires each to land on exactly one of the five states. Check 30 proves the
+contract text and the code agree, so the precedence has one source of truth and
+not two.
+
+Invariants now enforced rather than described: only required criteria enter the
+derivation, so optional criteria cannot gate completion; accessibility
+accommodation is not an input, so identical evidence with and without an
+accommodation validates identically; absence is never converted into
+`not_demonstrated`; and no state removes earned value. No aggregate property was
+invented — scenario completion remains the conjunction of the declared required
+objectives.
+
+## C002 — canonical status resolution
+
+`docs/packages/MARZI-021.md` claimed both "READY FOR REVIEW with contracts
+implemented" and "the present commit … does not implement the machine-readable
+learning contracts", and still described D009 and D016 as blockers. There is now
+one authoritative multidimensional status table in section 1, and check 33
+validates it and rejects every prohibited combination:
+
+| Dimension | State |
+|---|---|
+| MARZI-D009 / MARZI-D016 | APPROVED |
+| Taxonomy and mastery presentation | APPROVED IN PRINCIPLE |
+| Static authoring | AUTHORIZED |
+| Static implementation | COMPLETE |
+| Package governance status | READY FOR REVIEW |
+| Independent approval | NOT GRANTED |
+| Specialist / linguistic / accessibility / Android reviews | PENDING |
+| Runtime integration / production approval | NOT AUTHORIZED |
+| Deployment / release | NOT DEPLOYED / NOT RELEASED |
+
+Four stale statements were removed and are now rejected by name if they return.
+`READY FOR REVIEW` is used as the governance status; no new status was invented,
+and the implementer does not self-declare independent approval.
+
+## C003 — review-evidence binding
+
+The existing review record in `docs/learning/SPECIALIST_REVIEW.md` section 6 is
+the single review-evidence location; its existing column labels are preserved
+and two were added, `Review type` and `Contract version or hash`. Check 32 binds
+status to evidence: a contract may only leave `pending_specialist_review` when
+that table holds a complete, version-matched row for that specific gate.
+Specialist, linguistic and accessibility gates are independent — a row of one
+type never satisfies another. No reviewer evidence was fabricated; the table
+remains empty and the check asserts it stays empty while every contract is
+pending.
+
+## C004 — no-write assurance
+
+Guards now cover the synchronous, callback and promise APIs, including
+`fs.promises` (the same object `node:fs/promises` resolves to, so FileHandle
+routes are covered), write-mode `open`, link/symlink and metadata writers.
+Read-only opens and stdout/stderr descriptors remain permitted, because Node
+itself uses them. Protected trees are fingerprinted by **SHA-256 content hash**
+rather than size and mtime, and the validator's own source is protected too.
+Check 36 deliberately invokes 26 write, network and execution routes against a
+`/tmp` path that does not exist, requires every one to throw before any I/O, and
+then asserts the probe directory was never created.
+
+## C005 — fixture path containment
+
+`fixtures[].file` must match `^[a-z0-9][a-z0-9-]*\.json$`, be a bare basename,
+resolve inside the canonical invalid-fixture directory, and be a regular file
+that is not a symlink. Check 35 exercises eleven hostile names — traversal,
+absolute path, nested path, shell syntax, embedded newline, wrong case, wrong
+extension, empty, absent. Fixture content is parsed as data and never executed.
+
+## C006 — supersession integrity
+
+`supersedes` now carries the objective-identifier pattern in the schema — the
+same syntax objective IDs use, not a second one. v1 has no predecessor registry,
+so any syntactically valid non-null value is rejected with
+`SUPERSEDES_REF_INVALID`; self-reference and unknown predecessors are rejected
+in any version, and a known predecessor resolves in an explicitly versioned
+context.
+
+## C007 — reason isolation
+
+Check 27 now requires the **deduplicated** set of emitted codes to *equal* the
+declared `expectedReason`; an extra unrelated code fails with
+`FIXTURE_UNEXPECTED_REASON`. The existing `expectedReason` property is kept and
+no parallel property was added. Nine fixtures were narrowed rather than
+weakening the assertion, and ownership was made unambiguous where two rules
+could fire: the schema owns unknown enum values and malformed patterns, the
+semantic checks own ordering, resolution and policy.
+
+## C008 — dynamic-execution guard
+
+`dynamicExecutionIssues` is a bounded helper that rejects `eval`, `Function`,
+`new Function`, `AsyncFunction`, `GeneratorFunction`, and `node:vm` execution
+APIs, and `node:vm` is refused at the module loader. Its patterns are assembled
+from fragments so the helper cannot match its own source, and the adversarial
+samples are likewise assembled, so the validator's self-scan in check 01 stays
+honest. Benign prose that merely mentions the constructs is not flagged; four
+such strings are asserted to pass.
+
+## Files changed
+
+**Modified (17):** `docs/packages/MARZI-021.md`,
+`docs/learning/SPECIALIST_REVIEW.md`, `docs/learning/SCENARIO_OBJECTIVE_SCHEMA.md`,
+`docs/learning/contracts/v1/README.md`,
+`docs/learning/contracts/v1/completion.json`,
+`docs/learning/contracts/v1/schema/completion.schema.json`,
+`docs/learning/contracts/v1/schema/objective-result.schema.json`,
+`docs/learning/contracts/v1/schema/scenarios.schema.json`,
+`test/learning-contracts.js`, `test/fixtures/learning/README.md`,
+`test/fixtures/learning/invalid/manifest.json`, six narrowed negative fixtures,
+and this report.
+
+**Created (11):** three positive fixtures
+(`objective-result-partial-all-partial`, `objective-result-invalid-precedence`,
+`objective-result-optional-criterion-ignored`) and eight negative fixtures
+(five completion-mismatch cases, one optional-criterion gating case, two
+supersession cases).
+
+**Deliberately untouched:** `public/**`, `server.js`, `sw.js`,
+`manifest.webmanifest`, `package.json`, `.github/**`, `test/run.js`,
+`test/browser/**`, `test/conflict-markers.js`,
+`docs/MARZI_DECISION_REGISTER.md`, `.ai/bin/**`, `docs/learning/README.md`,
+`docs/learning/CURRENT_SCENARIO_AUDIT.md`, the competency, level,
+prerequisite, evidence, mastery, placement, review, scenario and
+source-inventory contract data, and `main`.
+
+## Validation results — actual, not assumed
+
+| Command | Result |
+|---|---|
+| `node --check server.js` | PASS |
+| `node --check test/run.js` | PASS |
+| `node --check test/learning-contracts.js` | PASS |
+| `node test/conflict-markers.js` | PASS |
+| `node test/learning-contracts.js` | **PASS — 36/36**, exit 0, 155 ms |
+| `node test/run.js` | **PASS — 50/50**, 0 failures |
+| `git diff --check` | PASS |
+| `.ai/bin/docs-validate` | FAIL — the exact unchanged nine-failure baseline exception |
+
+Top-level learning-contract checks rose from **28 to 36**.
+
+| Inventory | Required | Actual |
+|---|---|---|
+| Scenarios / variants | 29 / 94 | **29 / 94** |
+| German | 19 / 61 | **19 / 61** |
+| English | 10 / 33 | **10 / 33** |
+| Localized objective titles | 564 | **564** |
+| Required / optional criteria | 282 / 94 | **282 / 94** |
+| Prerequisite edges, acyclic | 18 | **18** |
+| Positive fixtures | ≥ 12 | **12** |
+| Negative fixtures | ≥ 45 | **45**, proving 35 distinct reason codes |
+
+Release-mode refusal still reports 179 open-gate and unreviewed items.
+
+## Proof the new checks can fail
+
+Nine mutations against an isolated copy; all detected, all reverted.
+
+| Mutation | Detected as |
+|---|---|
+| Swap derivation precedence 2 and 3 in the code | `COMPLETION_RESULT_MISMATCH` on the not-complete fixture |
+| Change `derivationPrecedence` so the contract disagrees with the code | `COMPLETION_POLICY_CONTRADICTION` (check 30) |
+| Declare independent approval GRANTED | `STATUS_EXTERNAL_GATE_BYPASS` (check 33) |
+| Fill in a specialist review that never happened | `STATUS_REVIEW_EVIDENCE_MISSING` (check 32) |
+| Set a non-null `supersedes` on a real v1 objective | `SUPERSEDES_REF_INVALID` (check 34) |
+| Manifest entry escaping the fixture directory | `FIXTURE_PATH_INVALID` (checks 27 and 35) |
+| Broaden a negative fixture to trip a second reason | `FIXTURE_UNEXPECTED_REASON` (check 27) |
+| Remove the `fs.promises` write guard | checks 01 and 36 |
+| Introduce a real `new Function` construct | `DYNAMIC_EXECUTION_FORBIDDEN` (check 01) |
+
+## Documentation-validator disposition
+
+`.ai/bin/docs-validate` exits 1 with the same nine failures as at governance
+baseline `0798cd8`: four missing OPEN-only fields on each of D009 and D016, and
+an index expectation of 25 OPEN records where 23 now remain. Measured
+previously: exit 0 at `701bbcd`, exit 1 at `0798cd8`, and the failure set at
+this correction commit is byte-identical to `0798cd8`. The cause is the
+governance commit's approval records, not MARZI-021 or this correction. Per the
+mandate this is the approved baseline exception, assigned to the separate
+owner-side package **MARZI-GOV-001 — Decision-validator approved-state
+support**. `.ai/bin/**` and the Decision Register were not modified.
+
+## Gates that remain
+
+| Gate | Status |
+|---|---|
+| Learning-specialist review | **PENDING** — no specialist named; nothing reviewed |
+| Six-language linguistic review | **PENDING** — 564 titles and 60 state strings unreviewed |
+| Accessibility review | **PENDING** |
+| Moderated small-Android study | **PENDING** — not performed; no comprehension claim |
+| Independent Codex review | **NOT GRANTED** |
+| Runtime integration | **NOT AUTHORIZED** |
+| Production approval | **NOT AUTHORIZED** |
+| Deployment / release | **NOT DEPLOYED / NOT RELEASED** |
+
+MARZI-D009 and MARZI-D016 remain APPROVED and unchanged. No educational policy,
+threshold, percentage, scoring rule, recency interval, placement content, or
+certification implication was introduced. The four open gates keep their `null`
+values.
+
+## Known limitations
+
+- The corrected truth table is a coherent **provisional** draft. It formalizes
+  the existing derivation; it is not specialist-approved pedagogy.
+- Localized completion and mastery copy is unchanged and still unreviewed.
+- The Arabic 320×568 / 200%-text overflow measured for MARZI-021 remains a
+  presentation and runtime-integration concern. No UI or runtime file was
+  touched, and it stays deferred.
+- `exam` remains a reserved, unused mode because the frozen runtime marks the
+  DTZ scenarios `kind:"face"`.
+
+## Rollback
+
+```text
+git revert <correction commit>
+```
+
+Independently reversible: `4ec0123` and `0798cd8` are preserved, no history is
+rewritten, and there is no runtime, storage, learner-data, or external
+dependency to unwind. Not executed.

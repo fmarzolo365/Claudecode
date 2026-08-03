@@ -72,6 +72,6 @@
   }
  ],
  "reasonCodes": [
-  "XP_AWARDED"
+  "OPTIONAL_CRITERION_NOT_OBSERVED"
  ]
 }

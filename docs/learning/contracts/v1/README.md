@@ -77,10 +77,11 @@ mapping; an identifier's meaning is never changed in place.
 
 ## Rules the validator enforces
 
-`node test/learning-contracts.js` runs 28 checks and exits non-zero on any
+`node test/learning-contracts.js` runs 36 checks and exits non-zero on any
 failure. It never writes a file, never opens a network connection, never
 imports a dependency, and never evaluates repository source as code — it
-parses `public/index.html` as text. Among the rules:
+parses `public/index.html` as text, and it scans its own source to prove it
+contains no dynamic-execution construct. Among the rules:
 
 - exactly 19/61 German and 10/33 English coverage, and 94 identifiers total;
 - every production goal is mapped exactly once, by index **and** by exact
@@ -95,7 +96,35 @@ parses `public/index.html` as text. Among the rules:
 - no acoustic or pronunciation evidence is accepted;
 - assistance mode and accessibility accommodation may never be conflated;
 - `insufficient_evidence` is a first-class result in completion and mastery;
-- and the current draft set is **refused** by release-mode validation.
+- the five completion states are mutually exclusive and exhaustive, derived by
+  one canonical function over required criteria only;
+- optional criteria never gate completion and an accommodation never changes a
+  derived result;
+- a review status may only leave `pending_specialist_review` when the canonical
+  review record carries complete, version-matched evidence for that gate;
+- `supersedes` is `null` in v1, because v1 has no predecessor registry;
+- every negative fixture fails for **exactly** its declared reason code; and
+- the current draft set is **refused** by release-mode validation.
+
+## The completion truth table
+
+Completion is derived from required criterion outcomes only, in this
+precedence. The order is recorded in `completion.json` as
+`derivationPrecedence` and the validator asserts the contract and the code
+agree, so there is one rule set rather than two.
+
+| Order | Condition | Result |
+|---:|---|---|
+| 1 | any required observation is invalid, or the evaluation context is invalid, stale, duplicated, or cross-session | `invalid` |
+| 2 | otherwise any required outcome is `not_demonstrated` | `not_complete` |
+| 3 | otherwise any required criterion is absent, `not_observed`, or `insufficient_evidence` | `insufficient_evidence` |
+| 4 | otherwise every required outcome is `demonstrated` | `complete` |
+| 5 | otherwise at least one is `partially_demonstrated` and the rest are `demonstrated` or `partially_demonstrated` | `partial` |
+
+Anything not covered is a validation error, never a silent default. Only
+`complete` is completion success; every other state keeps remediation and
+further evidence available and removes no earned value. Absence of evidence is
+never converted into `not_demonstrated`.
 
 ## Why release mode fails on purpose
 

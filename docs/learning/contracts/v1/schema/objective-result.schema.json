@@ -185,7 +185,7 @@
      "uniqueItems": true,
      "items": {
       "type": "string",
-      "pattern": "^[a-z0-9_]+$"
+      "minLength": 1
      }
     },
     "declaredBy": {

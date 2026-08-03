@@ -5,7 +5,7 @@
  "objectiveId": "de.arzt.book_appointment.cough",
  "curriculumVersion": "v1-draft",
  "rubricVersion": "v1-draft",
- "result": "complete",
+ "result": "invalid",
  "criteria": [
   {
    "criterionId": "purpose_stated",

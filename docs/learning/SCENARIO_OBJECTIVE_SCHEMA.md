@@ -36,8 +36,8 @@ docs/learning/contracts/v1/
 
 test/fixtures/learning/
 ├── README.md
-├── valid/                 9 fixtures that must pass
-└── invalid/               37 fixtures + manifest.json, each with a reason code
+├── valid/                 12 fixtures that must pass
+└── invalid/               45 fixtures + manifest.json, each with one reason code
 ```
 
 The fixtures live under `test/` rather than beside the contracts because
@@ -138,6 +138,11 @@ final copy; implementation must not copy the example as approved content.
 - IDs use lowercase ASCII letters, digits, and underscores separated by dots.
 - IDs are immutable after learner evidence can reference them.
 - No ID may be reused after deletion or change of meaning.
+- A non-null `supersedes` uses this same identifier syntax — there is no second
+  ID syntax — and must resolve to a known objective of an earlier curriculum
+  version. v1 has no predecessor registry, so v1 rejects every non-null value
+  with `SUPERSEDES_REF_INVALID`; self-reference and unknown predecessors are
+  rejected in any version.
 - Duplicate IDs across target packs are invalid even when scenarios are
   translations of each other.
 
@@ -230,9 +235,11 @@ transcript:
 ```
 
 Allowed `result` values are `complete`, `partial`, `not_complete`,
-`insufficient_evidence`, and `invalid`. The result must be reproducible from
-criterion observations and policy data. Explanatory prose may be generated
-afterward but cannot alter it.
+`insufficient_evidence`, and `invalid`. They are mutually exclusive and
+exhaustive under the precedence recorded in `contracts/v1/completion.json` as
+`derivationPrecedence`, and only required criteria take part in the derivation.
+The result must be reproducible from criterion observations and policy data.
+Explanatory prose may be generated afterward but cannot alter it.
 
 ## 7. Prerequisite contract
 

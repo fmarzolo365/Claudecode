@@ -21,9 +21,41 @@
 | Runtime changes | None. `public/**` and `server.js` have an empty diff |
 
 This is the first package after MARZI-020. Its title and purpose are copied from
-the canonical roadmap and are not reinterpreted. The present commit completes
-discovery and implementation specification only; it does not implement the
-machine-readable learning contracts or alter application behavior.
+the canonical roadmap and are not reinterpreted.
+
+### Canonical status
+
+This table is the single authoritative statement of where MARZI-021 stands.
+Any other wording in this repository that contradicts it is stale.
+
+| Dimension | State |
+|---|---|
+| MARZI-D009 | APPROVED |
+| MARZI-D016 | APPROVED |
+| Taxonomy and mastery presentation | APPROVED IN PRINCIPLE |
+| Static authoring | AUTHORIZED |
+| Static implementation | COMPLETE |
+| Package governance status | READY FOR REVIEW |
+| Independent approval | NOT GRANTED |
+| Learning-specialist review | PENDING |
+| Six-language linguistic review | PENDING |
+| Accessibility review | PENDING |
+| Moderated Android study | PENDING |
+| Runtime integration | NOT AUTHORIZED |
+| Production approval | NOT AUTHORIZED |
+| Deployment | NOT DEPLOYED |
+| Release | NOT RELEASED |
+
+MARZI-D009 and MARZI-D016 are formally APPROVED. Static contract authoring is
+AUTHORIZED. MARZI-021 implements static, versioned learning contracts, schemas,
+fixtures, validation, and supporting documentation. It introduces no runtime
+integration. Following correction, the package is READY FOR REVIEW.
+Learning-specialist, six-language linguistic, accessibility, and moderated
+Android reviews remain PENDING. Runtime integration and production approval are
+NOT AUTHORIZED. MARZI-021 is NOT DEPLOYED and NOT RELEASED.
+
+READY FOR REVIEW means the MARZI-021-R1 correction awaits an independent Codex
+review. It is not an approval, and the implementer does not grant one.
 
 ## 2. Objective
 
@@ -62,15 +94,16 @@ All line references describe baseline `ee88e0e`.
 | Existing tests | `test/run.js:194-222`, `1430-1454` | Structural scenario and call-count behavior is covered; learning validity is not. |
 | Canonical product principle | `docs/MARZI_PRODUCT_BIBLE.md:60-74` | XP is not mastery; insufficient evidence and acoustic integrity are required. |
 | Canonical package scope | `docs/MARZI_MASTER_ROADMAP.md:58-80` | Requires taxonomy, schema, prerequisites, completion, mastery, placement, review, and assistance-sensitive evidence. |
-| Blocking decisions | `docs/MARZI_DECISION_REGISTER.md:185-200`, `304-319` | MARZI-D009 and MARZI-D016 explicitly block implementation. |
+| Product decisions | `docs/MARZI_DECISION_REGISTER.md:185-200`, `304-319` | MARZI-D009 and MARZI-D016 are recorded as APPROVED; they no longer block static implementation. |
 
-Discovery conclusion: architecture is stable enough for static contract work,
-but learning/product decisions are not approved. There is no justification for
-runtime work before those decisions and specialist review.
+Discovery conclusion: the architecture is stable enough for static contract
+work, and the governing product decisions are now approved. There is still no
+justification for runtime work before learning-specialist, linguistic, and
+accessibility review.
 
 ## 5. In scope
 
-After the blocking gates are satisfied, Claude Code may implement only:
+The blocking product gates are satisfied. MARZI-021 implements only:
 
 1. A versioned competency taxonomy matching the approved
    `docs/learning/LEARNING_MODEL.md` direction.

@@ -16,7 +16,10 @@
   "scenarioCompletion",
   "absenceRule",
   "remediation",
-  "learnerFacingCopy"
+  "learnerFacingCopy",
+  "derivationPrecedence",
+  "derivationRules",
+  "separationOfConcerns"
  ],
  "properties": {
   "contract": {
@@ -195,7 +198,8 @@
    "required": [
     "derivedFrom",
     "neverDerivedFrom",
-    "legacyRule"
+    "legacyRule",
+    "aggregateRule"
    ],
    "properties": {
     "derivedFrom": {
@@ -214,6 +218,10 @@
     "legacyRule": {
      "type": "string",
      "minLength": 20
+    },
+    "aggregateRule": {
+     "type": "string",
+     "minLength": 20
     }
    }
   },
@@ -226,7 +234,8 @@
    "additionalProperties": false,
    "required": [
     "alwaysAvailable",
-    "rules"
+    "rules",
+    "appliesToStates"
    ],
    "properties": {
     "alwaysAvailable": {
@@ -238,6 +247,20 @@
      "items": {
       "type": "string",
       "minLength": 20
+     }
+    },
+    "appliesToStates": {
+     "type": "array",
+     "minItems": 4,
+     "maxItems": 4,
+     "uniqueItems": true,
+     "items": {
+      "enum": [
+       "partial",
+       "not_complete",
+       "insufficient_evidence",
+       "invalid"
+      ]
      }
     }
    }
@@ -862,6 +885,81 @@
        }
       }
      }
+    }
+   }
+  },
+  "derivationPrecedence": {
+   "type": "array",
+   "minItems": 5,
+   "maxItems": 5,
+   "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+     "order",
+     "condition",
+     "result"
+    ],
+    "properties": {
+     "order": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 5
+     },
+     "condition": {
+      "type": "string",
+      "minLength": 20
+     },
+     "result": {
+      "enum": [
+       "complete",
+       "partial",
+       "not_complete",
+       "insufficient_evidence",
+       "invalid"
+      ]
+     }
+    }
+   }
+  },
+  "derivationRules": {
+   "type": "array",
+   "minItems": 5,
+   "items": {
+    "type": "string",
+    "minLength": 20
+   }
+  },
+  "separationOfConcerns": {
+   "type": "object",
+   "additionalProperties": false,
+   "required": [
+    "evidence",
+    "objectiveCompletion",
+    "mastery",
+    "placement",
+    "aggregate"
+   ],
+   "properties": {
+    "evidence": {
+     "type": "string",
+     "minLength": 20
+    },
+    "objectiveCompletion": {
+     "type": "string",
+     "minLength": 20
+    },
+    "mastery": {
+     "type": "string",
+     "minLength": 20
+    },
+    "placement": {
+     "type": "string",
+     "minLength": 20
+    },
+    "aggregate": {
+     "type": "string",
+     "minLength": 20
     }
    }
   }

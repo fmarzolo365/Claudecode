@@ -5,19 +5,15 @@
  "objectiveId": "de.arzt.book_appointment.cough",
  "curriculumVersion": "v1-draft",
  "rubricVersion": "v1-draft",
- "result": "complete",
+ "result": "invalid",
  "criteria": [
   {
    "criterionId": "purpose_stated",
    "attemptId": "attempt-1",
    "curriculumVersion": "v1-draft",
-   "outcome": "demonstrated",
-   "opportunityIds": [
-    "opp-purpose-stated"
-   ],
-   "responseIds": [
-    "turn-3"
-   ],
+   "outcome": "invalid",
+   "opportunityIds": [],
+   "responseIds": [],
    "assistance": {
     "mode": "OFF",
     "exposed": false,
@@ -53,7 +49,7 @@
    "criterionId": "appointment_resolved",
    "attemptId": "attempt-1",
    "curriculumVersion": "v1-draft",
-   "outcome": "demonstrated",
+   "outcome": "not_demonstrated",
    "opportunityIds": [
     "opp-appointment-resolved"
    ],
@@ -72,6 +68,6 @@
   }
  ],
  "reasonCodes": [
-  "XP_AWARDED"
+  "EVALUATION_CONTEXT_INVALID"
  ]
 }

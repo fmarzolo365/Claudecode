@@ -76,11 +76,10 @@
      "reviewTags": [
       "home",
       "health",
-      "absence",
-      "xp_bonus"
+      "absence"
      ],
      "reviewStatus": "pending_specialist_review",
-     "supersedes": null
+     "supersedes": "de.kita.report_absence.legacy"
     },
     {
      "id": "de.kita.request_information.summer_party",

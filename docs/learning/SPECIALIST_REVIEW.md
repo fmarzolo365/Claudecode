@@ -30,7 +30,7 @@ empty of findings, because there are none yet.
 | Mastery states and copy | `contracts/v1/mastery.json` | 5 states × 6 languages | `pending_specialist_review` |
 | Placement boundary | `contracts/v1/placement.json` | 1 contract | `pending_specialist_review` |
 | Review rules | `contracts/v1/review.json` | 6 candidate rules | `pending_specialist_review` |
-| Negative fixtures | `test/fixtures/learning/invalid/` | 37 fixtures | `pending_specialist_review` |
+| Negative fixtures | `test/fixtures/learning/invalid/` | 45 fixtures | `pending_specialist_review` |
 
 ## 2. Questions the specialist has to answer
 
@@ -85,14 +85,27 @@ open.
 4. Closing an open gate requires the numeric or content decision to be recorded
    in `docs/MARZI_DECISION_REGISTER.md` first; check 25 of
    `test/learning-contracts.js` fails if a gate disappears without one.
-5. Every change must keep `node test/learning-contracts.js` at 28/28 and must
+5. Every change must keep `node test/learning-contracts.js` at 36/36 and must
    keep the runtime diff empty.
+6. Recording a review means filling in a row of the table in section 6. A status
+   change without a complete matching row fails validation with
+   `STATUS_REVIEW_EVIDENCE_MISSING`; the three review gates are independent and
+   one row never satisfies another.
 
 ## 6. Review record
 
-*No entries. This table stays empty until a specialist is named and has
-reviewed the items in section 1.*
+This table is the canonical review record for MARZI-021. It is the only place a
+completed review is recorded, and `test/learning-contracts.js` reads it: any
+contract whose `reviewStatus` leaves `pending_specialist_review` must have a row
+here whose every column is filled and whose contract version matches the version
+being claimed, or validation fails with `STATUS_REVIEW_EVIDENCE_MISSING`.
 
-| Date | Reviewer | Role and qualification | Items reviewed | Outcome | Findings reference |
-|---|---|---|---|---|---|
-| — | — | — | — | — | — |
+`Review type` is one of `specialist`, `linguistic`, or `accessibility`. The
+three gates are independent: a row of one type never satisfies another.
+
+*No entries. This table stays empty until a reviewer is named and has actually
+reviewed the items in section 1. Nothing here may be filled in speculatively.*
+
+| Date | Review type | Reviewer | Role and qualification | Contract version or hash | Items reviewed | Outcome | Findings reference |
+|---|---|---|---|---|---|---|---|
+| — | — | — | — | — | — | — | — |
