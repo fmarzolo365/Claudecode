@@ -13,6 +13,18 @@ Before repository work, read and follow:
 
 Do not duplicate or reinterpret the execution policy here. If a referenced instruction is missing, unreadable, or conflicts with a higher-priority system, developer, host, or active-task instruction, follow the higher-priority and narrower safe scope and report the conflict.
 
+## Stable inspection entry points
+
+For supported read-only work, prefer the stable .ai/bin/ entry points defined in the execution policy:
+
+- run .ai/bin/repo-inspect once and reuse its structured repository report;
+- use .ai/bin/commit-inspect for variable commits and refs;
+- use .ai/bin/docs-validate for the consolidated documentation gate;
+- use .ai/bin/file-inspect for file discovery, metadata, counts, hashes, and bounded reads;
+- use .ai/bin/browser-inspect for local rendered-browser inspection.
+
+Batch related inspections and cache their output for the current task. Fall back to a raw safe command only when no wrapper supports the required operation, and report the unsupported operation for later wrapper review. Never route a mutation through a read-only wrapper or ask the host to remember a dynamic command string containing a SHA, path, port, viewport, or temporary name.
+
 ## Role and scope discipline
 
 - Product Owner approval is required for product, economy, art, commercial, release, and other Product Owner decisions.

@@ -236,6 +236,34 @@ Reduce approval volume by:
 
 Do not add runtime application infrastructure merely to optimize agent inspection. Cached metadata must be refreshed when a fetch, commit, branch operation, user action, or external change could make it stale.
 
+### 9.1 Stable host-approval wrappers
+
+Prefer these repository-controlled, read-only entry points over equivalent raw commands:
+
+- .ai/bin/repo-inspect — collect repository identity, status, ancestry, remotes, and synchronization once, then reuse the report;
+- .ai/bin/commit-inspect — validate and inspect variable commits or refs without SHA-specific command prefixes;
+- .ai/bin/docs-validate — run the consolidated documentation and governance validation gate instead of multiple inline validators;
+- .ai/bin/file-inspect — locate files and collect bounded content, metadata, line/byte counts, hashes, type, and tracking status instead of repeated cat, stat, wc, sha256sum, and find variants;
+- .ai/bin/browser-inspect — run local Playwright or Chromium measurements through one prefix instead of dynamic browser commands containing ports, viewports, locales, and temporary paths.
+
+Agents must:
+
+- prefer a supported wrapper and invoke it directly from the repository root;
+- batch related inputs into one wrapper invocation;
+- cache wrapper output during the same task;
+- avoid asking the host to remember dynamic command strings containing SHAs, refs, paths, ports, viewports, locales, or temporary names;
+- fall back to raw commands only when the required safe operation is unsupported;
+- report an unsupported safe operation so a later authorized workflow task can consider extending the wrapper;
+- never route a mutating Git, filesystem, dependency, network, credential, deployment, or publication operation through these read-only wrappers.
+
+The three enforcement layers remain distinct:
+
+- **Repository-controlled behavior:** wrapper validation, direct process invocation, allowed roots, local-only browser routing, structured output, and deterministic exit classes.
+- **Agent-controlled behavior:** choosing wrappers first, batching calls, reusing results, staying inside active scope, and not disguising mutations as inspection.
+- **Host-enforced behavior:** approval prompts, sandbox boundaries, filesystem grants, network controls, credential controls, and command-prefix persistence.
+
+Repository instructions cannot promise zero dialogs or suppress host security boundaries. The host may still request approval on the first execution of each stable prefix, on sandbox escape, or for Git commits, pushes, credentials, external network access, writes, installations, merges, deployments, and other protected operations. A remembered wrapper prefix never authorizes unsupported options or any mutation.
+
 ## 10. Operations that always require explicit approval
 
 Always request approval before:

@@ -1,0 +1,228 @@
+#!/usr/bin/env node
+"use strict";
+
+const {
+  EXIT,
+  ToolError,
+  assertSafeArgument,
+  emitJson,
+  git,
+  guardMain,
+  parseNameStatusZ,
+  redactSensitiveText,
+  resolveRepoRoot,
+  safeEnvironment,
+  splitNull
+} = require("./lib.cjs");
+
+const TOOL = "repo-inspect";
+
+function help() {
+  process.stdout.write(
+    "Usage: .ai/bin/repo-inspect [--fetch] [--json]\n" +
+    "Produces a deterministic read-only repository report. --fetch updates only origin remote-tracking refs.\n"
+  );
+}
+
+function parseArgs(argv) {
+  const options = { fetch: false, json: false, help: false };
+  for (const argument of argv) {
+    assertSafeArgument(argument);
+    if (argument === "--fetch") options.fetch = true;
+    else if (argument === "--json") options.json = true;
+    else if (argument === "--help") options.help = true;
+    else throw new ToolError("unsupported option: " + argument, EXIT.USAGE);
+  }
+  return options;
+}
+
+function optionalGit(root, args, allowedExitCodes = [0, 1, 2, 128]) {
+  return git(root, args, { allowedExitCodes });
+}
+
+function resolveCommit(root, ref) {
+  const result = optionalGit(root, ["rev-parse", "--verify", ref + "^{commit}"]);
+  return result.status === 0 ? result.stdout.trim() : null;
+}
+
+function parseCount(output) {
+  const values = output.trim().split(/\s+/).map(Number);
+  return values.length === 2 && values.every(Number.isFinite)
+    ? { behind: values[0], ahead: values[1] }
+    : null;
+}
+
+function validatePublicFetchRemote(root) {
+  const result = git(root, ["remote", "get-url", "--all", "origin"]);
+  const urls = result.stdout.split(/\r?\n/u).filter(Boolean);
+  if (urls.length === 0) {
+    throw new ToolError("origin has no fetch URL", EXIT.VALIDATION);
+  }
+  for (const value of urls) {
+    let parsed;
+    try {
+      parsed = new URL(value);
+    } catch {
+      throw new ToolError("--fetch supports credential-free HTTPS remotes only", EXIT.USAGE);
+    }
+    if (
+      parsed.protocol !== "https:"
+      || parsed.username
+      || parsed.password
+      || parsed.search
+      || parsed.hash
+    ) {
+      throw new ToolError("--fetch supports credential-free HTTPS remotes only", EXIT.USAGE);
+    }
+  }
+  const configuredHeader = optionalGit(
+    root,
+    ["config", "--local", "--get-regexp", "^http\\..*extraheader$"],
+    [0, 1, 5]
+  );
+  if (configuredHeader.status === 0 && configuredHeader.stdout.trim()) {
+    throw new ToolError("--fetch refuses repositories with local HTTP credential headers", EXIT.USAGE);
+  }
+}
+
+guardMain(TOOL, () => {
+  const options = parseArgs(process.argv.slice(2));
+  if (options.help) {
+    help();
+    return;
+  }
+
+  const root = resolveRepoRoot();
+  const warnings = [];
+  let fetched = false;
+
+  const remoteNames = git(root, ["remote"]).stdout
+    .split(/\r?\n/)
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .sort();
+
+  if (options.fetch) {
+    if (!remoteNames.includes("origin")) {
+      throw new ToolError("--fetch requested but origin is not configured", EXIT.VALIDATION);
+    }
+    validatePublicFetchRemote(root);
+    const fetch = git(
+      root,
+      [
+        "-c", "credential.helper=",
+        "-c", "credential.interactive=never",
+        "-c", "core.askPass=",
+        "-c", "http.extraHeader=",
+        "fetch", "origin", "--no-tags"
+      ],
+      {
+        timeout: 120000,
+        env: safeEnvironment({
+          GIT_CONFIG_GLOBAL: "/dev/null",
+          GIT_CONFIG_SYSTEM: "/dev/null",
+          GIT_TERMINAL_PROMPT: "0",
+          GCM_INTERACTIVE: "Never",
+          SSH_AUTH_SOCK: ""
+        })
+      }
+    );
+    fetched = fetch.status === 0;
+  }
+
+  const branchResult = optionalGit(root, ["symbolic-ref", "--quiet", "--short", "HEAD"]);
+  const branch = branchResult.status === 0 ? branchResult.stdout.trim() : null;
+  const head = resolveCommit(root, "HEAD");
+  if (!head) {
+    throw new ToolError("HEAD does not resolve to a commit", EXIT.VALIDATION);
+  }
+
+  const upstreamResult = optionalGit(
+    root,
+    ["rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{upstream}"]
+  );
+  const upstream = upstreamResult.status === 0 ? upstreamResult.stdout.trim() : null;
+
+  const staged = parseNameStatusZ(
+    git(root, ["diff", "--cached", "--name-status", "-z"]).stdout
+  );
+  const unstaged = parseNameStatusZ(
+    git(root, ["diff", "--name-status", "-z"]).stdout
+  );
+  const untracked = splitNull(
+    git(root, ["ls-files", "--others", "--exclude-standard", "-z"]).stdout
+  ).sort();
+
+  let comparison = null;
+  const comparisonRef = upstream || (branch ? "origin/" + branch : null);
+  if (comparisonRef && resolveCommit(root, comparisonRef)) {
+    const counts = optionalGit(
+      root,
+      ["rev-list", "--left-right", "--count", comparisonRef + "...HEAD"]
+    );
+    if (counts.status === 0) comparison = parseCount(counts.stdout);
+  } else {
+    warnings.push("No current-branch remote ref is available for ahead/behind comparison.");
+  }
+
+  const originMain = resolveCommit(root, "origin/main");
+  const currentRemoteSha = comparisonRef ? resolveCommit(root, comparisonRef) : null;
+  let mergeBase = null;
+  if (originMain) {
+    const merge = optionalGit(root, ["merge-base", "HEAD", "origin/main"]);
+    if (merge.status === 0) mergeBase = merge.stdout.trim();
+  } else {
+    warnings.push("origin/main is not available.");
+  }
+
+  let synchronizationStatus = "NO_UPSTREAM";
+  if (comparison) {
+    if (comparison.ahead === 0 && comparison.behind === 0) synchronizationStatus = "SYNCHRONIZED";
+    else if (comparison.ahead > 0 && comparison.behind === 0) synchronizationStatus = "AHEAD";
+    else if (comparison.ahead === 0 && comparison.behind > 0) synchronizationStatus = "BEHIND";
+    else synchronizationStatus = "DIVERGED";
+  }
+
+  const remotes = remoteNames.map((name) => {
+    const urls = optionalGit(root, ["remote", "get-url", "--all", name]);
+    return {
+      name,
+      urls: urls.status === 0
+        ? urls.stdout
+            .split(/\r?\n/)
+            .filter(Boolean)
+            .map(redactSensitiveText)
+            .sort()
+        : []
+    };
+  });
+
+  emitJson({
+    status: "PASS",
+    tool: TOOL,
+    schemaVersion: 1,
+    fetched,
+    repository: {
+      root,
+      branch,
+      head,
+      upstream,
+      originMainSha: originMain,
+      currentBranchRemoteSha: currentRemoteSha,
+      mergeBaseWithOriginMain: mergeBase,
+      remotes
+    },
+    workingTree: {
+      clean: staged.length === 0 && unstaged.length === 0 && untracked.length === 0,
+      staged,
+      unstaged,
+      untracked
+    },
+    synchronization: {
+      status: synchronizationStatus,
+      ahead: comparison ? comparison.ahead : null,
+      behind: comparison ? comparison.behind : null
+    },
+    warnings
+  });
+});
