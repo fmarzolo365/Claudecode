@@ -13,7 +13,8 @@
 | Independent reviewer | Codex |
 | Specification baseline | `ee88e0e2ecde8bcccb38c37ef7710c7e4f31bad4` |
 | Specification status | COMPLETE |
-| Implementation status | **BLOCKED** — MARZI-D009 and MARZI-D016 are OPEN; learning-specialist approval absent |
+| Implementation status | **READY FOR IMPLEMENTATION** — Product Owner gates are satisfied for static contract authoring; specialist, accessibility, and localization sign-off remain required before runtime integration or release |
+| Learning specialist status | Not yet named; assignment/sign-off is not a blocker for static contract authoring and remains mandatory before educational approval, runtime integration, or production release |
 | Runtime changes in this specification commit | None |
 
 This is the first package after MARZI-020. Its title and purpose are copied from
@@ -149,36 +150,55 @@ The canonical documents establish:
 - accessibility accommodation must not reduce learning/reward standing; and
 - static curriculum work may not change reward/business rules.
 
-The user has expressly authorized MARZI-021 discovery/specification. That
-authorization does not resolve the open product choices below.
+The Product Owner approved the following on 2026-08-03:
 
-## 9. Product decisions still required
+- MARZI-D009 Option A: optional, bounded placement calibration, with skip,
+  revisable recommendations, confidence/insufficient-evidence states,
+  accessibility accommodations separated from mastery standards, and no
+  certification claim.
+- MARZI-D016 Option A: objective-based completion with explicit Partial and
+  Insufficient Evidence states, non-punitive copy, remediation/further-evidence
+  opportunities, accessibility accommodations separated from mastery evidence,
+  and no certification claim.
+- In-principle static-contract use of the competency taxonomy, objective
+  families, stable competency/objective identifiers, mastery presentation
+  states, objective-based completion copy, and six-language-compatible domain
+  architecture.
 
-### Blocking decisions
+These approvals release MARZI-021 static, versioned, dependency-free contract
+authoring. They do not authorize runtime integration or constitute educational,
+linguistic, accessibility, or production approval.
 
-| Decision | Open question | Recommended option already recorded | Required record before implementation |
-|---|---|---|---|
-| MARZI-D009 | Placement optionality, modalities, skip/recalibration | Optional short calibration; speech only after consent | Selected option, approver, date, rationale, conditions, released packages |
-| MARZI-D016 | Conversation/scenario completion | Explicit objectives and terminal criteria, with separate partial progress | Selected option, approver, date, rationale, accessibility conditions, released packages |
+## 9. Remaining gates and later decisions
 
-### Required approval/sign-off
+### Static authoring authorization
 
-- Product Owner approves competency taxonomy and objective families.
-- Product Owner approves mastery presentation states and completion copy.
-- Learning specialist approves the 94 variant mappings, A0–C1 boundaries,
-  rubrics, evidence rules, prerequisite graph, aggregation policy, and fixtures.
+A learning specialist is not yet named. Product Owner authorization permits
+static contract authoring and dependency-free validation before specialist
+assignment or sign-off. Unreviewed pedagogical content must remain explicitly
+marked as pending specialist review.
+
+### Specialist and release gates
+
+Before educational approval, runtime integration, or production release:
+
+- a learning specialist must review the 94 variant mappings, A0–C1 boundaries,
+  rubrics, evidence rules, prerequisite graph, aggregation policy, and fixtures;
+- qualified six-language linguistic review remains mandatory;
+- accessibility review remains mandatory; and
+- specialist findings must be incorporated as versioned corrections without
+  silently changing stable identifier meaning.
 
 ### Decisions supported but not selected by this package
 
 - MARZI-D011 assistance default/persistence;
-- MARZI-D014–D019 XP eligibility, meaningful reward call, completion inputs,
-  numeric economy, anti-farming, and pronunciation;
+- MARZI-D014–D019 XP eligibility, meaningful reward call, numeric economy,
+  anti-farming, and pronunciation;
 - MARZI-D021/D022/D024 analytics, sync, and retention.
 
 Those decisions do not prevent static schema design, but their behavior and
-values must remain absent. MARZI-D008 governs onboarding length and is not
-listed as a MARZI-021 blocker in the Decision Register; this package defines no
-onboarding flow.
+values must remain absent. MARZI-D008 governs onboarding length and is not a
+MARZI-021 blocker; this package defines no onboarding flow.
 
 ## 10. Asset requirements
 
@@ -381,13 +401,15 @@ For this specification commit, only these files are permitted:
 
 ## 22. Implementation sequence
 
-1. **Gate check:** Verify MARZI-D009 and MARZI-D016 are approved in the Decision
-   Register and the Product Owner has approved taxonomy/mastery presentation.
-   Verify a learning specialist is assigned. Stop if not.
+1. **Gate check:** Verify MARZI-D009 and MARZI-D016 are APPROVED in the Decision
+   Register and the Product Owner approval-in-principle for taxonomy/mastery
+   presentation is recorded. Confirm static authoring is the only active scope;
+   a named learning specialist is not required to begin this static work.
 2. **Baseline check:** Confirm clean branch, expected implementation base, and
    exact scenario inventory (19/61 German, 10/33 English).
-3. **Taxonomy finalization:** Apply only approved specialist changes to proposed
-   competency definitions and A0–C1 band boundaries.
+3. **Taxonomy authoring:** Encode the approved-in-principle proposed competency
+   definitions and A0–C1 boundaries, explicitly marking every item still
+   pending specialist review; do not claim educational approval.
 4. **Schema creation:** Add v1 schemas with strict fields/enums and release/draft
    mode distinction.
 5. **Scenario mapping:** Author 94 stable objective variants, exact source
@@ -396,12 +418,15 @@ For this specification commit, only these files are permitted:
    infer reward semantics.
 7. **Placement boundary:** Encode only the recorded MARZI-D009 choice; no UI,
    persistence, or generated assessment content.
-8. **Prerequisites/mastery/review:** Add approved DAG and policy definitions;
-   numeric constants live in versioned policy data with boundary fixtures.
+8. **Prerequisites/mastery/review:** Add only the documented proposed DAG and
+   policy definitions; unresolved numeric constants remain explicit policy
+   gates with boundary fixtures rather than invented defaults.
 9. **Validator and fixtures:** Add dependency-free structural, coverage,
    negative, drift, level, and DAG tests.
-10. **Specialist verification:** Learning specialist reviews all mappings and
-    signed evidence is referenced in the implementation report.
+10. **Specialist handoff:** Record that no specialist is yet named and prepare
+    the mappings, policies, and evidence for later specialist review. Specialist
+    sign-off is mandatory before educational approval, runtime integration, or
+    production release, but its absence does not block static authoring.
 11. **Repository verification:** Run all required checks, prove runtime diff is
     empty, update implementation evidence, and hand the exact commit to Codex.
 
@@ -515,7 +540,7 @@ The implementation handoff must contain:
 - exact implementation commit and baseline;
 - recorded MARZI-D009 and MARZI-D016 approvals;
 - Product Owner approval of taxonomy/objectives/mastery presentation;
-- named learning specialist and signed review outcome;
+- exact learning-specialist assignment/sign-off status, explicitly recording that no specialist is yet named and that sign-off remains mandatory before educational approval, runtime integration, or production release;
 - machine-readable coverage report: 29 scenarios / 94 variants;
 - complete competency, objective, prerequisite, level, localization, and policy
   validation output;
@@ -533,9 +558,11 @@ The implementation handoff must contain:
 Claude Code must stop and update the approved change-request path if any of the
 following occurs:
 
-- MARZI-D009 or MARZI-D016 remains OPEN, missing, contradictory, or changed;
-- Product Owner taxonomy/mastery approval or learning-specialist sign-off is
-  unavailable;
+- MARZI-D009 or MARZI-D016 is missing, contradictory, or no longer APPROVED;
+- Product Owner taxonomy/mastery approval-in-principle is missing or changed;
+- implementation attempts to claim specialist approval, educational approval,
+  runtime integration readiness, or production release readiness before the
+  required specialist, accessibility, and localization reviews;
 - a source scenario/goal inventory differs from 19/61 German and 10/33 English;
 - objective mapping requires changing a scenario identity, prompt, or goal;
 - a requested rule would choose XP, coins, rewards, anti-farming, pronunciation,
@@ -559,7 +586,10 @@ MARZI-021 is done only when:
 - blocking decisions and approvals are recorded;
 - every current production scenario and all 94 goal variants are mapped;
 - all taxonomy/schema/prerequisite/mastery/placement/review contracts are
-  versioned, internally consistent, and specialist-approved;
+  versioned and internally consistent, with every unreviewed pedagogical item
+  explicitly marked pending specialist review;
+- specialist, accessibility, and localization gates remain explicit, and no
+  runtime integration or release proceeds until their required sign-offs;
 - “not enough evidence” is a first-class result;
 - mastery is demonstrably independent from XP/rewards/activity counts;
 - pronunciation/acoustic claims are absent and rejected;
@@ -571,11 +601,12 @@ MARZI-021 is done only when:
 - required comprehension/device evidence is complete and accurately bounded;
 - implementation report and rollback evidence are complete;
 - exact commit receives independent Codex approval; and
-- status advances from BLOCKED through READY FOR REVIEW under governance.
+- status advances from READY FOR IMPLEMENTATION through READY FOR REVIEW under governance.
 
-This specification commit alone does not satisfy Definition of Done; it makes
-the package implementation-ready once the named decision/specialist gates are
-satisfied.
+This governance update alone does not satisfy Definition of Done. It makes
+MARZI-021 static contract implementation ready now. Specialist sign-off remains
+mandatory before educational approval, runtime integration, or production
+release.
 
 ## 31. Independent review handoff
 
@@ -583,10 +614,10 @@ Codex must review the exact implementation commit against its recorded base and
 return one governance verdict. The review must independently verify:
 
 1. commit/branch/working-tree integrity and changed-file scope;
-2. MARZI-D009/D016 approval records and specialist evidence;
+2. MARZI-D009/D016 approval records, Product Owner taxonomy/mastery approval, accurate specialist-status disclosure, and preservation of the later specialist/runtime/release gates;
 3. exact 19/61 German and 10/33 English source coverage;
 4. stable IDs, schema strictness, reference integrity, and acyclic graph;
-5. correctness and completeness of all 94 approved mappings;
+5. correctness and completeness of all 94 authored mappings, with pending specialist-review status represented accurately;
 6. completion/mastery/placement semantics match recorded decisions exactly;
 7. no mastery from XP, coins, rank, stage, time, hang-up, reward, or map count;
 8. no pronunciation/acoustic claim and no raw-audio field;

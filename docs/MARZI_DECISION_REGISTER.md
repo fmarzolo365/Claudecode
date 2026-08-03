@@ -1,6 +1,6 @@
 # Marzi Decision Register
 
-Status: Proposed canonical register for Product Owner review
+Status: Canonical decision register
 
 Applies to: MARZI-020 through MARZI-060
 
@@ -26,14 +26,14 @@ Authority: This register records choices that the roadmap and Product Bible inte
 | MARZI-D006 | Call portrait and background production brief | ASSET REQUIRED / PRODUCT OWNER DECISION REQUIRED | Product Owner | OPEN | 039, 041, 050, 053 |
 | MARZI-D007 | Audio identity and production source | ASSET REQUIRED / PRODUCT OWNER DECISION REQUIRED | Product Owner | OPEN | 046, 053 |
 | MARZI-D008 | Onboarding step count and deferral policy | PRODUCT OWNER DECISION REQUIRED | Product Owner | OPEN | 034, 050, 052 |
-| MARZI-D009 | Placement assessment policy | PRODUCT OWNER DECISION REQUIRED | Product Owner | OPEN | 021, 034, 042–044 |
+| MARZI-D009 | Placement assessment policy | PRODUCT OWNER DECISION | Product Owner | APPROVED | MARZI-021 released; specialist/runtime gates remain for 034, 042–044 |
 | MARZI-D010 | Interface and correction-language relationship | PRODUCT OWNER DECISION REQUIRED | Product Owner | OPEN | 026, 028, 030, 034, 037, 042, 049 |
 | MARZI-D011 | Assistance default and persistence | PRODUCT OWNER DECISION REQUIRED | Product Owner | OPEN | 037, 042–044, 050 |
 | MARZI-D012 | Translation default by learner level | PRODUCT OWNER DECISION REQUIRED | Product Owner | OPEN | 037, 042, 049–050 |
 | MARZI-D013 | Auto-listen and tap-to-speak default | PRODUCT OWNER DECISION REQUIRED | Product Owner | OPEN | 034, 039, 045, 050 |
 | MARZI-D014 | XP eligibility | PRODUCT OWNER DECISION REQUIRED | Product Owner | OPEN | 043, 050 |
 | MARZI-D015 | Minimum meaningful call | PRODUCT OWNER DECISION REQUIRED | Product Owner | OPEN | 043 |
-| MARZI-D016 | Conversation and scenario completion definition | PRODUCT OWNER DECISION REQUIRED | Product Owner | OPEN | 021, 034–035, 041–044, 056 |
+| MARZI-D016 | Conversation and scenario completion definition | PRODUCT OWNER DECISION | Product Owner | APPROVED | MARZI-021 released; specialist/runtime gates remain for 034–035, 041–044, 056 |
 | MARZI-D017 | XP, coin, streak, and difficulty weighting | PRODUCT OWNER DECISION REQUIRED | Product Owner | OPEN | 043, 050 |
 | MARZI-D018 | Reward anti-farming policy | PRODUCT OWNER DECISION REQUIRED | Product Owner | OPEN | 043, 048, 050 |
 | MARZI-D019 | Pronunciation scoring and disclosure | PRODUCT OWNER DECISION REQUIRED / LEGAL/PRIVACY REVIEW REQUIRED | Product Owner and Privacy Owner | OPEN | 042, 043, 049 |
@@ -188,16 +188,20 @@ Authority: This register records choices that the roadmap and Product Bible inte
 |---|---|
 | Question | Is initial placement optional, skippable, adaptive, and which modalities may it use? |
 | Options | A. Optional short calibration using vocabulary/comprehension/listening, adding speech only after consent. B. Mandatory fixed quiz. C. Self-declared level only. |
-| Recommended option | A with a clear skip and later recalibration. |
-| Rationale | It improves fit without blocking first value or forcing microphone permission. |
+| Status | **APPROVED** |
+| Selected option | **Option A — optional, bounded placement calibration.** |
+| Approver role | Product Owner |
+| Approval date | 2026-08-03 |
+| Product Owner rationale | Placement calibration must help personalize the learner path without blocking first use, forcing a high-stakes test, or presenting an unsupported proficiency certification. |
+| Approval conditions | Calibration is optional and bounded in duration and scope.<br>The learner may skip it.<br>Results initialize recommendations, not permanent labels.<br>Confidence and insufficient-evidence states must be represented.<br>Accessibility accommodations must not lower mastery standards.<br>Calibration results may be revised by later evidence.<br>No external certification claim is permitted. |
 | Product impact | Better initial difficulty and trust. |
 | Technical impact | Assessment state, scoring boundary, deferred speech path, and persistence. |
 | Economic impact | None directly. |
 | Accessibility impact | Non-audio alternatives and extended-time usability required. |
 | Localization impact | Calibration content required per target language and explanation language. |
-| Decision owner | Product Owner with learning lead. |
-| Deadline | Before MARZI-021 placement contract and MARZI-034 implementation. |
-| Packages blocked | MARZI-021, 034, 042, 043, 044. |
+| Decision owner | Product Owner; learning-specialist review remains required before runtime integration, educational approval, or production release. |
+| Released package | MARZI-021 static contract authoring |
+| Later gates | Specialist, accessibility, and localization review remain mandatory before runtime integration or release; later packages must also satisfy their own recorded product and economy decisions. |
 
 ### MARZI-D010 — Interface and correction-language relationship
 
@@ -307,16 +311,33 @@ Authority: This register records choices that the roadmap and Product Bible inte
 |---|---|
 | Question | What constitutes conversation completion and scenario completion? |
 | Options | A. Explicit scenario objectives and terminal criteria, independent of hang-up. B. Any graceful call end. C. Fixed turn count for all scenarios. |
-| Recommended option | A, with a separate partial-progress result. |
-| Rationale | Scenarios vary; completion should measure intended practice, not button sequence. |
+| Status | **APPROVED** |
+| Selected option | **Option A — objective-based completion with explicit Partial and Insufficient Evidence states.** |
+| Approver role | Product Owner |
+| Approval date | 2026-08-03 |
+| Product Owner rationale | Completion must reflect demonstrated learning objectives rather than simple activity completion, while remaining understandable, fair, recoverable, and accessible. |
+| Approval conditions | Completion is objective-based.<br>Partial and Insufficient Evidence are explicit states.<br>Absence of evidence is not treated as failure.<br>Accessibility accommodations are separated from mastery evidence.<br>Remediation and further-evidence opportunities remain available.<br>Learner-facing copy must avoid punitive or misleading language.<br>No unsupported educational certification claim is permitted. |
 | Product impact | Powers feedback, learning map progress, and fair rewards. |
 | Technical impact | Scenario metadata and ConversationSession result contract may need additive extension only after architecture review. |
 | Economic impact | Determines completion bonuses and anti-farming inputs. |
 | Accessibility impact | Alternative completion paths must preserve learning goals. |
 | Localization impact | Objectives and terminal prompts require localized content. |
-| Decision owner | Product Owner with learning lead. |
-| Deadline | Before MARZI-021 learning contract and fixed before MARZI-043. |
-| Packages blocked | MARZI-021, 034, 035, 041, 042, 043, 044, 056. |
+| Decision owner | Product Owner; learning-specialist review remains required before runtime integration, educational approval, or production release. |
+| Released package | MARZI-021 static contract authoring |
+| Later gates | Specialist, accessibility, and localization review remain mandatory before runtime integration or release; economy effects remain gated by MARZI-D014, D015, D017, and D018. |
+
+### MARZI-021 — Taxonomy and mastery presentation approval
+
+| Field | Record |
+|---|---|
+| Status | **APPROVED IN PRINCIPLE** for static MARZI-021 contract authoring |
+| Approved scope | Competency taxonomy; objective families; stable competency and objective identifiers; mastery presentation states; Partial; Insufficient Evidence; objective-based completion copy; six-language-compatible domain architecture. |
+| Approver role | Product Owner |
+| Approval date | 2026-08-03 |
+| Released package | MARZI-021 static contract authoring |
+| Specialist status | A learning specialist is not yet named. Specialist review remains mandatory before educational approval, runtime integration, or production release. Specialist findings may require corrections to the static contracts before integration or release. |
+| Conditions | Specialist educational review remains mandatory.<br>Six-language linguistic review remains mandatory.<br>Accessibility review remains mandatory.<br>This approval is not educational certification.<br>Implementation must preserve the frozen MARZI-021 contracts.<br>Runtime integration remains subject to later package gates. |
+| Technical boundary | Static, versioned, dependency-free contract authoring and validation may proceed before specialist sign-off. This approval does not authorize application runtime, persistence, provider, prompt, reward, economy, or UI changes. |
 
 ### MARZI-D017 — XP, coin, streak, and difficulty weighting
 
