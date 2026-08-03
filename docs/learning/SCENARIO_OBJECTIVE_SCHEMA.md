@@ -139,10 +139,12 @@ final copy; implementation must not copy the example as approved content.
 - IDs are immutable after learner evidence can reference them.
 - No ID may be reused after deletion or change of meaning.
 - A non-null `supersedes` uses this same identifier syntax — there is no second
-  ID syntax — and must resolve to a known objective of an earlier curriculum
-  version. v1 has no predecessor registry, so v1 rejects every non-null value
-  with `SUPERSEDES_REF_INVALID`; self-reference and unknown predecessors are
-  rejected in any version.
+  ID syntax. v1 has no predecessor registry, so v1 rejects **every** non-null
+  value with `SUPERSEDES_REF_INVALID`; malformed values are rejected by the
+  schema pattern, and self-reference is rejected in any version. That null-only
+  rule is the entire v1 guarantee. Existence across immutable earlier versions,
+  version ordering, duplicate-successor behaviour, and cycle detection are not
+  implemented and must be designed before non-null supersession is enabled.
 - Duplicate IDs across target packs are invalid even when scenarios are
   translations of each other.
 

@@ -30,9 +30,11 @@ It also fails if the suite stops covering any of the reason codes check 27 names
 as mandatory.
 
 Reasons are **isolated**: the deduplicated set of codes a fixture produces must
-*equal* its declared `expectedReason`. A fixture that also trips an unrelated
-structural code fails with `FIXTURE_UNEXPECTED_REASON`, so each fixture is
-narrowed until it isolates one defect rather than the assertion being weakened.
+*equal* its declared `expectedReason` — it is not enough for the expected code
+to appear among others. Repeated occurrences of that same code are fine, since
+the set is deduplicated. A fixture that also trips an unrelated distinct code
+fails with `FIXTURE_UNEXPECTED_REASON`, so each fixture is narrowed until it
+isolates one defect rather than the assertion being weakened.
 Where two rules could both fire, exactly one owns the case: the schema owns
 unknown enum values and malformed patterns, and the semantic checks own
 ordering, resolution, and policy.

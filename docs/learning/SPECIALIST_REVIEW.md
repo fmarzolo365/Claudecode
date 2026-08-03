@@ -98,10 +98,23 @@ This table is the canonical review record for MARZI-021. It is the only place a
 completed review is recorded, and `test/learning-contracts.js` reads it: any
 contract whose `reviewStatus` leaves `pending_specialist_review` must have a row
 here whose every column is filled and whose contract version matches the version
-being claimed, or validation fails with `STATUS_REVIEW_EVIDENCE_MISSING`.
+being claimed, or validation fails with `STATUS_REVIEW_EVIDENCE_MISSING`. While
+a gate is still pending, a row claiming it is done fails with
+`STATUS_REVIEW_EVIDENCE_UNEXPECTED`, and an unrecognised review type fails with
+`STATUS_REVIEW_TYPE_INVALID`.
 
 `Review type` is one of `specialist`, `linguistic`, or `accessibility`. The
 three gates are independent: a row of one type never satisfies another.
+
+**What that validation is and is not.** It is structural: columns, review type,
+filled-versus-placeholder fields, version or hash syntax and match, and internal
+consistency with the canonical status. It **cannot** verify that a named
+reviewer exists, holds the stated qualification, actually carried out the
+review, or signed anything, and it makes no cryptographic provenance claim. A
+completed row is a declaration by whoever wrote it. Genuine evidence-backed
+transitions for these three gates are a later pre-runtime governance
+requirement. Any synthetic row used inside the test suite is a structural
+fixture and is never evidence that a review occurred.
 
 *No entries. This table stays empty until a reviewer is named and has actually
 reviewed the items in section 1. Nothing here may be filled in speculatively.*

@@ -37,6 +37,7 @@ Any other wording in this repository that contradicts it is stale.
 | Static implementation | COMPLETE |
 | Package governance status | READY FOR REVIEW |
 | Independent approval | NOT GRANTED |
+| Named learning specialist | NONE |
 | Learning-specialist review | PENDING |
 | Six-language linguistic review | PENDING |
 | Accessibility review | PENDING |
@@ -54,8 +55,11 @@ Learning-specialist, six-language linguistic, accessibility, and moderated
 Android reviews remain PENDING. Runtime integration and production approval are
 NOT AUTHORIZED. MARZI-021 is NOT DEPLOYED and NOT RELEASED.
 
-READY FOR REVIEW means the MARZI-021-R1 correction awaits an independent Codex
-review. It is not an approval, and the implementer does not grant one.
+READY FOR REVIEW means the correction awaits an independent Codex review. It is
+not an approval, and the implementer does not grant one. No learning specialist
+has been named, and no specialist review of any kind has taken place; specialist
+sign-off remains mandatory before educational approval, runtime integration, or
+production release.
 
 ## 2. Objective
 
@@ -115,16 +119,17 @@ The blocking product gates are satisfied. MARZI-021 implements only:
 4. Acyclic recommended prerequisite metadata.
 5. Approved participation, meaningful-attempt, partial/full completion, and
    `insufficient_evidence` semantics.
-6. Mastery state/confidence policy data approved by the Product Owner and
-   learning specialist.
+6. Mastery state and confidence policy data approved in principle by the
+   Product Owner for static authoring, and still `pending_specialist_review`.
 7. The approved placement contract boundary from MARZI-D009; no onboarding UI.
 8. Review-candidate rules based on evidence quality, recency policy, transfer,
    and assistance.
 9. Assistance-sensitive evidence fields for OFF/HINT/FULL without choosing an
    assistance default.
 10. Dependency-free schema/coverage/negative-fixture validation.
-11. Documentation of every mapping, validation result, decision, limitation,
-    and specialist sign-off.
+11. Documentation of every mapping, validation result, decision, and
+    limitation, together with a prepared learning-specialist handoff whose
+    review has not yet taken place.
 
 ## 6. Explicitly out of scope
 

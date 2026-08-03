@@ -78,10 +78,8 @@ mapping; an identifier's meaning is never changed in place.
 ## Rules the validator enforces
 
 `node test/learning-contracts.js` runs 36 checks and exits non-zero on any
-failure. It never writes a file, never opens a network connection, never
-imports a dependency, and never evaluates repository source as code — it
-parses `public/index.html` as text, and it scans its own source to prove it
-contains no dynamic-execution construct. Among the rules:
+failure. It parses `public/index.html` as text rather than executing it. Among
+the rules:
 
 - exactly 19/61 German and 10/33 English coverage, and 94 identifiers total;
 - every production goal is mapped exactly once, by index **and** by exact
@@ -101,7 +99,8 @@ contains no dynamic-execution construct. Among the rules:
 - optional criteria never gate completion and an accommodation never changes a
   derived result;
 - a review status may only leave `pending_specialist_review` when the canonical
-  review record carries complete, version-matched evidence for that gate;
+  review record carries a complete, version-matched row for that gate — a
+  structural check, not identity verification (see below);
 - `supersedes` is `null` in v1, because v1 has no predecessor registry;
 - every negative fixture fails for **exactly** its declared reason code; and
 - the current draft set is **refused** by release-mode validation.
@@ -142,6 +141,51 @@ gates:
 No default was invented for any of them. Check 25 of the validator asserts
 that release-mode validation reports every one of these gates, so quietly
 closing one fails the build.
+
+## What the validator's assurances actually bound
+
+Three of its guarantees are deliberately narrower than they might read, and are
+stated here so no reader over-trusts them.
+
+**External review is checked structurally, not authentically.** The check proves
+that the canonical record in `docs/learning/SPECIALIST_REVIEW.md` has the right
+columns, that a row's review type is one of `specialist`, `linguistic` or
+`accessibility`, that every required field is filled rather than a placeholder,
+that the declared contract version or hash is well formed and matches, and that
+a row of one gate is never counted for another. It **cannot** verify that a
+named reviewer exists, is qualified, actually performed a review, or signed
+anything. A filled-in row is a declaration, not proof. Evidence-backed
+lifecycle transitions for the three review gates are a later pre-runtime
+governance requirement, not something this package implements. Today every gate
+is pending and the record is empty.
+
+**The no-write guarantee is scoped.** The validator refuses the filesystem,
+network and execution routes it wraps, and it fingerprints a declared protected
+scope — the learning contracts, the learning fixtures, and its own source — by
+path, file type, content hash, permission mode, and symlink target, comparing
+before and after. Each deliberate probe must be refused *by the guard that owns
+it*; an incidental `ENOENT` does not count. This is a scoped self-check. It is
+not operating-system confinement, not a sandbox, and it does not prove that no
+JavaScript program could write a file anywhere.
+
+**Dynamic-execution detection is a bounded source scan.** It rejects direct
+`eval` calls, `Function` and `new Function` construction, `AsyncFunction`,
+`GeneratorFunction`, `vm` module requests, and the `runIn*Context` and
+`compileFunction` execution APIs appearing in validator source, and the module
+loader refuses `vm` outright. Indirect eval, computed global access, reflective
+constructor lookup, and dynamic `import()` are **outside** the scan and are not
+claimed to be covered. Executable-looking syntax inside a comment is rejected
+too: the scan is textual by design, and that is treated as policy rather than a
+false positive.
+
+## What v1 supersession does not prove
+
+`supersedes` is `null` for all 94 objectives, and every non-null value is
+refused. That is the whole guarantee. Existence across immutable earlier
+versions, version ordering, duplicate-successor policy, and cycle detection are
+**not** implemented, so this is not a version-graph integrity check. All four
+must be designed before non-null supersession is enabled in a later versioned
+migration.
 
 ## Formatting
 

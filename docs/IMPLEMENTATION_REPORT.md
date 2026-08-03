@@ -1860,7 +1860,7 @@ contracts
 
 **Governance baseline:** `0798cd894865b57d67cff6e824f3264ccf673bc0`
 
-**Corrected implementation:** `4ec0123198ba830320fdca7e20b25b53c84bb0d1`
+**Original MARZI-021 implementation under correction:** `4ec0123198ba830320fdca7e20b25b53c84bb0d1`
 
 **Mandate transfer commit:** `b47a9eb7db9e8b4e1476f5eb799b9610ada794c1`
 (`MARZI-021-R1_CLAUDE_CODE_MANDATE.md`, 46744 bytes, SHA-256
@@ -1875,7 +1875,7 @@ implementation report above it, which remains the record of `4ec0123`.
 | ID | Severity | Disposition |
 |---|---|---|
 | C001 completion-result ambiguity | HIGH, approval blocking | **RESOLVED** |
-| C002 canonical package status | MEDIUM, approval blocking | **RESOLVED** |
+| C002 canonical package status | MEDIUM, approval blocking | **PARTIALLY RESOLVED** — the status table was corrected, but two obsolete specialist-approval claims survived in section 5 of the package and are corrected in MARZI-021-R2-C001 |
 | C003 external-review evidence binding | MEDIUM | **RESOLVED** |
 | C004 validator no-write assurance | MEDIUM | **RESOLVED** |
 | C005 fixture path containment | MEDIUM | **RESOLVED** |
@@ -1906,8 +1906,10 @@ unknown outcome value is an error rather than a default.
 Check 29 proves exhaustiveness by enumerating **every** combination of the six
 observation outcomes plus absence across three required criteria — 343 cases —
 and requires each to land on exactly one of the five states. Check 30 proves the
-contract text and the code agree, so the precedence has one source of truth and
-not two.
+contract text and the code agree on **order and result name**. That is
+narrower than complete contract/code agreement: the `condition` prose was not
+mechanically verified at R1, so a condition-only edit could contradict the
+executable derivation and still pass. MARZI-021-R2-C003 closes that gap.
 
 Invariants now enforced rather than described: only required criteria enter the
 derivation, so optional criteria cannot gate completion; accessibility
@@ -1947,7 +1949,10 @@ The existing review record in `docs/learning/SPECIALIST_REVIEW.md` section 6 is
 the single review-evidence location; its existing column labels are preserved
 and two were added, `Review type` and `Contract version or hash`. Check 32 binds
 status to evidence: a contract may only leave `pending_specialist_review` when
-that table holds a complete, version-matched row for that specific gate.
+that table holds a complete, version-matched row for that specific gate. This
+is a **structural** guarantee only: it cannot verify a reviewer's identity,
+qualification, signature, or truthfulness, and R1 overstated it as full
+evidence binding. MARZI-021-R2-C004 states the bound accurately.
 Specialist, linguistic and accessibility gates are independent — a row of one
 type never satisfies another. No reviewer evidence was fabricated; the table
 remains empty and the check asserts it stays empty while every contract is
@@ -1961,6 +1966,9 @@ routes are covered), write-mode `open`, link/symlink and metadata writers.
 Read-only opens and stdout/stderr descriptors remain permitted, because Node
 itself uses them. Protected trees are fingerprinted by **SHA-256 content hash**
 rather than size and mtime, and the validator's own source is protected too.
+The scope is the learning contracts, the learning fixtures, and the validator
+source — not the filesystem. MARZI-021-R2-C005 additionally removes the R1
+tolerance whereby any thrown error counted as guard success.
 Check 36 deliberately invokes 26 write, network and execution routes against a
 `/tmp` path that does not exist, requires every one to throw before any I/O, and
 then asserts the probe directory was never created.
@@ -1979,13 +1987,17 @@ extension, empty, absent. Fixture content is parsed as data and never executed.
 same syntax objective IDs use, not a second one. v1 has no predecessor registry,
 so any syntactically valid non-null value is rejected with
 `SUPERSEDES_REF_INVALID`; self-reference and unknown predecessors are rejected
-in any version, and a known predecessor resolves in an explicitly versioned
-context.
+in any version. R1 described this as referential integrity; it is not.
+Existence across immutable earlier versions, version ordering,
+duplicate-successor policy, and cycle detection are all unimplemented, and
+MARZI-021-R2-C006 records that bound and removes the synthetic future-version
+pass.
 
 ## C007 — reason isolation
 
-Check 27 now requires the **deduplicated** set of emitted codes to *equal* the
-declared `expectedReason`; an extra unrelated code fails with
+Check 27 requires the **deduplicated** set of emitted codes to *equal* the
+declared `expectedReason` — appearing among other codes is not sufficient; an
+extra unrelated code fails with
 `FIXTURE_UNEXPECTED_REASON`. The existing `expectedReason` property is kept and
 no parallel property was added. Nine fixtures were narrowed rather than
 weakening the assertion, and ownership was made unambiguous where two rules
@@ -2000,7 +2012,9 @@ APIs, and `node:vm` is refused at the module loader. Its patterns are assembled
 from fragments so the helper cannot match its own source, and the adversarial
 samples are likewise assembled, so the validator's self-scan in check 01 stays
 honest. Benign prose that merely mentions the constructs is not flagged; four
-such strings are asserted to pass.
+such strings are asserted to pass. This is a bounded source-policy scan for the
+listed direct constructs, not universal dynamic-execution prevention;
+MARZI-021-R2-C008 states what is and is not covered.
 
 ## Files changed
 
@@ -2120,6 +2134,292 @@ values.
 git revert <correction commit>
 ```
 
-Independently reversible: `4ec0123` and `0798cd8` are preserved, no history is
-rewritten, and there is no runtime, storage, learner-data, or external
+Independently reversible. Commit roles, for unambiguous rollback provenance:
+`0798cd8` is the governance baseline, `4ec0123` is the original MARZI-021
+implementation under correction, `b47a9eb` is the R1 mandate-transfer commit,
+and `23f2179` is this R1 correction — later independently reviewed with the
+verdict `CHANGES REQUIRED` and corrected by MARZI-021-R2. No history is
+rewritten and there is no runtime, storage, learner-data, or external
 dependency to unwind. Not executed.
+
+# Implementation Report — MARZI-021-R2 (review findings and specialist status claims)
+
+**Package:** MARZI-021-R2 — bounded correction of the MARZI-021-R1 static
+learning contracts
+
+**Branch:** `claude/marzi-017-product-refinement`
+
+**Governance baseline:** `0798cd894865b57d67cff6e824f3264ccf673bc0`
+
+**Original MARZI-021 implementation under correction:**
+`4ec0123198ba830320fdca7e20b25b53c84bb0d1`
+
+**R1 mandate-transfer commit:** `b47a9eb7db9e8b4e1476f5eb799b9610ada794c1`
+
+**R2 baseline:** `23f217924f4bd795eee94adc7c519326f45e1fa9` — the MARZI-021-R1
+correction, independently reviewed with verdict `CHANGES REQUIRED`
+
+**R2 mandate-transfer commit:** `1531c310e5efb1a6a6980bc351fe3bf8c195d52d`
+(`MARZI-021-R2_CLAUDE_CODE_MANDATE.md`, 42955 bytes, SHA-256
+`55c3adb06c18a1ae67b8ec4ea1f567bd9d175d138ad3256180d32914ef27ae89`, measured
+before the file was read)
+
+**R2 correction commit:** the commit containing this MARZI-021-R2 report. A
+commit cannot contain its own SHA; the external report supplies it.
+
+This section appends R2 evidence. Earlier historical evidence is preserved;
+only the specific misstatements the mandate names were corrected in place.
+
+## Correction dispositions
+
+| ID | Severity | Disposition |
+|---|---|---|
+| R2-C001 false learning-specialist approval claims | HIGH, blocking | **RESOLVED** |
+| R2-C002 exact canonical status validation | MEDIUM, blocking | **RESOLVED** |
+| R2-C003 bind completion conditions to executable derivation | HIGH, blocking | **RESOLVED** |
+| R2-C004 bound external-review evidence claims | MEDIUM | **RESOLVED** |
+| R2-C005 effective and bounded no-write assurance | MEDIUM, blocking | **RESOLVED** |
+| R2-C006 bound supersession integrity claims | MEDIUM | **RESOLVED** |
+| R2-C007 align negative-fixture documentation | LOW | **RESOLVED** |
+| R2-C008 bound dynamic-execution detection | LOW | **RESOLVED** |
+| R2-C009 correct implementation provenance | MEDIUM, blocking | **RESOLVED** |
+
+## R2-C001 — the false specialist-approval claims are gone
+
+Section 5 of the package said mastery state and confidence policy data had been
+approved by the Product Owner *together with a learning specialist*, and listed
+documentation of a completed specialist sign-off as delivered scope. Both contradicted the
+same package's canonical status. They now read: approved **in principle by the
+Product Owner for static authoring**, still `pending_specialist_review`; and a
+**prepared learning-specialist handoff whose review has not yet taken place**.
+
+Check 33 now scans five correction-owned documents for those two exact claims on
+whitespace-normalized text, reporting `STATUS_EXTERNAL_GATE_BYPASS`. The scan is
+deliberately narrow: "specialist sign-off remains mandatory" is a legitimate
+statement and is not matched. A mutation restoring the original wording fails.
+
+## R2-C002 — canonical status validation is now exact
+
+R1 checked only that each dimension existed, silently overwrote duplicate rows,
+and accepted unknown dimensions. The table is now parsed as an ordered row list
+and every row is compared to its exact expected value:
+
+- duplicate dimension → `STATUS_DUPLICATE_DIMENSION`
+- unknown dimension → `STATUS_UNKNOWN_DIMENSION`
+- missing dimension → `STATUS_STATIC_SCOPE_CONTRADICTION`
+- wrong value → the code that owns that dimension
+
+`Named learning specialist | NONE` was added as a canonical dimension, so the
+absence of a specialist is machine-checked rather than only narrated. The
+misleading inverted runtime/production conditional is gone; every dimension now
+carries a direct exact-value comparison. Check 33 mutates **each of the sixteen
+dimensions individually**, plus duplicate, unknown, missing, and absent-table
+cases.
+
+This is an R2 snapshot validator, not a workflow engine: a future
+evidence-backed transition of any external gate requires a later versioned
+package update, not an edit to the expected map.
+
+## R2-C003 — completion conditions are bound to the executable derivation
+
+R1's check 30 compared only precedence order and result names, so a
+condition-only edit could contradict the code and still pass. There is now one
+bounded rule descriptor, `COMPLETION_RULES`, holding order, result, condition
+text and predicate for each of the five rules. Every consumer reads it:
+`deriveObjectiveResult` evaluates the predicates in order, check 30 compares the
+`derivationPrecedence` JSON projection against order, result **and** normalized
+condition semantics, and the truth table sweeps the same predicates. The
+duplicate hardcoded expected-result array R1 carried is gone.
+
+Check 30 now performs the required mutation itself: it clones the contract in
+memory and drifts **each** rule's condition in turn, requiring every one to be
+rejected with `COMPLETION_POLICY_CONTRADICTION`.
+
+The model is unchanged — invalid, then not_complete, then insufficient_evidence,
+then complete, then partial; anything else a deterministic error. `partial`
+still cannot overlap `not_complete` or `insufficient_evidence`, only required
+criteria participate, optional criteria never gate, accommodation is not an
+input, absence is never converted to `not_demonstrated`, and no aggregate
+learner property exists. `completion.json` and the schemas needed no edit: the
+projection already matched the descriptor, and check 30 now proves it
+mechanically instead of by inspection.
+
+## R2-C004 — external-review claims are bounded to what is proven
+
+The validator proves structure: the record's columns, a review type drawn from
+`specialist`, `linguistic` or `accessibility`, filled-versus-placeholder fields,
+well-formed version-or-hash syntax that matches the version claimed, and that a
+row of one gate never counts for another. It **cannot** verify that a reviewer
+exists, is qualified, performed a review, or signed anything, and nothing now
+says otherwise. `SPECIALIST_REVIEW.md`, the contracts README and this report all
+state that bound in the same words, and evidence-backed lifecycle transitions
+are recorded as a later pre-runtime governance requirement.
+
+Two codes were added: `STATUS_REVIEW_EVIDENCE_UNEXPECTED` for a row that claims
+a gate is done while the canonical status says pending, and
+`STATUS_REVIEW_TYPE_INVALID` for an unrecognised type. The synthetic rows in
+check 32 are labelled `structural-fixture` in every field, so no test datum can
+be mistaken for a real review. The canonical record remains empty and all three
+gates remain pending.
+
+## R2-C005 — no-write assurance is effective and honestly scoped
+
+R1 treated *any* thrown error as guard success, which a nonexistent probe parent
+could satisfy with `ENOENT`. Every probe now declares the guard category it
+expects and passes only if that guard recorded it; a native error fails the
+probe. Guard records are structured (`{code, route}`) rather than free text.
+
+Coverage was widened to the callback, sync, promise, descriptor and metadata
+routes — including `fchmod`, `fchown`, `futimes` and the `l*` variants — under
+feature detection. `fs.promises.open` is refused outright rather than partially
+patched, which is what actually prevents a writable FileHandle from existing.
+Missing `fetch` is reported as not applicable rather than passing silently.
+
+The completeness assertion is no longer circular. A separate policy inventory,
+`MUST_GUARD`, declares the API surface that must be guarded; check 36 requires
+every existing member to be both wrapped and probed. Removing a name from the
+wrapping list alone now fails — proven by mutation.
+
+The protected scope is stated exactly: the learning contracts, the learning
+fixtures, and the validator's own source, fingerprinted by path, file type,
+content hash, permission mode, and symlink target. A mode-only change is
+detected. This is a scoped self-check, not operating-system confinement, and no
+document claims universal prevention.
+
+## R2-C006 — supersession claims match what v1 proves
+
+All 94 objectives declare `supersedes: null`; every non-null value is refused
+with `SUPERSEDES_REF_INVALID`, malformed values by the schema pattern, and
+self-reference in any version. That is the entire guarantee. The synthetic
+future-version membership test was removed rather than relabelled, because
+passing it proved nothing. Existence across immutable earlier versions, version
+ordering, duplicate-successor policy, and cycle detection are documented as
+unimplemented and required before non-null supersession is enabled.
+
+## R2-C007 — fixture documentation matches exact isolation
+
+The manifest note said the declared reason merely had to appear among reported
+codes. It now states the rule check 27 actually enforces: after deduplication
+the emitted reason-code set must **equal** the single declared `expectedReason`,
+with repeated occurrences of that same code acceptable. The fixtures README and
+this report use the same wording. The scalar `expectedReason` property is
+unchanged and no parallel field was added.
+
+## R2-C008 — dynamic-execution detection is bounded
+
+The supported set is stated exactly: direct `eval` calls, `Function` and
+`new Function` construction, `AsyncFunction`, `GeneratorFunction`, `vm` module
+requests, and the `runIn*Context` and `compileFunction` execution APIs in
+validator source, plus a module-loader refusal of `vm`. Indirect eval, computed
+global access, reflective constructor lookup and dynamic `import()` are named as
+**outside** the scan and are not claimed. Executable-looking syntax inside a
+comment is rejected, documented as deliberate policy rather than a false
+positive. Check 36 asserts all nine supported constructs are detected and four
+benign prose strings are not.
+
+## R2-C009 — provenance is accurate
+
+`4ec0123` was labelled "Corrected implementation" in the R1 header; it is the
+**original MARZI-021 implementation under correction** and now says so. The R1
+rollback section records every commit's role: `0798cd8` governance baseline,
+`4ec0123` original implementation, `b47a9eb` R1 mandate transfer, `23f2179` the
+R1 correction later reviewed `CHANGES REQUIRED`. The R1 C002 disposition was
+downgraded to **PARTIALLY RESOLVED** with the reason, and R1's overstated
+sentences about check 30, review binding, protected trees, referential integrity
+and dynamic execution now carry their corrected bounds inline.
+
+## Files changed
+
+**Modified (8):** `docs/packages/MARZI-021.md`, `docs/IMPLEMENTATION_REPORT.md`,
+`docs/learning/SPECIALIST_REVIEW.md`, `docs/learning/SCENARIO_OBJECTIVE_SCHEMA.md`,
+`docs/learning/contracts/v1/README.md`, `test/learning-contracts.js`,
+`test/fixtures/learning/README.md`,
+`test/fixtures/learning/invalid/manifest.json`.
+
+**Created:** none. Every R2 invariant was proven by extending an existing
+fixture or by a bounded in-memory adversarial case, so no new JSON fixture was
+needed.
+
+**Deliberately untouched:** `completion.json` and all contract data and schemas
+(the projection already matched the descriptor and R2 required no data change);
+every other contract under `docs/learning/contracts/v1/`; `public/**`,
+`server.js`, `sw.js`, `manifest.webmanifest`, `package.json`, lockfiles,
+`.github/**`, `.ai/bin/**`, `docs/MARZI_DECISION_REGISTER.md`, `test/run.js`,
+`test/browser/**`, `test/conflict-markers.js`, both mandate files, and `main`.
+
+## Validation — actual results
+
+| Command | Exit | Result |
+|---|---:|---|
+| `node --check server.js` | 0 | PASS |
+| `node --check test/run.js` | 0 | PASS |
+| `node --check test/learning-contracts.js` | 0 | PASS |
+| `node test/conflict-markers.js` | 0 | PASS |
+| `node test/learning-contracts.js` | 0 | **PASS — 36/36 checks** |
+| `node test/run.js` | 0 | **PASS — 50/50 checks, 0 failures** |
+| `git diff --check` | 0 | PASS |
+| `.ai/bin/docs-validate` | 1 | Exactly the approved nine-failure baseline |
+
+Learning-contract checks remain **36**; R2 deepened existing checks rather than
+adding new ones. The application suite is unchanged at **50/50**.
+
+| Inventory | Required | Actual |
+|---|---|---|
+| Scenarios / variants | 29 / 94 | **29 / 94** |
+| German / English | 19-61 / 10-33 | **19-61 / 10-33** |
+| Localized titles | 564 | **564** |
+| Required / optional criteria | 282 / 94 | **282 / 94** |
+| Prerequisite edges, acyclic | 18 | **18** |
+| Positive fixtures | — | **12** |
+| Negative fixtures | — | **45**, 35 distinct reason codes |
+| Objectives with `supersedes: null` | 94 | **94** |
+
+Release mode still refuses the provisional draft with **179** open-gate and
+unreviewed items, and all four open gates keep their `null` values.
+
+## Mutation inventory
+
+Twelve mutations, all detected, all reverted. Ten ran on a disposable copy; the
+condition drift and the status mutations run inside the suite itself on
+in-memory clones.
+
+| # | Mutation | Detected as |
+|---:|---|---|
+| 1 | Disable the `fs.promises` write guard | checks 01 and 36 |
+| 2 | Remove `fchmod`/`fchown`/`futimes` from the wrapping list only | `WRITE_GUARD_NOT_TRIGGERED` on six routes |
+| 3 | Let one guard fall through so only a native error is raised | `WRITE_GUARD_NOT_TRIGGERED … only a native error was raised` |
+| 4 | Condition-only drift in `derivationPrecedence` | `COMPLETION_POLICY_CONTRADICTION` |
+| 5 | Duplicate canonical status dimension | `STATUS_DUPLICATE_DIMENSION` |
+| 6 | Unknown canonical status dimension | `STATUS_UNKNOWN_DIMENSION` |
+| 7 | Restore the obsolete specialist-approval claim | `STATUS_EXTERNAL_GATE_BYPASS` |
+| 8 | Non-null `supersedes` on a real v1 objective | `SUPERSEDES_REF_INVALID` |
+| 9 | Direct `new Function` in validator source | `DYNAMIC_EXECUTION_FORBIDDEN` |
+| 10 | Broaden a negative fixture to two reasons | `FIXTURE_UNEXPECTED_REASON` |
+| 11 | Change a protected file's permission mode only | `VALIDATOR_MUTATED_TREE` |
+| 12 | Each of the 16 status dimensions given a wrong value | its owning status code (in-suite) |
+
+## Audits
+
+- **Scope:** 8 files changed, all on the R2 permitted list.
+- **Runtime / dependency / configuration / deployment diffs vs `23f2179`:**
+  **empty**. The only path difference is `MARZI-021-R2_CLAUDE_CODE_MANDATE.md`,
+  introduced by transfer commit `1531c31`, not by this correction.
+- **Documentation validator:** nine failures, byte-identical to the set at
+  `23f2179`, verified by diffing both outputs. Cause unchanged: the obsolete
+  validator expects four OPEN-only fields per approved decision and exactly 25
+  OPEN index records. Assigned to **MARZI-GOV-001**; `.ai/bin/**` and the
+  Decision Register were not touched.
+
+## Gates that remain
+
+Learning-specialist review **PENDING** (none named, nothing reviewed) ·
+six-language linguistic review **PENDING** · accessibility review **PENDING** ·
+moderated Android study **PENDING** · independent Codex review **NOT GRANTED** ·
+runtime integration **NOT AUTHORIZED** · production **NOT AUTHORIZED** ·
+**NOT DEPLOYED / NOT RELEASED**.
+
+MARZI-D009 and MARZI-D016 remain APPROVED and unchanged. No threshold,
+percentage, weight, score, recency interval, placement content, competency copy,
+certification implication, or aggregate learner property was introduced. The
+Arabic 320×568 / 200%-text overflow remains deferred to presentation and runtime
+integration; no UI file was touched.

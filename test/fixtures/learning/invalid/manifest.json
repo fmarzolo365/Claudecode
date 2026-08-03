@@ -1,7 +1,7 @@
 {
  "contract": "marzi.learning.negative-fixtures.v1",
  "schemaVersion": 1,
- "note": "Each fixture below must be refused by test/learning-contracts.js and the declared reason code must appear among the reported codes.",
+ "note": "Each fixture below must be refused by test/learning-contracts.js and must fail for exactly its declared expectedReason: after deduplication the emitted reason-code set must equal that one code, with no unrelated distinct code. Repeated occurrences of the same code are acceptable.",
  "fixtures": [
   {
    "file": "competencies-duplicate-id.json",
