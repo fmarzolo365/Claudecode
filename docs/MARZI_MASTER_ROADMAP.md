@@ -2,7 +2,7 @@
 
 **Status:** Proposed definitive implementation sequence
 
-**Package range:** MARZI-020 through MARZI-061
+**Package range:** MARZI-020 through MARZI-062
 
 **Authority:** Product Owner approves product/economy/art/commercial decisions; Codex specifies and independently reviews; Claude Code implements approved packages.
 
@@ -1075,6 +1075,32 @@ dependencies, deliverables, acceptance criteria and package relationships
 unchanged. Implementing this preparation package does not mean MARZI-061 has
 been externally reviewed.
 
+## MARZI-062 — Family Visual Staging Preview
+
+- **Objective:** One safe, visibly identifiable staging build of the call screen that the Product Owner and family can open on a phone and give structured feedback on, with no production change and no claim of educational, linguistic, accessibility, release or production approval.
+- **Problem solved:** The Product Owner and family cannot judge the app from a diff or a test count. There was no build they could tell apart from whatever their phone had already installed, no written way to give feedback, and no measured evidence of the call screen at a small viewport, at increased text size, or in Arabic.
+- **Why it exists:** Real human reaction to the actual screen is the cheapest correction available before broader runtime integration, and it has to happen on something disposable rather than on production.
+- **Prerequisites:** The current call surface in `public/index.html`; the existing browser harness and Chromium; a staging service that can be distinguished from production.
+- **Dependencies:** Consumes the visual, call-surface, environment and accessibility requirements owned by MARZI-024, MARZI-039, MARZI-040 and MARZI-050, and leaves the MARZI-061 external-review structures untouched. It **does not complete or supersede** any of them: it integrates a deliberately bounded visual subset for a disposable, non-production preview.
+- **Packages unblocked:** None directly. It produces family observations that feed MARZI-039, MARZI-040 and MARZI-050 as input, and it unblocks no production, release or merge decision.
+- **Exact deliverables:** A checked-in visible staging build identity; reserved, non-overlapping layout regions for the call screen's critical elements; containment for long German compound nouns and 200% text; a service-worker cache/version bump; a staging runbook; a blank privacy-minimal family-feedback form; a 24-check package validator; a browser evidence group.
+- **Expected files/areas:** `docs/packages/MARZI-062.md`, `docs/staging/MARZI-062_STAGING_RUNBOOK.md`, `docs/staging/MARZI-062_FAMILY_FEEDBACK.md`, `public/index.html`, `public/sw.js`, `test/run.js`, `test/browser/run.js`, `test/marzi-062-visual-staging.js`, plus this roadmap entry.
+- **Measurable acceptance criteria:** At 390×844 and 320×568, at 100% and 200% text, in English, Spanish, German content and Arabic RTL — no horizontal document overflow, no critical element outside the viewport, no visible interactive target under 48×48 CSS pixels, and no overlap between the portrait's face region, Marzi, the identity, the state chip, the character's line and the controls; `Krankschreibung` unchanged and contained; the build label visible, accessibly named and non-intercepting; manifest and both icon binaries byte-identical to the base commit.
+- **Required automated tests:** `node test/marzi-062-visual-staging.js`; `node test/browser/run.js marzi062`; the existing application suite at its measured count; `node test/learning-contracts.js`; `node test/marzi-061-external-review-readiness.js`; `node test/conflict-markers.js`; `git diff --check`.
+- **Required real-device tests:** None are performed by this package. Emulated Chromium is not a device, and real font scale, real TalkBack and real installation are precisely what the family preview exists to observe. Device qualification belongs to MARZI-050.
+- **Product-owner approval gate:** The allocation of the identifier and the staging-only boundary are approved. Family feedback is informal product input; it grants no approval, and nothing here is authorization to merge, release, or deploy to production.
+- **Asset dependency:** No launcher asset is produced, cropped, generated or replaced. `ICON ASSET APPROVAL REQUIRED` is recorded as a non-blocking branding handoff, and acceptance of a new launcher icon is NOT APPLICABLE for this implementation.
+- **Economic-system dependency:** None. No XP, coin, price, entitlement, streak or reward value is read, written or referenced.
+- **Security/privacy impact:** Adds no analytics, telemetry, tracker, cookie, remote form, upload, identifier or network submission. The feedback process is documentation only and collects nothing. The build identity is presentation-only and never enters learner state, prompts, transcripts, rewards or persistence.
+- **Accessibility/localization impact:** Measured, not certified. No WCAG conformance, accessibility approval or assistive-technology validation is claimed; those gates stay with MARZI-050 and the pending MARZI-061 accessibility review. No localized string was added, removed or altered.
+- **Implementation risk:** Low runtime risk — presentation only, one isolated revertible commit. The real risk is a preview being mistaken for an approved release, which the visible staging label and this entry exist to prevent.
+- **Rollback strategy:** `git revert <implementation-commit>`. No data migration, no learner data deleted, no entitlement or economy value changed, no asset restored, no history rewritten. Staging rollback restores the prior known-good `marzi-staging-r4a` revision and leaves production untouched.
+- **Estimated engineering effort:** M.
+- **Can run in parallel:** No for application files — it edits the call surface. Yes for documentation and review.
+- **Completion evidence required:** Before/after rendered measurements and screenshots with hashes for every matrix case; the text-scale method and measured computed font sizes; state, focus, target and overlap measurements; interaction evidence for word tap, translation, replay, slow repeat, timer and plan limits; package and browser check counts; empty prohibited diffs; the staging preflight result; and production non-change evidence.
+
+**Staging boundary.** This package deploys only to `marzi-staging-r4a`. Production, `main`, deployment configuration and every production data store are out of scope and must remain unchanged. A deployment must be rejected when the resolved service is not exactly `marzi-staging-r4a`, when the environment is production, or when the repository lacks a staging procedure sufficient to distinguish staging from production.
+
 # Dependency graph
 
 The graph contains every pre-release package. Parallel edges describe dependency eligibility, not authorization for two agents to edit application files simultaneously.
@@ -1236,6 +1262,10 @@ flowchart LR
   P061 --> P034
   P061 --> P042
   P061 --> P049
+  P024 --> P062["MARZI-062"]
+  P039 --> P062
+  P040 --> P062
+  P050 --> P062
 ~~~
 
 # Critical path

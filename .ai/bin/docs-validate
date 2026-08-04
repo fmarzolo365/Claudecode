@@ -177,9 +177,18 @@ guardMain(TOOL, () => {
   const packageIds = packageMatches.map((match) => Number(match[1]));
 
   check("roadmap-package-numbering", () => {
+    /* MARZI-062: the canonical range MARZI-020..061 must still be present,
+       complete and in order. Packages appended after it are the normal way the
+       roadmap grows, so they are allowed rather than treated as corruption. */
     const expected = expectedSequence(20, 61);
-    if (!sameSequence(packageIds, expected)) {
-      failures.push("roadmap package headings must be exactly MARZI-020 through MARZI-060");
+    if (!sameSequence(packageIds.slice(0, expected.length), expected)) {
+      failures.push("roadmap package headings must begin with MARZI-020 through MARZI-061 in order");
+    }
+    const trailing = packageIds.slice(expected.length);
+    for (let i = 0; i < trailing.length; i++) {
+      if (trailing[i] !== 62 + i) {
+        failures.push("roadmap package heading out of sequence after MARZI-061: MARZI-" + String(trailing[i]).padStart(3, "0"));
+      }
     }
     if (new Set(packageIds).size !== packageIds.length) {
       failures.push("duplicate roadmap package ID");

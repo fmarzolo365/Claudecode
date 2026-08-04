@@ -57,11 +57,13 @@ function mkEl() {
       toggle(c, f) { f === undefined ? (this._c.has(c) ? this._c.delete(c) : this._c.add(c)) : (f ? this._c.add(c) : this._c.delete(c)); },
       add(c) { this._c.add(c); }, remove(c) { this._c.delete(c); }, has(c) { return this._c.has(c); },
     },
-    style: {}, dataset: {}, innerHTML: "", textContent: "", value: "", placeholder: "",
+    style: { _p: {}, setProperty(k, v) { this._p[k] = v; }, getPropertyValue(k) { return this._p[k] ?? ""; } },
+    dataset: {}, innerHTML: "", textContent: "", value: "", placeholder: "",
     setAttribute() {}, getAttribute() { return null; },
     disabled: false, className: "", onclick: null, oninput: null, onkeydown: null,
     querySelector() { return null; }, querySelectorAll: () => [],
     appendChild() {}, focus() {}, removeAttribute() {}, scrollTop: 0, scrollHeight: 0,
+    offsetHeight: 0, offsetWidth: 0,
   };
 }
 globalThis.document = {
@@ -70,7 +72,11 @@ globalThis.document = {
   // body carries a real classList: modal-lock, in-call and reduce-motion are
   // all applied there, so the stub has to be able to observe them
   body: Object.assign(mkEl(), { appendChild() {} }), querySelectorAll: () => [],
+  // MARZI-062: every browser exposes documentElement, and the staging marker's
+  // observer writes --staging-bar on it. The stub lacked it entirely.
+  documentElement: mkEl(),
 };
+globalThis.ResizeObserver = function (cb) { this.observe = () => cb([]); this.disconnect = () => {}; };
 globalThis.window = globalThis;
 globalThis.addEventListener = () => {};
 globalThis.location = { hash: "", reload() {} };
@@ -1158,7 +1164,9 @@ check("release gates: hygiene, versioning and documentation", () => {
   // 2. the service worker is versioned and still excludes the API
   const sw = fs.readFileSync(path.join(__dirname, "..", "public", "sw.js"), "utf8");
   const cache = (sw.match(/const CACHE = "([^"]+)"/) || [])[1];
-  if (!/^telefontrainer-v\d+$/.test(cache || "")) throw new Error("service worker cache not versioned: " + cache);
+  // MARZI-062: a build identifier may follow the version so a preview cache is
+  // distinguishable, but the version itself is still mandatory
+  if (!/^telefontrainer-v\d+(-[a-z0-9-]+)?$/.test(cache || "")) throw new Error("service worker cache not versioned: " + cache);
   if (!/\/api\//.test(sw)) throw new Error("service worker must never cache API responses");
   // 3. CI runs both gates, on feature branches too
   const ci = fs.readFileSync(path.join(__dirname, "..", ".github", "workflows", "ci.yml"), "utf8");
@@ -1958,18 +1966,28 @@ check("MARZI-018 Marzi presence and bubble anchoring", () => {
   const styles = html.slice(html.indexOf("<style>"), html.indexOf("</style>"));
   // M-02: the art scales with the viewport instead of a fixed 108px badge
   // R2-APP-01: the ARTWORK carries the presence contract, at every stage
-  if (!/\.call-marzi \.vc-marzi-art \{[^}]*width: clamp\(112px, 25\.5dvh, 208px\)/.test(styles))
-    throw new Error("Marzi artwork no longer scales with the dynamic viewport");
-  if (!/\.call-marzi\[data-stage="3"\] \.vc-marzi-art \{[^}]*width: clamp\(112px, 25\.5dvh, 208px\)/.test(styles))
-    throw new Error("early stages must scale like 4-6 inside the call");
-  if (!/\.call-marzi\[data-stage="3"\] \.vc-marzi-art \{[^}]*border: 0/.test(styles))
-    throw new Error("early stages must not keep the badge treatment in the call");
+  // MARZI-062: the same viewport scale, now also bounded by the row Marzi sits
+  // in, so a short viewport at 200% text shrinks him instead of letting him
+  // overrun the stage. The dvh term is still what drives his size.
+  const MARZI_SIZE = /height: clamp\(112px, 25\.5dvh, 208px\); max-height: 100%/;
+  const artRule = (styles.match(/\.call-marzi \.vc-marzi-art \{[^}]*\}/) || [""])[0];
+  if (!MARZI_SIZE.test(artRule)) throw new Error("Marzi artwork no longer scales with the dynamic viewport");
+  if (!/aspect-ratio: 1 \/ 1/.test(artRule)) throw new Error("Marzi artwork is no longer square");
+  const stage3 = (styles.match(/\.call-marzi\[data-stage="3"\][\s\S]*?\{[^}]*\}/) || [""])[0];
+  if (!MARZI_SIZE.test(stage3)) throw new Error("early stages must scale like 4-6 inside the call");
+  if (!/border: 0/.test(stage3)) throw new Error("early stages must not keep the badge treatment in the call");
   if (/max-width: 128px/.test(styles)) throw new Error("the old 128px cap still clips Marzi");
   if (!/max-width: min\(46vw, 220px\)/.test(styles)) throw new Error("Marzi container cap missing");
   // M-03: the suggestion is anchored beside Marzi and carries a tail back to him
   if (!/\.call-bubble\.marzi::after \{/.test(styles)) throw new Error("the Marzi bubble has no tail");
-  if (!/\.call-bubble\.marzi \{[^}]*inset-inline-start: min\(42vw, 200px\)/.test(styles))
-    throw new Error("the suggestion is not anchored beside Marzi");
+  // MARZI-062: "beside Marzi" is now expressed as the second column of the same
+  // grid row rather than as an absolute inset. Both cells must exist and share
+  // the row, or the suggestion is no longer anchored to him.
+  if (!/"marzi  hint"/.test(styles)) throw new Error("the suggestion is not anchored beside Marzi");
+  if (!/\.call-bubble\.marzi \{[^}]*grid-area: hint/.test(styles))
+    throw new Error("the suggestion left the row it shares with Marzi");
+  if (!/\.call-marzi \{[^}]*grid-area: marzi/.test(styles))
+    throw new Error("Marzi left the row he shares with the suggestion");
   // M-10: the lower third is seated, not empty
   if (!/\.call-mid::after \{/.test(styles)) throw new Error("no floor gradient under the companion");
   // constraint 5: UI.callStage was NOT introduced
@@ -2052,6 +2070,50 @@ check("MARZI-018-R1: nothing may shadow the native History API", () => {
   // the sheet flag must only be set when the push actually happened
   const open = String(scriptSrc.match(/window\.history\.pushState\(\{ marziSheet: true \}[^\n]*/)[0]);
   if (!/SHEET_HISTORY = true/.test(open)) throw new Error("sheet history flag no longer set at push time");
+});
+
+check("MARZI-062 staging preview: build identity, reserved regions, containment", () => {
+  const styles = html.slice(html.indexOf("<style>"), html.indexOf("</style>"));
+  // 1. the build identity is checked in, exact, uniquely marked and named
+  const LABEL = "MARZI STAGING PREVIEW \u00b7 MARZI-062 \u00b7 BUILD MARZI-062-PREVIEW-1";
+  if (!html.includes(LABEL)) throw new Error("the exact staging build label is missing");
+  const markers = html.match(/data-marzi-build=/g) || [];
+  if (markers.length !== 1) throw new Error("expected exactly one build marker, found " + markers.length);
+  const bar = (html.match(/<div class="staging-bar"[^>]*>/) || [""])[0];
+  if (!/aria-label="[^"]*MARZI-062-PREVIEW-1/.test(bar)) throw new Error("the staging marker has no accessible name");
+  // 2. it can never intercept a control or truncate its own text
+  const barRule = (styles.match(/\.staging-bar \{[^}]*\}/) || [""])[0];
+  if (!/pointer-events: none/.test(barRule)) throw new Error("the staging marker can intercept controls");
+  if (/text-overflow: ellipsis|white-space: nowrap/.test(barRule)) throw new Error("the staging marker truncates instead of wrapping");
+  // 3. the marker's height comes out of the shell budget, so the page itself
+  //    gains no scroll and the call layer never covers the marker
+  for (const rule of ["min-height: calc(100dvh - var(--staging-bar, 0px))",
+                      "height: calc(100dvh - 64px - var(--staging-bar, 0px))",
+                      "inset: var(--staging-bar, 0px) 0 0 0"]) {
+    if (!styles.includes(rule)) throw new Error("the staging marker is not in the layout budget: " + rule);
+  }
+  // 4. critical call elements occupy reserved regions that cannot overlap
+  const mid = (styles.match(/\.call-mid \{[^}]*\}/) || [""])[0];
+  if (!/display: grid/.test(mid)) throw new Error(".call-mid no longer reserves layout regions");
+  for (const area of ["status", "alert", "char", "marzi", "hint"]) {
+    if (!new RegExp("grid-area: " + area + "\\b").test(styles)) throw new Error("no reserved region for " + area);
+  }
+  // 5. a long compound noun is contained rather than clipped, and the
+  //    character's line keeps a real reading budget at any text scale
+  const bubble = (styles.match(/\.call-bubble \{[^}]*\}/) || [""])[0];
+  if (!/overflow-wrap: break-word/.test(bubble)) throw new Error("bubbles no longer break long compound nouns");
+  if (/\.call-bubble \{[^}]*overflow-wrap: anywhere/.test(styles))
+    throw new Error("`anywhere` shrinks the bubble's intrinsic width and collapses the suggestion");
+  const charBubble = (styles.match(/\.call-bubble\.char \{[^}]*\}/) || [""])[0];
+  if (!/min-height: max\(var\(--touch-min\), 3lh\)/.test(charBubble))
+    throw new Error("the character line lost its three-line reading budget");
+  // 6. the preview is presentation only: no telemetry, no new storage key
+  if (/sendBeacon|dataLayer\s*\.\s*push|gtag\s*\(/.test(src)) throw new Error("the preview added telemetry");
+  const keys = new Set((src.match(/"marzi\.[a-z.]+v\d"/g) || []));
+  if (!keys.has('"marzi.settings.v1"') || !keys.has('"marzi.stats.v1"')) throw new Error("a canonical storage key disappeared");
+  // 7. the observer is bounded and detaches with the page
+  if (!/new ResizeObserver\(publish\)/.test(src)) throw new Error("the staging marker height is not observed");
+  if (!/ro\.disconnect\(\)/.test(src)) throw new Error("the staging observer is never disconnected");
 });
 
 check("progress chart renders points, CEFR bands and a projection", () => {

@@ -129,7 +129,10 @@
       var(--bg);
     color: var(--ink);
     font-family: var(--font-sans);
-    min-height: 100dvh;
+    /* MARZI-062: the staging marker is in flow, so the shell's own minimum
+       height must exclude it or the page gains exactly the marker's height
+       in scroll. Without the marker --staging-bar is 0 and this is 100dvh. */
+    min-height: calc(100dvh - var(--staging-bar, 0px));
     -webkit-font-smoothing: antialiased;
   }
   main {
@@ -141,7 +144,11 @@
   /* MARZI-005: the call fills exactly one screen - the transcript is the
      flexible middle, so alerts or the type row never push the page taller */
   body.in-call main {
-    height: calc(100dvh - 64px); display: flex; flex-direction: column; overflow: hidden;
+    /* MARZI-062: the staging marker is in flow above this, so its measured
+       height comes out of the same budget as the top bar. Without the marker
+       --staging-bar is 0 and this is the original calc. */
+    height: calc(100dvh - 64px - var(--staging-bar, 0px));
+    display: flex; flex-direction: column; overflow: hidden;
   }
   /* MARZI-018-R3 (R2-APP-04): `.callscreen` is the SINGLE owner of both call
      safe-area insets. The R2 rules here consumed them a second time - with
@@ -149,9 +156,28 @@
      composition collided. One owner per edge, no exceptions. */
   body.in-call #call { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
   body.in-call #call .log { flex: 1 1 auto; min-height: 104px; max-height: none; }
+  /* ---------- MARZI-062: visible staging preview identity ----------
+     A checked-in build marker so the family can tell this preview apart from
+     an older installed PWA. It is in normal flow and sticky, so it never
+     covers content; `pointer-events: none` means it can never intercept a
+     control or shrink a 48x48 target. Its measured height is published as
+     --staging-bar (see the observer below) and every full-screen layer starts
+     underneath it. Presentation only: it reads no learner state and writes
+     none. */
+  .staging-bar {
+    position: sticky; top: 0; z-index: 95; pointer-events: none;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 4px var(--space-2); text-align: center;
+    background: var(--marzi-dark); color: var(--white);
+    font: 800 var(--text-f10-5) 'JetBrains Mono', monospace;
+    letter-spacing: .04em; line-height: 1.3;
+    /* the label wraps rather than truncating, so it stays readable at
+       320x568 and at 200% text instead of turning into an ellipsis */
+    overflow-wrap: anywhere; white-space: normal;
+  }
   /* ---------- app shell: sticky top bar + fixed bottom navigation ---------- */
   .topbar {
-    position: sticky; top: 0; z-index: 30;
+    position: sticky; top: var(--staging-bar, 0px); z-index: 30;
     border-bottom: 1px solid var(--line);
     background: rgba(247, 241, 229, .92);
     backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
@@ -1169,17 +1195,48 @@
      dominant visual; every overlay is absolutely positioned so nothing can
      collide, and the page can never scroll. */
   .callscreen {
-    position: fixed; inset: 0; z-index: 70; overflow: hidden;
+    /* MARZI-062: the call layer starts below the staging marker so the marker
+       is never covered and never covers the call. --staging-bar is 0 when the
+       marker is absent, so this is identical to `inset: 0` without it. */
+    position: fixed; inset: var(--staging-bar, 0px) 0 0 0; z-index: 70; overflow: hidden;
     background: var(--call-bg); color: var(--white);
-    height: 100dvh; min-height: 100vh;
+    height: calc(100dvh - var(--staging-bar, 0px)); min-height: 0;
     display: flex; flex-direction: column;
     /* sole owner of both call insets - see R2-APP-04 */
     padding: calc(var(--safe-top) + var(--space-2)) 0
              calc(var(--safe-bottom) + var(--space-2));
   }
-  /* the middle band owns every overlay; the bottom stack is a flex sibling,
-     so controls can never collide with Marzi or the bubbles */
-  .call-mid { position: relative; flex: 1 1 auto; min-height: 0; }
+  /* MARZI-062: the middle band reserves an independent region per critical
+     element instead of stacking them as free-floating overlays. Absolutely
+     positioned siblings could not know about each other, so at 200% text the
+     character line, Marzi, the identity and the status chip grew into one
+     another. Grid areas cannot overlap by construction, so the geometry holds
+     at every viewport and text scale. The portrait, scrim and floor stay
+     absolute: they are the backdrop, not critical boxes. */
+  .call-mid {
+    position: relative; flex: 1 1 auto; min-height: 0;
+    display: grid;
+    /* the suggestion keeps a usable floor so Marzi's column can never squeeze
+       it into a one-word-per-line strip; below that floor Marzi yields */
+    grid-template-columns: minmax(0, auto) minmax(min(45%, 200px), 1fr);
+    /* MARZI-062: the companion's row keeps a floor so a long alert or a long
+       character line cannot collapse him to nothing; past that floor the band
+       scrolls rather than dropping him. */
+    grid-template-rows: auto auto auto minmax(min(96px, 18dvh), 1fr);
+    grid-template-areas:
+      "status status"
+      "alert  alert"
+      "char   char"
+      "marzi  hint";
+    gap: var(--space-2);
+    padding: 0 var(--space-3);
+    /* MARZI-062: at 320x568 with 200% text the identity block alone can be
+       218px tall and the control stack 206px, so the middle band is genuinely
+       out of room. It owns that overflow itself rather than pushing the
+       character's line past the controls or off the screen: the page still
+       does not scroll, and the controls, timer and identity stay put. */
+    overflow-y: auto; overscroll-behavior: contain;
+  }
   .call-portrait {
     position: absolute; inset: 0; width: 100%; height: 100%;
     object-fit: cover; object-position: 50% 22%; display: none;
@@ -1209,7 +1266,11 @@
   .callscreen.speaking .call-scrim { box-shadow: inset 0 0 0 3px var(--tint-primary-35); }
   .call-top {
     position: relative; z-index: 4; flex: 0 0 auto;
-    display: grid; grid-template-columns: var(--touch-min) minmax(0, 1fr) var(--touch-min);
+    /* MARZI-062: the trailing connection indicator measures ~13px, so a fixed
+       48px track spent 35px of the identity's width on the narrowest screen.
+       It now takes only what it needs and the identity keeps the rest, which
+       is what lets a long name wrap instead of breaking mid-word at 200%. */
+    display: grid; grid-template-columns: var(--touch-min) minmax(0, 1fr) auto;
     align-items: start; gap: var(--space-2); padding: 0 var(--space-2);
   }
   .call-x {
@@ -1217,7 +1278,19 @@
     border: 0; background: rgba(255,255,255,.16); color: var(--white); cursor: pointer;
     display: grid; place-items: center;
   }
-  .call-id { min-width: 0; text-align: center; display: grid; }
+  .call-id {
+    min-width: 0; text-align: center; display: grid;
+    /* MARZI-062: at 200% text the three identity lines measured 218px of a
+       568px screen and starved the rest of the composition. The block keeps a
+       generous share and owns its own overflow, so the name stays readable
+       without the character's line, Marzi and the controls losing their room.
+       Below that ceiling this rule changes nothing. */
+    max-height: 22dvh; overflow-y: auto; overscroll-behavior: contain;
+  }
+  /* MARZI-062: identity text wraps, and breaks a long compound name if it has
+     to. Without this the name overflowed its box sideways at 200% text and was
+     cut off at the edge instead of wrapping. */
+  .call-id-kicker, .call-id-name, .call-id-place { min-width: 0; overflow-wrap: break-word; }
   .call-id-kicker { font: 600 var(--text-f11-5) var(--font-sans); opacity: .82; }
   .call-id-name { font: 800 var(--text-f18) var(--font-sans); line-height: 1.2; }
   .call-id-place { font: 600 var(--text-f12) var(--font-sans); opacity: .78; line-height: 1.3; }
@@ -1229,21 +1302,37 @@
   /* MARZI-018-R2: both bubbles are buttons (tap to replay / to use the
      suggestion), so they are interactive targets and must meet the floor. */
   .call-bubble {
-    position: absolute; z-index: 3; max-width: 62%; text-align: start;
-    min-height: var(--touch-min); box-sizing: border-box;
+    position: relative; z-index: 3; max-width: 100%; text-align: start;
+    min-height: var(--touch-min); min-width: 0; box-sizing: border-box;
+    /* MARZI-062: a long compound noun (Krankschreibung) is a single unbreakable
+       token, so at 200% text it pushed past the bubble and was clipped. The
+       bubble now breaks such a word and scrolls its own overflow instead.
+       `break-word`, not `anywhere`: `anywhere` also shrinks the element's
+       intrinsic max-content width, which collapsed the suggestion into a
+       one-word-per-line strip beside Marzi. */
+    overflow-wrap: break-word; overflow-y: auto; overscroll-behavior: contain;
     display: flex; align-items: center;
     background: var(--paper-3); color: var(--ink);
     border: 1.5px solid var(--stage-line); border-radius: 18px;
     padding: var(--space-2) var(--space-3); box-shadow: var(--shadow);
     font: 600 var(--text-f13-5) var(--font-sans); line-height: 1.35;
   }
-  /* explicit widths: a right-anchored shrink-to-fit box collapses to
-     min-content and clips its text */
-  .call-bubble.char { inset-inline-start: var(--space-3); top: 12%; width: 62%; border-end-start-radius: 6px; }
+  /* MARZI-062: both bubbles are grid items now. Each owns a row (or a cell in
+     the Marzi row), so neither can grow into the other, into the identity, or
+     into the controls when the text scales. */
+  .call-bubble.char {
+    grid-area: char; justify-self: start; width: min(100%, 62ch);
+    /* MARZI-062: a scrollable box has an automatic minimum size of zero, so
+       the grid was free to squeeze the character's line down to its 48px
+       floor at 200% text. Three of its own lines is the reading budget the
+       row must honour at any text scale; anything longer scrolls inside the
+       bubble, with the full turn always available in the transcript. */
+    min-height: max(var(--touch-min), 3lh); max-height: 34dvh;
+    border-end-start-radius: 6px;
+  }
   .call-bubble.marzi {
-    inset-inline-start: min(42vw, 200px); inset-inline-end: var(--space-3);
-    bottom: calc(var(--space-2) + 26%); width: auto;
-    cursor: pointer; border-end-start-radius: 6px;
+    grid-area: hint; justify-self: stretch; width: 100%; align-self: end;
+    max-height: 26dvh; cursor: pointer; border-end-start-radius: 6px;
     background: var(--paper); border-color: var(--tint-leaf-35);
   }
   /* the tail points back at Marzi, so bubble and companion read as one unit */
@@ -1258,13 +1347,30 @@
      dynamic viewport so he holds >=30% of width and ~25% of height on both
      reference phones, and is clamped so he never overruns the stage. */
   .call-marzi {
-    position: absolute; inset-inline-start: var(--space-2); bottom: 0;
-    z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 1px;
+    /* MARZI-062: the companion sits at the bottom of his row and is capped by
+       it, so he keeps his established size wherever there is room and shrinks
+       only where there is not. The cap is on the CONTAINER; the artwork keeps
+       a plain clamp and shrinks through flex, because sizing the artwork with
+       `min(clamp(...), 100%)` against an auto-height parent silently cost it
+       ~3% of its presence at 390x844. */
+    grid-area: marzi; position: relative; align-self: end; justify-self: start;
+    justify-content: flex-end; max-height: 100%; min-height: 0;
+    /* MARZI-062: the artwork is deliberately wider than the container cap
+       (208px of art inside a 179px footprint at 390x844), so centring it spilled
+       ~2.3px past the inline-start edge of the viewport. Packing to the start
+       keeps the same artwork size and moves that overhang inward, where there
+       is room. The caption stays centred under him. */
+    z-index: 2; display: flex; flex-direction: column; align-items: flex-start; gap: 1px;
     pointer-events: none; max-width: min(46vw, 220px);
   }
+  .call-marzi .vc-marzi-cap { align-self: center; }
   .call-marzi .vc-marzi-art {
-    /* the ARTWORK, not just its container, carries the presence contract */
-    width: clamp(112px, 25.5dvh, 208px); height: clamp(112px, 25.5dvh, 208px);
+    /* the ARTWORK, not just its container, carries the presence contract.
+       MARZI-062: bounded by the row as well as by the viewport, so he holds
+       his established presence where there is room and yields where there is
+       not, rather than overrunning the stage. */
+    height: clamp(112px, 25.5dvh, 208px); max-height: 100%; min-height: 0; flex: 0 1 auto;
+    width: auto; aspect-ratio: 1 / 1;
     filter: drop-shadow(0 6px 14px rgba(16,12,8,.55));
   }
   .call-marzi .vc-marzi-art svg, .call-marzi .vc-marzi-img { width: 100%; height: 100%; display: block; }
@@ -1279,7 +1385,8 @@
     /* #vcMarzi carries BOTH .call-marzi and .vc-marzi, so the Learn badge rule
        (46px, bordered chip) also matched here. Unset the chrome AND restore the
        scaled size, so early stages match 4-6 inside the call (R2-APP-01). */
-    width: clamp(112px, 25.5dvh, 208px); height: clamp(112px, 25.5dvh, 208px);
+    height: clamp(112px, 25.5dvh, 208px); max-height: 100%; min-height: 0; flex: 0 1 auto;
+    width: auto; aspect-ratio: 1 / 1;
     border: 0; border-radius: 0; padding: 0; background: none; box-shadow: none;
     filter: drop-shadow(0 0 10px rgba(255,255,255,.34)) drop-shadow(0 6px 14px rgba(16,12,8,.55));
   }
@@ -1333,8 +1440,9 @@
   .call-meta .low { color: var(--coin); }
   /* status + alerts stay visible until resolved */
   .call-status-chip {
-    position: absolute; left: 50%; transform: translateX(-50%); z-index: 5; top: 0;
-    display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+    grid-area: status; position: relative; justify-self: center; z-index: 5;
+    max-width: 100%; overflow-wrap: break-word;
+    display: inline-flex; align-items: center; gap: 6px; white-space: normal;
     background: rgba(16,12,8,.72); border: 1px solid rgba(255,255,255,.24);
     color: var(--white); border-radius: 999px; padding: 6px var(--space-3);
     font: 700 var(--text-f11-5) var(--font-sans);
@@ -1343,7 +1451,13 @@
     background: var(--danger-soft); color: var(--danger-ink); border-color: var(--tint-danger-35);
   }
   .call-alert {
-    position: absolute; left: var(--space-3); right: var(--space-3); z-index: 6; top: 40px;
+    /* MARZI-062: a transient warning is bounded so it cannot take the whole
+       band — at 200% text it measured 158px of a 108px band and left nothing
+       for the conversation. It is NOT given its own scroll: a scrollable box
+       has an automatic minimum size of zero, and the grid then squeezed the
+       warning down to 18px, which is worse than a bounded one. */
+    grid-area: alert; position: relative; z-index: 6;
+    max-height: 26dvh;
     background: var(--danger-soft); color: var(--danger-ink);
     border: 1px solid var(--tint-danger-35); border-radius: var(--radius);
     padding: var(--space-2) var(--space-3); font: 700 var(--text-f12) var(--font-sans);
@@ -1571,6 +1685,11 @@
 </style>
 </head>
 <body>
+<!-- MARZI-062: staging preview identity. Checked in so the deployed staging
+     build is self-identifying without any telemetry; it carries no learner
+     state and takes part in no prompt, transcript, reward or persistence. -->
+<div class="staging-bar" id="stagingBar" data-marzi-build="MARZI-062-PREVIEW-1"
+     role="note" aria-label="MARZI staging preview, package MARZI-062, build MARZI-062-PREVIEW-1">MARZI STAGING PREVIEW · MARZI-062 · BUILD MARZI-062-PREVIEW-1</div>
 <header class="topbar" id="topbar">
   <div class="topbar-in">
     <button class="menu-btn" id="menuBtn" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -7507,6 +7626,24 @@ window.addEventListener("hashchange", () => {
   const tab = tabFromHash(location.hash);
   if (tab && tab !== CURRENT_TAB) showTab(tab, true);
 });
+
+/* MARZI-062: publish the staging marker's measured height so the fixed call
+   layer starts underneath it instead of covering it. One observer on one
+   element, disconnected with the page; nothing else reads or writes it. */
+(function trackStagingBar() {
+  const bar = $("stagingBar");
+  if (!bar) return;
+  const publish = () =>
+    document.documentElement.style.setProperty("--staging-bar", bar.offsetHeight + "px");
+  publish();
+  if (typeof ResizeObserver === "function") {
+    const ro = new ResizeObserver(publish);
+    ro.observe(bar);
+    window.addEventListener("pagehide", () => ro.disconnect(), { once: true });
+  } else {
+    window.addEventListener("resize", publish);
+  }
+})();
 
 applyLangDirection();
 applyReduceMotion();

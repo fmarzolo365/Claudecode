@@ -730,7 +730,10 @@ check("M061-ER-001", "roadmap keeps MARZI-022 and adds MARZI-061 exactly once", 
   const headings = Array.from(roadmap.matchAll(/^## MARZI-([0-9]{3}) — (.+)$/gm));
   const ids = headings.map((m) => m[1]);
   if (new Set(ids).size !== ids.length) problems.push("M061_ER_PACKAGE_ID_COLLISION: duplicate roadmap package heading");
-  if (ids.length !== 42) problems.push("M061_ER_TRACK_SET_INVALID: roadmap has " + ids.length + " package headings, expected 42");
+  /* MARZI-062: 42 is the count of the canonical MARZI-020..061 range this
+     package owns. Later packages are appended by design, so the floor is what
+     matters; a heading disappearing is still caught. */
+  if (ids.length < 42) problems.push("M061_ER_TRACK_SET_INVALID: roadmap has " + ids.length + " package headings, expected at least 42");
   const byId = new Map(headings.map((m) => [m[1], m[2].trim()]));
   if (byId.get("022") !== "Domain Ownership and Event Contracts") {
     problems.push("M061_ER_PACKAGE_ID_COLLISION: MARZI-022 is titled " + JSON.stringify(byId.get("022")));
@@ -746,8 +749,11 @@ check("M061-ER-001", "roadmap keeps MARZI-022 and adds MARZI-061 exactly once", 
   }
   const graph = roadmap.slice(roadmap.indexOf("# Dependency graph"), roadmap.indexOf("# Critical path"));
   if (!graph.includes("MARZI-061")) problems.push("M061_ER_TRACK_SET_INVALID: dependency graph does not cover MARZI-061");
-  if (!roadmap.includes("MARZI-020 through MARZI-061")) {
-    problems.push("M061_ER_INVENTORY_DRIFT: roadmap package range does not read MARZI-020 through MARZI-061");
+  /* the declared range must still start at MARZI-020 and reach at least
+     MARZI-061; it may extend further as packages are appended */
+  const range = roadmap.match(/MARZI-020 through MARZI-(\d{3})/);
+  if (!range || Number(range[1]) < 61) {
+    problems.push("M061_ER_INVENTORY_DRIFT: roadmap package range does not cover MARZI-020 through MARZI-061");
   }
   return problems;
 });

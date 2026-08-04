@@ -42,8 +42,13 @@ async function ctxFor(b, { w, h, lang = "es", portrait = "ok", delay = 700, redu
   await ctx.route("**/api/tts**", (r) => r.fulfill({ status: 404, body: "" }));
   await ctx.route("**/api/chat", async (r) => {
     if (delay) await new Promise((res) => setTimeout(res, delay));
+    /* MARZI-062: the tapped-word lookup posts a different system prompt and
+       expects {"de","tr"}. Answering it with a role-play turn made the real
+       translation path fail for a fixture reason rather than an app reason. */
+    const post = r.request().postData() || "";
+    const body = /dictionary form/.test(post) ? { de: "der Termin", tr: "appointment" } : TURN;
     r.fulfill({ status: 200, contentType: "application/json",
-      body: JSON.stringify({ content: [{ type: "text", text: JSON.stringify(TURN) }] }) });
+      body: JSON.stringify({ content: [{ type: "text", text: JSON.stringify(body) }] }) });
   });
   await ctx.addInitScript(FAKE_SR);
   const p = await ctx.newPage();
@@ -437,6 +442,227 @@ const LANGS = process.argv[4] ? [process.argv[4]] : ["es", "ar"];
     console.log("   top-bar measured rightmost edge / overflow:");
     rows.forEach((r) => console.log(r));
     await ctx.close();
+  }
+
+  /* MARZI-062: the family visual staging preview. Every criterion here is a
+     RENDERED measurement — the package's source validator deliberately asserts
+     none of it. Runs its own viewport/language/text-scale matrix rather than
+     the shared one, because the regression it guards is specific to 200% text
+     at a small viewport. */
+  if (group("marzi062")) {
+    const SCALE = ":root{--text-xs:22px;--text-sm:26px;--text-md:30px;--text-lg:38px;--text-xl:52px;" +
+      "--text-f8:16px;--text-f9:18px;--text-f10:20px;--text-f10-5:21px;--text-f11:22px;--text-f11-5:23px;" +
+      "--text-f12:24px;--text-f12-5:25px;--text-f13:26px;--text-f13-5:27px;--text-f14:28px;--text-f15-5:31px;" +
+      "--text-f16:32px;--text-f17:34px;--text-f18:36px;--text-f20:40px;--text-f21:42px;--text-f24:48px;" +
+      "--text-f27:54px;--text-f64:128px}html{font-size:200%}";
+    const CASES = [
+      { id: "V01", w: 390, h: 844, lang: "en", scale: 1 },
+      { id: "V04", w: 390, h: 844, lang: "ar", scale: 1 },
+      { id: "V05", w: 320, h: 568, lang: "en", scale: 1 },
+      { id: "V06", w: 320, h: 568, lang: "ar", scale: 1 },
+      { id: "V07", w: 320, h: 568, lang: "ar", scale: 2 },
+      { id: "V08", w: 320, h: 568, lang: "en", scale: 2 },
+      { id: "V09", w: 390, h: 844, lang: "en", scale: 2 }
+    ];
+    for (const c of CASES) {
+      const { ctx, p, errs } = await ctxFor(b, { w: c.w, h: c.h, lang: c.lang, delay: 400 });
+      if (c.scale === 2) await p.addStyleTag({ content: SCALE });
+      await enterCall(p, 1600);
+      const m = await p.evaluate(() => {
+        const de = document.documentElement;
+        const vw = de.clientWidth, vh = de.clientHeight;
+        const box = (sel) => {
+          const e = document.querySelector(sel);
+          if (!e) return null;
+          const cs = getComputedStyle(e);
+          if (cs.display === "none" || cs.visibility === "hidden" || e.classList.contains("hidden")) return null;
+          const r = e.getBoundingClientRect();
+          return r.width && r.height ? { x: r.x, y: r.y, right: r.right, bottom: r.bottom } : null;
+        };
+        const over = (a, z) => {
+          if (!a || !z) return 0;
+          const w = Math.min(a.right, z.right) - Math.max(a.x, z.x);
+          const h = Math.min(a.bottom, z.bottom) - Math.max(a.y, z.y);
+          return w > 0 && h > 0 ? Math.round(w * h) : 0;
+        };
+        /* Obscuring is caused by rendered pixels. #vcMarzi is a transparent,
+           pointer-events:none layout container that stretches to its grid row;
+           what is actually drawn is the artwork and the stage caption. The
+           union of those two is therefore what can obscure anything, and the
+           container box is reported alongside it for transparency. */
+        const union = (...bs) => { const v = bs.filter(Boolean); if (!v.length) return null;
+          return { x: Math.min(...v.map((z) => z.x)), y: Math.min(...v.map((z) => z.y)),
+            right: Math.max(...v.map((z) => z.right)), bottom: Math.max(...v.map((z) => z.bottom)) }; };
+        const B = { marzi: union(box(".call-marzi .vc-marzi-art"), box(".call-marzi .vc-marzi-cap")),
+          id: box("#callId"), state: box("#callStatus"),
+          say: box("#vcSay"), ctrl: box("#callControls"), portrait: box(".call-portrait.ok") };
+        const marziContainer = box("#vcMarzi");
+        /* Where is the character's face? The shell already answers that: the
+           portrait is cover-fit at `object-position: 50% 22%` and its emoji
+           FALLBACK — the stand-in for the face — is placed at `top: 30%`. The
+           face region is therefore the top 30% of the portrait, taken from the
+           app's own geometry rather than from a guess. A wider 45% band is
+           also measured and reported, but is not the assertion: Marzi standing
+           in front of the lower portrait is the established design (MARZI-018
+           M-02/M-10), so only the face is protected. */
+        const band = (f) => B.portrait ? { x: B.portrait.x, y: B.portrait.y, right: B.portrait.right,
+          bottom: B.portrait.y + (B.portrait.bottom - B.portrait.y) * f } : null;
+        const face = band(0.30), wideBand = band(0.45);
+        /* past the viewport edge is only unreachable when no ancestor can
+           scroll to it; inside a scroll container it is reachable */
+        const SEL = { marzi: ".call-marzi .vc-marzi-art", id: "#callId", state: "#callStatus", say: "#vcSay",
+          ctrl: "#callControls", portrait: ".call-portrait.ok" };
+        const reachable = (sel) => {
+          let e = document.querySelector(sel);
+          while (e && e !== document.body) {
+            const cs = getComputedStyle(e);
+            if (/auto|scroll/.test(cs.overflowY) && e.scrollHeight > e.clientHeight + 1) return true;
+            e = e.parentElement;
+          }
+          return false;
+        };
+        const inView = Object.entries(B).filter(([, v]) => v)
+          .filter(([, v]) => v.x < -1 || v.y < -1 || v.right > vw + 1 || v.bottom > vh + 1)
+          .filter(([k]) => !reachable(SEL[k]))
+          .map(([k]) => k);
+        const small = [...document.querySelectorAll('button,[role="button"],a[href]')].filter((e) => {
+          const cs = getComputedStyle(e);
+          if (cs.display === "none" || cs.visibility === "hidden") return false;
+          const r = e.getBoundingClientRect();
+          if (!r.width || !r.height || r.bottom <= 0 || r.top >= vh) return false;
+          const af = getComputedStyle(e, "::after");
+          return Math.max(r.height, parseFloat(af.height) || 0) < 47.5
+              || Math.max(r.width, parseFloat(af.width) || 0, parseFloat(af.minWidth) || 0) < 47.5;
+        }).map((e) => (e.id || e.className) + ":" + Math.round(e.getBoundingClientRect().width) + "x" + Math.round(e.getBoundingClientRect().height));
+        /* content past the edge of a box the user can scroll is reachable;
+           content past a box that cannot scroll is truncated */
+        const truncated = [];
+        for (const sel of ["#callId", "#callId .call-id-name", "#callId .call-id-place", "#vcSay"]) {
+          const e = document.querySelector(sel);
+          if (!e) continue;
+          const overY = e.scrollHeight > e.clientHeight + 1, overX = e.scrollWidth > e.clientWidth + 1;
+          /* sideways overflow is never acceptable for text that should wrap,
+             scrollable or not — a name must never need horizontal scrolling */
+          if (overX) { truncated.push(sel + " overflows horizontally"); continue; }
+          if (!overY) continue;
+          if (!/auto|scroll/.test(getComputedStyle(e).overflowY)) truncated.push(sel + " is vertically clipped");
+        }
+        /* the suggestion must stay wide enough to read, not a one-word strip */
+        const hint = document.getElementById("vcBubble");
+        const hintW = hint && !hint.classList.contains("hidden") ? hint.getBoundingClientRect().width : null;
+        const bar = document.getElementById("stagingBar");
+        return {
+          overflow: de.scrollWidth - vw, pageScroll: de.scrollHeight - vh,
+          outside: inView, small,
+          marziSay: over(B.marzi, B.say), marziId: over(B.marzi, B.id),
+          marziCtrl: over(B.marzi, B.ctrl), stateSay: over(B.state, B.say),
+          marziFace: over(B.marzi, face), marziUpper45: over(B.marzi, wideBand), truncated,
+          marziContainerFace: over(marziContainer, face),
+          hintW, vw,
+          label: bar ? bar.textContent.trim() : null,
+          labelNamed: bar ? !!bar.getAttribute("aria-label") : false,
+          labelPointer: bar ? getComputedStyle(bar).pointerEvents : null,
+          labelVisible: bar ? bar.getBoundingClientRect().height > 0 && bar.getBoundingClientRect().top < vh : false,
+          barCoversCall: over(bar ? bar.getBoundingClientRect() : null, B.ctrl) + over(bar ? bar.getBoundingClientRect() : null, B.id),
+          rootFont: getComputedStyle(de).fontSize,
+          krank: document.body.innerHTML.includes("Krankschreibung")
+        };
+      });
+      const tagc = `marzi062 ${c.id} ${c.w}x${c.h}/${c.lang}@${c.scale * 100}%`;
+      ok(m.overflow <= 1, `${tagc} no horizontal document overflow (${m.overflow})`);
+      ok(m.pageScroll <= 1, `${tagc} the page itself does not scroll (${m.pageScroll})`);
+      ok(m.outside.length === 0, `${tagc} every critical box is inside the viewport (${m.outside.join(",")})`);
+      ok(m.small.length === 0, `${tagc} every visible target is at least 48x48 (${m.small.slice(0, 3).join(", ")})`);
+      ok(m.marziSay === 0 && m.marziId === 0 && m.marziCtrl === 0,
+        `${tagc} Marzi obscures no critical box (say=${m.marziSay} id=${m.marziId} ctrl=${m.marziCtrl})`);
+      ok(m.marziFace === 0, `${tagc} Marzi stays out of the portrait's face region (${m.marziFace})`);
+      ok(m.stateSay === 0, `${tagc} the state chip and the character line do not overlap (${m.stateSay})`);
+      ok(m.truncated.length === 0, `${tagc} no truncated or sideways-overflowing text (${m.truncated.join("; ")})`);
+      ok(m.hintW === null || m.hintW >= Math.min(140, m.vw * 0.34),
+        `${tagc} the suggestion keeps a readable width (${m.hintW === null ? "hidden" : Math.round(m.hintW)}px of ${m.vw})`);
+      ok(m.label === "MARZI STAGING PREVIEW \u00b7 MARZI-062 \u00b7 BUILD MARZI-062-PREVIEW-1",
+        `${tagc} the exact build label is rendered`);
+      ok(m.labelVisible && m.labelNamed && m.labelPointer === "none" && m.barCoversCall === 0,
+        `${tagc} the build label is visible, named, non-intercepting and covers nothing`);
+      ok(errs.length === 0, `${tagc} no page errors ${JSON.stringify(errs.slice(0, 2))}`);
+      console.log(`   ${tagc} rootFont=${m.rootFont} overflow=${m.overflow} pageScroll=${m.pageScroll} ` +
+        `targets<48=${m.small.length} marzi-art/face30=${m.marziFace} marzi-art/upper45=${m.marziUpper45} ` +
+        `(transparent container/face30=${m.marziContainerFace}) krankschreibung=${m.krank}`);
+      await ctx.close();
+    }
+
+    /* the five conversation states, driven through the real state machine */
+    {
+      const { ctx, p } = await ctxFor(b, { w: 390, h: 844, lang: "en", delay: 1200 });
+      await enterCall(p, 2000);
+      await p.evaluate(() => { S.handsFree = false; alertMsg(null); renderCallStatus(); });
+      const readState = () => p.evaluate(() => {
+        const c = document.getElementById("callStatus");
+        return { state: c.dataset.state, text: c.textContent.trim(), icon: !!c.querySelector("svg"),
+          live: document.getElementById("callStatusLive").textContent };
+      });
+      const drive = {
+        listening: () => p.evaluate(() => { S.listening = true; renderCallStatus(); }),
+        processing: () => p.evaluate(() => { S.listening = false; S.busy = true; renderCallStatus(); }),
+        speaking: () => p.evaluate(() => { S.busy = false; S.speaking = true; renderCallStatus(); }),
+        error: () => p.evaluate(() => { S.speaking = false; alertMsg("boom"); }),
+        disconnected: () => p.evaluate(() => { alertMsg(null); S.session.end(); renderCallStatus(); })
+      };
+      for (const [want, go] of Object.entries(drive)) {
+        await go();
+        await p.waitForTimeout(120);
+        const m = await readState();
+        ok(m.state === want, `marzi062 state ${want} is presented (${m.state})`);
+        ok(m.icon && m.text.length > 0, `marzi062 state ${want} has an icon and a text label`);
+        ok(m.live === m.text, `marzi062 state ${want} reaches the live region`);
+      }
+      await ctx.close();
+    }
+
+    /* the preserved interaction paths, observed rather than assumed */
+    {
+      const { ctx, p } = await ctxFor(b, { w: 390, h: 844, lang: "en", delay: 400 });
+      await enterCall(p, 1800);
+      const r = await p.evaluate(async () => {
+        const out = {};
+        const voiceCalls = [], slowCalls = [];
+        const real = ENGINE.get.bind(ENGINE);
+        const patched = Object.create(ENGINE.get("voice"));
+        patched.speak = (a) => { voiceCalls.push(a); return Promise.resolve(); };
+        ENGINE.get = (k) => (k === "voice" ? patched : real(k));
+        out.replay = replayLastCharacterLine() && voiceCalls.length === 1 && !voiceCalls[0].slow;
+        ENGINE.get = real;
+        const origSpeak = window.speak;
+        window.speak = (text, slow) => { slowCalls.push({ text, slow: !!slow }); };
+        document.getElementById("repeatBtn").click();
+        window.speak = origSpeak;
+        out.slow = slowCalls.length === 1 && slowCalls[0].slow === true;
+        document.getElementById("sheetBtn").click();
+        await new Promise((z) => setTimeout(z, 350));
+        const turns = [...document.querySelectorAll("#log .turn")];
+        out.turns = turns.length;
+        out.charFirst = turns.length > 0 && !turns[0].classList.contains("me");
+        out.words = document.querySelectorAll("#log .w").length;
+        out.wordIsButton = document.querySelector("#log .w") ? document.querySelector("#log .w").tagName === "BUTTON" : false;
+        out.safe = !/<script|onerror=/i.test(document.getElementById("log").innerHTML);
+        out.timer = document.getElementById("timer").textContent;
+        out.plan = document.getElementById("vcLeft").textContent;
+        return out;
+      });
+      ok(r.replay, "marzi062 replay goes through the existing voice provider, not slow");
+      ok(r.slow, "marzi062 slow repeat goes through the existing speak path with slow=true");
+      ok(r.turns > 0 && r.charFirst, `marzi062 transcript keeps canonical order, character first (${r.turns} turns)`);
+      ok(r.words > 0 && r.wordIsButton, `marzi062 transcript words are real buttons (${r.words})`);
+      ok(r.safe, "marzi062 transcript is text-rendered, not injected as HTML");
+      ok(/\d\d:\d\d/.test(r.timer), `marzi062 the timer still counts (${r.timer})`);
+      ok(/\d/.test(r.plan), `marzi062 the plan allowance is still shown (${r.plan})`);
+      /* word tap opens the existing translation path */
+      await p.evaluate(() => { const w = document.querySelector("#log .w"); if (w) w.click(); });
+      await p.waitForTimeout(700);
+      const tapped = await p.evaluate(() => !!document.querySelector("#log .wsave"));
+      ok(tapped, "marzi062 tapping a word opens the existing translation behaviour");
+      await ctx.close();
+    }
   }
 
   results.forEach((r) => console.log("   " + r));
