@@ -1,0 +1,239 @@
+{
+ "dialect": "marzi.schema-subset.v1",
+ "$id": "marzi-061:schema:accessibility-review",
+ "title": "MARZI-061 accessibility review plan",
+ "type": "object",
+ "additionalProperties": false,
+ "required": [
+  "contract",
+  "schemaVersion",
+  "packageId",
+  "packageVersion",
+  "complianceClaim",
+  "statement",
+  "conditions",
+  "checks",
+  "knownIssues"
+ ],
+ "properties": {
+  "contract": {
+   "const": "marzi.review.accessibility-plan.v1"
+  },
+  "schemaVersion": {
+   "const": 1
+  },
+  "packageId": {
+   "const": "MARZI-061"
+  },
+  "packageVersion": {
+   "const": "v1"
+  },
+  "complianceClaim": {
+   "const": false
+  },
+  "statement": {
+   "type": "string",
+   "minLength": 20
+  },
+  "conditions": {
+   "type": "object",
+   "additionalProperties": false,
+   "required": [
+    "viewports",
+    "textScales",
+    "orientations",
+    "locales",
+    "directions",
+    "assistiveTechnologies"
+   ],
+   "properties": {
+    "viewports": {
+     "type": "array",
+     "minItems": 2,
+     "uniqueItems": true,
+     "items": {
+      "type": "string",
+      "pattern": "^[0-9]+x[0-9]+$"
+     }
+    },
+    "textScales": {
+     "type": "array",
+     "minItems": 2,
+     "uniqueItems": true,
+     "items": {
+      "type": "string",
+      "pattern": "^[0-9]+%$"
+     }
+    },
+    "orientations": {
+     "type": "array",
+     "minItems": 2,
+     "uniqueItems": true,
+     "items": {
+      "enum": [
+       "portrait",
+       "landscape"
+      ]
+     }
+    },
+    "locales": {
+     "type": "array",
+     "minItems": 6,
+     "maxItems": 6,
+     "uniqueItems": true,
+     "items": {
+      "enum": [
+       "ar",
+       "en",
+       "es",
+       "it",
+       "tr",
+       "uk"
+      ]
+     }
+    },
+    "directions": {
+     "type": "array",
+     "minItems": 2,
+     "maxItems": 2,
+     "uniqueItems": true,
+     "items": {
+      "enum": [
+       "ltr",
+       "rtl"
+      ]
+     }
+    },
+    "assistiveTechnologies": {
+     "type": "array",
+     "minItems": 1,
+     "uniqueItems": true,
+     "items": {
+      "type": "string",
+      "minLength": 3
+     }
+    }
+   }
+  },
+  "checks": {
+   "type": "array",
+   "minItems": 1,
+   "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+     "checkId",
+     "category",
+     "name",
+     "journeyReference",
+     "expectedEvidence",
+     "reviewStatus",
+     "observedBehavior",
+     "severity",
+     "evidenceReferences"
+    ],
+    "properties": {
+     "checkId": {
+      "type": "string",
+      "pattern": "^marzi-061:a11y:[0-9]{3}$"
+     },
+     "category": {
+      "enum": [
+       "semantic",
+       "input",
+       "visual",
+       "motion",
+       "audio",
+       "cognitive",
+       "localization",
+       "responsive"
+      ]
+     },
+     "name": {
+      "type": "string",
+      "pattern": "^[a-z0-9_]+$"
+     },
+     "journeyReference": {
+      "type": "string",
+      "minLength": 5
+     },
+     "expectedEvidence": {
+      "type": "string",
+      "minLength": 20
+     },
+     "reviewStatus": {
+      "enum": [
+       "NOT_REVIEWED",
+       "REVIEWED"
+      ]
+     },
+     "observedBehavior": {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     "severity": {
+      "type": [
+       "string",
+       "null"
+      ],
+      "pattern": "^(BLOCKER|HIGH|MEDIUM|LOW|INFORMATIONAL)$"
+     },
+     "evidenceReferences": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+       "type": "string",
+       "pattern": "^marzi-evidence:marzi-061:(learning-pedagogy|linguistic|accessibility|android-study):[0-9]{3}$"
+      }
+     }
+    }
+   }
+  },
+  "knownIssues": {
+   "type": "array",
+   "minItems": 1,
+   "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+     "issueId",
+     "summary",
+     "category",
+     "status",
+     "fixedByThisPackage",
+     "deferredTo",
+     "complianceClaim"
+    ],
+    "properties": {
+     "issueId": {
+      "type": "string",
+      "pattern": "^MARZI-A11Y-KNOWN-[0-9]{3}$"
+     },
+     "summary": {
+      "type": "string",
+      "minLength": 10
+     },
+     "category": {
+      "type": "string",
+      "pattern": "^[a-z0-9_]+$"
+     },
+     "status": {
+      "const": "OPEN"
+     },
+     "fixedByThisPackage": {
+      "const": false
+     },
+     "deferredTo": {
+      "type": "string",
+      "minLength": 5
+     },
+     "complianceClaim": {
+      "const": false
+     }
+    }
+   }
+  }
+ }
+}

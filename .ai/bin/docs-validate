@@ -23,7 +23,8 @@ const REQUIRED_MARKDOWN = [
   "docs/MARZI_PACKAGE_TEMPLATE.md",
   "docs/MARZI_PRODUCT_BIBLE.md",
   "docs/MARZI_PROGRAM_GOVERNANCE.md",
-  "docs/packages/MARZI-020.md"
+  "docs/packages/MARZI-020.md",
+  "docs/packages/MARZI-061.md"
 ];
 const WRAPPERS = [
   ".ai/bin/repo-inspect",
@@ -165,6 +166,7 @@ guardMain(TOOL, () => {
   const register = sources.get("docs/MARZI_DECISION_REGISTER.md") || "";
   const template = sources.get("docs/MARZI_PACKAGE_TEMPLATE.md") || "";
   const package020 = sources.get("docs/packages/MARZI-020.md") || "";
+  const package061 = sources.get("docs/packages/MARZI-061.md") || "";
   const governance = sources.get("docs/MARZI_PROGRAM_GOVERNANCE.md") || "";
   const policy = sources.get(".ai/EXECUTION_POLICY.md") || "";
   const agents = sources.get("AGENTS.md") || "";
@@ -175,7 +177,7 @@ guardMain(TOOL, () => {
   const packageIds = packageMatches.map((match) => Number(match[1]));
 
   check("roadmap-package-numbering", () => {
-    const expected = expectedSequence(20, 60);
+    const expected = expectedSequence(20, 61);
     if (!sameSequence(packageIds, expected)) {
       failures.push("roadmap package headings must be exactly MARZI-020 through MARZI-060");
     }
@@ -229,11 +231,12 @@ guardMain(TOOL, () => {
     const graphEnd = roadmap.indexOf("# Critical path", graphStart);
     if (graphStart < 0 || graphEnd < 0) {
       failures.push("dependency graph or critical path section missing");
-      return { covered: 0, expected: 34 };
+      return { covered: 0, expected: 35 };
     }
     const graph = roadmap.slice(graphStart, graphEnd);
     const expected = expectedSequence(20, 53)
-      .map((number) => "MARZI-" + String(number).padStart(3, "0"));
+      .map((number) => "MARZI-" + String(number).padStart(3, "0"))
+      .concat(["MARZI-061"]);
     const missing = expected.filter((id) => !graph.includes(id));
     if (missing.length) failures.push("dependency graph missing: " + missing.join(", "));
     return { covered: expected.length - missing.length, expected: expected.length };
@@ -243,12 +246,21 @@ guardMain(TOOL, () => {
     const expected = expectedSequence(1, 31);
     const templateSections = numberedSections(template);
     const packageSections = numberedSections(package020);
+    const package061Sections = numberedSections(package061);
     if (!sameSequence(templateSections, expected)) failures.push("package template must contain sections 1 through 31");
     if (!sameSequence(packageSections, expected)) failures.push("MARZI-020 must contain sections 1 through 31");
+    if (!sameSequence(package061Sections, expected)) failures.push("MARZI-061 must contain sections 1 through 31");
     if (!package020.startsWith("# MARZI-020 — Canonical Product and Architecture Contracts")) {
       failures.push("MARZI-020 canonical title mismatch");
     }
-    return { templateSections: templateSections.length, packageSections: packageSections.length };
+    if (!package061.startsWith("# MARZI-061 — External Review Readiness Package")) {
+      failures.push("MARZI-061 canonical title mismatch");
+    }
+    return {
+      templateSections: templateSections.length,
+      packageSections: packageSections.length,
+      package061Sections: package061Sections.length
+    };
   });
 
   check("product-bible-consistency", () => {

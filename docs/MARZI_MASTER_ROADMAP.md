@@ -2,7 +2,7 @@
 
 **Status:** Proposed definitive implementation sequence
 
-**Package range:** MARZI-020 through MARZI-060
+**Package range:** MARZI-020 through MARZI-061
 
 **Authority:** Product Owner approves product/economy/art/commercial decisions; Codex specifies and independently reviews; Claude Code implements approved packages.
 
@@ -41,7 +41,7 @@
 - **Packages unblocked:** MARZI-021 through MARZI-060.
 - **Exact deliverables:** This roadmap; Product Bible; Decision Register; Package Template; Program Governance; superseding ADR/contract plan; frozen-contract inventory; unresolved-decision gates.
 - **Expected files/areas:** Documentation only: `docs/MARZI_*.md`, `docs/packages/MARZI-020.md`; future `.ai/` synchronization is separately authorized.
-- **Measurable acceptance criteria:** All 41 package IDs appear once; active conflicts are identified; Product Owner decisions remain unresolved unless approved; runtime diff is empty; prior roadmaps are explicitly superseded.
+- **Measurable acceptance criteria:** All 42 package IDs appear once; active conflicts are identified; Product Owner decisions remain unresolved unless approved; runtime diff is empty; prior roadmaps are explicitly superseded.
 - **Required automated tests:** Markdown non-empty check; package-ID uniqueness/coverage; Mermaid node coverage; link/path checks; `git diff --check`; documentation-only diff check.
 - **Required real-device tests:** None; this package changes no runtime.
 - **Product-owner approval gate:** Approve the Product Bible, definitive package sequence, frozen contracts, and decision ownership before MARZI-021 implementation.
@@ -1041,6 +1041,40 @@
 - **Can run in parallel:** Yes for approved research work after stable measures; product changes remain separate.
 - **Completion evidence required:** Approved protocol, instrument validity, privacy record, reproducible analysis, limitations, specialist review, Product Owner decision log.
 
+## MARZI-061 — External Review Readiness Package
+
+- **Objective:** Prepare qualified humans to execute the four external reviews MARZI-021 depends on — learning and pedagogy, six-language linguistic, accessibility, and a moderated Android study — without performing, inferring, or granting any of them.
+- **Problem solved:** MARZI-021 is technically approved for specialist review, but there is no charter, workflow, schema, matrix, evidence structure, or decision record for a reviewer to actually work from, so the four gates cannot be executed or audited.
+- **Why it exists:** External review is the gate between a technically validated static curriculum and any educational, linguistic, accessibility, runtime, or release claim. Preparation must be bounded, auditable, and incapable of self-granting a result.
+- **Prerequisites:** MARZI-021 static contracts with independent technical approval; Product Owner package-allocation decision of 2026-08-04.
+- **Dependencies:** `docs/learning/contracts/v1/**` as the reviewed artifact; `docs/learning/SPECIALIST_REVIEW.md` as the canonical review record; the MARZI-021 learning validator; the canonical six-locale set.
+- **Packages unblocked:** Execution of the four external-review tracks, and through them MARZI-034, MARZI-042–044 and any package whose gate names specialist, linguistic, or accessibility approval.
+- **Exact deliverables:** Review governance model; four reviewer protocols; six locale checklists; seven shared templates; eight strict schemas; a 94-entry learning evidence matrix; a 564-entry linguistic matrix; an accessibility plan carrying the open Arabic issue; an Android study protocol with no results; positive and negative fixtures; a 30-check dependency-free validator.
+- **Expected files/areas:** `docs/packages/MARZI-061.md`, `docs/learning/reviews/marzi-061/v1/**`, `test/marzi-061-external-review-readiness.js`, `test/fixtures/marzi-061-external-reviews/**`, plus bounded updates to this roadmap, `.ai/bin/docs-validate`, `docs/learning/SPECIALIST_REVIEW.md`, and the implementation report.
+- **Measurable acceptance criteria:** Exactly four tracks exist, each PREPARED and still PENDING, unappointed, unstarted, unevidenced and undecided; the learning matrix has 94 entries and the linguistic matrix 564 across `ar,en,es,it,tr,uk`; every copied string equals its canonical contract value; `MARZI-A11Y-KNOWN-001` remains open; no reviewer, participant, evidence, result or approval is invented; the runtime diff is empty.
+- **Required automated tests:** `node test/marzi-061-external-review-readiness.js` at 30/30; unchanged `node test/learning-contracts.js` at 36/36; unchanged application suite; schema and fixture reason isolation; twelve adversarial mutation proofs; `git diff --check`; documentation validation.
+- **Required real-device tests:** None. This package prepares the moderated Android study; it does not run it. Device execution belongs to the study itself under separate legal, privacy and Product Owner approval.
+- **Product-owner approval gate:** The 2026-08-04 allocation decision authorizes preparation only. Reviewer appointment, study recruitment, participant consent, legal and privacy approval, and every external-review decision remain separate later gates.
+- **Asset dependency:** None. No artwork, audio, icon, or generated production asset is created or referenced.
+- **Economic-system dependency:** None. No XP, coin, price, entitlement, streak, or reward value is read, written, or referenced.
+- **Security/privacy impact:** Stores no participant, learner, transcript, credential, contact, demographic, consent, or health data. Recruitment and data collection require legal and privacy approval before the study runs.
+- **Accessibility/localization impact:** Establishes the accessibility review conditions and six-locale review structure. Structural coverage is not linguistic or accessibility approval, and `MARZI-A11Y-KNOWN-001` is recorded as OPEN rather than fixed.
+- **Implementation risk:** Low technical risk, high governance risk if preparation were ever mistaken for approval; the validator exists to make that mistake fail.
+- **Rollback strategy:** Revert the single preparation commit. It removes only MARZI-061 preparation and its bounded roadmap and tooling additions, preserves MARZI-021 and MARZI-022, touches no runtime or learner data, and requires no migration. Genuine review evidence recorded later must never be mixed into this commit.
+- **Estimated engineering effort:** M.
+- **Can run in parallel:** Yes. Preparation may proceed alongside architecture specification; the external decisions it enables remain gates before the relevant runtime or release claims.
+- **Completion evidence required:** 30/30 package validator, unchanged learning and application suites, matrix and inventory counts, fixture reason isolation, adversarial mutation results, empty prohibited diffs, and independent review of the exact implementation commit.
+
+**Product Owner allocation, approved 2026-08-04:** preserve MARZI-022 as Domain
+Ownership and Event Contracts, assign MARZI-061 to External Review Readiness,
+update canonical governance accordingly, and replace the exported mandate with a
+MARZI-061 mandate before implementation. The earlier external planning artifact
+named `MARZI-022_CLAUDE_CODE_MANDATE.md` was superseded before implementation and
+is not an executable authority; MARZI-022 keeps its original title, objective,
+dependencies, deliverables, acceptance criteria and package relationships
+unchanged. Implementing this preparation package does not mean MARZI-061 has
+been externally reviewed.
+
 # Dependency graph
 
 The graph contains every pre-release package. Parallel edges describe dependency eligibility, not authorization for two agents to edit application files simultaneously.
@@ -1198,6 +1232,10 @@ flowchart LR
   P051 --> P052
   P051 --> P053
   P052 --> P053
+  P021 --> P061["MARZI-061"]
+  P061 --> P034
+  P061 --> P042
+  P061 --> P049
 ~~~
 
 # Critical path

@@ -1,0 +1,147 @@
+{
+ "contract": "marzi.review.package-manifest.v1",
+ "schemaVersion": 1,
+ "packageId": "MARZI-061",
+ "packageVersion": "v1",
+ "packageTitle": "External Review Readiness Package",
+ "preparedFor": "MARZI-021",
+ "reviewedCommit": "f20f805dc01cd8ff68f4862266b21bd5bf50dbc4",
+ "productOwnerAllocation": "Preserve MARZI-022 as Domain Ownership and Event Contracts, assign MARZI-061 to External Review Readiness, update canonical governance accordingly, and replace the exported mandate with a MARZI-061 mandate before implementation.",
+ "allocationApprovalDate": "2026-08-04",
+ "tracks": [
+  {
+   "reviewId": "marzi-review:marzi-061:learning-pedagogy:v1",
+   "reviewType": "learning_pedagogy"
+  },
+  {
+   "reviewId": "marzi-review:marzi-061:linguistic:v1",
+   "reviewType": "linguistic"
+  },
+  {
+   "reviewId": "marzi-review:marzi-061:accessibility:v1",
+   "reviewType": "accessibility"
+  },
+  {
+   "reviewId": "marzi-review:marzi-061:android-study:v1",
+   "reviewType": "android_study"
+  }
+ ],
+ "artifacts": [
+  {
+   "path": "../../../etc/passwd",
+   "artifactType": "learning_contract",
+   "sha256": "30b5fe521d1cb163b78cb6189a2d5dde75c3e563b7196d042d81686be89352d2"
+  },
+  {
+   "path": "docs/learning/contracts/v1/levels.json",
+   "artifactType": "learning_contract",
+   "sha256": "e811b52b5b6be4ffc18835f2f819ba369230467aaa99255ddd9e6c24b8e70b8c"
+  },
+  {
+   "path": "docs/learning/contracts/v1/prerequisites.json",
+   "artifactType": "learning_contract",
+   "sha256": "c1db724e96d2e91a48e552a469220c962bdd0e7474e1d1cd314232e90e36126a"
+  },
+  {
+   "path": "docs/learning/contracts/v1/evidence.json",
+   "artifactType": "learning_contract",
+   "sha256": "9f7c4acbb92fead88ebc089986e43b614dbdaab2f8df4fca98fd1495742fede3"
+  },
+  {
+   "path": "docs/learning/contracts/v1/completion.json",
+   "artifactType": "learning_contract",
+   "sha256": "83df1a09092e3c03accb8501f27216ab30606289f73ecdfc9ea6520265aaa86b"
+  },
+  {
+   "path": "docs/learning/contracts/v1/mastery.json",
+   "artifactType": "learning_contract",
+   "sha256": "a7845393422c0d9cffa51ebf47f48600fbdbe049756213cb7c7605226fa711fe"
+  },
+  {
+   "path": "docs/learning/contracts/v1/placement.json",
+   "artifactType": "learning_contract",
+   "sha256": "5d801e3834ac3e1785cbd308985ece84a0550b71d4c772c03119cc7d83b4c3cf"
+  },
+  {
+   "path": "docs/learning/contracts/v1/review.json",
+   "artifactType": "learning_contract",
+   "sha256": "7bed97720cd5dc84a4cfa9d8a161b75b8ff67c981acde7e108b101fba269d70b"
+  },
+  {
+   "path": "docs/learning/contracts/v1/scenarios.de.json",
+   "artifactType": "learning_contract",
+   "sha256": "986fdd0b502acaa46c9143606598e083b6898eb698adea624de13ceabafff06d"
+  },
+  {
+   "path": "docs/learning/contracts/v1/scenarios.en.json",
+   "artifactType": "learning_contract",
+   "sha256": "e0f1aa367a3cc1a054bf2c16450bd9811f0507188f4ada29addc45ffb79eafd2"
+  },
+  {
+   "path": "docs/learning/contracts/v1/source-inventory.json",
+   "artifactType": "learning_contract",
+   "sha256": "754b663a470e0ed5333b40e755526a3a58d2b7b83d45f7bcc951fe17d81f79e1"
+  }
+ ],
+ "locales": [
+  {
+   "locale": "es",
+   "languageName": "Spanish",
+   "direction": "ltr"
+  },
+  {
+   "locale": "en",
+   "languageName": "English",
+   "direction": "ltr"
+  },
+  {
+   "locale": "it",
+   "languageName": "Italian",
+   "direction": "ltr"
+  },
+  {
+   "locale": "tr",
+   "languageName": "Turkish",
+   "direction": "ltr"
+  },
+  {
+   "locale": "ar",
+   "languageName": "Arabic",
+   "direction": "rtl"
+  },
+  {
+   "locale": "uk",
+   "languageName": "Ukrainian",
+   "direction": "ltr"
+  }
+ ],
+ "acceptedInventories": {
+  "scenarios": 29,
+  "variants": 94,
+  "germanScenarios": 19,
+  "germanVariants": 61,
+  "englishScenarios": 10,
+  "englishVariants": 33,
+  "localizedTitles": 564,
+  "requiredCriteria": 282,
+  "optionalCriteria": 94,
+  "prerequisiteEdges": 18,
+  "nullSupersessions": 94,
+  "openEducationalGates": 4
+ },
+ "knownIssues": [
+  {
+   "issueId": "MARZI-A11Y-KNOWN-001",
+   "summary": "Arabic at 320x568 with 200% text can overflow.",
+   "category": "localization_responsive",
+   "status": "OPEN",
+   "fixedByThisPackage": false,
+   "complianceClaim": false
+  }
+ ],
+ "boundaries": [
+  "This manifest lists what will be reviewed. It records no review result.",
+  "The manifest does not hash itself.",
+  "Content hashes prove artifact identity, not reviewer identity or authority."
+ ]
+}

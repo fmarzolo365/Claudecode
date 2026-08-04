@@ -75,6 +75,30 @@ open.
 | Moderated small-Android comprehension study | **NOT PERFORMED** | Requires a device and participants; see the implementation report for what was and was not measured |
 | Privacy and retention review | **BLOCKED** by MARZI-D021, D022, D024 | No learner evidence is persisted by this package |
 
+### 4.1 Where those separate reviews are prepared
+
+MARZI-061 prepared — and only prepared — the material four external reviews
+need in order to begin: this learning/pedagogy review, the six-language
+linguistic review, the accessibility review, and the moderated Android study.
+Its entry point is
+
+**[`docs/learning/reviews/marzi-061/v1/README.md`](reviews/marzi-061/v1/README.md)**
+
+which links every track document, schema, evidence matrix, template and
+validator, and states what a genuine reviewer does first.
+
+Preparation is not execution. Every status in this file stays exactly as it
+reads above: no specialist is named, no review has been performed, and no
+outcome has been recorded. The MARZI-061 package changes none of that, and the
+existence of a review folder is not a review. Its own validator,
+`node test/marzi-061-external-review-readiness.js`, refuses any record that
+infers a decision from the presence of a file.
+
+MARZI-061 is the external review readiness package. The obsolete planning file
+that once carried external readiness under the MARZI-022 identifier is
+superseded and is not canonical; MARZI-022 is Domain Ownership and Event
+Contracts.
+
 ## 5. How findings must be applied
 
 1. A finding never changes the meaning of an existing identifier in place.

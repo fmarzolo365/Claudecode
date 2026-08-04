@@ -1,0 +1,90 @@
+{
+ "dialect": "marzi.schema-subset.v1",
+ "$id": "marzi-061:schema:finding",
+ "title": "MARZI-061 review finding",
+ "type": "object",
+ "additionalProperties": false,
+ "required": [
+  "findingId",
+  "reviewId",
+  "severity",
+  "category",
+  "artifactPath",
+  "location",
+  "evidence",
+  "impact",
+  "recommendation",
+  "disposition",
+  "evidenceReferences",
+  "ownerRole",
+  "rereviewRequired"
+ ],
+ "properties": {
+  "findingId": {
+   "type": "string",
+   "pattern": "^marzi-finding:marzi-061:(learning-pedagogy|linguistic|accessibility|android-study):[0-9]{3}$"
+  },
+  "reviewId": {
+   "type": "string",
+   "pattern": "^marzi-review:marzi-061:(learning-pedagogy|linguistic|accessibility|android-study):v1$"
+  },
+  "severity": {
+   "enum": [
+    "BLOCKER",
+    "HIGH",
+    "MEDIUM",
+    "LOW",
+    "INFORMATIONAL"
+   ]
+  },
+  "category": {
+   "type": "string",
+   "minLength": 2
+  },
+  "artifactPath": {
+   "type": "string",
+   "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._/-]*$"
+  },
+  "location": {
+   "type": "string",
+   "minLength": 1
+  },
+  "evidence": {
+   "type": "string",
+   "minLength": 1
+  },
+  "impact": {
+   "type": "string",
+   "minLength": 1
+  },
+  "recommendation": {
+   "type": "string",
+   "minLength": 1
+  },
+  "disposition": {
+   "enum": [
+    "OPEN",
+    "ACCEPTED",
+    "REMEDIATION_PLANNED",
+    "RESOLVED",
+    "DEFERRED",
+    "REJECTED_WITH_RATIONALE"
+   ]
+  },
+  "evidenceReferences": {
+   "type": "array",
+   "uniqueItems": true,
+   "items": {
+    "type": "string",
+    "pattern": "^marzi-evidence:marzi-061:(learning-pedagogy|linguistic|accessibility|android-study):[0-9]{3}$"
+   }
+  },
+  "ownerRole": {
+   "type": "string",
+   "minLength": 1
+  },
+  "rereviewRequired": {
+   "type": "boolean"
+  }
+ }
+}

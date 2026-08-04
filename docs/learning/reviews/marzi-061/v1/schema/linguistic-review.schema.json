@@ -1,0 +1,371 @@
+{
+ "dialect": "marzi.schema-subset.v1",
+ "$id": "marzi-061:schema:linguistic-review",
+ "title": "MARZI-061 six-language linguistic review record",
+ "type": "object",
+ "additionalProperties": false,
+ "required": [
+  "contract",
+  "schemaVersion",
+  "packageId",
+  "packageVersion",
+  "locales",
+  "derivedFrom",
+  "derivationStatement",
+  "entryCount",
+  "entries"
+ ],
+ "properties": {
+  "contract": {
+   "const": "marzi.review.linguistic-matrix.v1"
+  },
+  "schemaVersion": {
+   "const": 1
+  },
+  "packageId": {
+   "const": "MARZI-061"
+  },
+  "packageVersion": {
+   "const": "v1"
+  },
+  "locales": {
+   "type": "array",
+   "minItems": 6,
+   "maxItems": 6,
+   "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+     "locale",
+     "languageName",
+     "direction"
+    ],
+    "properties": {
+     "locale": {
+      "enum": [
+       "ar",
+       "en",
+       "es",
+       "it",
+       "tr",
+       "uk"
+      ]
+     },
+     "languageName": {
+      "type": "string",
+      "minLength": 3
+     },
+     "direction": {
+      "enum": [
+       "ltr",
+       "rtl"
+      ]
+     }
+    }
+   }
+  },
+  "derivedFrom": {
+   "type": "array",
+   "minItems": 1,
+   "uniqueItems": true,
+   "items": {
+    "type": "string",
+    "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._/-]*$"
+   }
+  },
+  "derivationStatement": {
+   "type": "string",
+   "minLength": 20
+  },
+  "entryCount": {
+   "type": "integer",
+   "minimum": 1
+  },
+  "entries": {
+   "type": "array",
+   "minItems": 1,
+   "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+     "entryId",
+     "scenarioId",
+     "variantId",
+     "scenarioObjectiveId",
+     "sourceGoalIndex",
+     "targetLanguage",
+     "locale",
+     "languageName",
+     "direction",
+     "sourceText",
+     "localizedText",
+     "usageContext",
+     "learnerLevel",
+     "placeholders",
+     "protectedTerms",
+     "retainedSourceLanguageTerms",
+     "expansionRisk",
+     "grammarStatus",
+     "spellingStatus",
+     "registerStatus",
+     "naturalnessStatus",
+     "culturalStatus",
+     "consistencyStatus",
+     "ambiguityStatus",
+     "severity",
+     "suggestedCorrection",
+     "reviewer",
+     "reviewDate",
+     "evidenceReferences",
+     "decision"
+    ],
+    "properties": {
+     "entryId": {
+      "type": "string",
+      "pattern": "^marzi-061:linguistic:(de|en)\\.[a-z0-9_]+\\.[a-z0-9_]+\\.[a-z0-9_]+:(ar|en|es|it|tr|uk)$"
+     },
+     "scenarioId": {
+      "type": "string",
+      "pattern": "^[a-z0-9_]+$"
+     },
+     "variantId": {
+      "type": "string",
+      "pattern": "^(de|en)\\.[a-z0-9_]+\\.[a-z0-9_]+\\.[a-z0-9_]+$"
+     },
+     "scenarioObjectiveId": {
+      "type": "string",
+      "pattern": "^(de|en)\\.[a-z0-9_]+\\.[a-z0-9_]+$"
+     },
+     "sourceGoalIndex": {
+      "type": "integer",
+      "minimum": 0
+     },
+     "targetLanguage": {
+      "enum": [
+       "de",
+       "en"
+      ]
+     },
+     "locale": {
+      "enum": [
+       "ar",
+       "en",
+       "es",
+       "it",
+       "tr",
+       "uk"
+      ]
+     },
+     "languageName": {
+      "type": "string",
+      "minLength": 3
+     },
+     "direction": {
+      "enum": [
+       "ltr",
+       "rtl"
+      ]
+     },
+     "sourceText": {
+      "type": "string",
+      "minLength": 3
+     },
+     "localizedText": {
+      "type": "string",
+      "minLength": 1
+     },
+     "usageContext": {
+      "const": "objective_title"
+     },
+     "learnerLevel": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+       "min",
+       "max"
+      ],
+      "properties": {
+       "min": {
+        "enum": [
+         "A0",
+         "A1",
+         "A2",
+         "B1",
+         "B2",
+         "C1"
+        ]
+       },
+       "max": {
+        "enum": [
+         "A0",
+         "A1",
+         "A2",
+         "B1",
+         "B2",
+         "C1"
+        ]
+       }
+      }
+     },
+     "placeholders": {
+      "type": "array",
+      "items": {
+       "type": "string",
+       "minLength": 1
+      }
+     },
+     "protectedTerms": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+       "type": "string",
+       "minLength": 1
+      }
+     },
+     "retainedSourceLanguageTerms": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+       "type": "string",
+       "minLength": 1
+      }
+     },
+     "expansionRisk": {
+      "enum": [
+       "UNASSESSED",
+       "LOW",
+       "MEDIUM",
+       "HIGH"
+      ]
+     },
+     "grammarStatus": {
+      "enum": [
+       "NOT_REVIEWED",
+       "REVIEWED"
+      ]
+     },
+     "spellingStatus": {
+      "enum": [
+       "NOT_REVIEWED",
+       "REVIEWED"
+      ]
+     },
+     "registerStatus": {
+      "enum": [
+       "NOT_REVIEWED",
+       "REVIEWED"
+      ]
+     },
+     "naturalnessStatus": {
+      "enum": [
+       "NOT_REVIEWED",
+       "REVIEWED"
+      ]
+     },
+     "culturalStatus": {
+      "enum": [
+       "NOT_REVIEWED",
+       "REVIEWED"
+      ]
+     },
+     "consistencyStatus": {
+      "enum": [
+       "NOT_REVIEWED",
+       "REVIEWED"
+      ]
+     },
+     "ambiguityStatus": {
+      "enum": [
+       "NOT_REVIEWED",
+       "REVIEWED"
+      ]
+     },
+     "severity": {
+      "type": [
+       "string",
+       "null"
+      ],
+      "pattern": "^(BLOCKER|HIGH|MEDIUM|LOW|INFORMATIONAL)$"
+     },
+     "suggestedCorrection": {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     "reviewer": {
+      "type": [
+       "object",
+       "null"
+      ],
+      "additionalProperties": false,
+      "required": [
+       "reviewerId",
+       "displayName",
+       "role",
+       "qualificationDescription",
+       "organization",
+       "conflictOfInterestDeclaration",
+       "identityVerificationState"
+      ],
+      "properties": {
+       "reviewerId": {
+        "type": "string",
+        "pattern": "^marzi-reviewer:[a-z0-9][a-z0-9-]*$"
+       },
+       "displayName": {
+        "type": "string",
+        "minLength": 1
+       },
+       "role": {
+        "type": "string",
+        "minLength": 1
+       },
+       "qualificationDescription": {
+        "type": "string",
+        "minLength": 1
+       },
+       "organization": {
+        "type": [
+         "string",
+         "null"
+        ]
+       },
+       "conflictOfInterestDeclaration": {
+        "type": "string",
+        "minLength": 1
+       },
+       "identityVerificationState": {
+        "const": "NOT_VERIFIED_EXTERNALLY"
+       }
+      }
+     },
+     "reviewDate": {
+      "type": [
+       "string",
+       "null"
+      ],
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}Z)?$"
+     },
+     "evidenceReferences": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+       "type": "string",
+       "pattern": "^marzi-evidence:marzi-061:(learning-pedagogy|linguistic|accessibility|android-study):[0-9]{3}$"
+      }
+     },
+     "decision": {
+      "enum": [
+       "NOT_REVIEWED",
+       "APPROVED",
+       "APPROVED_WITH_CONDITIONS",
+       "CHANGES_REQUIRED",
+       "BLOCKED"
+      ]
+     }
+    }
+   }
+  }
+ }
+}

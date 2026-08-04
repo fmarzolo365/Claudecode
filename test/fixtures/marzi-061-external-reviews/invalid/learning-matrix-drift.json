@@ -1,0 +1,3891 @@
+{
+ "contract": "marzi.review.learning-matrix.v1",
+ "schemaVersion": 1,
+ "packageId": "MARZI-061",
+ "packageVersion": "v1",
+ "derivedFrom": [
+  "docs/learning/contracts/v1/scenarios.de.json",
+  "docs/learning/contracts/v1/scenarios.en.json"
+ ],
+ "derivationStatement": "A verified derivative. MARZI-021 remains authoritative; a difference here is a defect in this matrix, never a correction to the contracts.",
+ "entryCount": 94,
+ "entries": [
+  {
+   "entryId": "marzi-061:learning:de.arzt.book_appointment.cough",
+   "scenarioId": "arzt",
+   "variantId": "de.arzt.book_appointment.cough",
+   "scenarioObjectiveId": "de.arzt.book_appointment",
+   "targetLanguage": "de",
+   "sourceGoalIndex": 99,
+   "learnerLevel": {
+    "min": "A1",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "FUN.ARRANGE",
+    "INT.OPEN_CLOSE",
+    "INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE"
+   ],
+   "requiredCriterionIds": [
+    "purpose_stated",
+    "symptom_given",
+    "appointment_resolved"
+   ],
+   "optionalCriterionIds": [
+    "close_appropriate"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.PROVIDE_DETAIL -> FUN.ARRANGE",
+    "COM.KEY_DETAIL -> INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE -> INT.PROVIDE_DETAIL",
+    "INT.OPEN_CLOSE -> INT.STATE_PURPOSE"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:de.arzt.book_appointment.back_pain",
+   "scenarioId": "arzt",
+   "variantId": "de.arzt.book_appointment.back_pain",
+   "scenarioObjectiveId": "de.arzt.book_appointment",
+   "targetLanguage": "de",
+   "sourceGoalIndex": 1,
+   "learnerLevel": {
+    "min": "A1",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "FUN.ARRANGE",
+    "INT.OPEN_CLOSE",
+    "INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE"
+   ],
+   "requiredCriterionIds": [
+    "purpose_stated",
+    "symptom_given",
+    "appointment_resolved"
+   ],
+   "optionalCriterionIds": [
+    "close_appropriate"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.PROVIDE_DETAIL -> FUN.ARRANGE",
+    "COM.KEY_DETAIL -> INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE -> INT.PROVIDE_DETAIL",
+    "INT.OPEN_CLOSE -> INT.STATE_PURPOSE"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:de.arzt.request_prescription.repeat_and_visit_check",
+   "scenarioId": "arzt",
+   "variantId": "de.arzt.request_prescription.repeat_and_visit_check",
+   "scenarioObjectiveId": "de.arzt.request_prescription",
+   "targetLanguage": "de",
+   "sourceGoalIndex": 2,
+   "learnerLevel": {
+    "min": "A2",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "COM.KEY_DETAIL",
+    "INT.ASK_INFORMATION",
+    "INT.OPEN_CLOSE",
+    "INT.STATE_PURPOSE"
+   ],
+   "requiredCriterionIds": [
+    "prescription_requested",
+    "visit_question_asked",
+    "answer_understood"
+   ],
+   "optionalCriterionIds": [
+    "close_appropriate"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.OPEN_CLOSE -> INT.STATE_PURPOSE"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:de.arzt.change_appointment.reschedule",
+   "scenarioId": "arzt",
+   "variantId": "de.arzt.change_appointment.reschedule",
+   "scenarioObjectiveId": "de.arzt.change_appointment",
+   "targetLanguage": "de",
+   "sourceGoalIndex": 3,
+   "learnerLevel": {
+    "min": "A2",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "FUN.ARRANGE",
+    "INT.NEGOTIATE",
+    "INT.OPEN_CLOSE",
+    "INT.STATE_PURPOSE"
+   ],
+   "requiredCriterionIds": [
+    "change_requested",
+    "alternative_proposed",
+    "new_arrangement_resolved"
+   ],
+   "optionalCriterionIds": [
+    "close_appropriate"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.PROVIDE_DETAIL -> FUN.ARRANGE",
+    "INT.CONFIRM -> INT.NEGOTIATE",
+    "COM.CONSTRAINT -> INT.NEGOTIATE",
+    "FUN.ARRANGE -> INT.NEGOTIATE",
+    "INT.OPEN_CLOSE -> INT.STATE_PURPOSE"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:de.amt.book_appointment.address_registration",
+   "scenarioId": "amt",
+   "variantId": "de.amt.book_appointment.address_registration",
+   "scenarioObjectiveId": "de.amt.book_appointment",
+   "targetLanguage": "de",
+   "sourceGoalIndex": 0,
+   "learnerLevel": {
+    "min": "A2",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "FUN.ARRANGE",
+    "INT.OPEN_CLOSE",
+    "INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE"
+   ],
+   "requiredCriterionIds": [
+    "purpose_stated",
+    "detail_given",
+    "appointment_resolved"
+   ],
+   "optionalCriterionIds": [
+    "close_appropriate"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.PROVIDE_DETAIL -> FUN.ARRANGE",
+    "COM.KEY_DETAIL -> INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE -> INT.PROVIDE_DETAIL",
+    "INT.OPEN_CLOSE -> INT.STATE_PURPOSE"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:de.amt.request_information.id_card_documents",
+   "scenarioId": "amt",
+   "variantId": "de.amt.request_information.id_card_documents",
+   "scenarioObjectiveId": "de.amt.request_information",
+   "targetLanguage": "de",
+   "sourceGoalIndex": 1,
+   "learnerLevel": {
+    "min": "A2",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "COM.KEY_DETAIL",
+    "FUN.ARRANGE",
+    "INT.ASK_INFORMATION",
+    "INT.OPEN_CLOSE"
+   ],
+   "requiredCriterionIds": [
+    "documents_question_asked",
+    "requirements_understood",
+    "appointment_resolved"
+   ],
+   "optionalCriterionIds": [
+    "close_appropriate"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.PROVIDE_DETAIL -> FUN.ARRANGE"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:de.amt.request_information.vehicle_registration",
+   "scenarioId": "amt",
+   "variantId": "de.amt.request_information.vehicle_registration",
+   "scenarioObjectiveId": "de.amt.request_information",
+   "targetLanguage": "de",
+   "sourceGoalIndex": 2,
+   "learnerLevel": {
+    "min": "A2",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "COM.KEY_DETAIL",
+    "INT.ASK_INFORMATION",
+    "INT.OPEN_CLOSE"
+   ],
+   "requiredCriterionIds": [
+    "registration_question_asked",
+    "location_question_asked",
+    "information_understood"
+   ],
+   "optionalCriterionIds": [
+    "close_appropriate"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:de.werkstatt.book_service.service_and_cost",
+   "scenarioId": "werkstatt",
+   "variantId": "de.werkstatt.book_service.service_and_cost",
+   "scenarioObjectiveId": "de.werkstatt.book_service",
+   "targetLanguage": "de",
+   "sourceGoalIndex": 0,
+   "learnerLevel": {
+    "min": "A2",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "FUN.ARRANGE",
+    "INT.ASK_INFORMATION",
+    "INT.OPEN_CLOSE",
+    "INT.STATE_PURPOSE"
+   ],
+   "requiredCriterionIds": [
+    "purpose_stated",
+    "cost_question_asked",
+    "appointment_resolved"
+   ],
+   "optionalCriterionIds": [
+    "close_appropriate"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.PROVIDE_DETAIL -> FUN.ARRANGE",
+    "INT.OPEN_CLOSE -> INT.STATE_PURPOSE"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:de.werkstatt.report_fault.braking_noise",
+   "scenarioId": "werkstatt",
+   "variantId": "de.werkstatt.report_fault.braking_noise",
+   "scenarioObjectiveId": "de.werkstatt.report_fault",
+   "targetLanguage": "de",
+   "sourceGoalIndex": 1,
+   "learnerLevel": {
+    "min": "A2",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "FUN.ARRANGE",
+    "FUN.REPORT_PROBLEM",
+    "INT.CLARIFY_REPAIR",
+    "INT.PROVIDE_DETAIL"
+   ],
+   "requiredCriterionIds": [
+    "problem_described",
+    "detail_given",
+    "appointment_resolved"
+   ],
+   "optionalCriterionIds": [
+    "repair_used"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.PROVIDE_DETAIL -> FUN.ARRANGE",
+    "INT.PROVIDE_DETAIL -> FUN.REPORT_PROBLEM",
+    "INT.ASK_INFORMATION -> INT.CLARIFY_REPAIR",
+    "COM.KEY_DETAIL -> INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE -> INT.PROVIDE_DETAIL"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:de.werkstatt.request_check.battery_today",
+   "scenarioId": "werkstatt",
+   "variantId": "de.werkstatt.request_check.battery_today",
+   "scenarioObjectiveId": "de.werkstatt.request_check",
+   "targetLanguage": "de",
+   "sourceGoalIndex": 2,
+   "learnerLevel": {
+    "min": "A2",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "FUN.REPORT_PROBLEM",
+    "FUN.REQUEST_REMEDY",
+    "INT.CONFIRM",
+    "INT.NEGOTIATE"
+   ],
+   "requiredCriterionIds": [
+    "problem_described",
+    "same_day_requested",
+    "outcome_negotiated"
+   ],
+   "optionalCriterionIds": [
+    "outcome_confirmed"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.PROVIDE_DETAIL -> FUN.REPORT_PROBLEM",
+    "FUN.REPORT_PROBLEM -> FUN.REQUEST_REMEDY",
+    "COM.KEY_DETAIL -> INT.CONFIRM",
+    "INT.CONFIRM -> INT.NEGOTIATE",
+    "COM.CONSTRAINT -> INT.NEGOTIATE",
+    "FUN.ARRANGE -> INT.NEGOTIATE"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:de.friseur.book_appointment.saturday_morning",
+   "scenarioId": "friseur",
+   "variantId": "de.friseur.book_appointment.saturday_morning",
+   "scenarioObjectiveId": "de.friseur.book_appointment",
+   "targetLanguage": "de",
+   "sourceGoalIndex": 0,
+   "learnerLevel": {
+    "min": "A1",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "FUN.ARRANGE",
+    "INT.CONFIRM",
+    "INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE"
+   ],
+   "requiredCriterionIds": [
+    "purpose_stated",
+    "time_requested",
+    "appointment_resolved"
+   ],
+   "optionalCriterionIds": [
+    "outcome_confirmed"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.PROVIDE_DETAIL -> FUN.ARRANGE",
+    "COM.KEY_DETAIL -> INT.CONFIRM",
+    "COM.KEY_DETAIL -> INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE -> INT.PROVIDE_DETAIL",
+    "INT.OPEN_CLOSE -> INT.STATE_PURPOSE"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:de.friseur.book_appointment.after_work",
+   "scenarioId": "friseur",
+   "variantId": "de.friseur.book_appointment.after_work",
+   "scenarioObjectiveId": "de.friseur.book_appointment",
+   "targetLanguage": "de",
+   "sourceGoalIndex": 1,
+   "learnerLevel": {
+    "min": "A2",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "COM.CONSTRAINT",
+    "FUN.ARRANGE",
+    "INT.CONFIRM",
+    "INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE"
+   ],
+   "requiredCriterionIds": [
+    "purpose_stated",
+    "availability_stated",
+    "constraint_handled",
+    "appointment_resolved"
+   ],
+   "optionalCriterionIds": [
+    "outcome_confirmed"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.PROVIDE_DETAIL -> FUN.ARRANGE",
+    "COM.KEY_DETAIL -> INT.CONFIRM",
+    "COM.KEY_DETAIL -> INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE -> INT.PROVIDE_DETAIL",
+    "INT.OPEN_CLOSE -> INT.STATE_PURPOSE"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:de.friseur.change_appointment.move_day",
+   "scenarioId": "friseur",
+   "variantId": "de.friseur.change_appointment.move_day",
+   "scenarioObjectiveId": "de.friseur.change_appointment",
+   "targetLanguage": "de",
+   "sourceGoalIndex": 2,
+   "learnerLevel": {
+    "min": "A2",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "FUN.ARRANGE",
+    "INT.NEGOTIATE",
+    "INT.OPEN_CLOSE",
+    "INT.STATE_PURPOSE"
+   ],
+   "requiredCriterionIds": [
+    "change_requested",
+    "alternative_proposed",
+    "new_arrangement_resolved"
+   ],
+   "optionalCriterionIds": [
+    "close_appropriate"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.PROVIDE_DETAIL -> FUN.ARRANGE",
+    "INT.CONFIRM -> INT.NEGOTIATE",
+    "COM.CONSTRAINT -> INT.NEGOTIATE",
+    "FUN.ARRANGE -> INT.NEGOTIATE",
+    "INT.OPEN_CLOSE -> INT.STATE_PURPOSE"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:de.restaurant.reserve_table.four_friday",
+   "scenarioId": "restaurant",
+   "variantId": "de.restaurant.reserve_table.four_friday",
+   "scenarioObjectiveId": "de.restaurant.reserve_table",
+   "targetLanguage": "de",
+   "sourceGoalIndex": 0,
+   "learnerLevel": {
+    "min": "A1",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "FUN.ARRANGE",
+    "INT.CONFIRM",
+    "INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE"
+   ],
+   "requiredCriterionIds": [
+    "purpose_stated",
+    "party_and_time_given",
+    "reservation_resolved"
+   ],
+   "optionalCriterionIds": [
+    "outcome_confirmed"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.PROVIDE_DETAIL -> FUN.ARRANGE",
+    "COM.KEY_DETAIL -> INT.CONFIRM",
+    "COM.KEY_DETAIL -> INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE -> INT.PROVIDE_DETAIL",
+    "INT.OPEN_CLOSE -> INT.STATE_PURPOSE"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:de.restaurant.reserve_table.two_saturday_vegetarian",
+   "scenarioId": "restaurant",
+   "variantId": "de.restaurant.reserve_table.two_saturday_vegetarian",
+   "scenarioObjectiveId": "de.restaurant.reserve_table",
+   "targetLanguage": "de",
+   "sourceGoalIndex": 1,
+   "learnerLevel": {
+    "min": "A2",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "COM.KEY_DETAIL",
+    "FUN.ARRANGE",
+    "INT.ASK_INFORMATION",
+    "INT.PROVIDE_DETAIL"
+   ],
+   "requiredCriterionIds": [
+    "party_and_time_given",
+    "vegetarian_question_asked",
+    "reservation_resolved"
+   ],
+   "optionalCriterionIds": [
+    "follow_up_handled"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.PROVIDE_DETAIL -> FUN.ARRANGE",
+    "COM.KEY_DETAIL -> INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE -> INT.PROVIDE_DETAIL"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:de.restaurant.cancel_reservation.apologise_and_rebook",
+   "scenarioId": "restaurant",
+   "variantId": "de.restaurant.cancel_reservation.apologise_and_rebook",
+   "scenarioObjectiveId": "de.restaurant.cancel_reservation",
+   "targetLanguage": "de",
+   "sourceGoalIndex": 2,
+   "learnerLevel": {
+    "min": "A2",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "FUN.ARRANGE",
+    "INT.OPEN_CLOSE",
+    "INT.STATE_PURPOSE",
+    "SOC.REGISTER"
+   ],
+   "requiredCriterionIds": [
+    "cancellation_stated",
+    "apology_expressed",
+    "rebooking_resolved"
+   ],
+   "optionalCriterionIds": [
+    "close_appropriate"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.PROVIDE_DETAIL -> FUN.ARRANGE",
+    "INT.OPEN_CLOSE -> INT.STATE_PURPOSE"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:de.apotheke.request_medicine.stock_and_reserve",
+   "scenarioId": "apotheke",
+   "variantId": "de.apotheke.request_medicine.stock_and_reserve",
+   "scenarioObjectiveId": "de.apotheke.request_medicine",
+   "targetLanguage": "de",
+   "sourceGoalIndex": 0,
+   "learnerLevel": {
+    "min": "A2",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "COM.KEY_DETAIL",
+    "FUN.ARRANGE",
+    "INT.ASK_INFORMATION",
+    "INT.OPEN_CLOSE"
+   ],
+   "requiredCriterionIds": [
+    "stock_question_asked",
+    "answer_understood",
+    "reservation_resolved"
+   ],
+   "optionalCriterionIds": [
+    "close_appropriate"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.PROVIDE_DETAIL -> FUN.ARRANGE"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:de.apotheke.request_information.dosage_and_food",
+   "scenarioId": "apotheke",
+   "variantId": "de.apotheke.request_information.dosage_and_food",
+   "scenarioObjectiveId": "de.apotheke.request_information",
+   "targetLanguage": "de",
+   "sourceGoalIndex": 1,
+   "learnerLevel": {
+    "min": "A2",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "COM.MULTISTEP",
+    "INT.ASK_INFORMATION",
+    "INT.CLARIFY_REPAIR"
+   ],
+   "requiredCriterionIds": [
+    "dosage_question_asked",
+    "food_question_asked",
+    "instructions_understood"
+   ],
+   "optionalCriterionIds": [
+    "repair_used"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.ASK_INFORMATION -> INT.CLARIFY_REPAIR"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:de.apotheke.request_order.out_of_stock_arrival",
+   "scenarioId": "apotheke",
+   "variantId": "de.apotheke.request_order.out_of_stock_arrival",
+   "scenarioObjectiveId": "de.apotheke.request_order",
+   "targetLanguage": "de",
+   "sourceGoalIndex": 2,
+   "learnerLevel": {
+    "min": "A2",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "FUN.ARRANGE",
+    "INT.ASK_INFORMATION",
+    "INT.CONFIRM"
+   ],
+   "requiredCriterionIds": [
+    "order_question_asked",
+    "arrival_question_asked",
+    "order_resolved"
+   ],
+   "optionalCriterionIds": [
+    "outcome_confirmed"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.PROVIDE_DETAIL -> FUN.ARRANGE",
+    "COM.KEY_DETAIL -> INT.CONFIRM"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:de.paket.report_problem.marked_delivered",
+   "scenarioId": "paket",
+   "variantId": "de.paket.report_problem.marked_delivered",
+   "scenarioObjectiveId": "de.paket.report_problem",
+   "targetLanguage": "de",
+   "sourceGoalIndex": 0,
+   "learnerLevel": {
+    "min": "A2",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "FUN.REPORT_PROBLEM",
+    "FUN.REQUEST_REMEDY",
+    "INT.CONFIRM",
+    "INT.PROVIDE_DETAIL"
+   ],
+   "requiredCriterionIds": [
+    "problem_described",
+    "detail_given",
+    "remedy_resolved"
+   ],
+   "optionalCriterionIds": [
+    "outcome_confirmed"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.PROVIDE_DETAIL -> FUN.REPORT_PROBLEM",
+    "FUN.REPORT_PROBLEM -> FUN.REQUEST_REMEDY",
+    "COM.KEY_DETAIL -> INT.CONFIRM",
+    "COM.KEY_DETAIL -> INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE -> INT.PROVIDE_DETAIL"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:de.paket.arrange_delivery.new_date",
+   "scenarioId": "paket",
+   "variantId": "de.paket.arrange_delivery.new_date",
+   "scenarioObjectiveId": "de.paket.arrange_delivery",
+   "targetLanguage": "de",
+   "sourceGoalIndex": 1,
+   "learnerLevel": {
+    "min": "A2",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "FUN.ARRANGE",
+    "INT.CONFIRM",
+    "INT.NEGOTIATE",
+    "INT.STATE_PURPOSE"
+   ],
+   "requiredCriterionIds": [
+    "purpose_stated",
+    "date_proposed",
+    "delivery_resolved"
+   ],
+   "optionalCriterionIds": [
+    "outcome_confirmed"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.PROVIDE_DETAIL -> FUN.ARRANGE",
+    "COM.KEY_DETAIL -> INT.CONFIRM",
+    "INT.CONFIRM -> INT.NEGOTIATE",
+    "COM.CONSTRAINT -> INT.NEGOTIATE",
+    "FUN.ARRANGE -> INT.NEGOTIATE",
+    "INT.OPEN_CLOSE -> INT.STATE_PURPOSE"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:de.paket.request_information.parcel_location",
+   "scenarioId": "paket",
+   "variantId": "de.paket.request_information.parcel_location",
+   "scenarioObjectiveId": "de.paket.request_information",
+   "targetLanguage": "de",
+   "sourceGoalIndex": 2,
+   "learnerLevel": {
+    "min": "A2",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "COM.KEY_DETAIL",
+    "INT.ASK_INFORMATION",
+    "INT.CLARIFY_REPAIR",
+    "INT.PROVIDE_DETAIL"
+   ],
+   "requiredCriterionIds": [
+    "location_question_asked",
+    "context_given",
+    "status_understood"
+   ],
+   "optionalCriterionIds": [
+    "repair_used"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.ASK_INFORMATION -> INT.CLARIFY_REPAIR",
+    "COM.KEY_DETAIL -> INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE -> INT.PROVIDE_DETAIL"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:de.vermieter.report_problem.heating_repair",
+   "scenarioId": "vermieter",
+   "variantId": "de.vermieter.report_problem.heating_repair",
+   "scenarioObjectiveId": "de.vermieter.report_problem",
+   "targetLanguage": "de",
+   "sourceGoalIndex": 0,
+   "learnerLevel": {
+    "min": "A1",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "FUN.REPORT_PROBLEM",
+    "FUN.REQUEST_REMEDY",
+    "INT.CONFIRM",
+    "INT.PROVIDE_DETAIL"
+   ],
+   "requiredCriterionIds": [
+    "problem_described",
+    "detail_given",
+    "repair_resolved"
+   ],
+   "optionalCriterionIds": [
+    "outcome_confirmed"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.PROVIDE_DETAIL -> FUN.REPORT_PROBLEM",
+    "FUN.REPORT_PROBLEM -> FUN.REQUEST_REMEDY",
+    "COM.KEY_DETAIL -> INT.CONFIRM",
+    "COM.KEY_DETAIL -> INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE -> INT.PROVIDE_DETAIL"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:de.vermieter.report_problem.dripping_tap_visit",
+   "scenarioId": "vermieter",
+   "variantId": "de.vermieter.report_problem.dripping_tap_visit",
+   "scenarioObjectiveId": "de.vermieter.report_problem",
+   "targetLanguage": "de",
+   "sourceGoalIndex": 1,
+   "learnerLevel": {
+    "min": "A2",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "FUN.ARRANGE",
+    "FUN.REPORT_PROBLEM",
+    "INT.CONFIRM",
+    "INT.PROVIDE_DETAIL"
+   ],
+   "requiredCriterionIds": [
+    "problem_described",
+    "access_detail_given",
+    "visit_resolved"
+   ],
+   "optionalCriterionIds": [
+    "outcome_confirmed"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.PROVIDE_DETAIL -> FUN.ARRANGE",
+    "INT.PROVIDE_DETAIL -> FUN.REPORT_PROBLEM",
+    "COM.KEY_DETAIL -> INT.CONFIRM",
+    "COM.KEY_DETAIL -> INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE -> INT.PROVIDE_DETAIL"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:de.vermieter.request_information.utility_bill",
+   "scenarioId": "vermieter",
+   "variantId": "de.vermieter.request_information.utility_bill",
+   "scenarioObjectiveId": "de.vermieter.request_information",
+   "targetLanguage": "de",
+   "sourceGoalIndex": 2,
+   "learnerLevel": {
+    "min": "B1",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "COM.KEY_DETAIL",
+    "INT.ASK_INFORMATION",
+    "INT.CLARIFY_REPAIR",
+    "INT.PROVIDE_DETAIL"
+   ],
+   "requiredCriterionIds": [
+    "bill_question_asked",
+    "reference_given",
+    "explanation_understood"
+   ],
+   "optionalCriterionIds": [
+    "repair_used"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.ASK_INFORMATION -> INT.CLARIFY_REPAIR",
+    "COM.KEY_DETAIL -> INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE -> INT.PROVIDE_DETAIL"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:de.bank.report_problem.lost_card_block",
+   "scenarioId": "bank",
+   "variantId": "de.bank.report_problem.lost_card_block",
+   "scenarioObjectiveId": "de.bank.report_problem",
+   "targetLanguage": "de",
+   "sourceGoalIndex": 0,
+   "learnerLevel": {
+    "min": "A2",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "FUN.REPORT_PROBLEM",
+    "FUN.REQUEST_REMEDY",
+    "INT.CONFIRM",
+    "INT.PROVIDE_DETAIL"
+   ],
+   "requiredCriterionIds": [
+    "loss_reported",
+    "identification_given",
+    "block_resolved"
+   ],
+   "optionalCriterionIds": [
+    "outcome_confirmed"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.PROVIDE_DETAIL -> FUN.REPORT_PROBLEM",
+    "FUN.REPORT_PROBLEM -> FUN.REQUEST_REMEDY",
+    "COM.KEY_DETAIL -> INT.CONFIRM",
+    "COM.KEY_DETAIL -> INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE -> INT.PROVIDE_DETAIL"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:de.bank.request_information.unknown_charge",
+   "scenarioId": "bank",
+   "variantId": "de.bank.request_information.unknown_charge",
+   "scenarioObjectiveId": "de.bank.request_information",
+   "targetLanguage": "de",
+   "sourceGoalIndex": 1,
+   "learnerLevel": {
+    "min": "B1",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "COM.KEY_DETAIL",
+    "INT.ASK_INFORMATION",
+    "INT.CLARIFY_REPAIR",
+    "INT.PROVIDE_DETAIL"
+   ],
+   "requiredCriterionIds": [
+    "charge_question_asked",
+    "reference_given",
+    "explanation_understood"
+   ],
+   "optionalCriterionIds": [
+    "repair_used"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.ASK_INFORMATION -> INT.CLARIFY_REPAIR",
+    "COM.KEY_DETAIL -> INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE -> INT.PROVIDE_DETAIL"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:de.bank.book_appointment.open_account",
+   "scenarioId": "bank",
+   "variantId": "de.bank.book_appointment.open_account",
+   "scenarioObjectiveId": "de.bank.book_appointment",
+   "targetLanguage": "de",
+   "sourceGoalIndex": 2,
+   "learnerLevel": {
+    "min": "A2",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "FUN.ARRANGE",
+    "INT.OPEN_CLOSE",
+    "INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE"
+   ],
+   "requiredCriterionIds": [
+    "purpose_stated",
+    "detail_given",
+    "appointment_resolved"
+   ],
+   "optionalCriterionIds": [
+    "close_appropriate"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.PROVIDE_DETAIL -> FUN.ARRANGE",
+    "COM.KEY_DETAIL -> INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE -> INT.PROVIDE_DETAIL",
+    "INT.OPEN_CLOSE -> INT.STATE_PURPOSE"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:de.kita.report_absence.child_sick",
+   "scenarioId": "kita",
+   "variantId": "de.kita.report_absence.child_sick",
+   "scenarioObjectiveId": "de.kita.report_absence",
+   "targetLanguage": "de",
+   "sourceGoalIndex": 0,
+   "learnerLevel": {
+    "min": "A1",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "FUN.REPORT_PROBLEM",
+    "INT.OPEN_CLOSE",
+    "INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE"
+   ],
+   "requiredCriterionIds": [
+    "absence_reported",
+    "reason_given",
+    "acknowledgement_taken_up"
+   ],
+   "optionalCriterionIds": [
+    "close_appropriate"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.PROVIDE_DETAIL -> FUN.REPORT_PROBLEM",
+    "COM.KEY_DETAIL -> INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE -> INT.PROVIDE_DETAIL",
+    "INT.OPEN_CLOSE -> INT.STATE_PURPOSE"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:de.kita.request_information.summer_party",
+   "scenarioId": "kita",
+   "variantId": "de.kita.request_information.summer_party",
+   "scenarioObjectiveId": "de.kita.request_information",
+   "targetLanguage": "de",
+   "sourceGoalIndex": 1,
+   "learnerLevel": {
+    "min": "A2",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "COM.MULTISTEP",
+    "INT.ASK_INFORMATION",
+    "INT.CONFIRM"
+   ],
+   "requiredCriterionIds": [
+    "schedule_question_asked",
+    "contribution_question_asked",
+    "arrangements_understood"
+   ],
+   "optionalCriterionIds": [
+    "outcome_confirmed"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "COM.KEY_DETAIL -> INT.CONFIRM"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:de.kita.arrange_pickup.grandmother",
+   "scenarioId": "kita",
+   "variantId": "de.kita.arrange_pickup.grandmother",
+   "scenarioObjectiveId": "de.kita.arrange_pickup",
+   "targetLanguage": "de",
+   "sourceGoalIndex": 2,
+   "learnerLevel": {
+    "min": "A1",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "INT.CONFIRM",
+    "INT.OPEN_CLOSE",
+    "INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE"
+   ],
+   "requiredCriterionIds": [
+    "change_stated",
+    "person_identified",
+    "arrangement_confirmed"
+   ],
+   "optionalCriterionIds": [
+    "close_appropriate"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "COM.KEY_DETAIL -> INT.CONFIRM",
+    "COM.KEY_DETAIL -> INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE -> INT.PROVIDE_DETAIL",
+    "INT.OPEN_CLOSE -> INT.STATE_PURPOSE"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:de.nachbar.request_favour.accept_parcel",
+   "scenarioId": "nachbar",
+   "variantId": "de.nachbar.request_favour.accept_parcel",
+   "scenarioObjectiveId": "de.nachbar.request_favour",
+   "targetLanguage": "de",
+   "sourceGoalIndex": 0,
+   "learnerLevel": {
+    "min": "A1",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "FUN.SOCIAL_EXCHANGE",
+    "INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE",
+    "SOC.REGISTER"
+   ],
+   "requiredCriterionIds": [
+    "request_made",
+    "timing_given",
+    "response_handled"
+   ],
+   "optionalCriterionIds": [
+    "register_appropriate"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.STATE_PURPOSE -> FUN.SOCIAL_EXCHANGE",
+    "COM.KEY_DETAIL -> INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE -> INT.PROVIDE_DETAIL",
+    "INT.OPEN_CLOSE -> INT.STATE_PURPOSE"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:de.nachbar.raise_issue.loud_music",
+   "scenarioId": "nachbar",
+   "variantId": "de.nachbar.raise_issue.loud_music",
+   "scenarioObjectiveId": "de.nachbar.raise_issue",
+   "targetLanguage": "de",
+   "sourceGoalIndex": 1,
+   "learnerLevel": {
+    "min": "A2",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "FUN.SOCIAL_EXCHANGE",
+    "INT.CLARIFY_REPAIR",
+    "INT.NEGOTIATE",
+    "SOC.REGISTER"
+   ],
+   "requiredCriterionIds": [
+    "issue_raised",
+    "request_made",
+    "politeness_maintained"
+   ],
+   "optionalCriterionIds": [
+    "repair_used"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.STATE_PURPOSE -> FUN.SOCIAL_EXCHANGE",
+    "INT.ASK_INFORMATION -> INT.CLARIFY_REPAIR",
+    "INT.CONFIRM -> INT.NEGOTIATE",
+    "COM.CONSTRAINT -> INT.NEGOTIATE",
+    "FUN.ARRANGE -> INT.NEGOTIATE"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:de.nachbar.request_favour.borrow_drill",
+   "scenarioId": "nachbar",
+   "variantId": "de.nachbar.request_favour.borrow_drill",
+   "scenarioObjectiveId": "de.nachbar.request_favour",
+   "targetLanguage": "de",
+   "sourceGoalIndex": 2,
+   "learnerLevel": {
+    "min": "A1",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "FUN.SOCIAL_EXCHANGE",
+    "INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE",
+    "SOC.REGISTER"
+   ],
+   "requiredCriterionIds": [
+    "request_made",
+    "timeframe_given",
+    "response_handled"
+   ],
+   "optionalCriterionIds": [
+    "register_appropriate"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.STATE_PURPOSE -> FUN.SOCIAL_EXCHANGE",
+    "COM.KEY_DETAIL -> INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE -> INT.PROVIDE_DETAIL",
+    "INT.OPEN_CLOSE -> INT.STATE_PURPOSE"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:de.nachbar.small_talk.weather_and_new_neighbours",
+   "scenarioId": "nachbar",
+   "variantId": "de.nachbar.small_talk.weather_and_new_neighbours",
+   "scenarioObjectiveId": "de.nachbar.small_talk",
+   "targetLanguage": "de",
+   "sourceGoalIndex": 3,
+   "learnerLevel": {
+    "min": "A0",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "FUN.SOCIAL_EXCHANGE",
+    "INT.ASK_INFORMATION",
+    "INT.OPEN_CLOSE",
+    "LNG.COHERENCE"
+   ],
+   "requiredCriterionIds": [
+    "topic_opened",
+    "question_asked",
+    "exchange_sustained"
+   ],
+   "optionalCriterionIds": [
+    "close_appropriate"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.STATE_PURPOSE -> FUN.SOCIAL_EXCHANGE"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:de.nachbar.announce_event.party_apology",
+   "scenarioId": "nachbar",
+   "variantId": "de.nachbar.announce_event.party_apology",
+   "scenarioObjectiveId": "de.nachbar.announce_event",
+   "targetLanguage": "de",
+   "sourceGoalIndex": 4,
+   "learnerLevel": {
+    "min": "A2",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "FUN.SOCIAL_EXCHANGE",
+    "INT.CLARIFY_REPAIR",
+    "INT.PROVIDE_DETAIL",
+    "SOC.REGISTER"
+   ],
+   "requiredCriterionIds": [
+    "announcement_made",
+    "detail_given",
+    "apology_expressed"
+   ],
+   "optionalCriterionIds": [
+    "repair_used"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.STATE_PURPOSE -> FUN.SOCIAL_EXCHANGE",
+    "INT.ASK_INFORMATION -> INT.CLARIFY_REPAIR",
+    "COM.KEY_DETAIL -> INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE -> INT.PROVIDE_DETAIL"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:de.baecker.order_items.rolls_and_coffee",
+   "scenarioId": "baecker",
+   "variantId": "de.baecker.order_items.rolls_and_coffee",
+   "scenarioObjectiveId": "de.baecker.order_items",
+   "targetLanguage": "de",
+   "sourceGoalIndex": 0,
+   "learnerLevel": {
+    "min": "A0",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "FUN.TRANSACT",
+    "INT.CONFIRM",
+    "INT.PROVIDE_DETAIL",
+    "SOC.REGISTER"
+   ],
+   "requiredCriterionIds": [
+    "order_placed",
+    "takeaway_specified",
+    "exchange_settled"
+   ],
+   "optionalCriterionIds": [
+    "register_appropriate"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "COM.KEY_DETAIL -> INT.CONFIRM",
+    "COM.KEY_DETAIL -> INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE -> INT.PROVIDE_DETAIL"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:de.baecker.request_information.fresh_today_cake",
+   "scenarioId": "baecker",
+   "variantId": "de.baecker.request_information.fresh_today_cake",
+   "scenarioObjectiveId": "de.baecker.request_information",
+   "targetLanguage": "de",
+   "sourceGoalIndex": 1,
+   "learnerLevel": {
+    "min": "A1",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "COM.KEY_DETAIL",
+    "FUN.TRANSACT",
+    "INT.ASK_INFORMATION",
+    "SOC.REGISTER"
+   ],
+   "requiredCriterionIds": [
+    "question_asked",
+    "answer_used",
+    "purchase_completed"
+   ],
+   "optionalCriterionIds": [
+    "register_appropriate"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:de.baecker.order_cake.birthday_pickup",
+   "scenarioId": "baecker",
+   "variantId": "de.baecker.order_cake.birthday_pickup",
+   "scenarioObjectiveId": "de.baecker.order_cake",
+   "targetLanguage": "de",
+   "sourceGoalIndex": 2,
+   "learnerLevel": {
+    "min": "A2",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "FUN.ARRANGE",
+    "FUN.TRANSACT",
+    "INT.CONFIRM",
+    "INT.PROVIDE_DETAIL"
+   ],
+   "requiredCriterionIds": [
+    "order_placed",
+    "specification_given",
+    "pickup_arranged"
+   ],
+   "optionalCriterionIds": [
+    "outcome_confirmed"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.PROVIDE_DETAIL -> FUN.ARRANGE",
+    "COM.KEY_DETAIL -> INT.CONFIRM",
+    "COM.KEY_DETAIL -> INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE -> INT.PROVIDE_DETAIL"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:de.supermarkt.request_information.baking_items",
+   "scenarioId": "supermarkt",
+   "variantId": "de.supermarkt.request_information.baking_items",
+   "scenarioObjectiveId": "de.supermarkt.request_information",
+   "targetLanguage": "de",
+   "sourceGoalIndex": 0,
+   "learnerLevel": {
+    "min": "A0",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "COM.KEY_DETAIL",
+    "INT.ASK_INFORMATION",
+    "SOC.REGISTER"
+   ],
+   "requiredCriterionIds": [
+    "location_question_asked",
+    "directions_understood"
+   ],
+   "optionalCriterionIds": [
+    "register_appropriate"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:de.supermarkt.request_information.out_of_stock",
+   "scenarioId": "supermarkt",
+   "variantId": "de.supermarkt.request_information.out_of_stock",
+   "scenarioObjectiveId": "de.supermarkt.request_information",
+   "targetLanguage": "de",
+   "sourceGoalIndex": 1,
+   "learnerLevel": {
+    "min": "A2",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "COM.KEY_DETAIL",
+    "INT.ASK_INFORMATION",
+    "INT.CLARIFY_REPAIR",
+    "INT.PROVIDE_DETAIL"
+   ],
+   "requiredCriterionIds": [
+    "item_identified",
+    "availability_question_asked",
+    "answer_understood"
+   ],
+   "optionalCriterionIds": [
+    "repair_used"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.ASK_INFORMATION -> INT.CLARIFY_REPAIR",
+    "COM.KEY_DETAIL -> INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE -> INT.PROVIDE_DETAIL"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:de.supermarkt.return_item.opened_yoghurt_refund",
+   "scenarioId": "supermarkt",
+   "variantId": "de.supermarkt.return_item.opened_yoghurt_refund",
+   "scenarioObjectiveId": "de.supermarkt.return_item",
+   "targetLanguage": "de",
+   "sourceGoalIndex": 2,
+   "learnerLevel": {
+    "min": "B1",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "FUN.REPORT_PROBLEM",
+    "FUN.REQUEST_REMEDY",
+    "INT.NEGOTIATE",
+    "SOC.REGISTER"
+   ],
+   "requiredCriterionIds": [
+    "problem_described",
+    "refund_requested",
+    "outcome_negotiated"
+   ],
+   "optionalCriterionIds": [
+    "register_appropriate"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.PROVIDE_DETAIL -> FUN.REPORT_PROBLEM",
+    "FUN.REPORT_PROBLEM -> FUN.REQUEST_REMEDY",
+    "INT.CONFIRM -> INT.NEGOTIATE",
+    "COM.CONSTRAINT -> INT.NEGOTIATE",
+    "FUN.ARRANGE -> INT.NEGOTIATE"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:de.kollegen.small_talk.weekend",
+   "scenarioId": "kollegen",
+   "variantId": "de.kollegen.small_talk.weekend",
+   "scenarioObjectiveId": "de.kollegen.small_talk",
+   "targetLanguage": "de",
+   "sourceGoalIndex": 0,
+   "learnerLevel": {
+    "min": "A0",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "FUN.SOCIAL_EXCHANGE",
+    "INT.ASK_INFORMATION",
+    "LNG.COHERENCE",
+    "SOC.REGISTER"
+   ],
+   "requiredCriterionIds": [
+    "topic_opened",
+    "question_asked",
+    "exchange_sustained"
+   ],
+   "optionalCriterionIds": [
+    "register_appropriate"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.STATE_PURPOSE -> FUN.SOCIAL_EXCHANGE"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:de.kollegen.request_information.coffee_machine",
+   "scenarioId": "kollegen",
+   "variantId": "de.kollegen.request_information.coffee_machine",
+   "scenarioObjectiveId": "de.kollegen.request_information",
+   "targetLanguage": "de",
+   "sourceGoalIndex": 1,
+   "learnerLevel": {
+    "min": "A1",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "COM.MULTISTEP",
+    "INT.ASK_INFORMATION",
+    "INT.CLARIFY_REPAIR"
+   ],
+   "requiredCriterionIds": [
+    "question_asked",
+    "steps_understood"
+   ],
+   "optionalCriterionIds": [
+    "repair_used"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.ASK_INFORMATION -> INT.CLARIFY_REPAIR"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:de.kollegen.request_recommendation.dentist",
+   "scenarioId": "kollegen",
+   "variantId": "de.kollegen.request_recommendation.dentist",
+   "scenarioObjectiveId": "de.kollegen.request_recommendation",
+   "targetLanguage": "de",
+   "sourceGoalIndex": 2,
+   "learnerLevel": {
+    "min": "A2",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "COM.KEY_DETAIL",
+    "INT.ASK_INFORMATION",
+    "INT.PROVIDE_DETAIL",
+    "SOC.REGISTER"
+   ],
+   "requiredCriterionIds": [
+    "request_made",
+    "detail_given",
+    "recommendation_used"
+   ],
+   "optionalCriterionIds": [
+    "register_appropriate"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "COM.KEY_DETAIL -> INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE -> INT.PROVIDE_DETAIL"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:de.kollegen.introduce_self.new_and_lunch_places",
+   "scenarioId": "kollegen",
+   "variantId": "de.kollegen.introduce_self.new_and_lunch_places",
+   "scenarioObjectiveId": "de.kollegen.introduce_self",
+   "targetLanguage": "de",
+   "sourceGoalIndex": 3,
+   "learnerLevel": {
+    "min": "A1",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "COM.KEY_DETAIL",
+    "FUN.SOCIAL_EXCHANGE",
+    "INT.ASK_INFORMATION",
+    "SOC.REGISTER"
+   ],
+   "requiredCriterionIds": [
+    "self_introduced",
+    "question_asked",
+    "answer_used"
+   ],
+   "optionalCriterionIds": [
+    "register_appropriate"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.STATE_PURPOSE -> FUN.SOCIAL_EXCHANGE"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:de.empfang.check_in.appointment_insurance_card",
+   "scenarioId": "empfang",
+   "variantId": "de.empfang.check_in.appointment_insurance_card",
+   "scenarioObjectiveId": "de.empfang.check_in",
+   "targetLanguage": "de",
+   "sourceGoalIndex": 0,
+   "learnerLevel": {
+    "min": "A0",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "INT.CONFIRM",
+    "INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE",
+    "SOC.REGISTER"
+   ],
+   "requiredCriterionIds": [
+    "arrival_stated",
+    "identification_given",
+    "instruction_taken_up"
+   ],
+   "optionalCriterionIds": [
+    "register_appropriate"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "COM.KEY_DETAIL -> INT.CONFIRM",
+    "COM.KEY_DETAIL -> INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE -> INT.PROVIDE_DETAIL",
+    "INT.OPEN_CLOSE -> INT.STATE_PURPOSE"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:de.empfang.request_urgent_care.no_appointment_pain",
+   "scenarioId": "empfang",
+   "variantId": "de.empfang.request_urgent_care.no_appointment_pain",
+   "scenarioObjectiveId": "de.empfang.request_urgent_care",
+   "targetLanguage": "de",
+   "sourceGoalIndex": 1,
+   "learnerLevel": {
+    "min": "B1",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "COM.CONSTRAINT",
+    "FUN.REPORT_PROBLEM",
+    "FUN.REQUEST_REMEDY",
+    "SOC.REGISTER"
+   ],
+   "requiredCriterionIds": [
+    "situation_explained",
+    "request_made",
+    "constraint_handled"
+   ],
+   "optionalCriterionIds": [
+    "register_appropriate"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.PROVIDE_DETAIL -> FUN.REPORT_PROBLEM",
+    "FUN.REPORT_PROBLEM -> FUN.REQUEST_REMEDY"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:de.empfang.request_document.sick_note",
+   "scenarioId": "empfang",
+   "variantId": "de.empfang.request_document.sick_note",
+   "scenarioObjectiveId": "de.empfang.request_document",
+   "targetLanguage": "de",
+   "sourceGoalIndex": 2,
+   "learnerLevel": {
+    "min": "A2",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "COM.KEY_DETAIL",
+    "INT.OPEN_CLOSE",
+    "INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE"
+   ],
+   "requiredCriterionIds": [
+    "request_made",
+    "context_given",
+    "next_step_understood"
+   ],
+   "optionalCriterionIds": [
+    "close_appropriate"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "COM.KEY_DETAIL -> INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE -> INT.PROVIDE_DETAIL",
+    "INT.OPEN_CLOSE -> INT.STATE_PURPOSE"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:de.einkaufen.buy_item.tshirt_size_colour_cost",
+   "scenarioId": "einkaufen",
+   "variantId": "de.einkaufen.buy_item.tshirt_size_colour_cost",
+   "scenarioObjectiveId": "de.einkaufen.buy_item",
+   "targetLanguage": "de",
+   "sourceGoalIndex": 0,
+   "learnerLevel": {
+    "min": "A1",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "FUN.TRANSACT",
+    "INT.ASK_INFORMATION",
+    "INT.CONFIRM",
+    "INT.PROVIDE_DETAIL"
+   ],
+   "requiredCriterionIds": [
+    "item_requested",
+    "size_and_colour_given",
+    "cost_question_asked"
+   ],
+   "optionalCriterionIds": [
+    "outcome_confirmed"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "COM.KEY_DETAIL -> INT.CONFIRM",
+    "COM.KEY_DETAIL -> INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE -> INT.PROVIDE_DETAIL"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:de.einkaufen.exchange_item.pullover_bigger_size",
+   "scenarioId": "einkaufen",
+   "variantId": "de.einkaufen.exchange_item.pullover_bigger_size",
+   "scenarioObjectiveId": "de.einkaufen.exchange_item",
+   "targetLanguage": "de",
+   "sourceGoalIndex": 1,
+   "learnerLevel": {
+    "min": "A2",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "FUN.REPORT_PROBLEM",
+    "FUN.REQUEST_REMEDY",
+    "FUN.TRANSACT",
+    "SOC.REGISTER"
+   ],
+   "requiredCriterionIds": [
+    "problem_stated",
+    "exchange_requested",
+    "outcome_resolved"
+   ],
+   "optionalCriterionIds": [
+    "register_appropriate"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.PROVIDE_DETAIL -> FUN.REPORT_PROBLEM",
+    "FUN.REPORT_PROBLEM -> FUN.REQUEST_REMEDY"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:de.einkaufen.request_information.sale_and_trousers",
+   "scenarioId": "einkaufen",
+   "variantId": "de.einkaufen.request_information.sale_and_trousers",
+   "scenarioObjectiveId": "de.einkaufen.request_information",
+   "targetLanguage": "de",
+   "sourceGoalIndex": 2,
+   "learnerLevel": {
+    "min": "A2",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "COM.KEY_DETAIL",
+    "FUN.TRANSACT",
+    "INT.ASK_INFORMATION",
+    "INT.CONFIRM"
+   ],
+   "requiredCriterionIds": [
+    "question_asked",
+    "answer_used",
+    "purchase_completed"
+   ],
+   "optionalCriterionIds": [
+    "outcome_confirmed"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "COM.KEY_DETAIL -> INT.CONFIRM"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:de.dtz1.present_self.origin_family_work_motivation",
+   "scenarioId": "dtz1",
+   "variantId": "de.dtz1.present_self.origin_family_work_motivation",
+   "scenarioObjectiveId": "de.dtz1.present_self",
+   "targetLanguage": "de",
+   "sourceGoalIndex": 0,
+   "learnerLevel": {
+    "min": "B1",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "COM.KEY_DETAIL",
+    "FUN.PRESENT",
+    "INT.PROVIDE_DETAIL",
+    "LNG.COHERENCE"
+   ],
+   "requiredCriterionIds": [
+    "self_presented",
+    "required_areas_covered",
+    "motivation_explained"
+   ],
+   "optionalCriterionIds": [
+    "follow_up_handled"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.PROVIDE_DETAIL -> FUN.PRESENT",
+    "COM.KEY_DETAIL -> INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE -> INT.PROVIDE_DETAIL"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:de.dtz1.present_self.daily_life_and_hobbies",
+   "scenarioId": "dtz1",
+   "variantId": "de.dtz1.present_self.daily_life_and_hobbies",
+   "scenarioObjectiveId": "de.dtz1.present_self",
+   "targetLanguage": "de",
+   "sourceGoalIndex": 1,
+   "learnerLevel": {
+    "min": "B1",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "COM.KEY_DETAIL",
+    "FUN.PRESENT",
+    "INT.CLARIFY_REPAIR",
+    "INT.PROVIDE_DETAIL"
+   ],
+   "requiredCriterionIds": [
+    "self_presented",
+    "areas_covered",
+    "follow_up_answered"
+   ],
+   "optionalCriterionIds": [
+    "repair_used"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.PROVIDE_DETAIL -> FUN.PRESENT",
+    "INT.ASK_INFORMATION -> INT.CLARIFY_REPAIR",
+    "COM.KEY_DETAIL -> INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE -> INT.PROVIDE_DETAIL"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:de.dtz1.present_self.future_plans",
+   "scenarioId": "dtz1",
+   "variantId": "de.dtz1.present_self.future_plans",
+   "scenarioObjectiveId": "de.dtz1.present_self",
+   "targetLanguage": "de",
+   "sourceGoalIndex": 2,
+   "learnerLevel": {
+    "min": "B1",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "COM.KEY_DETAIL",
+    "FUN.PRESENT",
+    "INT.PROVIDE_DETAIL",
+    "LNG.COHERENCE"
+   ],
+   "requiredCriterionIds": [
+    "self_presented",
+    "plans_explained",
+    "account_coherent"
+   ],
+   "optionalCriterionIds": [
+    "follow_up_handled"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.PROVIDE_DETAIL -> FUN.PRESENT",
+    "COM.KEY_DETAIL -> INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE -> INT.PROVIDE_DETAIL"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:de.dtz2.present_topic.shopping_habits",
+   "scenarioId": "dtz2",
+   "variantId": "de.dtz2.present_topic.shopping_habits",
+   "scenarioObjectiveId": "de.dtz2.present_topic",
+   "targetLanguage": "de",
+   "sourceGoalIndex": 0,
+   "learnerLevel": {
+    "min": "B1",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "COM.KEY_DETAIL",
+    "FUN.PRESENT",
+    "INT.CLARIFY_REPAIR",
+    "INT.PROVIDE_DETAIL"
+   ],
+   "requiredCriterionIds": [
+    "topic_presented",
+    "detail_supported",
+    "follow_up_answered"
+   ],
+   "optionalCriterionIds": [
+    "repair_used"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.PROVIDE_DETAIL -> FUN.PRESENT",
+    "INT.ASK_INFORMATION -> INT.CLARIFY_REPAIR",
+    "COM.KEY_DETAIL -> INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE -> INT.PROVIDE_DETAIL"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:de.dtz2.present_topic.phone_and_internet",
+   "scenarioId": "dtz2",
+   "variantId": "de.dtz2.present_topic.phone_and_internet",
+   "scenarioObjectiveId": "de.dtz2.present_topic",
+   "targetLanguage": "de",
+   "sourceGoalIndex": 1,
+   "learnerLevel": {
+    "min": "B1",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "COM.KEY_DETAIL",
+    "FUN.PRESENT",
+    "INT.CLARIFY_REPAIR",
+    "INT.PROVIDE_DETAIL"
+   ],
+   "requiredCriterionIds": [
+    "topic_presented",
+    "detail_supported",
+    "follow_up_answered"
+   ],
+   "optionalCriterionIds": [
+    "repair_used"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.PROVIDE_DETAIL -> FUN.PRESENT",
+    "INT.ASK_INFORMATION -> INT.CLARIFY_REPAIR",
+    "COM.KEY_DETAIL -> INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE -> INT.PROVIDE_DETAIL"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:de.dtz2.present_topic.celebrations_home_country",
+   "scenarioId": "dtz2",
+   "variantId": "de.dtz2.present_topic.celebrations_home_country",
+   "scenarioObjectiveId": "de.dtz2.present_topic",
+   "targetLanguage": "de",
+   "sourceGoalIndex": 2,
+   "learnerLevel": {
+    "min": "B1",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "COM.KEY_DETAIL",
+    "FUN.PRESENT",
+    "INT.CLARIFY_REPAIR",
+    "INT.PROVIDE_DETAIL"
+   ],
+   "requiredCriterionIds": [
+    "topic_presented",
+    "detail_supported",
+    "follow_up_answered"
+   ],
+   "optionalCriterionIds": [
+    "repair_used"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.PROVIDE_DETAIL -> FUN.PRESENT",
+    "INT.ASK_INFORMATION -> INT.CLARIFY_REPAIR",
+    "COM.KEY_DETAIL -> INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE -> INT.PROVIDE_DETAIL"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:de.dtz3.plan_together.farewell_gift_party",
+   "scenarioId": "dtz3",
+   "variantId": "de.dtz3.plan_together.farewell_gift_party",
+   "scenarioObjectiveId": "de.dtz3.plan_together",
+   "targetLanguage": "de",
+   "sourceGoalIndex": 0,
+   "learnerLevel": {
+    "min": "B1",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "FUN.COLLABORATIVE_PLAN",
+    "INT.CLARIFY_REPAIR",
+    "INT.CONFIRM",
+    "INT.NEGOTIATE"
+   ],
+   "requiredCriterionIds": [
+    "proposal_made",
+    "partner_proposal_answered",
+    "plan_confirmed"
+   ],
+   "optionalCriterionIds": [
+    "repair_used"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.NEGOTIATE -> FUN.COLLABORATIVE_PLAN",
+    "COM.MULTISTEP -> FUN.COLLABORATIVE_PLAN",
+    "INT.ASK_INFORMATION -> INT.CLARIFY_REPAIR",
+    "COM.KEY_DETAIL -> INT.CONFIRM",
+    "INT.CONFIRM -> INT.NEGOTIATE",
+    "COM.CONSTRAINT -> INT.NEGOTIATE",
+    "FUN.ARRANGE -> INT.NEGOTIATE"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:de.dtz3.plan_together.weekend_trip",
+   "scenarioId": "dtz3",
+   "variantId": "de.dtz3.plan_together.weekend_trip",
+   "scenarioObjectiveId": "de.dtz3.plan_together",
+   "targetLanguage": "de",
+   "sourceGoalIndex": 1,
+   "learnerLevel": {
+    "min": "B1",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "COM.MULTISTEP",
+    "FUN.COLLABORATIVE_PLAN",
+    "INT.CLARIFY_REPAIR",
+    "INT.CONFIRM"
+   ],
+   "requiredCriterionIds": [
+    "proposal_made",
+    "options_coordinated",
+    "plan_confirmed"
+   ],
+   "optionalCriterionIds": [
+    "repair_used"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.NEGOTIATE -> FUN.COLLABORATIVE_PLAN",
+    "COM.MULTISTEP -> FUN.COLLABORATIVE_PLAN",
+    "INT.ASK_INFORMATION -> INT.CLARIFY_REPAIR",
+    "COM.KEY_DETAIL -> INT.CONFIRM"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:de.dtz3.plan_together.visit_sick_friend",
+   "scenarioId": "dtz3",
+   "variantId": "de.dtz3.plan_together.visit_sick_friend",
+   "scenarioObjectiveId": "de.dtz3.plan_together",
+   "targetLanguage": "de",
+   "sourceGoalIndex": 2,
+   "learnerLevel": {
+    "min": "B1",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "COM.CONSTRAINT",
+    "FUN.COLLABORATIVE_PLAN",
+    "INT.CLARIFY_REPAIR",
+    "INT.CONFIRM"
+   ],
+   "requiredCriterionIds": [
+    "proposal_made",
+    "constraint_handled",
+    "plan_confirmed"
+   ],
+   "optionalCriterionIds": [
+    "repair_used"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.NEGOTIATE -> FUN.COLLABORATIVE_PLAN",
+    "COM.MULTISTEP -> FUN.COLLABORATIVE_PLAN",
+    "INT.ASK_INFORMATION -> INT.CLARIFY_REPAIR",
+    "COM.KEY_DETAIL -> INT.CONFIRM"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:en.endoctor.book_appointment.cough",
+   "scenarioId": "endoctor",
+   "variantId": "en.endoctor.book_appointment.cough",
+   "scenarioObjectiveId": "en.endoctor.book_appointment",
+   "targetLanguage": "en",
+   "sourceGoalIndex": 0,
+   "learnerLevel": {
+    "min": "A1",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "FUN.ARRANGE",
+    "INT.OPEN_CLOSE",
+    "INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE"
+   ],
+   "requiredCriterionIds": [
+    "purpose_stated",
+    "symptom_given",
+    "appointment_resolved"
+   ],
+   "optionalCriterionIds": [
+    "close_appropriate"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.PROVIDE_DETAIL -> FUN.ARRANGE",
+    "COM.KEY_DETAIL -> INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE -> INT.PROVIDE_DETAIL",
+    "INT.OPEN_CLOSE -> INT.STATE_PURPOSE"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:en.endoctor.book_appointment.back_pain",
+   "scenarioId": "endoctor",
+   "variantId": "en.endoctor.book_appointment.back_pain",
+   "scenarioObjectiveId": "en.endoctor.book_appointment",
+   "targetLanguage": "en",
+   "sourceGoalIndex": 1,
+   "learnerLevel": {
+    "min": "A1",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "FUN.ARRANGE",
+    "INT.OPEN_CLOSE",
+    "INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE"
+   ],
+   "requiredCriterionIds": [
+    "purpose_stated",
+    "symptom_given",
+    "appointment_resolved"
+   ],
+   "optionalCriterionIds": [
+    "close_appropriate"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.PROVIDE_DETAIL -> FUN.ARRANGE",
+    "COM.KEY_DETAIL -> INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE -> INT.PROVIDE_DETAIL",
+    "INT.OPEN_CLOSE -> INT.STATE_PURPOSE"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:en.endoctor.request_prescription.repeat_and_visit_check",
+   "scenarioId": "endoctor",
+   "variantId": "en.endoctor.request_prescription.repeat_and_visit_check",
+   "scenarioObjectiveId": "en.endoctor.request_prescription",
+   "targetLanguage": "en",
+   "sourceGoalIndex": 2,
+   "learnerLevel": {
+    "min": "A2",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "COM.KEY_DETAIL",
+    "INT.ASK_INFORMATION",
+    "INT.OPEN_CLOSE",
+    "INT.STATE_PURPOSE"
+   ],
+   "requiredCriterionIds": [
+    "prescription_requested",
+    "visit_question_asked",
+    "answer_understood"
+   ],
+   "optionalCriterionIds": [
+    "close_appropriate"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.OPEN_CLOSE -> INT.STATE_PURPOSE"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:en.endoctor.change_appointment.reschedule",
+   "scenarioId": "endoctor",
+   "variantId": "en.endoctor.change_appointment.reschedule",
+   "scenarioObjectiveId": "en.endoctor.change_appointment",
+   "targetLanguage": "en",
+   "sourceGoalIndex": 3,
+   "learnerLevel": {
+    "min": "A2",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "FUN.ARRANGE",
+    "INT.NEGOTIATE",
+    "INT.OPEN_CLOSE",
+    "INT.STATE_PURPOSE"
+   ],
+   "requiredCriterionIds": [
+    "change_requested",
+    "alternative_proposed",
+    "new_arrangement_resolved"
+   ],
+   "optionalCriterionIds": [
+    "close_appropriate"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.PROVIDE_DETAIL -> FUN.ARRANGE",
+    "INT.CONFIRM -> INT.NEGOTIATE",
+    "COM.CONSTRAINT -> INT.NEGOTIATE",
+    "FUN.ARRANGE -> INT.NEGOTIATE",
+    "INT.OPEN_CLOSE -> INT.STATE_PURPOSE"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:en.enbank.report_problem.lost_debit_card_block",
+   "scenarioId": "enbank",
+   "variantId": "en.enbank.report_problem.lost_debit_card_block",
+   "scenarioObjectiveId": "en.enbank.report_problem",
+   "targetLanguage": "en",
+   "sourceGoalIndex": 0,
+   "learnerLevel": {
+    "min": "A2",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "FUN.REPORT_PROBLEM",
+    "FUN.REQUEST_REMEDY",
+    "INT.CONFIRM",
+    "INT.PROVIDE_DETAIL"
+   ],
+   "requiredCriterionIds": [
+    "loss_reported",
+    "identification_given",
+    "block_resolved"
+   ],
+   "optionalCriterionIds": [
+    "outcome_confirmed"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.PROVIDE_DETAIL -> FUN.REPORT_PROBLEM",
+    "FUN.REPORT_PROBLEM -> FUN.REQUEST_REMEDY",
+    "COM.KEY_DETAIL -> INT.CONFIRM",
+    "COM.KEY_DETAIL -> INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE -> INT.PROVIDE_DETAIL"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:en.enbank.request_information.unknown_charge",
+   "scenarioId": "enbank",
+   "variantId": "en.enbank.request_information.unknown_charge",
+   "scenarioObjectiveId": "en.enbank.request_information",
+   "targetLanguage": "en",
+   "sourceGoalIndex": 1,
+   "learnerLevel": {
+    "min": "B1",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "COM.KEY_DETAIL",
+    "INT.ASK_INFORMATION",
+    "INT.CLARIFY_REPAIR",
+    "INT.PROVIDE_DETAIL"
+   ],
+   "requiredCriterionIds": [
+    "charge_question_asked",
+    "reference_given",
+    "explanation_understood"
+   ],
+   "optionalCriterionIds": [
+    "repair_used"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.ASK_INFORMATION -> INT.CLARIFY_REPAIR",
+    "COM.KEY_DETAIL -> INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE -> INT.PROVIDE_DETAIL"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:en.enbank.book_appointment.open_checking_account",
+   "scenarioId": "enbank",
+   "variantId": "en.enbank.book_appointment.open_checking_account",
+   "scenarioObjectiveId": "en.enbank.book_appointment",
+   "targetLanguage": "en",
+   "sourceGoalIndex": 2,
+   "learnerLevel": {
+    "min": "A2",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "FUN.ARRANGE",
+    "INT.OPEN_CLOSE",
+    "INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE"
+   ],
+   "requiredCriterionIds": [
+    "purpose_stated",
+    "detail_given",
+    "appointment_resolved"
+   ],
+   "optionalCriterionIds": [
+    "close_appropriate"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.PROVIDE_DETAIL -> FUN.ARRANGE",
+    "COM.KEY_DETAIL -> INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE -> INT.PROVIDE_DETAIL",
+    "INT.OPEN_CLOSE -> INT.STATE_PURPOSE"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:en.enlandlord.report_problem.heating_repair",
+   "scenarioId": "enlandlord",
+   "variantId": "en.enlandlord.report_problem.heating_repair",
+   "scenarioObjectiveId": "en.enlandlord.report_problem",
+   "targetLanguage": "en",
+   "sourceGoalIndex": 0,
+   "learnerLevel": {
+    "min": "A1",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "FUN.REPORT_PROBLEM",
+    "FUN.REQUEST_REMEDY",
+    "INT.CONFIRM",
+    "INT.PROVIDE_DETAIL"
+   ],
+   "requiredCriterionIds": [
+    "problem_described",
+    "detail_given",
+    "repair_resolved"
+   ],
+   "optionalCriterionIds": [
+    "outcome_confirmed"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.PROVIDE_DETAIL -> FUN.REPORT_PROBLEM",
+    "FUN.REPORT_PROBLEM -> FUN.REQUEST_REMEDY",
+    "COM.KEY_DETAIL -> INT.CONFIRM",
+    "COM.KEY_DETAIL -> INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE -> INT.PROVIDE_DETAIL"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:en.enlandlord.report_problem.dripping_tap_visit",
+   "scenarioId": "enlandlord",
+   "variantId": "en.enlandlord.report_problem.dripping_tap_visit",
+   "scenarioObjectiveId": "en.enlandlord.report_problem",
+   "targetLanguage": "en",
+   "sourceGoalIndex": 1,
+   "learnerLevel": {
+    "min": "A2",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "FUN.ARRANGE",
+    "FUN.REPORT_PROBLEM",
+    "INT.CONFIRM",
+    "INT.PROVIDE_DETAIL"
+   ],
+   "requiredCriterionIds": [
+    "problem_described",
+    "access_detail_given",
+    "visit_resolved"
+   ],
+   "optionalCriterionIds": [
+    "outcome_confirmed"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.PROVIDE_DETAIL -> FUN.ARRANGE",
+    "INT.PROVIDE_DETAIL -> FUN.REPORT_PROBLEM",
+    "COM.KEY_DETAIL -> INT.CONFIRM",
+    "COM.KEY_DETAIL -> INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE -> INT.PROVIDE_DETAIL"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:en.enlandlord.request_information.rent_statement",
+   "scenarioId": "enlandlord",
+   "variantId": "en.enlandlord.request_information.rent_statement",
+   "scenarioObjectiveId": "en.enlandlord.request_information",
+   "targetLanguage": "en",
+   "sourceGoalIndex": 2,
+   "learnerLevel": {
+    "min": "B1",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "COM.KEY_DETAIL",
+    "INT.ASK_INFORMATION",
+    "INT.CLARIFY_REPAIR",
+    "INT.PROVIDE_DETAIL"
+   ],
+   "requiredCriterionIds": [
+    "statement_question_asked",
+    "reference_given",
+    "explanation_understood"
+   ],
+   "optionalCriterionIds": [
+    "repair_used"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.ASK_INFORMATION -> INT.CLARIFY_REPAIR",
+    "COM.KEY_DETAIL -> INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE -> INT.PROVIDE_DETAIL"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:en.endelivery.report_problem.marked_delivered",
+   "scenarioId": "endelivery",
+   "variantId": "en.endelivery.report_problem.marked_delivered",
+   "scenarioObjectiveId": "en.endelivery.report_problem",
+   "targetLanguage": "en",
+   "sourceGoalIndex": 0,
+   "learnerLevel": {
+    "min": "A2",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "FUN.REPORT_PROBLEM",
+    "FUN.REQUEST_REMEDY",
+    "INT.CONFIRM",
+    "INT.PROVIDE_DETAIL"
+   ],
+   "requiredCriterionIds": [
+    "problem_described",
+    "detail_given",
+    "remedy_resolved"
+   ],
+   "optionalCriterionIds": [
+    "outcome_confirmed"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.PROVIDE_DETAIL -> FUN.REPORT_PROBLEM",
+    "FUN.REPORT_PROBLEM -> FUN.REQUEST_REMEDY",
+    "COM.KEY_DETAIL -> INT.CONFIRM",
+    "COM.KEY_DETAIL -> INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE -> INT.PROVIDE_DETAIL"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:en.endelivery.arrange_delivery.new_date",
+   "scenarioId": "endelivery",
+   "variantId": "en.endelivery.arrange_delivery.new_date",
+   "scenarioObjectiveId": "en.endelivery.arrange_delivery",
+   "targetLanguage": "en",
+   "sourceGoalIndex": 1,
+   "learnerLevel": {
+    "min": "A2",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "FUN.ARRANGE",
+    "INT.CONFIRM",
+    "INT.NEGOTIATE",
+    "INT.STATE_PURPOSE"
+   ],
+   "requiredCriterionIds": [
+    "purpose_stated",
+    "date_proposed",
+    "delivery_resolved"
+   ],
+   "optionalCriterionIds": [
+    "outcome_confirmed"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.PROVIDE_DETAIL -> FUN.ARRANGE",
+    "COM.KEY_DETAIL -> INT.CONFIRM",
+    "INT.CONFIRM -> INT.NEGOTIATE",
+    "COM.CONSTRAINT -> INT.NEGOTIATE",
+    "FUN.ARRANGE -> INT.NEGOTIATE",
+    "INT.OPEN_CLOSE -> INT.STATE_PURPOSE"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:en.endelivery.request_information.package_location",
+   "scenarioId": "endelivery",
+   "variantId": "en.endelivery.request_information.package_location",
+   "scenarioObjectiveId": "en.endelivery.request_information",
+   "targetLanguage": "en",
+   "sourceGoalIndex": 2,
+   "learnerLevel": {
+    "min": "A2",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "COM.KEY_DETAIL",
+    "INT.ASK_INFORMATION",
+    "INT.CLARIFY_REPAIR",
+    "INT.PROVIDE_DETAIL"
+   ],
+   "requiredCriterionIds": [
+    "location_question_asked",
+    "context_given",
+    "status_understood"
+   ],
+   "optionalCriterionIds": [
+    "repair_used"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.ASK_INFORMATION -> INT.CLARIFY_REPAIR",
+    "COM.KEY_DETAIL -> INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE -> INT.PROVIDE_DETAIL"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:en.enrestaurant.reserve_table.four_friday",
+   "scenarioId": "enrestaurant",
+   "variantId": "en.enrestaurant.reserve_table.four_friday",
+   "scenarioObjectiveId": "en.enrestaurant.reserve_table",
+   "targetLanguage": "en",
+   "sourceGoalIndex": 0,
+   "learnerLevel": {
+    "min": "A1",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "FUN.ARRANGE",
+    "INT.CONFIRM",
+    "INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE"
+   ],
+   "requiredCriterionIds": [
+    "purpose_stated",
+    "party_and_time_given",
+    "reservation_resolved"
+   ],
+   "optionalCriterionIds": [
+    "outcome_confirmed"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.PROVIDE_DETAIL -> FUN.ARRANGE",
+    "COM.KEY_DETAIL -> INT.CONFIRM",
+    "COM.KEY_DETAIL -> INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE -> INT.PROVIDE_DETAIL",
+    "INT.OPEN_CLOSE -> INT.STATE_PURPOSE"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:en.enrestaurant.reserve_table.two_saturday_vegetarian",
+   "scenarioId": "enrestaurant",
+   "variantId": "en.enrestaurant.reserve_table.two_saturday_vegetarian",
+   "scenarioObjectiveId": "en.enrestaurant.reserve_table",
+   "targetLanguage": "en",
+   "sourceGoalIndex": 1,
+   "learnerLevel": {
+    "min": "A2",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "COM.KEY_DETAIL",
+    "FUN.ARRANGE",
+    "INT.ASK_INFORMATION",
+    "INT.PROVIDE_DETAIL"
+   ],
+   "requiredCriterionIds": [
+    "party_and_time_given",
+    "vegetarian_question_asked",
+    "reservation_resolved"
+   ],
+   "optionalCriterionIds": [
+    "follow_up_handled"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.PROVIDE_DETAIL -> FUN.ARRANGE",
+    "COM.KEY_DETAIL -> INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE -> INT.PROVIDE_DETAIL"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:en.enrestaurant.cancel_reservation.apologise_and_rebook",
+   "scenarioId": "enrestaurant",
+   "variantId": "en.enrestaurant.cancel_reservation.apologise_and_rebook",
+   "scenarioObjectiveId": "en.enrestaurant.cancel_reservation",
+   "targetLanguage": "en",
+   "sourceGoalIndex": 2,
+   "learnerLevel": {
+    "min": "A2",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "FUN.ARRANGE",
+    "INT.OPEN_CLOSE",
+    "INT.STATE_PURPOSE",
+    "SOC.REGISTER"
+   ],
+   "requiredCriterionIds": [
+    "cancellation_stated",
+    "apology_expressed",
+    "rebooking_resolved"
+   ],
+   "optionalCriterionIds": [
+    "close_appropriate"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.PROVIDE_DETAIL -> FUN.ARRANGE",
+    "INT.OPEN_CLOSE -> INT.STATE_PURPOSE"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:en.enhair.book_appointment.saturday_morning",
+   "scenarioId": "enhair",
+   "variantId": "en.enhair.book_appointment.saturday_morning",
+   "scenarioObjectiveId": "en.enhair.book_appointment",
+   "targetLanguage": "en",
+   "sourceGoalIndex": 0,
+   "learnerLevel": {
+    "min": "A1",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "FUN.ARRANGE",
+    "INT.CONFIRM",
+    "INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE"
+   ],
+   "requiredCriterionIds": [
+    "purpose_stated",
+    "time_requested",
+    "appointment_resolved"
+   ],
+   "optionalCriterionIds": [
+    "outcome_confirmed"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.PROVIDE_DETAIL -> FUN.ARRANGE",
+    "COM.KEY_DETAIL -> INT.CONFIRM",
+    "COM.KEY_DETAIL -> INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE -> INT.PROVIDE_DETAIL",
+    "INT.OPEN_CLOSE -> INT.STATE_PURPOSE"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:en.enhair.book_appointment.after_work",
+   "scenarioId": "enhair",
+   "variantId": "en.enhair.book_appointment.after_work",
+   "scenarioObjectiveId": "en.enhair.book_appointment",
+   "targetLanguage": "en",
+   "sourceGoalIndex": 1,
+   "learnerLevel": {
+    "min": "A2",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "COM.CONSTRAINT",
+    "FUN.ARRANGE",
+    "INT.CONFIRM",
+    "INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE"
+   ],
+   "requiredCriterionIds": [
+    "purpose_stated",
+    "availability_stated",
+    "constraint_handled",
+    "appointment_resolved"
+   ],
+   "optionalCriterionIds": [
+    "outcome_confirmed"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.PROVIDE_DETAIL -> FUN.ARRANGE",
+    "COM.KEY_DETAIL -> INT.CONFIRM",
+    "COM.KEY_DETAIL -> INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE -> INT.PROVIDE_DETAIL",
+    "INT.OPEN_CLOSE -> INT.STATE_PURPOSE"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:en.enhair.change_appointment.move_day",
+   "scenarioId": "enhair",
+   "variantId": "en.enhair.change_appointment.move_day",
+   "scenarioObjectiveId": "en.enhair.change_appointment",
+   "targetLanguage": "en",
+   "sourceGoalIndex": 2,
+   "learnerLevel": {
+    "min": "A2",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "FUN.ARRANGE",
+    "INT.NEGOTIATE",
+    "INT.OPEN_CLOSE",
+    "INT.STATE_PURPOSE"
+   ],
+   "requiredCriterionIds": [
+    "change_requested",
+    "alternative_proposed",
+    "new_arrangement_resolved"
+   ],
+   "optionalCriterionIds": [
+    "close_appropriate"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.PROVIDE_DETAIL -> FUN.ARRANGE",
+    "INT.CONFIRM -> INT.NEGOTIATE",
+    "COM.CONSTRAINT -> INT.NEGOTIATE",
+    "FUN.ARRANGE -> INT.NEGOTIATE",
+    "INT.OPEN_CLOSE -> INT.STATE_PURPOSE"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:en.enjob.present_experience.warehouse_role",
+   "scenarioId": "enjob",
+   "variantId": "en.enjob.present_experience.warehouse_role",
+   "scenarioObjectiveId": "en.enjob.present_experience",
+   "targetLanguage": "en",
+   "sourceGoalIndex": 0,
+   "learnerLevel": {
+    "min": "B1",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "COM.KEY_DETAIL",
+    "FUN.INTERVIEW",
+    "FUN.PRESENT",
+    "SOC.REGISTER"
+   ],
+   "requiredCriterionIds": [
+    "self_presented",
+    "experience_described",
+    "register_maintained"
+   ],
+   "optionalCriterionIds": [
+    "follow_up_handled"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "FUN.PRESENT -> FUN.INTERVIEW",
+    "INT.PROVIDE_DETAIL -> FUN.PRESENT"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:en.enjob.answer_questions.availability_and_start",
+   "scenarioId": "enjob",
+   "variantId": "en.enjob.answer_questions.availability_and_start",
+   "scenarioObjectiveId": "en.enjob.answer_questions",
+   "targetLanguage": "en",
+   "sourceGoalIndex": 1,
+   "learnerLevel": {
+    "min": "A2",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "COM.KEY_DETAIL",
+    "INT.CLARIFY_REPAIR",
+    "INT.PROVIDE_DETAIL"
+   ],
+   "requiredCriterionIds": [
+    "availability_given",
+    "start_date_given",
+    "questions_answered"
+   ],
+   "optionalCriterionIds": [
+    "repair_used"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.ASK_INFORMATION -> INT.CLARIFY_REPAIR",
+    "COM.KEY_DETAIL -> INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE -> INT.PROVIDE_DETAIL"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:en.enjob.request_information.salary_hours_next_steps",
+   "scenarioId": "enjob",
+   "variantId": "en.enjob.request_information.salary_hours_next_steps",
+   "scenarioObjectiveId": "en.enjob.request_information",
+   "targetLanguage": "en",
+   "sourceGoalIndex": 2,
+   "learnerLevel": {
+    "min": "B1",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "COM.MULTISTEP",
+    "INT.ASK_INFORMATION",
+    "INT.OPEN_CLOSE"
+   ],
+   "requiredCriterionIds": [
+    "pay_question_asked",
+    "hours_question_asked",
+    "next_steps_understood"
+   ],
+   "optionalCriterionIds": [
+    "close_appropriate"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:en.enservice.report_problem.internet_down",
+   "scenarioId": "enservice",
+   "variantId": "en.enservice.report_problem.internet_down",
+   "scenarioObjectiveId": "en.enservice.report_problem",
+   "targetLanguage": "en",
+   "sourceGoalIndex": 0,
+   "learnerLevel": {
+    "min": "A2",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "FUN.REPORT_PROBLEM",
+    "FUN.REQUEST_REMEDY",
+    "INT.CONFIRM",
+    "INT.PROVIDE_DETAIL"
+   ],
+   "requiredCriterionIds": [
+    "problem_described",
+    "detail_given",
+    "remedy_resolved"
+   ],
+   "optionalCriterionIds": [
+    "outcome_confirmed"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.PROVIDE_DETAIL -> FUN.REPORT_PROBLEM",
+    "FUN.REPORT_PROBLEM -> FUN.REQUEST_REMEDY",
+    "COM.KEY_DETAIL -> INT.CONFIRM",
+    "COM.KEY_DETAIL -> INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE -> INT.PROVIDE_DETAIL"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:en.enservice.request_information.high_bill",
+   "scenarioId": "enservice",
+   "variantId": "en.enservice.request_information.high_bill",
+   "scenarioObjectiveId": "en.enservice.request_information",
+   "targetLanguage": "en",
+   "sourceGoalIndex": 1,
+   "learnerLevel": {
+    "min": "B1",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "COM.KEY_DETAIL",
+    "INT.ASK_INFORMATION",
+    "INT.CLARIFY_REPAIR",
+    "INT.PROVIDE_DETAIL"
+   ],
+   "requiredCriterionIds": [
+    "bill_question_asked",
+    "reference_given",
+    "explanation_understood"
+   ],
+   "optionalCriterionIds": [
+    "repair_used"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.ASK_INFORMATION -> INT.CLARIFY_REPAIR",
+    "COM.KEY_DETAIL -> INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE -> INT.PROVIDE_DETAIL"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:en.enservice.cancel_contract.notice_period",
+   "scenarioId": "enservice",
+   "variantId": "en.enservice.cancel_contract.notice_period",
+   "scenarioObjectiveId": "en.enservice.cancel_contract",
+   "targetLanguage": "en",
+   "sourceGoalIndex": 2,
+   "learnerLevel": {
+    "min": "B1",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "INT.ASK_INFORMATION",
+    "INT.CONFIRM",
+    "INT.STATE_PURPOSE",
+    "SOC.REGISTER"
+   ],
+   "requiredCriterionIds": [
+    "cancellation_stated",
+    "notice_question_asked",
+    "politeness_maintained"
+   ],
+   "optionalCriterionIds": [
+    "outcome_confirmed"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "COM.KEY_DETAIL -> INT.CONFIRM",
+    "INT.OPEN_CLOSE -> INT.STATE_PURPOSE"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:en.enneighbor.request_favour.accept_package",
+   "scenarioId": "enneighbor",
+   "variantId": "en.enneighbor.request_favour.accept_package",
+   "scenarioObjectiveId": "en.enneighbor.request_favour",
+   "targetLanguage": "en",
+   "sourceGoalIndex": 0,
+   "learnerLevel": {
+    "min": "A1",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "FUN.SOCIAL_EXCHANGE",
+    "INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE",
+    "SOC.REGISTER"
+   ],
+   "requiredCriterionIds": [
+    "request_made",
+    "timing_given",
+    "response_handled"
+   ],
+   "optionalCriterionIds": [
+    "register_appropriate"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.STATE_PURPOSE -> FUN.SOCIAL_EXCHANGE",
+    "COM.KEY_DETAIL -> INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE -> INT.PROVIDE_DETAIL",
+    "INT.OPEN_CLOSE -> INT.STATE_PURPOSE"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:en.enneighbor.raise_issue.loud_music",
+   "scenarioId": "enneighbor",
+   "variantId": "en.enneighbor.raise_issue.loud_music",
+   "scenarioObjectiveId": "en.enneighbor.raise_issue",
+   "targetLanguage": "en",
+   "sourceGoalIndex": 1,
+   "learnerLevel": {
+    "min": "A2",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "FUN.SOCIAL_EXCHANGE",
+    "INT.CLARIFY_REPAIR",
+    "INT.NEGOTIATE",
+    "SOC.REGISTER"
+   ],
+   "requiredCriterionIds": [
+    "issue_raised",
+    "request_made",
+    "politeness_maintained"
+   ],
+   "optionalCriterionIds": [
+    "repair_used"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.STATE_PURPOSE -> FUN.SOCIAL_EXCHANGE",
+    "INT.ASK_INFORMATION -> INT.CLARIFY_REPAIR",
+    "INT.CONFIRM -> INT.NEGOTIATE",
+    "COM.CONSTRAINT -> INT.NEGOTIATE",
+    "FUN.ARRANGE -> INT.NEGOTIATE"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:en.enneighbor.request_favour.borrow_ladder",
+   "scenarioId": "enneighbor",
+   "variantId": "en.enneighbor.request_favour.borrow_ladder",
+   "scenarioObjectiveId": "en.enneighbor.request_favour",
+   "targetLanguage": "en",
+   "sourceGoalIndex": 2,
+   "learnerLevel": {
+    "min": "A1",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "FUN.SOCIAL_EXCHANGE",
+    "INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE",
+    "SOC.REGISTER"
+   ],
+   "requiredCriterionIds": [
+    "request_made",
+    "timeframe_given",
+    "response_handled"
+   ],
+   "optionalCriterionIds": [
+    "register_appropriate"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.STATE_PURPOSE -> FUN.SOCIAL_EXCHANGE",
+    "COM.KEY_DETAIL -> INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE -> INT.PROVIDE_DETAIL",
+    "INT.OPEN_CLOSE -> INT.STATE_PURPOSE"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:en.enneighbor.small_talk.weather_and_new_neighbours",
+   "scenarioId": "enneighbor",
+   "variantId": "en.enneighbor.small_talk.weather_and_new_neighbours",
+   "scenarioObjectiveId": "en.enneighbor.small_talk",
+   "targetLanguage": "en",
+   "sourceGoalIndex": 3,
+   "learnerLevel": {
+    "min": "A0",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "FUN.SOCIAL_EXCHANGE",
+    "INT.ASK_INFORMATION",
+    "INT.OPEN_CLOSE",
+    "LNG.COHERENCE"
+   ],
+   "requiredCriterionIds": [
+    "topic_opened",
+    "question_asked",
+    "exchange_sustained"
+   ],
+   "optionalCriterionIds": [
+    "close_appropriate"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.STATE_PURPOSE -> FUN.SOCIAL_EXCHANGE"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:en.enneighbor.announce_event.party_apology",
+   "scenarioId": "enneighbor",
+   "variantId": "en.enneighbor.announce_event.party_apology",
+   "scenarioObjectiveId": "en.enneighbor.announce_event",
+   "targetLanguage": "en",
+   "sourceGoalIndex": 4,
+   "learnerLevel": {
+    "min": "A2",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "FUN.SOCIAL_EXCHANGE",
+    "INT.CLARIFY_REPAIR",
+    "INT.PROVIDE_DETAIL",
+    "SOC.REGISTER"
+   ],
+   "requiredCriterionIds": [
+    "announcement_made",
+    "detail_given",
+    "apology_expressed"
+   ],
+   "optionalCriterionIds": [
+    "repair_used"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.STATE_PURPOSE -> FUN.SOCIAL_EXCHANGE",
+    "INT.ASK_INFORMATION -> INT.CLARIFY_REPAIR",
+    "COM.KEY_DETAIL -> INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE -> INT.PROVIDE_DETAIL"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:en.encafe.order_items.coffee_and_sandwich",
+   "scenarioId": "encafe",
+   "variantId": "en.encafe.order_items.coffee_and_sandwich",
+   "scenarioObjectiveId": "en.encafe.order_items",
+   "targetLanguage": "en",
+   "sourceGoalIndex": 0,
+   "learnerLevel": {
+    "min": "A0",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "FUN.TRANSACT",
+    "INT.CONFIRM",
+    "INT.PROVIDE_DETAIL",
+    "SOC.REGISTER"
+   ],
+   "requiredCriterionIds": [
+    "order_placed",
+    "takeaway_specified",
+    "exchange_settled"
+   ],
+   "optionalCriterionIds": [
+    "register_appropriate"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "COM.KEY_DETAIL -> INT.CONFIRM",
+    "COM.KEY_DETAIL -> INT.PROVIDE_DETAIL",
+    "INT.STATE_PURPOSE -> INT.PROVIDE_DETAIL"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:en.encafe.request_recommendation.cake_slice",
+   "scenarioId": "encafe",
+   "variantId": "en.encafe.request_recommendation.cake_slice",
+   "scenarioObjectiveId": "en.encafe.request_recommendation",
+   "targetLanguage": "en",
+   "sourceGoalIndex": 1,
+   "learnerLevel": {
+    "min": "A1",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "COM.KEY_DETAIL",
+    "FUN.TRANSACT",
+    "INT.ASK_INFORMATION",
+    "SOC.REGISTER"
+   ],
+   "requiredCriterionIds": [
+    "question_asked",
+    "answer_used",
+    "order_placed"
+   ],
+   "optionalCriterionIds": [
+    "register_appropriate"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  },
+  {
+   "entryId": "marzi-061:learning:en.encafe.report_problem.wrong_order_fix",
+   "scenarioId": "encafe",
+   "variantId": "en.encafe.report_problem.wrong_order_fix",
+   "scenarioObjectiveId": "en.encafe.report_problem",
+   "targetLanguage": "en",
+   "sourceGoalIndex": 2,
+   "learnerLevel": {
+    "min": "A2",
+    "max": "C1"
+   },
+   "competencyIds": [
+    "FUN.REPORT_PROBLEM",
+    "FUN.REQUEST_REMEDY",
+    "INT.CONFIRM",
+    "SOC.REGISTER"
+   ],
+   "requiredCriterionIds": [
+    "problem_described",
+    "remedy_requested",
+    "politeness_maintained"
+   ],
+   "optionalCriterionIds": [
+    "outcome_confirmed"
+   ],
+   "allowedEvidenceTypes": [
+    "transcript_text",
+    "typed_response",
+    "interaction_event"
+   ],
+   "prerequisiteReferences": [
+    "INT.PROVIDE_DETAIL -> FUN.REPORT_PROBLEM",
+    "FUN.REPORT_PROBLEM -> FUN.REQUEST_REMEDY",
+    "COM.KEY_DETAIL -> INT.CONFIRM"
+   ],
+   "supersedes": null,
+   "completionContractReference": "docs/learning/contracts/v1/completion.json#all_required",
+   "reviewStatus": "NOT_REVIEWED",
+   "findingReferences": [],
+   "evidenceReferences": []
+  }
+ ]
+}

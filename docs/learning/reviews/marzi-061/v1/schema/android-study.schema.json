@@ -1,0 +1,388 @@
+{
+ "dialect": "marzi.schema-subset.v1",
+ "$id": "marzi-061:schema:android-study",
+ "title": "MARZI-061 moderated Android study protocol",
+ "type": "object",
+ "additionalProperties": false,
+ "required": [
+  "contract",
+  "schemaVersion",
+  "packageId",
+  "packageVersion",
+  "protocolId",
+  "objective",
+  "statement",
+  "researchQuestions",
+  "participantCriteria",
+  "consentAndPrivacy",
+  "moderatorTasks",
+  "deviceConditions",
+  "androidVersionMatrix",
+  "scenarioSelectionMethod",
+  "evidenceCapture",
+  "severityRubric",
+  "participants",
+  "observations",
+  "timings",
+  "results",
+  "decision"
+ ],
+ "properties": {
+  "contract": {
+   "const": "marzi.review.android-study-plan.v1"
+  },
+  "schemaVersion": {
+   "const": 1
+  },
+  "packageId": {
+   "const": "MARZI-061"
+  },
+  "packageVersion": {
+   "const": "v1"
+  },
+  "protocolId": {
+   "const": "marzi-061:android-study:v1"
+  },
+  "objective": {
+   "type": "string",
+   "minLength": 20
+  },
+  "statement": {
+   "type": "string",
+   "minLength": 20
+  },
+  "researchQuestions": {
+   "type": "array",
+   "minItems": 1,
+   "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+     "questionId",
+     "question",
+     "category",
+     "status"
+    ],
+    "properties": {
+     "questionId": {
+      "type": "string",
+      "pattern": "^marzi-061:study-question:[0-9]{3}$"
+     },
+     "question": {
+      "type": "string",
+      "minLength": 10
+     },
+     "category": {
+      "type": "string",
+      "pattern": "^[a-z0-9_]+$"
+     },
+     "status": {
+      "enum": [
+       "NOT_REVIEWED",
+       "REVIEWED"
+      ]
+     }
+    }
+   }
+  },
+  "participantCriteria": {
+   "type": "object",
+   "additionalProperties": false,
+   "required": [
+    "inclusion",
+    "exclusion",
+    "targetCount",
+    "recruitmentStatus",
+    "compensation",
+    "demographicsCollected"
+   ],
+   "properties": {
+    "inclusion": {
+     "type": "array",
+     "minItems": 1,
+     "items": {
+      "type": "string",
+      "minLength": 10
+     }
+    },
+    "exclusion": {
+     "type": "array",
+     "minItems": 1,
+     "items": {
+      "type": "string",
+      "minLength": 10
+     }
+    },
+    "targetCount": {
+     "type": "null"
+    },
+    "recruitmentStatus": {
+     "const": "NOT_STARTED"
+    },
+    "compensation": {
+     "type": "null"
+    },
+    "demographicsCollected": {
+     "const": false
+    }
+   }
+  },
+  "consentAndPrivacy": {
+   "type": "object",
+   "additionalProperties": false,
+   "required": [
+    "legalApprovalStatus",
+    "privacyApprovalStatus",
+    "consentWordingStatus",
+    "retentionPolicyStatus",
+    "legalBasisStatus",
+    "personalDataStored",
+    "readinessChecklist"
+   ],
+   "properties": {
+    "legalApprovalStatus": {
+     "const": "NOT_OBTAINED"
+    },
+    "privacyApprovalStatus": {
+     "const": "NOT_OBTAINED"
+    },
+    "consentWordingStatus": {
+     "const": "NOT_APPROVED"
+    },
+    "retentionPolicyStatus": {
+     "const": "NOT_APPROVED"
+    },
+    "legalBasisStatus": {
+     "const": "NOT_DETERMINED"
+    },
+    "personalDataStored": {
+     "const": false
+    },
+    "readinessChecklist": {
+     "type": "array",
+     "minItems": 1,
+     "items": {
+      "type": "string",
+      "minLength": 10
+     }
+    }
+   }
+  },
+  "moderatorTasks": {
+   "type": "array",
+   "minItems": 1,
+   "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+     "taskId",
+     "instruction",
+     "category",
+     "successDefinition",
+     "failureDefinition",
+     "observedStates"
+    ],
+    "properties": {
+     "taskId": {
+      "type": "string",
+      "pattern": "^marzi-061:study-task:[0-9]{3}$"
+     },
+     "instruction": {
+      "type": "string",
+      "minLength": 10
+     },
+     "category": {
+      "type": "string",
+      "pattern": "^[a-z0-9_]+$"
+     },
+     "successDefinition": {
+      "type": "string",
+      "minLength": 10
+     },
+     "failureDefinition": {
+      "type": "string",
+      "minLength": 10
+     },
+     "observedStates": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+       "type": "string",
+       "pattern": "^[a-z0-9_]+$"
+      }
+     }
+    }
+   }
+  },
+  "deviceConditions": {
+   "type": "array",
+   "minItems": 1,
+   "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+     "conditionId",
+     "viewport",
+     "textScale",
+     "orientation",
+     "locale",
+     "direction",
+     "connectivity",
+     "accessibility"
+    ],
+    "properties": {
+     "conditionId": {
+      "type": "string",
+      "pattern": "^marzi-061:study-condition:[0-9]{3}$"
+     },
+     "viewport": {
+      "type": "string",
+      "pattern": "^[0-9]+x[0-9]+$"
+     },
+     "textScale": {
+      "type": "string",
+      "pattern": "^[0-9]+%$"
+     },
+     "orientation": {
+      "enum": [
+       "portrait",
+       "landscape"
+      ]
+     },
+     "locale": {
+      "enum": [
+       "ar",
+       "en",
+       "es",
+       "it",
+       "tr",
+       "uk"
+      ]
+     },
+     "direction": {
+      "enum": [
+       "ltr",
+       "rtl"
+      ]
+     },
+     "connectivity": {
+      "enum": [
+       "online",
+       "degraded",
+       "offline"
+      ]
+     },
+     "accessibility": {
+      "type": "string",
+      "minLength": 3
+     }
+    }
+   }
+  },
+  "androidVersionMatrix": {
+   "type": "array",
+   "minItems": 1,
+   "uniqueItems": true,
+   "items": {
+    "type": "string",
+    "minLength": 5
+   }
+  },
+  "scenarioSelectionMethod": {
+   "type": "string",
+   "minLength": 20
+  },
+  "evidenceCapture": {
+   "type": "object",
+   "additionalProperties": false,
+   "required": [
+    "allowed",
+    "forbidden",
+    "evidenceIdPattern"
+   ],
+   "properties": {
+    "allowed": {
+     "type": "array",
+     "minItems": 1,
+     "uniqueItems": true,
+     "items": {
+      "type": "string",
+      "pattern": "^[a-z0-9_]+$"
+     }
+    },
+    "forbidden": {
+     "type": "array",
+     "minItems": 1,
+     "uniqueItems": true,
+     "items": {
+      "type": "string",
+      "pattern": "^[a-z0-9_]+$"
+     }
+    },
+    "evidenceIdPattern": {
+     "type": "string",
+     "minLength": 10
+    }
+   }
+  },
+  "severityRubric": {
+   "type": "array",
+   "minItems": 5,
+   "maxItems": 5,
+   "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+     "severity",
+     "meaning"
+    ],
+    "properties": {
+     "severity": {
+      "enum": [
+       "BLOCKER",
+       "HIGH",
+       "MEDIUM",
+       "LOW",
+       "INFORMATIONAL"
+      ]
+     },
+     "meaning": {
+      "type": "string",
+      "minLength": 10
+     }
+    }
+   }
+  },
+  "participants": {
+   "type": "array",
+   "maxItems": 0,
+   "items": {
+    "type": "string",
+    "minLength": 1
+   }
+  },
+  "observations": {
+   "type": "array",
+   "maxItems": 0,
+   "items": {
+    "type": "string",
+    "minLength": 1
+   }
+  },
+  "timings": {
+   "type": "array",
+   "maxItems": 0,
+   "items": {
+    "type": "string",
+    "minLength": 1
+   }
+  },
+  "results": {
+   "type": "null"
+  },
+  "decision": {
+   "const": "NOT_REVIEWED"
+  }
+ }
+}

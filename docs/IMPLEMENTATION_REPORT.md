@@ -2423,3 +2423,198 @@ percentage, weight, score, recency interval, placement content, competency copy,
 certification implication, or aggregate learner property was introduced. The
 Arabic 320×568 / 200%-text overflow remains deferred to presentation and runtime
 integration; no UI file was touched.
+
+# Implementation Report — MARZI-061 (external review readiness)
+
+**Package:** MARZI-061 — External Review Readiness
+
+**Branch:** `claude/marzi-017-product-refinement`
+
+**Implementation baseline:** `9923e38db66b7b68ed89a77344156a6cb1becdac`
+
+**Mandate-transfer commit:** `042a80a4874858b779c2b56788c25f227aa29103`
+(`MARZI-061_CLAUDE_CODE_MANDATE.md`, 47662 bytes, SHA-256
+`b114fc9dd86188135707140c5b7bc0ee3c45cc03700a500a64255bf7f384f425`, measured
+before the file was read)
+
+**Artifact under review:** MARZI-021 contract version 1 at
+`f20f805dc01cd8ff68f4862266b21bd5bf50dbc4`, recorded by path and by SHA-256
+content hash in `data/package-manifest.json`.
+
+**Implementation commit:** the commit containing this section. A commit cannot
+contain its own SHA; the external report supplies it.
+
+## What this package did and did not do
+
+It **prepared** four external reviews. It **executed** none of them.
+
+| | |
+|---|---|
+| Prepared | Governance, per-track protocols, six language checklists, seven record templates, eight schemas, four evidence datasets, thirty validator checks, thirty-six fixtures |
+| Not done | No reviewer appointed, no review started, no evidence collected, no finding recorded, no decision granted |
+
+No external approval is claimed. No reviewer, participant, session,
+observation, timing, result, score, or finding was invented. The Arabic
+overflow issue was **not** fixed — it is carried as an open known issue,
+`MARZI-A11Y-KNOWN-001`, and the validator fails if it is removed or resolved.
+
+## Package allocation
+
+Per the Product Owner allocation carried by the mandate: **MARZI-022 = Domain
+Ownership and Event Contracts**, **MARZI-061 = External Review Readiness**. The
+obsolete planning file that once carried external readiness under the
+MARZI-022 identifier was not used, transferred, reconstructed, or executed.
+Check `M061-ER-001` fails if the roadmap ever titles MARZI-022 as external
+review readiness, or if MARZI-061 is missing or duplicated.
+
+## Canonical status
+
+| Dimension | Value |
+|---|---|
+| Package preparation | **PREPARED** |
+| Learning/pedagogy review | **PENDING** |
+| Six-language linguistic review | **PENDING** |
+| Accessibility review | **PENDING** |
+| Moderated Android study | **PENDING** |
+| Reviewer appointment | **NOT_APPOINTED** |
+| Review execution | **NOT_STARTED** |
+| Evidence | **NOT_COLLECTED** |
+| Findings | **NOT_RECORDED** |
+| Completion | **NOT_COMPLETED** |
+| Decision | **NOT_GRANTED** |
+| Independent approval | **NOT GRANTED** |
+| Runtime integration | **NOT AUTHORIZED** |
+| Production | **NOT AUTHORIZED** |
+| Deployment | **NOT DEPLOYED / NOT RELEASED** |
+
+## Files changed
+
+77 files: 4 existing files updated, 73 new. Every path is on the mandate's
+permitted list, verified by set comparison against section 9 of the mandate.
+
+| Group | Count | Notes |
+|---|---:|---|
+| Existing updated | 4 | `docs/MARZI_MASTER_ROADMAP.md`, `.ai/bin/docs-validate`, `docs/learning/SPECIALIST_REVIEW.md`, this report |
+| Package definition | 1 | `docs/packages/MARZI-061.md`, 31 sections |
+| Review documents | 6 | entry point, governance, four track protocols |
+| Language checklists | 6 | `es`, `en`, `it`, `tr`, `ar`, `uk` |
+| Record templates | 7 | issue, recommendation, summary, decision, evidence, remediation, participant feedback |
+| Schemas | 8 | every `$id` bound to `marzi-061`, every controlled object `additionalProperties: false` |
+| Evidence datasets | 6 | see below |
+| Validator | 1 | `test/marzi-061-external-review-readiness.js`, 30 checks |
+| Fixtures | 37 | 6 valid, 30 invalid, 1 manifest, plus a fixture README |
+
+Datasets, measured: `package-manifest.json` 4354 B · `review-status.json`
+14868 B · `learning-evidence-matrix.json` 106304 B, 94 entries ·
+`linguistic-matrix.json` 693065 B, 564 entries · `accessibility-plan.json`
+9940 B · `android-study-plan.json` 11226 B.
+
+## Validation results — actual, not assumed
+
+| Command | Result |
+|---|---|
+| `node --check server.js` | clean |
+| `node --check test/run.js` | clean |
+| `node --check test/learning-contracts.js` | clean |
+| `node --check test/marzi-061-external-review-readiness.js` | clean |
+| `node test/conflict-markers.js` | no conflict markers |
+| `node test/learning-contracts.js` | **36/36** |
+| `node test/marzi-061-external-review-readiness.js` | **30/30** |
+| `node test/run.js` | **50/50** |
+| `git diff --check` | clean |
+| `.ai/bin/docs-validate --json` | 13/14 checks pass, **9 failures** |
+
+The readiness validator prints what it measured, not what it hoped:
+`4 prepared, 4 pending, 0 appointed, 0 started, 0 decided`, and
+`94 learning entries, 564 linguistic entries across ar,en,es,it,tr,uk`.
+
+## Proof the new checks can fail
+
+Sixteen mutations across the twelve classes the mandate names. Every mutation
+was applied to a disposable copy under this task's own `/tmp` scratchpad; no
+canonical repository file was altered, and the copies were deleted afterwards.
+All sixteen were detected.
+
+| # | Mutation | Detecting check | Reason |
+|---:|---|---|---|
+| 1 | MARZI-022 retitled "External Review Readiness" | `M061-ER-001` | `M061_ER_PACKAGE_ID_COLLISION` |
+| 2a | MARZI-061 missing from the roadmap | `M061-ER-001` | `M061_ER_PACKAGE_ID_COLLISION` |
+| 2b | MARZI-061 duplicated in the roadmap | `M061-ER-001` | `M061_ER_PACKAGE_ID_COLLISION` |
+| 3 | a pending gate changed to approved | `M061-ER-005` | `M061_ER_FALSE_APPROVAL` |
+| 4 | review completed with no reviewer | `M061-ER-005` | `M061_ER_REVIEWER_REQUIRED` |
+| 5 | Ukrainian removed from the locale set | `M061-ER-012` | `M061_ER_LOCALE_SET_INVALID` |
+| 6 | one localized title edited | `M061-ER-015` | `M061_ER_LINGUISTIC_TEXT_DRIFT` |
+| 7 | one learning objective omitted | `M061-ER-010` | `M061_ER_LEARNING_MATRIX_DRIFT` |
+| 8a | the Arabic known issue removed | `M061-ER-017` | `M061_ER_KNOWN_ISSUE_MISSING` |
+| 8b | the Arabic known issue marked resolved | `M061-ER-017` | `M061_ER_KNOWN_ISSUE_MISSING` |
+| 9a | a participant inserted into the unrun protocol | `M061-ER-007` | `M061_ER_PARTICIPANT_DATA_FORBIDDEN` |
+| 9b | an observation inserted into the unrun protocol | `M061-ER-007` | `M061_ER_STUDY_RESULT_FORBIDDEN` |
+| 10a | an open gate given an invented value | `M061-ER-002` | `M061_ER_ARTIFACT_REFERENCE_UNKNOWN` |
+| 10b | the same, with **every** recorded hash refreshed to hide it | `M061-ER-026` | `M061_ER_OPEN_GATE_CLOSED` |
+| 11 | a fixture path that escapes the fixture root | `M061-ER-022` | `M061_ER_FIXTURE_PATH_ESCAPE` |
+| 12a | `new Function` introduced into the validator | `M061-ER-029` | `M061_ER_FORBIDDEN_ROUTE` |
+| 12b | a write to a protected contract attempted | `M061-ER-029` | `M061_ER_FORBIDDEN_ROUTE` |
+| 12c | `node:https` required | `M061-ER-029` | `M061_ER_FORBIDDEN_ROUTE` |
+
+Mutation 10 is recorded twice deliberately. The cheap form is caught by hash
+integrity, which proves nothing about the gate rule itself; 10b launders the
+mutation past every hash in the tree so that only `M061-ER-026` is left to
+catch it — and it does, with
+`mastery.minimumDistinctOpportunities has an invented value`.
+
+## Audits
+
+- **Scope:** 77 files, every one on the mandate's permitted list; nothing on
+  the prohibited list was touched.
+- **Runtime / dependency / configuration / deployment diffs vs `9923e38`:**
+  **empty**. `public/**`, `server.js`, `sw.js`, `manifest.webmanifest`,
+  `package.json`, lockfiles, `icons/**` and `.github/**` are unchanged.
+- **Protected canonical inputs:** `docs/learning/contracts/v1/**`,
+  `test/learning-contracts.js`, `test/run.js` and
+  `docs/MARZI_DECISION_REGISTER.md` are unchanged; `M061-ER-029` fingerprints
+  them before and after every run and fails if either differs.
+- **`.ai/bin/docs-validate`:** bounded update only — MARZI-061 added to the
+  required-markdown set, the package sequence extended to 61, the dependency
+  graph and package count updated, and a section/title check for
+  `docs/packages/MARZI-061.md` added.
+- **Documentation validator:** nine failures, byte-identical to the set
+  produced by the baseline validator on the baseline tree at `9923e38`,
+  verified by diffing both JSON outputs. Cause unchanged and unrelated: the
+  obsolete validator expects four OPEN-only fields per approved decision and
+  exactly 25 OPEN index records. Assigned to **MARZI-GOV-001**.
+
+## Known limitations
+
+1. **Preparation is not validation.** Every check here is structural. It can
+   confirm that a record is well formed, internally consistent, and consistent
+   with the MARZI-021 contracts. It cannot confirm that a named reviewer
+   exists, holds a qualification, carried out a review, or signed anything, and
+   it makes no cryptographic provenance claim.
+2. **The matrices are derived, not judged.** The 94 learning entries and 564
+   linguistic entries are copies of contract values with review fields left
+   `NOT_REVIEWED` and `null`. Their correctness as *content* is exactly what
+   the pending reviews are for.
+3. **The Arabic overflow is open.** No layout, CSS, or UI file was touched,
+   and no accessibility conformance is claimed anywhere in this package.
+4. **The Android study has no results because it has not been run.** Its
+   participant, observation, timing, result and decision fields are empty, and
+   the validator refuses to let them be filled speculatively.
+
+## Gates that remain
+
+Learning/pedagogy review **PENDING** · six-language linguistic review
+**PENDING** · accessibility review **PENDING** · moderated Android study
+**PENDING** · independent approval **NOT GRANTED** · runtime integration
+**NOT AUTHORIZED** · production **NOT AUTHORIZED** ·
+**NOT DEPLOYED / NOT RELEASED**.
+
+The four MARZI-021 educational gates remain open with `null` values, and
+release mode still refuses the provisional draft.
+
+## Rollback
+
+Revert the single MARZI-061 commit. It adds documentation, schemas, data,
+fixtures and one test file, and makes a bounded update to the roadmap, the
+documentation validator, the specialist-review index and this report. There is
+no runtime, storage, learner-data, dependency, or deployment change to unwind.
+Not executed.
