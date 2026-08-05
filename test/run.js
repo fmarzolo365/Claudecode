@@ -438,8 +438,9 @@ check("MARZI-001 corrections: ledger idempotency, per-call ids, hardened storage
 
 check("MARZI-002 shell: hash routing, top-bar resources, reusable primitives", () => {
   // the four canonical tabs each own a hash; junk hashes resolve to null
-  if (Object.keys(tt.TAB_HASH).join() !== "learn,talk,store,profile") throw new Error("tab set changed");
+  if (Object.keys(tt.TAB_HASH).join() !== "learn,practice,talk,store,profile") throw new Error("tab set changed");
   if (tt.tabFromHash("#store") !== "store" || tt.tabFromHash("store") !== "store") throw new Error("hash not resolved");
+  if (tt.tabFromHash("#practice") !== "practice") throw new Error("practice tab not routable");
   if (tt.tabFromHash("#nope") !== null || tt.tabFromHash("") !== null || tt.tabFromHash(null) !== null) throw new Error("junk hash not rejected");
   // navigating writes the hash (back-button support)
   tt.showTab("store");
@@ -1498,13 +1499,13 @@ check("MARZI-016 journey: existing scenarios, states, one next action, list view
   if (!list.includes(L.jrDone) || !list.includes(L.jrFuture)) throw new Error("states are not written out in the list view");
   tt.setJourneyView("map");
 
-  // MARZI-017: Learn keeps a COMPACT preview, the full path is owned by Talk
-  const learn = html.slice(html.indexOf('<section id="learn"'), html.indexOf('<section id="setup"'));
+  // World-class IA: Learn owns the journey (it is curriculum, not call setup),
+  // and there is exactly ONE journey rendering - no duplicated preview.
+  const learn = html.slice(html.indexOf('<section id="learn"'), html.indexOf('<section id="practice"'));
   const talk = html.slice(html.indexOf('<section id="setup"'), html.indexOf('<section id="onboard"'));
-  if (!learn.includes('id="jrPreview"')) throw new Error("Learn must keep the journey preview");
-  if (learn.includes('id="jrBody"')) throw new Error("the full journey must not be duplicated on Learn");
-  if (!talk.includes('id="jrBody"')) throw new Error("the full journey must live inside Talk");
-  if (Object.keys(tt.TAB_HASH).join() !== "learn,talk,store,profile") throw new Error("navigation changed");
+  if (!learn.includes('id="jrBody"')) throw new Error("Learn must own the journey map");
+  if (talk.includes('id="jrBody"') || html.includes('id="jrPreview"')) throw new Error("the journey is duplicated outside Learn");
+  if (Object.keys(tt.TAB_HASH).join() !== "learn,practice,talk,store,profile") throw new Error("navigation changed");
 
   // no new scenarios or characters were introduced
   if (tt.SCENARIOS.length !== new Set(tt.SCENARIOS.map((s) => s.id)).size) throw new Error("duplicate scenario ids");
@@ -1512,29 +1513,32 @@ check("MARZI-016 journey: existing scenarios, states, one next action, list view
 });
 
 
-check("MARZI-017 navigation: four tabs, canonical feature ownership", () => {
-  // exactly four primary tabs, unchanged, and no Training tab
-  if (Object.keys(tt.TAB_HASH).join() !== "learn,talk,store,profile") throw new Error("tab set changed");
+check("world-class IA: five tabs, canonical feature ownership", () => {
+  // exactly five primary tabs: Learn, Practice, Talk, Store, Profile
+  if (Object.keys(tt.TAB_HASH).join() !== "learn,practice,talk,store,profile") throw new Error("tab set changed");
   const nav = html.slice(html.indexOf('<nav class="bottomnav"'), html.indexOf("</nav>"));
   const tabs = (nav.match(/data-tab="([a-z]+)"/g) || []).map((m) => m.slice(10, -1));
-  if (tabs.join() !== "learn,talk,store,profile") throw new Error("bottom nav tabs: " + tabs.join());
-  if (/data-tab="training"/i.test(html) || /\btraining\b/i.test(nav)) throw new Error("a fifth Training tab exists");
-  const learn = html.slice(html.indexOf('<section id="learn"'), html.indexOf('<section id="setup"'));
+  if (tabs.join() !== "learn,practice,talk,store,profile") throw new Error("bottom nav tabs: " + tabs.join());
+  const learn = html.slice(html.indexOf('<section id="learn"'), html.indexOf('<section id="practice"'));
+  const practice = html.slice(html.indexOf('<section id="practice"'), html.indexOf('<section id="setup"'));
   const talk = html.slice(html.indexOf('<section id="setup"'), html.indexOf('<section id="onboard"'));
   const profile = html.slice(html.indexOf('<section id="profile"'), html.indexOf("</section>", html.indexOf('<section id="profile"')));
-  // the duplicated Learn shortcut strip is gone
+  // no duplicated shortcut strips anywhere
   if (html.includes('id="learnActs"')) throw new Error("the duplicated Learn shortcut strip is still present");
   if (/data-la="(dialog|progress|mistakes)"/.test(src)) throw new Error("Learn still renders duplicate shortcuts");
-  // one canonical destination each
-  if (!talk.includes('id="dialogBtn"') || !talk.includes('id="mistakesBtn"')) throw new Error("Talk must own guided dialogue and mistakes");
-  if (learn.includes('id="dialogBtn"') || learn.includes('id="mistakesBtn"')) throw new Error("Learn duplicates a Talk destination");
+  // Practice owns preparation and improvement, first-class
+  for (const id of ["prepBtn", "dialogBtn", "vocabBtn", "drillBtn", "mistakesBtn", "wordsBtn"])
+    if (!practice.includes(`id="${id}"`)) throw new Error("Practice must own " + id);
+  for (const id of ["prepBtn", "dialogBtn", "drillBtn"])
+    if (talk.includes(`id="${id}"`) || learn.includes(`id="${id}"`)) throw new Error(id + " duplicated outside Practice");
+  // Talk owns selection and the call: recommended, ONE library entry, CTA
+  for (const id of ["lblTrainNow", "recoBody", "scnRail", "seeAllBtn", "charCard", "callBtn", "lblTrainRecent"])
+    if (!talk.includes(`id="${id}"`)) throw new Error("Talk missing: " + id);
+  if (html.includes('id="pickedCard"')) throw new Error("the duplicate choose-situation control is back");
+  if (html.includes('id="menuBtn"')) throw new Error("the redundant top-bar hamburger is back");
+  // Profile keeps its canonical destinations
   if (!profile.includes('id="progressBtn"')) throw new Error("Profile must own My progress");
-  if (talk.includes('id="progressBtn"')) throw new Error("My progress must not stay on Talk");
   if (!profile.includes('id="shareBtn"')) throw new Error("Profile must own Recommend the app");
-  if (talk.includes('id="shareBtn"')) throw new Error("Recommend the app must not stay on Talk");
-  // Talk is sectioned as the training hub
-  for (const id of ["lblTrainNow", "lblTrainCall", "lblTrainReview", "lblTrainRecent"])
-    if (!talk.includes(`id="${id}"`)) throw new Error("Talk missing hub section: " + id);
 });
 
 check("MARZI-017 brand lockup: mark before wordmark, one implementation", () => {

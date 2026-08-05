@@ -167,10 +167,11 @@
   .staging-bar {
     position: sticky; top: 0; z-index: 95; pointer-events: none;
     display: flex; align-items: center; justify-content: center; gap: 6px;
-    padding: 4px var(--space-2); text-align: center;
+    /* compact preview badge: clearly visible, no longer a product element */
+    padding: 2px var(--space-2); text-align: center;
     background: var(--marzi-dark); color: var(--white);
-    font: 800 var(--text-f10-5) 'JetBrains Mono', monospace;
-    letter-spacing: .04em; line-height: 1.3;
+    font: 700 var(--text-f8) 'JetBrains Mono', monospace;
+    letter-spacing: .03em; line-height: 1.35;
     /* the label wraps rather than truncating, so it stays readable at
        320x568 and at 200% text instead of turning into an ellipsis */
     overflow-wrap: anywhere; white-space: normal;
@@ -199,6 +200,17 @@
   /* the wordmark must never shrink to "M…": it is fixed-size and the row
      sheds the settings chip instead (Profile is a bottom-nav tab anyway) */
   .brand-lockup .wordmark { flex: 0 0 auto; }
+  /* Canonical wordmark: the dot of the i is Marzi's sprout (see the logo
+     board). The letter keeps its glyph for copy/paste and a11y; the sprout
+     covers the dot visually. Language-neutral - no flag, no fixed tagline. */
+  /* the wordmark is a logo, not text: it never mirrors in RTL */
+  .wordmark { direction: ltr; unicode-bidi: isolate; }
+  .wordmark .wm-i { position: relative; display: inline-block; }
+  .wordmark .wm-i .wm-sprout {
+    position: absolute; left: 50%; top: 0.02em; transform: translateX(-50%);
+    width: 0.62em; height: 0.34em; pointer-events: none;
+  }
+  .wordmark .wm-i::first-letter { /* no-op: keeps the glyph metrics intact */ }
   .topbar .grow { flex: 1 1 auto; min-width: 0; }
   .chip-res {
     display: inline-flex; align-items: center; gap: 5px;
@@ -257,7 +269,7 @@
   }
   .bottomnav-in {
     width: 100%; max-width: 560px; height: 74px; margin: 0 auto;
-    display: grid; grid-template-columns: repeat(4, 1fr);
+    display: grid; grid-template-columns: repeat(5, 1fr);
   }
   .bottomnav button {
     display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -323,7 +335,7 @@
     font: 600 var(--text-sm) var(--font-sans); letter-spacing: .02em;
     transition: background var(--dur-fast) ease, color var(--dur-fast) ease;
   }
-  .seg button.on { background: var(--ink); color: var(--paper); }
+  .seg button.on { background: var(--primary); color: var(--on-primary); }
   .seg.wrap { flex-wrap: wrap; }
   .seg.wrap button { flex: 1 1 31%; }
   /* level + speed side by side: one compact row on the Talk tab */
@@ -882,6 +894,13 @@
   }
   .setting-chevron { color: var(--muted); font-size: var(--text-f18); text-align: center; }
   /* ---------- MARZI-005: practice scenario + character cards ---------- */
+  .lbl-row { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+  .see-all {
+    border: 0; background: none; cursor: pointer; padding: 0 2px;
+    display: inline-flex; align-items: center; gap: 2px; min-height: var(--touch-min);
+    font: 700 var(--text-f11-5) var(--font-sans); color: var(--marzi-dark);
+  }
+  .see-all .chev { font-size: var(--text-md); line-height: 1; }
   .scn-rail {
     display: grid; grid-auto-flow: column; grid-auto-columns: 62%;
     gap: var(--space-2); overflow-x: auto; padding: 2px 2px 6px;
@@ -909,6 +928,17 @@
   }
   .scn-card .scn-on { display: none; color: var(--marzi-dark); flex: 0 0 auto; }
   .scn-card[aria-pressed="true"] .scn-on { display: block; }
+  .char-card.summary { flex-direction: column; align-items: stretch; gap: var(--space-2); position: relative; }
+  .char-change { position: absolute; top: 6px; inset-inline-end: 10px; min-height: var(--touch-min); }
+  .char-title { font: 800 var(--text-md) var(--font-sans); letter-spacing: -.01em; }
+  .char-row { display: flex; gap: var(--space-3); align-items: center; min-width: 0; }
+  .char-meta { display: flex; gap: 6px; flex-wrap: wrap; }
+  .char-chip {
+    display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px;
+    border-radius: 999px; border: 1px solid var(--line); background: var(--surface-soft);
+    font: 700 var(--text-f11) var(--font-sans); color: var(--muted);
+  }
+  .char-chip.on { background: var(--primary-soft); border-color: var(--tint-leaf-35); color: var(--marzi-dark); }
   .char-card {
     display: flex; gap: var(--space-3); align-items: center; margin-top: var(--space-2);
     padding: 10px 12px; background: var(--card); border: 1px solid var(--line);
@@ -1800,7 +1830,6 @@
      role="note" aria-label="MARZI staging preview, package MARZI-062, build MARZI-062-PREVIEW-1">MARZI STAGING PREVIEW · MARZI-062 · BUILD MARZI-062-PREVIEW-1</div>
 <header class="topbar" id="topbar">
   <div class="topbar-in">
-    <button class="menu-btn" id="menuBtn" aria-label="Menu"><span></span><span></span><span></span></button>
     <span id="brandLockup"></span>
     <span class="grow"></span>
     <button class="chip-res" id="tbCoins" aria-label="Coins"></button>
@@ -1833,40 +1862,22 @@
       <div class="routine" id="routine"></div>
     </div>
     <div id="installRec" class="install-rec hidden" role="note"></div>
-    <!-- MARZI-016: the learning journey lives inside Learn, below the existing
-         hero and mission content so nothing above it moves. Tabs unchanged.
-         MARZI-017: Learn shows a COMPACT preview; the full path lives in Talk. -->
-    <section class="jr" aria-labelledby="jrPrevTitle">
-      <div class="label prof-achv-lbl" style="margin-top:18px"><span id="jrPrevTitle"></span><span class="prof-achv-n" id="jrPrevCount"></span></div>
-      <div id="jrPreview"></div>
-      <button class="toggle" id="jrFullBtn" type="button" style="margin-top:10px"></button>
+    <!-- World-class IA: Learn owns the structured path. The full journey map
+         lives here now (it is curriculum, not call setup), so the compact
+         preview that duplicated it is gone. -->
+    <section class="jr" aria-labelledby="jrTitleLbl">
+      <div class="label prof-achv-lbl" style="margin-top:18px"><span id="jrTitleLbl"><span id="lblJourney"></span></span><span class="prof-achv-n" id="jrCount"></span></div>
+      <div class="seg" id="jrSeg" role="group"></div>
+      <div id="jrBody" style="margin-top:10px"></div>
+      <button class="big cta hidden" id="jrNext" style="margin-top:12px"></button>
     </section>
   </section>
 
-  <!-- TALK: scenario setup (the original Telefontrainer core) -->
-  <section id="setup" class="hidden">
-    <div class="label" id="lblTrainNow"></div>
-    <div id="recoBody"></div>
-    <div class="label" id="lblPick"></div>
-    <div class="scn-rail" id="scnRail" role="group"></div>
-    <div id="charCard"></div>
-    <button class="picked" id="pickedCard">
-      <b id="pickedTitle"></b><small id="pickedSub"></small><span class="chev">&rsaquo;</span>
-    </button>
-
-    <div class="duo">
-      <div class="duo-col" style="flex:1.25"><div class="label" id="lblLevel"></div><div class="seg" id="levels"></div></div>
-      <div class="duo-col"><div class="label" id="lblSpeed"></div><div class="seg" id="speeds"></div></div>
-    </div>
-    <p class="note one" id="levelNote"></p>
-
-    <button class="big cta" id="callBtn" style="margin-top:14px"></button>
-    <div class="allow-row">
-      <span class="allow-chip" id="allowMin"></span>
-      <button class="allow-chip" id="allowBuy"></button>
-    </div>
-    <!-- MARZI-017: Talk is the canonical training hub, in four sections.
-         My progress moved to Profile; Recommend the app moved to Profile. -->
+  <!-- PRACTICE: the first-class learning hub. Preparation and improvement
+       modules that used to be buried beneath the call button. -->
+  <section id="practice" class="hidden">
+    <div class="plate"><span id="practiceTitle"></span></div>
+    <p class="note" id="practiceIntro" style="margin-top:6px"></p>
     <div class="label" id="lblTrainCall"></div>
     <div class="grid2">
       <button class="act" id="prepBtn"></button>
@@ -1877,13 +1888,31 @@
     <div class="grid2">
       <button class="act" id="drillBtn"></button>
       <button class="act" id="mistakesBtn"></button>
+      <button class="act" id="wordsBtn"></button>
+    </div>
+  </section>
+
+  <!-- TALK: scenario setup (the original Telefontrainer core) -->
+  <section id="setup" class="hidden">
+    <div class="label" id="lblTrainNow"></div>
+    <div id="recoBody"></div>
+    <div class="label lbl-row"><span id="lblPick"></span><button class="see-all" id="seeAllBtn" type="button"></button></div>
+    <div class="scn-rail" id="scnRail" role="group"></div>
+    <div id="charCard"></div>
+
+    <div class="label" id="lblLevel"></div>
+    <div class="seg" id="levels"></div>
+    <p class="note one" id="levelNote"></p>
+    <div class="label" id="lblSpeed"></div>
+    <div class="seg" id="speeds"></div>
+
+    <button class="big cta" id="callBtn" style="margin-top:14px"></button>
+    <div class="allow-row">
+      <span class="allow-chip" id="allowMin"></span>
+      <button class="allow-chip" id="allowBuy"></button>
     </div>
     <div class="label" id="lblTrainRecent"></div>
     <div id="recentBody"></div>
-    <div class="label prof-achv-lbl"><span id="lblJourney"></span><span class="prof-achv-n" id="jrCount"></span></div>
-    <div class="seg" id="jrSeg" role="group"></div>
-    <div id="jrBody" style="margin-top:10px"></div>
-    <button class="big cta hidden" id="jrNext" style="margin-top:12px"></button>
   </section>
 
   <!-- FIRST-RUN ONBOARDING: language pair picker -->
@@ -2102,6 +2131,7 @@
 <nav class="bottomnav" id="bottomnav" aria-label="Primary">
   <div class="bottomnav-in">
     <button id="nbLearn" data-tab="learn"></button>
+    <button id="nbPractice" data-tab="practice"></button>
     <button id="nbTalk" data-tab="talk"></button>
     <button id="nbStore" data-tab="store"></button>
     <button id="nbProfile" data-tab="profile"></button>
@@ -2278,7 +2308,7 @@ const T = {
     obSaveFailed:"No se pudo guardar. Revisa el espacio del navegador e inténtalo otra vez.",
     goalNames:["Viajar","Vida diaria","Trabajo","Estudios","Preparar llamadas","Vivir en Alemania"],
     dayUnit:["día","días"], minUnit:["minuto","minutos"], callUnit:["llamada","llamadas"],
-    coinUnit:["moneda","monedas"], wordUnit:["palabra","palabras"], fixUnit:["error","errores"],
+    coinUnit:["moneda","monedas"], wordUnit:["palabra","palabras"], fixUnit:["error","errores"], goalUnit:["objetivo","objetivos"], prepReady:"Preparada", change:"Cambiar",
     profDash:"Tu progreso", profWeek:"Últimos 7 días", profNoHistory:"Aún no hay días con práctica. Haz tu primera llamada.",
     profGoalLbl:"Idiomas y objetivo", profNoStats:"Todavía sin datos",
     trainNow:"Recomendado ahora", trainCall:"Entrenamiento de llamadas", trainReview:"Repasar y mejorar", trainRecent:"Actividad reciente",
@@ -2324,7 +2354,7 @@ const T = {
     routine:"Rutina de hoy", rCall:"Conversación", rVocab:"Vocabulario", rDrill:"Errores",
     prep:"Preparar la llamada", prepTitle:"PREPARACIÓN", howSay:"¿Cómo se dice en alemán?",
     dialog:"Diálogo guiado",
-    tabLearn:"Aprender", tabTalk:"Hablar", tabStore:"Tienda", tabProfile:"Perfil",
+    tabLearn:"Aprender", tabPractice:"Practicar", tabTalk:"Hablar", tabStore:"Tienda", tabProfile:"Perfil", seeAll:"Ver todas", practiceIntro:"Prepárate, entrena y repasa lo que te cuesta.", brandTag:"Practica. Habla. Crece.",
     hello:"¡Hola!", practiceNow:"PRACTICAR AHORA", mission:"Misión de hoy",
     coins:"Monedas", buyMinutes:"Comprar minutos", minLeft:"min restantes hoy",
     outfits:"Trajes de Marzi", notEnough:"No tienes suficientes monedas", bought:"¡Comprado! ✓",
@@ -2338,7 +2368,7 @@ const T = {
     didWell:"Lo que hiciste bien", toImprove:"Para mejorar", learnWords:"Vocabulario para aprender", addWords:"Guardar en Mis palabras", addedWords:"Guardadas ✓",
     dataExport:"Guardar copia de mis datos", dataImport:"Restaurar copia", importedOk:"Datos restaurados ✓",
     limitMsg:"Se alcanzó el límite diario gratuito. ¡Vuelve mañana! 🙏", share:"Recomendar la app",
-    shareText:"Estoy practicando alemán hablado con Telefontrainer. ¡Pruébalo!", copied:"Enlace copiado ✓",
+    shareText:"Estoy practicando alemán hablado con Marzi. ¡Pruébalo!", copied:"Enlace copiado ✓",
     watchIt:"Ver cómo se dice", clipLoading:"Creando el video… (solo la primera vez, ~1 min)",
     evoTitle:"La evolución de Marzi", evoHere:"Estás aquí", obIntro:"Hablo…", obLearn:"Quiero aprender…", obStart:"¡EMPEZAR!", obSoon:"Muy pronto",
     obWish:"¡Apuntado! Te avisaremos. Mientras tanto, sigue seleccionado el idioma actual 💪", obPair:"Idiomas: hablo / aprendo" },
@@ -2364,7 +2394,7 @@ const T = {
     obSaveFailed:"Could not save. Check your browser storage and try again.",
     goalNames:["Travel","Daily life","Work","School","Prepare calls","Living in Germany"],
     dayUnit:["day","days"], minUnit:["minute","minutes"], callUnit:["call","calls"],
-    coinUnit:["coin","coins"], wordUnit:["word","words"], fixUnit:["mistake","mistakes"],
+    coinUnit:["coin","coins"], wordUnit:["word","words"], fixUnit:["mistake","mistakes"], goalUnit:["goal","goals"], prepReady:"Prepared", change:"Change",
     profDash:"Your progress", profWeek:"Last 7 days", profNoHistory:"No practice days yet. Make your first call.",
     profGoalLbl:"Languages & learning goal", profNoStats:"No data yet",
     trainNow:"Recommended now", trainCall:"Call training", trainReview:"Review and improve", trainRecent:"Recent activity",
@@ -2410,7 +2440,7 @@ const T = {
     routine:"Today's routine", rCall:"Conversation", rVocab:"Vocabulary", rDrill:"Mistakes",
     prep:"Prepare the call", prepTitle:"PREPARATION", howSay:"How do you say it in German?",
     dialog:"Guided dialogue",
-    tabLearn:"Learn", tabTalk:"Talk", tabStore:"Store", tabProfile:"Profile",
+    tabLearn:"Learn", tabPractice:"Practice", tabTalk:"Talk", tabStore:"Store", tabProfile:"Profile", seeAll:"See all", practiceIntro:"Prepare, train and review what you find hard.", brandTag:"Practice. Speak. Grow.",
     hello:"Hello!", practiceNow:"PRACTISE NOW", mission:"Today's mission",
     coins:"Coins", buyMinutes:"Buy minutes", minLeft:"min left today",
     outfits:"Marzi outfits", notEnough:"Not enough coins", bought:"Purchased! ✓",
@@ -2424,7 +2454,7 @@ const T = {
     didWell:"What you did well", toImprove:"To improve", learnWords:"Vocabulary to learn", addWords:"Save to My words", addedWords:"Saved ✓",
     dataExport:"Back up my data", dataImport:"Restore backup", importedOk:"Data restored ✓",
     limitMsg:"The free daily limit is reached. Come back tomorrow! 🙏", share:"Recommend the app",
-    shareText:"I'm practising spoken German with Telefontrainer. Try it!", copied:"Link copied ✓",
+    shareText:"I'm practising spoken German with Marzi. Try it!", copied:"Link copied ✓",
     watchIt:"Watch it said", clipLoading:"Creating the video… (first time only, ~1 min)",
     evoTitle:"Marzi's evolution", evoHere:"You are here", obIntro:"I speak…", obLearn:"I want to learn…", obStart:"LET'S GO!", obSoon:"Coming soon",
     obWish:"Noted! We'll let you know. Until then, your current language stays selected 💪", obPair:"Languages: I speak / I learn" },
@@ -2453,7 +2483,7 @@ T.tr = { tagline:"Gerçek Almanca aramalar ve konuşmalar pratiği yap. Sen konu
   obSaveFailed:"Kaydedilemedi. Tarayıcı depolamanı kontrol edip tekrar dene.",
   goalNames:["Seyahat","Günlük hayat","İş","Okul","Aramalara hazırlık","Almanya'da yaşamak"],
   dayUnit:["gün","gün"], minUnit:["dakika","dakika"], callUnit:["arama","arama"],
-  coinUnit:["jeton","jeton"], wordUnit:["kelime","kelime"], fixUnit:["hata","hata"],
+  coinUnit:["jeton","jeton"], wordUnit:["kelime","kelime"], fixUnit:["hata","hata"], goalUnit:["hedef","hedef"], prepReady:"Hazır", change:"Değiştir",
   profDash:"İlerlemen", profWeek:"Son 7 gün", profNoHistory:"Henüz pratik günü yok. İlk aramanı yap.",
   profGoalLbl:"Diller ve hedef", profNoStats:"Henüz veri yok",
   trainNow:"Şimdi önerilen", trainCall:"Arama antrenmanı", trainReview:"Gözden geçir ve geliştir", trainRecent:"Son etkinlik",
@@ -2499,7 +2529,7 @@ T.tr = { tagline:"Gerçek Almanca aramalar ve konuşmalar pratiği yap. Sen konu
   routine:"Bugünkü rutin", rCall:"Konuşma", rVocab:"Kelimeler", rDrill:"Hatalar",
   prep:"Aramaya hazırlan", prepTitle:"HAZIRLIK", howSay:"Almancası nasıl söylenir?",
   dialog:"Rehberli diyalog",
-  tabLearn:"Öğren", tabTalk:"Konuş", tabStore:"Mağaza", tabProfile:"Profil",
+  tabLearn:"Öğren", tabPractice:"Alıştırma", tabTalk:"Konuş", tabStore:"Mağaza", tabProfile:"Profil", seeAll:"Tümünü gör", practiceIntro:"Hazırlan, çalış ve zorlandıklarını tekrar et.", brandTag:"Alıştır. Konuş. Büyü.",
   hello:"Merhaba!", practiceNow:"ŞİMDİ PRATİK YAP", mission:"Bugünün görevi",
   coins:"Jetonlar", buyMinutes:"Dakika satın al", minLeft:"dk kaldı bugün",
   outfits:"Marzi kıyafetleri", notEnough:"Yeterli jeton yok", bought:"Satın alındı! ✓",
@@ -2513,7 +2543,7 @@ T.tr = { tagline:"Gerçek Almanca aramalar ve konuşmalar pratiği yap. Sen konu
   didWell:"İyi yaptıkların", toImprove:"Geliştirilecekler", learnWords:"Öğrenilecek kelimeler", addWords:"Kelimelerime kaydet", addedWords:"Kaydedildi ✓",
   dataExport:"Verilerimi yedekle", dataImport:"Yedeği geri yükle", importedOk:"Veriler geri yüklendi ✓",
   limitMsg:"Günlük ücretsiz sınıra ulaşıldı. Yarın tekrar gel! 🙏", share:"Uygulamayı öner",
-  shareText:"Telefontrainer ile Almanca konuşma pratiği yapıyorum. Dene!", copied:"Bağlantı kopyalandı ✓",
+  shareText:"Marzi ile Almanca konuşma pratiği yapıyorum. Dene!", copied:"Bağlantı kopyalandı ✓",
   watchIt:"Nasıl söylendiğini izle", clipLoading:"Video oluşturuluyor… (sadece ilk sefer, ~1 dk)",
   evoTitle:"Marzi'nin evrimi", evoHere:"Buradasın", obIntro:"Konuştuğum dil…", obLearn:"Öğrenmek istiyorum…", obStart:"BAŞLAYALIM!", obSoon:"Çok yakında",
   obWish:"Not aldık! Haber vereceğiz. O zamana kadar mevcut dil seçili kalıyor 💪", obPair:"Diller: konuşurum / öğrenirim" };
@@ -2540,7 +2570,7 @@ T.ar = { tagline:"تدرّب على مكالمات ومحادثات حقيقية
   goalNames:["السفر","الحياة اليومية","العمل","الدراسة","التحضير للمكالمات","العيش في ألمانيا"],
   dayUnit:["يوم","يوم","يومان","أيام","يومًا","يوم"], minUnit:["دقيقة","دقيقة","دقيقتان","دقائق","دقيقة","دقيقة"],
   callUnit:["مكالمة","مكالمة","مكالمتان","مكالمات","مكالمة","مكالمة"],
-  coinUnit:["عملة","عملة","عملتان","عملات","عملة","عملة"], wordUnit:["كلمة","كلمة","كلمتان","كلمات","كلمة","كلمة"],
+  coinUnit:["عملة","عملة","عملتان","عملات","عملة","عملة"], wordUnit:["كلمة","كلمة","كلمتان","كلمات","كلمة","كلمة"], goalUnit:["هدف","هدف","هدفان","أهداف","هدفًا","هدف"], prepReady:"جاهزة", change:"تغيير",
   fixUnit:["خطأ","خطأ","خطآن","أخطاء","خطأ","خطأ"],
   profDash:"تقدمك", profWeek:"آخر 7 أيام", profNoHistory:"لا توجد أيام تدريب بعد. أجرِ مكالمتك الأولى.",
   profGoalLbl:"اللغات والهدف", profNoStats:"لا بيانات بعد",
@@ -2587,7 +2617,7 @@ T.ar = { tagline:"تدرّب على مكالمات ومحادثات حقيقية
   routine:"روتين اليوم", rCall:"محادثة", rVocab:"مفردات", rDrill:"أخطاء",
   prep:"التحضير للمكالمة", prepTitle:"التحضير", howSay:"كيف تُقال بالألمانية؟",
   dialog:"حوار موجّه",
-  tabLearn:"تعلّم", tabTalk:"تحدث", tabStore:"المتجر", tabProfile:"الملف",
+  tabLearn:"تعلّم", tabPractice:"تدرّب", tabTalk:"تحدث", tabStore:"المتجر", tabProfile:"الملف", seeAll:"عرض الكل", practiceIntro:"استعدّ وتدرّب وراجع ما تجده صعبًا.", brandTag:"تدرّب. تحدّث. انمُ.",
   hello:"مرحبًا!", practiceNow:"تدرّب الآن", mission:"مهمة اليوم",
   coins:"عملات", buyMinutes:"شراء دقائق", minLeft:"دقيقة متبقية اليوم",
   outfits:"أزياء مارزي", notEnough:"لا تملك عملات كافية", bought:"تم الشراء! ✓",
@@ -2601,7 +2631,7 @@ T.ar = { tagline:"تدرّب على مكالمات ومحادثات حقيقية
   didWell:"ما أجدته", toImprove:"ما يجب تحسينه", learnWords:"مفردات للتعلم", addWords:"احفظ في كلماتي", addedWords:"تم الحفظ ✓",
   dataExport:"احفظ نسخة من بياناتي", dataImport:"استعادة النسخة", importedOk:"تمت استعادة البيانات ✓",
   limitMsg:"تم بلوغ الحد اليومي المجاني. عد غدًا! 🙏", share:"أوصِ بالتطبيق",
-  shareText:"أتدرب على التحدث بالألمانية مع Telefontrainer. جربه!", copied:"تم نسخ الرابط ✓",
+  shareText:"أتدرب على التحدث بالألمانية مع Marzi. جربه!", copied:"تم نسخ الرابط ✓",
   watchIt:"شاهد كيف تُقال", clipLoading:"جارٍ إنشاء الفيديو… (المرة الأولى فقط، حوالي دقيقة)",
   evoTitle:"تطوّر مارزي", evoHere:"أنت هنا", obIntro:"أتحدث…", obLearn:"أريد أن أتعلم…", obStart:"هيا نبدأ!", obSoon:"قريبًا",
   obWish:"سجلنا رغبتك! سنخبرك عندما تتوفر. حتى ذلك الحين تبقى اللغة الحالية مختارة 💪", obPair:"اللغات: أتحدث / أتعلم" };
@@ -2627,7 +2657,7 @@ T.uk = { tagline:"Тренуй реальні дзвінки й розмови �
   obSaveFailed:"Не вдалося зберегти. Перевір сховище браузера й спробуй ще раз.",
   goalNames:["Подорожі","Щоденне життя","Робота","Навчання","Підготовка до дзвінків","Життя в Німеччині"],
   dayUnit:["день","дні","днів"], minUnit:["хвилина","хвилини","хвилин"], callUnit:["дзвінок","дзвінки","дзвінків"],
-  coinUnit:["монета","монети","монет"], wordUnit:["слово","слова","слів"], fixUnit:["помилка","помилки","помилок"],
+  coinUnit:["монета","монети","монет"], wordUnit:["слово","слова","слів"], fixUnit:["помилка","помилки","помилок"], goalUnit:["ціль","цілі","цілей"], prepReady:"Підготовлено", change:"Змінити",
   profDash:"Твій прогрес", profWeek:"Останні 7 днів", profNoHistory:"Ще немає днів практики. Зроби перший дзвінок.",
   profGoalLbl:"Мови та ціль", profNoStats:"Ще немає даних",
   trainNow:"Рекомендовано зараз", trainCall:"Тренування дзвінків", trainReview:"Повтори й покращуй", trainRecent:"Остання активність",
@@ -2673,7 +2703,7 @@ T.uk = { tagline:"Тренуй реальні дзвінки й розмови �
   routine:"Рутина на сьогодні", rCall:"Розмова", rVocab:"Слова", rDrill:"Помилки",
   prep:"Підготуватися до дзвінка", prepTitle:"ПІДГОТОВКА", howSay:"Як це сказати німецькою?",
   dialog:"Керований діалог",
-  tabLearn:"Навчання", tabTalk:"Розмова", tabStore:"Крамниця", tabProfile:"Профіль",
+  tabLearn:"Навчання", tabPractice:"Практика", tabTalk:"Розмова", tabStore:"Крамниця", tabProfile:"Профіль", seeAll:"Показати всі", practiceIntro:"Готуйся, тренуйся та повторюй складне.", brandTag:"Практикуй. Говори. Зростай.",
   hello:"Привіт!", practiceNow:"ПРАКТИКУВАТИ ЗАРАЗ", mission:"Місія на сьогодні",
   coins:"Монети", buyMinutes:"Купити хвилини", minLeft:"хв залишилось сьогодні",
   outfits:"Вбрання Марзі", notEnough:"Недостатньо монет", bought:"Куплено! ✓",
@@ -2687,7 +2717,7 @@ T.uk = { tagline:"Тренуй реальні дзвінки й розмови �
   didWell:"Що вдалося добре", toImprove:"Що покращити", learnWords:"Слова для вивчення", addWords:"Зберегти в Мої слова", addedWords:"Збережено ✓",
   dataExport:"Зберегти копію моїх даних", dataImport:"Відновити копію", importedOk:"Дані відновлено ✓",
   limitMsg:"Досягнуто безкоштовний денний ліміт. Повертайся завтра! 🙏", share:"Порадити застосунок",
-  shareText:"Я треную розмовну німецьку з Telefontrainer. Спробуй!", copied:"Посилання скопійовано ✓",
+  shareText:"Я треную розмовну німецьку з Marzi. Спробуй!", copied:"Посилання скопійовано ✓",
   watchIt:"Подивись, як це сказати", clipLoading:"Створюю відео… (лише вперше, ~1 хв)",
   evoTitle:"Еволюція Марзі", evoHere:"Ти тут", obIntro:"Я розмовляю…", obLearn:"Хочу вивчати…", obStart:"ПОЧНІМО!", obSoon:"Скоро",
   obWish:"Записали! Повідомимо, щойно зʼявиться. А поки лишається поточна мова 💪", obPair:"Мови: розмовляю / вивчаю" };
@@ -2714,7 +2744,7 @@ T.it = { tagline:"Allenati con telefonate e conversazioni reali in tedesco. Tu p
   obSaveFailed:"Impossibile salvare. Controlla lo spazio del browser e riprova.",
   goalNames:["Viaggi","Vita quotidiana","Lavoro","Scuola","Preparare telefonate","Vivere in Germania"],
   dayUnit:["giorno","giorni"], minUnit:["minuto","minuti"], callUnit:["chiamata","chiamate"],
-  coinUnit:["moneta","monete"], wordUnit:["parola","parole"], fixUnit:["errore","errori"],
+  coinUnit:["moneta","monete"], wordUnit:["parola","parole"], fixUnit:["errore","errori"], goalUnit:["obiettivo","obiettivi"], prepReady:"Preparata", change:"Cambia",
   profDash:"I tuoi progressi", profWeek:"Ultimi 7 giorni", profNoHistory:"Ancora nessun giorno di pratica. Fai la tua prima chiamata.",
   profGoalLbl:"Lingue e obiettivo", profNoStats:"Ancora nessun dato",
   trainNow:"Consigliato ora", trainCall:"Allenamento chiamate", trainReview:"Rivedi e migliora", trainRecent:"Attività recente",
@@ -2760,7 +2790,7 @@ T.it = { tagline:"Allenati con telefonate e conversazioni reali in tedesco. Tu p
   routine:"Routine di oggi", rCall:"Conversazione", rVocab:"Vocabolario", rDrill:"Errori",
   prep:"Prepara la chiamata", prepTitle:"PREPARAZIONE", howSay:"Come si dice in tedesco?",
   dialog:"Dialogo guidato",
-  tabLearn:"Impara", tabTalk:"Parla", tabStore:"Negozio", tabProfile:"Profilo",
+  tabLearn:"Impara", tabPractice:"Esercitati", tabTalk:"Parla", tabStore:"Negozio", tabProfile:"Profilo", seeAll:"Vedi tutte", practiceIntro:"Preparati, allenati e ripassa ciò che trovi difficile.", brandTag:"Pratica. Parla. Cresci.",
   hello:"Ciao!", practiceNow:"PRATICA ORA", mission:"Missione di oggi",
   coins:"Monete", buyMinutes:"Compra minuti", minLeft:"min rimasti oggi",
   outfits:"Vestiti di Marzi", notEnough:"Monete insufficienti", bought:"Acquistato! ✓",
@@ -2774,7 +2804,7 @@ T.it = { tagline:"Allenati con telefonate e conversazioni reali in tedesco. Tu p
   didWell:"Cosa hai fatto bene", toImprove:"Da migliorare", learnWords:"Vocabolario da imparare", addWords:"Salva in Le mie parole", addedWords:"Salvate ✓",
   dataExport:"Salva una copia dei miei dati", dataImport:"Ripristina copia", importedOk:"Dati ripristinati ✓",
   limitMsg:"Limite giornaliero gratuito raggiunto. Torna domani! 🙏", share:"Consiglia l'app",
-  shareText:"Sto praticando il tedesco parlato con Telefontrainer. Provalo!", copied:"Link copiato ✓",
+  shareText:"Sto praticando il tedesco parlato con Marzi. Provalo!", copied:"Link copiato ✓",
   watchIt:"Guarda come si dice", clipLoading:"Creo il video… (solo la prima volta, ~1 min)",
   evoTitle:"L'evoluzione di Marzi", evoHere:"Sei qui", obIntro:"Parlo…", obLearn:"Voglio imparare…", obStart:"INIZIAMO!", obSoon:"Prossimamente",
   obWish:"Segnato! Ti avviseremo. Nel frattempo resta selezionata la lingua attuale 💪", obPair:"Lingue: parlo / imparo" };
@@ -3139,22 +3169,22 @@ if (TARGET.code !== "de") {
 const T_TARGET_EN = {
   es:{ tagline:"Practica llamadas y conversaciones reales en inglés. Tú hablas, la otra persona responde.",
        howSay:"¿Cómo se dice en inglés?", testSay:"Di esto en inglés:",
-       shareText:"Estoy practicando inglés hablado con Telefontrainer. ¡Pruébalo!" },
+       shareText:"Estoy practicando inglés hablado con Marzi. ¡Pruébalo!" },
   en:{ tagline:"Practise real English calls and conversations. You speak, the other person answers.",
        howSay:"How do you say it in English?", testSay:"Say this in English:",
-       shareText:"I'm practising spoken English with Telefontrainer. Try it!" },
+       shareText:"I'm practising spoken English with Marzi. Try it!" },
   it:{ tagline:"Allenati con telefonate e conversazioni reali in inglese. Tu parli, l'altra persona risponde.",
        howSay:"Come si dice in inglese?", testSay:"Dillo in inglese:",
-       shareText:"Sto praticando l'inglese parlato con Telefontrainer. Provalo!" },
+       shareText:"Sto praticando l'inglese parlato con Marzi. Provalo!" },
   tr:{ tagline:"Gerçek İngilizce aramalar ve konuşmalar pratiği yap. Sen konuş, karşı taraf cevap versin.",
        howSay:"İngilizcesi nasıl söylenir?", testSay:"Bunu İngilizce söyle:",
-       shareText:"Telefontrainer ile İngilizce konuşma pratiği yapıyorum. Dene!" },
+       shareText:"Marzi ile İngilizce konuşma pratiği yapıyorum. Dene!" },
   ar:{ tagline:"تدرّب على مكالمات ومحادثات حقيقية بالإنجليزية. أنت تتكلم والطرف الآخر يجيب.",
        howSay:"كيف تُقال بالإنجليزية؟", testSay:"قل هذا بالإنجليزية:",
-       shareText:"أتدرب على التحدث بالإنجليزية مع Telefontrainer. جربه!" },
+       shareText:"أتدرب على التحدث بالإنجليزية مع Marzi. جربه!" },
   uk:{ tagline:"Тренуй реальні дзвінки й розмови англійською. Ти говориш — співрозмовник відповідає.",
        howSay:"Як це сказати англійською?", testSay:"Скажи це англійською:",
-       shareText:"Я треную розмовну англійську з Telefontrainer. Спробуй!" },
+       shareText:"Я треную розмовну англійську з Marzi. Спробуй!" },
 };
 if (TARGET.code === "en") {
   for (const l of Object.keys(T_TARGET_EN)) Object.assign(T[l], T_TARGET_EN[l]);
@@ -3640,7 +3670,7 @@ const UI = {
       : marziSVG(n, "neutral");
     return `<span class="brand-lockup${compact ? " compact" : ""}" role="img" aria-label="${esc(label)}">` +
       `<span class="brand-mark" data-stage="${n}" aria-hidden="true">${mark}</span>` +
-      `<span class="wordmark">Marzi</span></span>`;
+      `<span class="wordmark" aria-hidden="true">Marz<span class="wm-i">i<svg class="wm-sprout" viewBox="0 0 24 14" aria-hidden="true"><path d="M12 13 C11 8 7 4 2 4 C6 2 11 4 12 8 C13 4 18 2 22 4 C17 4 13 8 12 13 Z" fill="var(--primary)"/></svg></span></span></span>`;
   },
   /* --- 27. Stat card: one measured value with its localized label --- */
   statCard({ icon = "", value = "", label = "", detail = "", state = "" } = {}) {
@@ -3664,8 +3694,7 @@ const UI = {
   },
   /* --- 3. Top bar: brand + resources + settings (the app shell chrome) --- */
   topBar({ coins = 0, streak = 0, minutes = 0 } = {}) {
-    return `<button class="menu-btn" id="menuBtn" aria-label="Menu"><span></span><span></span><span></span></button>` +
-      UI.brandLockup({ compact: true }) + `<span class="grow"></span>` +
+    return UI.brandLockup({ compact: true }) + `<span class="grow"></span>` +
       UI.coinChip({ id: "tbCoins", value: coins, label: "Coins" }) +
       UI.coinChip({ id: "tbStreak", value: streak, kind: "streak", icon: IC.flame(ICON.sm), label: "Streak", tag: "span" }) +
       UI.coinChip({ id: "tbMins", value: minutes, kind: "mins", icon: IC.clock(ICON.sm), label: "Call minutes left today" }) +
@@ -3692,14 +3721,20 @@ const UI = {
       (n === current && hereLabel ? `<span class="evo-here">${esc(hereLabel)}</span>` : "") + `</div>`;
   },
   /* --- 7. Character card: who the learner will speak to --- */
-  characterCard({ scenario, kindLabel = "", subtitle = "", note = "" } = {}) {
+  characterCard({ scenario, kindLabel = "", subtitle = "", note = "", title = "", metaChips = [] } = {}) {
     const s = scenario || {};
-    return `<div class="char-card" aria-label="${esc(`${kindLabel}: ${s.who || ""}`)}">` +
+    return `<div class="char-card${title ? " summary" : ""}" aria-label="${esc(`${kindLabel}: ${s.who || ""}`)}">` +
+      (title ? `<div class="char-title">${esc(title)}</div>` : "") +
+      `<div class="char-row">` +
       UI.characterAvatar({ scenario: s }) +
       `<div class="char-txt"><span class="k">${esc(kindLabel)}</span><b>${esc(s.who || "")}</b>` +
       `<small>${esc(subtitle)}</small>` +
       (note ? `<span class="prep-hint">${IC.prep(ICON.xs)} ${esc(note)}</span>` : "") +
-      `</div></div>`;
+      `</div></div>` +
+      (metaChips.length ? `<div class="char-meta">` + metaChips.map((c) =>
+        `<span class="char-chip${c.on ? " on" : ""}">${c.icon || ""}${esc(c.text)}</span>`).join("") + `</div>` : "") +
+      (title ? `<button class="see-all char-change" id="charChangeBtn" type="button"></button>` : "") +
+      `</div>`;
   },
   /* --- 8. Scenario card: a practisable situation, selectable --- */
   scenarioCard({ scenario, selected = false, subtitle = "" } = {}) {
@@ -4366,7 +4401,13 @@ function renderRecommended() {
   const next = J.here || J.nodes[0];
   const el = $("recoBody");
   if (!el) return null;
-  if (!next) { el.innerHTML = ""; return null; }
+  /* a recommendation that repeats the already-selected scenario is noise, not
+     guidance - the PO circled exactly this duplication */
+  if (!next || next.id === S.scenario.id) {
+    el.innerHTML = ""; $("lblTrainNow").classList.add("hidden");
+    return next ? next.id : null;
+  }
+  $("lblTrainNow").classList.remove("hidden");
   el.innerHTML = `<button class="act reco" type="button" id="recoBtn"` +
     ` aria-label="${esc(`${J.here ? L.jrNext : L.jrReview}: ${next.scenario.de}`)}">` +
     `<span class="reco-face" aria-hidden="true">${esc(next.scenario.avatar || "🎧")}</span>` +
@@ -4432,8 +4473,7 @@ function renderJourneyPreview() {
     `<span class="jr-face" aria-hidden="true">${esc(n.scenario.avatar || "🎧")}</span>` +
     `<span class="jr-nm">${esc(n.scenario.de)}</span></button></li>`).join("") + `</ol>`;
   $("jrPreview").querySelectorAll("[data-jp]").forEach((b) => b.onclick = () => goToScenario(b.dataset.jp));
-  $("jrFullBtn").textContent = L.journeyFull;
-  $("jrFullBtn").onclick = () => showTab("talk");
+
   return nodes.length;
 }
 function renderJourney() {
@@ -4518,11 +4558,19 @@ function renderCharacterCard() {
   const s = S.scenario;
   // advisory only - goCall gating is unchanged, the call is never blocked here
   const advise = S.level === "A0" && canPrep() && !PREPPED.has(s.id);
+  const prepped = PREPPED.has(s.id);
   $("charCard").innerHTML = UI.characterCard({
     scenario: s, kindLabel: L.contact,
-    subtitle: s[S.lang] || s.en || s.de || "",
+    title: s.id === "custom" ? (S.customTopic || s.de) : s.de,
+    subtitle: [s[S.lang] || s.en || "", s.place ? "" : ""].join("") || s.de,
     note: advise ? L.prepHint : "",
+    metaChips: [
+      { icon: IC.target(ICON.xs) + " ", text: `${(s.goals || []).length} ${plural((s.goals || []).length, L.goalUnit)}` },
+      { icon: IC.prep(ICON.xs) + " ", text: prepped ? L.prepReady : L.prep, on: prepped },
+    ],
   });
+  const chg = $("charChangeBtn");
+  if (chg) { chg.innerHTML = `${esc(L.change)} <span class="chev">&rsaquo;</span>`; chg.onclick = openDrawer; }
   // portraits load lazily: the component emits data-src, the screen fetches
   const img = $("charCard").querySelector("img[data-src]");
   if (img) {
@@ -4536,6 +4584,7 @@ function renderSetup() {
   renderNav();
   updateTopbar();
   $("lblPick").textContent = L.pick;
+  $("seeAllBtn").innerHTML = `${esc(L.seeAll)} (${SCENARIOS.filter((x) => x.goals).length}+) <span class="chev">&rsaquo;</span>`;
   $("lblLevel").textContent = L.level;
   $("lblSpeed").textContent = L.speed;
 
@@ -4567,12 +4616,6 @@ function renderSetup() {
   renderCharacterCard();
 
   $("drawerTitle").textContent = L.pick;
-  // the cards above cover the common situations; this opens the full list
-  $("pickedTitle").textContent = L.pick;
-  $("pickedSub").textContent = S.scenario.id === "custom" && S.customTopic
-    ? S.customTopic
-    : `${SCENARIOS.filter((x) => x.goals).length}+`;
-
   $("customRow").classList.toggle("hidden", S.scenario.id !== "custom");
   $("customTopic").placeholder = L.customPH;
   if (S.customTopic && !$("customTopic").value) $("customTopic").value = S.customTopic;
@@ -4589,25 +4632,34 @@ function renderSetup() {
     b.onclick = () => { S.speed = b.dataset.k; saveSettings(); renderSetup(); });
 
   $("lblTrainNow").textContent = L.trainNow;
-  $("lblTrainCall").textContent = L.trainCall;
-  $("lblTrainReview").textContent = L.trainReview;
   $("lblTrainRecent").textContent = L.trainRecent;
-  $("lblJourney").textContent = L.jrTitle;
   renderRecommended();
   renderRecentActivity();
-  renderJourney();
+}
+
+/* ---------- PRACTICE hub: prepare, guided practice, review (world-class IA).
+   These modules moved out of Talk so preparation and improvement are
+   first-class instead of being buried beneath the call button. ---------- */
+function renderPractice() {
+  const L = t();
+  renderNav();
+  updateTopbar();
+  $("practiceTitle").textContent = L.tabPractice.toUpperCase();
+  $("practiceIntro").textContent = L.practiceIntro;
+  $("lblTrainCall").textContent = L.trainCall;
+  $("lblTrainReview").textContent = L.trainReview;
   const n = loadFixes().length;
   $("mistakesBtn").innerHTML = IC.list() + `<span>${esc(L.mistakes)}${n ? ` (${n})` : ""}</span>`;
   const drillable = loadFixes().filter((f) => f.corrected).length;
   $("drillBtn").innerHTML = IC.target() + `<span>${esc(L.practice)}${drillable ? ` (${Math.min(8, drillable)})` : ""}</span>`;
   $("drillBtn").disabled = !drillable;
   $("vocabBtn").innerHTML = IC.cards() + `<span>${esc(L.vocab)}</span>`;
+  const nw = loadWords().length;
+  $("wordsBtn").innerHTML = IC.star() + `<span>${esc(L.myWords)}${nw ? ` (${nw})` : ""}</span>`;
   $("dialogBtn").innerHTML = IC.chat() + `<span>${esc(L.dialog)}</span>`;
   $("dialogBtn").disabled = !dialogAvailable().length;
   $("prepBtn").innerHTML = IC.prep() + `<span>${esc(L.prep)}</span>`;
   $("prepBtn").disabled = S.scenario.id === "random" || (S.scenario.id === "custom" && !(S.customTopic || "").trim());
-  const due = daysSinceTest() >= 7;
-  // MARZI-017: My progress and Recommend the app are owned by Profile now
 }
 
 /* ---------- LEARN home: greeting, Marzi hero, today's mission (spec §23) ---------- */
@@ -4659,7 +4711,8 @@ function renderLearn() {
   $("heroSub").textContent = `${st.calls || 0} ${L.calls}`;
   $("practiceBtn").innerHTML = IC.mic(ICON.lg) + " " + esc(L.practiceNow);
   $("practiceBtn").onclick = () => goCall();
-  renderJourneyPreview();
+  $("lblJourney").textContent = t().jrTitle;
+  renderJourney();
 
   const strk = currentStreak(st);
   $("heroStreak").innerHTML = `${IC.flame(ICON.btn)} ${strk} <small>${esc(L.days)}</small>`;
@@ -5252,14 +5305,15 @@ function updateTopbar() {
 }
 function renderNav() {
   const L = t();
-  [["nbLearn", IC.book(ICON.xl), L.tabLearn], ["nbTalk", IC.chat(ICON.xl), L.tabTalk],
+  [["nbLearn", IC.book(ICON.xl), L.tabLearn], ["nbPractice", IC.target(ICON.xl), L.tabPractice],
+   ["nbTalk", IC.chat(ICON.xl), L.tabTalk],
    ["nbStore", IC.bag(ICON.xl), L.tabStore], ["nbProfile", IC.person(ICON.xl), L.tabProfile]]
     .forEach(([id, icon, label]) => { $(id).innerHTML = icon + `<span>${esc(label)}</span>`; });
 }
 /* MARZI-002 shell routing: each tab owns a hash, so the Android back button
    moves between tabs (and out of a call) instead of closing the app, and
    every tab is deep-linkable. */
-const TAB_HASH = { learn:"#learn", talk:"#talk", store:"#store", profile:"#profile" };
+const TAB_HASH = { learn:"#learn", practice:"#practice", talk:"#talk", store:"#store", profile:"#profile" };
 function tabFromHash(h) {
   const tab = String(h || "").replace(/^#/, "");
   return TAB_HASH[tab] ? tab : null;
@@ -5283,6 +5337,7 @@ function showTab(tab, fromHash) {
   CURRENT_TAB = tab;
   if (!fromHash) syncTabHash(tab);
   if (tab === "talk") { renderSetup(); show("setup"); }
+  else if (tab === "practice") { renderPractice(); show("practice"); }
   else if (tab === "store") { renderStore(); show("store"); }
   else if (tab === "profile") { renderProfile(); show("profile"); }
   else { renderLearn(); show("learn"); }
@@ -6366,18 +6421,19 @@ function renderTranscript() {
 }
 
 /* which bottom-nav tab each screen belongs to (sub-screens highlight their home tab) */
-const TAB_OF = { learn:"learn", dialog:"learn", mistakes:"learn", drill:"learn", test:"learn",
-  setup:"talk", call:"talk", done:"talk", prep:"talk", vocab:"talk",
+const TAB_OF = { learn:"learn", test:"learn",
+  practice:"practice", dialog:"practice", mistakes:"practice", drill:"practice", vocab:"practice", prep:"practice",
+  setup:"talk", call:"talk", done:"talk",
   store:"store", profile:"profile" };
 function show(which) {
-  ["learn","setup","onboard","call","done","mistakes","drill","vocab","prep","test","dialog","store","profile"]
+  ["learn","practice","setup","onboard","call","done","mistakes","drill","vocab","prep","test","dialog","store","profile"]
     .forEach((id) => $(id).classList.toggle("hidden", id !== which));
   // the call is immersive; onboarding is chromeless
   $("bottomnav").classList.toggle("hidden", which === "call" || which === "onboard");
   if (document.body.classList) document.body.classList.toggle("in-call", which === "call");
   $("topbar").classList.toggle("hidden", which === "onboard" || which === "call");
   const active = TAB_OF[which] || "";
-  [["nbLearn","learn"],["nbTalk","talk"],["nbStore","store"],["nbProfile","profile"]]
+  [["nbLearn","learn"],["nbPractice","practice"],["nbTalk","talk"],["nbStore","store"],["nbProfile","profile"]]
     .forEach(([id, tb]) => $(id).classList.toggle("on", tb === active));
 }
 
@@ -7426,8 +7482,7 @@ function endCall() {
 $("againBtn").onclick = () => { stopAudio(); speechSynthesis.cancel(); showTab("talk"); };
 function openDrawer() { $("drawer").classList.add("open"); $("drawerBack").classList.remove("hidden"); }
 function closeDrawer() { $("drawer").classList.remove("open"); $("drawerBack").classList.add("hidden"); }
-$("menuBtn").onclick = openDrawer;
-$("pickedCard").onclick = openDrawer;
+$("seeAllBtn").onclick = openDrawer;
 $("drawerBack").onclick = closeDrawer;
 $("drawerClose").onclick = closeDrawer;
 $("replayBtn").onclick = () => {
@@ -7444,6 +7499,7 @@ $("mistakesBtn").onclick = () => { renderMistakes(); show("mistakes"); };
 $("drillBtn").onclick = () => startDrill();
 $("drillBack").onclick = () => { stopAudio(); speechSynthesis.cancel(); showTab("talk"); };
 $("vocabBtn").onclick = () => startVocab();
+$("wordsBtn").onclick = () => { startVocab(); if (loadWords().length) openDeck("mywords"); };
 $("dialogBtn").onclick = () => startDialog();
 $("dlgBack").onclick = () => {
   stopAudio(); speechSynthesis.cancel();
@@ -7568,7 +7624,7 @@ $("shareBtn").onclick = async () => {
   const url = location.origin;
   const text = t().shareText;
   if (navigator.share) {
-    try { await navigator.share({ title: "Telefontrainer", text, url }); } catch (e) {}
+    try { await navigator.share({ title: "Marzi", text, url }); } catch (e) {}
   } else if (navigator.clipboard) {
     try { await navigator.clipboard.writeText(text + " " + url); alert(t().copied); } catch (e) {}
   }
