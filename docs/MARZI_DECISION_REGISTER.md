@@ -2,7 +2,7 @@
 
 Status: Canonical decision register
 
-Applies to: MARZI-020 through MARZI-060
+Applies to: MARZI-020 through MARZI-063
 
 Authority: This register records choices that the roadmap and Product Bible intentionally do not resolve without the named owner.
 
@@ -43,6 +43,11 @@ Authority: This register records choices that the roadmap and Product Bible inte
 | MARZI-D023 | Supported target languages and rollout order | PRODUCT OWNER DECISION REQUIRED | Product Owner | OPEN | 028, 030–031, 049–050, 052–053, 056 |
 | MARZI-D024 | Data retention and deletion policy | LEGAL/PRIVACY REVIEW REQUIRED | Privacy Owner | OPEN | 027, 032, 042, 048, 051–053, 055, 060 |
 | MARZI-D025 | Release platforms and distribution sequence | COMMERCIAL DECISION REQUIRED | Product Owner / Release Owner | OPEN | 052, 053 |
+| MARZI-D026 | MARZI-063 package allocation | PRODUCT OWNER DECISION | Product Owner | APPROVED | 063 unblocked; no merge, release or production authorization |
+| MARZI-D027 | Independent Render staging service and its cost boundary | PRODUCT OWNER DECISION | Product Owner | APPROVED | 063 staging provisioning; a new fixed recurring charge stops the package |
+| MARZI-D028 | Staging-only credential and provider-cost policy | PRODUCT OWNER DECISION | Product Owner | APPROVED | 063 deployment and provider-dependent family readiness |
+| MARZI-D029 | Independent CI dependency and artifact-retention policy | PRODUCT OWNER DECISION | Product Owner | APPROVED | 063 verification evidence |
+| MARZI-D030 | Exposure of the validated staging URL to family reviewers | PRODUCT OWNER DECISION | Product Owner | APPROVED | 063 family handoff, after staging validation only |
 
 ## Detailed decisions
 
@@ -491,6 +496,116 @@ Authority: This register records choices that the roadmap and Product Bible inte
 | Decision owner | Product Owner / Release Owner. |
 | Deadline | Before MARZI-052 release operations; final before MARZI-053 go/no-go. |
 | Packages blocked | MARZI-052, 053. |
+
+### MARZI-D026 — MARZI-063 package allocation
+
+| Field | Record |
+|---|---|
+| Question | Is MARZI-063 allocated to staging infrastructure and independent browser verification, extending the recorded MARZI-020 through MARZI-062 range? |
+| Options | A. Allocate MARZI-063 for this purpose. B. Fold the work into an existing package. C. Defer. |
+| Status | **APPROVED** |
+| Selected option | **Option A — allocate MARZI-063 for staging infrastructure and independent browser verification.** |
+| Approver role | Product Owner |
+| Approval date | 2026-08-05 |
+| Recommended option | As selected above. |
+| Rationale | MARZI-062 is implemented but unverifiable by anyone other than its implementer and has nowhere safe to run. Folding infrastructure into a visual package would blur exactly the separation this work exists to create. |
+| Approval conditions | The allocation extends the range and changes no existing package ID, title, objective, ownership or completion status.<br>It is not authorization to merge, release, or deploy to production. |
+| Product impact | A family-testable preview becomes possible. |
+| Technical impact | One new control-plane commit; no application file changes. |
+| Economic impact | None in the application. |
+| Accessibility impact | Enables measured accessibility evidence; it certifies nothing. |
+| Localization impact | Enables Spanish and Arabic RTL evidence at two text scales. |
+| Decision owner | Product Owner |
+| Deadline | Before any staging provisioning. |
+| Packages blocked | MARZI-063 |
+
+### MARZI-D027 — Independent Render staging service and its cost boundary
+
+| Field | Record |
+|---|---|
+| Question | May a separate Render service named marzi-staging-r4a be created in the existing workspace from a separate Blueprint, and under what cost limit? |
+| Options | A. Create it from a separate Blueprint within existing included allowances. B. Add a second service to the production Blueprint. C. Do not create staging. |
+| Status | **APPROVED** |
+| Selected option | **Option A — a separate staging service from render.staging.yaml, within existing included allowances.** |
+| Approver role | Product Owner |
+| Approval date | 2026-08-05 |
+| Recommended option | As selected above. |
+| Rationale | A second service inside the production Blueprint would put staging one editing mistake away from production. A separate Blueprint, service ID, URL and credential set makes the boundary structural rather than procedural. |
+| Approval conditions | Production service telefontrainer, render.yaml, production domains, environment groups, deploy hooks and credentials must remain untouched.<br>Auto-deploy must be disabled and main must not be able to trigger staging.<br>Existing included allowances and approved metered provider budgets may be used.<br>If creating or operating the service would introduce a NEW FIXED RECURRING CHARGE, work stops before the charge is incurred and the package reports BLOCKED — FIXED RECURRING COST REQUIRES PRODUCT OWNER APPROVAL. |
+| Product impact | A disposable preview origin the family can use. |
+| Technical impact | New staging Blueprint and deploy path; no runtime change. |
+| Economic impact | Bounded to existing allowances; no new fixed recurring charge is authorized. |
+| Accessibility impact | None directly. |
+| Localization impact | None directly. |
+| Decision owner | Product Owner |
+| Deadline | Before Gate D provisioning. |
+| Packages blocked | MARZI-063 Gates D and E |
+
+### MARZI-D028 — Staging-only credential and provider-cost policy
+
+| Field | Record |
+|---|---|
+| Question | Which credentials may the staging service and its deployment path use? |
+| Options | A. Staging-only credentials provisioned separately, with no production reuse. B. Reuse the production provider key under a different variable name. C. No provider access at all. |
+| Status | **APPROVED** |
+| Selected option | **Option A — staging-only credentials, provisioned per service, with no production reuse.** |
+| Approver role | Product Owner |
+| Approval date | 2026-08-05 |
+| Recommended option | As selected above. |
+| Rationale | A generic provider key already used by production remains a production credential whatever variable name it is given. Reuse would make the origin boundary meaningless for spend, rate limits and revocation. |
+| Approval conditions | No production credential may be copied, renamed, referenced, inherited or shared.<br>The verification job receives no credential of any kind and runs against localhost with stubbed routes.<br>Deployment credentials exist only inside the protected marzi-staging-r4a GitHub Environment.<br>If no separate budget-limited staging provider credential exists, browser verification still runs on stubs and provider-dependent family readiness remains BLOCKED. |
+| Product impact | Family calls work only when separately funded staging provider access exists. |
+| Technical impact | Protected environment, separate secrets, redaction in every artifact. |
+| Economic impact | Metered provider spend bounded by an approved staging budget. |
+| Accessibility impact | None directly. |
+| Localization impact | None directly. |
+| Decision owner | Product Owner |
+| Deadline | Before Gate E deployment. |
+| Packages blocked | MARZI-063 Gate E and provider-dependent family readiness |
+
+### MARZI-D029 — Independent CI dependency and artifact-retention policy
+
+| Field | Record |
+|---|---|
+| Question | May the package add a dedicated pinned test-tooling dependency tree and a new lockfile, and how long are evidence artifacts retained? |
+| Options | A. A dedicated pinned tree under test/independent/marzi-063 with its own new lockfile, artifacts retained 30 days. B. Install tooling into the repository root. C. No pinned tooling. |
+| Status | **APPROVED** |
+| Selected option | **Option A — a dedicated pinned tree with its own newly generated lockfile, and 30-day artifact retention.** |
+| Approver role | Product Owner |
+| Approval date | 2026-08-05 |
+| Recommended option | As selected above. |
+| Rationale | The repository has no root lockfile and the application has no runtime dependencies. Keeping the verification tree separate preserves both facts, and pinning is what makes an independent run reproducible rather than merely repeated. |
+| Approval conditions | The dependency tree stays below test/independent/marzi-063 and is never installed into the source under test.<br>The lockfile is NEWLY GENERATED by this package and must not be described as pre-existing.<br>Every action, Node, npm, Playwright and Chromium version is pinned exactly.<br>Artifacts contain synthetic data only and are retained for 30 days. |
+| Product impact | Evidence a reviewer can download and re-check. |
+| Technical impact | One dedicated lockfile; no runtime dependency; no root package.json change. |
+| Economic impact | None beyond included CI minutes. |
+| Accessibility impact | Enables reproducible accessibility measurement. |
+| Localization impact | Enables reproducible locale evidence. |
+| Decision owner | Product Owner |
+| Deadline | Before Gate C. |
+| Packages blocked | MARZI-063 Gate C |
+
+### MARZI-D030 — Exposure of the validated staging URL to family reviewers
+
+| Field | Record |
+|---|---|
+| Question | May the staging URL be given to family reviewers, and under what conditions? |
+| Options | A. Expose it only after independent verification, exact-commit deployment, smoke validation and production non-change are all proven. B. Expose it as soon as the service exists. C. Do not expose it. |
+| Status | **APPROVED** |
+| Selected option | **Option A — expose only after every gate is proven.** |
+| Approver role | Product Owner |
+| Approval date | 2026-08-05 |
+| Recommended option | As selected above. |
+| Rationale | A preview handed out before it is verified is indistinguishable from an untested release, and the point of the exercise is honest feedback on a known revision. |
+| Approval conditions | Exposure requires: independent verification passed at the exact counts; the deployed commit proven equal to d75a10bb96e83045090190777dda5c8a692bed55; post-deploy smoke passed; production non-change proven; rollback ready.<br>Reviewers receive privacy boundaries and must not enter personal data.<br>Family feedback is informal product input and approves nothing.<br>No participant, response or outcome may ever be invented. |
+| Product impact | Real reaction to a known build. |
+| Technical impact | No runtime change; access gated by a staging-only pin when approved. |
+| Economic impact | None. |
+| Accessibility impact | Family observation is not an accessibility review. |
+| Localization impact | Reviewers may use any interface locale. |
+| Decision owner | Product Owner |
+| Deadline | After Gates E, F and G. |
+| Packages blocked | MARZI-063 Gate G handoff |
 
 ## Approval record template
 

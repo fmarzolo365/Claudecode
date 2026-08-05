@@ -2,7 +2,7 @@
 
 **Status:** Proposed definitive implementation sequence
 
-**Package range:** MARZI-020 through MARZI-062
+**Package range:** MARZI-020 through MARZI-063
 
 **Authority:** Product Owner approves product/economy/art/commercial decisions; Codex specifies and independently reviews; Claude Code implements approved packages.
 
@@ -1101,6 +1101,32 @@ been externally reviewed.
 
 **Staging boundary.** This package deploys only to `marzi-staging-r4a`. Production, `main`, deployment configuration and every production data store are out of scope and must remain unchanged. A deployment must be rejected when the resolved service is not exactly `marzi-staging-r4a`, when the environment is production, or when the repository lacks a staging procedure sufficient to distinguish staging from production.
 
+## MARZI-063 — Staging Infrastructure and Independent Browser Verification
+
+- **Objective:** Stand up a real staging service that is unmistakably separated from production, build a pinned and reproducible independent Chromium verification environment, verify the exact MARZI-062 implementation commit `d75a10bb96e83045090190777dda5c8a692bed55` from a fresh workspace that did not implement it, and permit deployment of that exact commit to staging only after every independent gate passes.
+- **Problem solved:** MARZI-062 is implemented and pushed but undeployable and unverified by anyone other than its implementer. The repository documented one deployment convention — a single production Render service — so there was no staging target, and the browser runner exits zero after printing SKIP when Chromium is missing, so an exit code alone could not distinguish a green run from a run that never happened.
+- **Why it exists:** A family preview must run somewhere that cannot touch production, and its evidence must come from something other than the agent that wrote the code. Separation of duties and separation of environments are the same requirement applied to people and to machines.
+- **Prerequisites:** MARZI-062 at `d75a10b` with its implementation parent `e2e9092`; Product Owner approval of the package allocation, the staging service, the staging-only credential policy, the artifact-retention policy, and family exposure (MARZI-D026 to MARZI-D030).
+- **Dependencies:** Consumes MARZI-062 as the revision under test and MARZI-024's environment and release-control requirements. It **does not complete or supersede** MARZI-024, and it does not merge, release, or production-approve MARZI-062. This entry extends the previously recorded MARZI-020 through MARZI-062 range; no existing package ID, title, ownership, or completion status changes.
+- **Packages unblocked:** None directly. It produces an independently verified staging preview and downloadable evidence, which are inputs to family feedback and to later environment and release-control work.
+- **Exact deliverables:** A staging-only Render Blueprint declaring only `marzi-staging-r4a`; a two-checkout GitHub Actions workflow whose verification job holds no secrets and whose deployment job requires a protected environment; a staging-specific deploy script with no service, URL, branch or commit argument; a pinned independent runner with its own dedicated lockfile; a 21-check package validator; a staging runbook and an independent-review handoff.
+- **Expected files/areas:** `render.staging.yaml`, `.github/workflows/marzi-063-independent-staging.yml`, `.github/scripts/marzi-063-render-staging.mjs`, `test/independent/marzi-063/**`, `test/marzi-063-staging-infra-browser.js`, `docs/packages/MARZI-063.md`, `docs/staging/MARZI-063_STAGING_INFRA_BROWSER_RUNBOOK.md`, `docs/staging/MARZI-063_INDEPENDENT_REVIEW_HANDOFF.md`, plus bounded updates to this roadmap, the Decision Register, and `.ai/bin/docs-validate`.
+- **Measurable acceptance criteria:** The independent runner obtains exactly 51/51, 36/36, 30/30, 24/24, 675/675 and 107/107 with no SKIP marker and the exact summary line present for each; sixteen layout cases, eight state records and the interaction set all produce complete screenshots and measurements; `render.yaml` is byte-identical; the staging service resolves to a distinct name and URL with auto-deploy off; Render reports the full target SHA as the deployed commit; `origin/main` remains `7395cd0a75fc206077e19ecc60e4c1e978dd2c89`.
+- **Required automated tests:** `node test/marzi-063-staging-infra-browser.js`; the independent runner `test/independent/marzi-063/run.mjs` executing every command in the mandate's exact list from a separate `sut` checkout; `node --check` on every new JavaScript file; both `git diff --check` ranges; documentation validation with no new failure.
+- **Required real-device tests:** None. This package provisions and verifies a staging preview; device qualification belongs to MARZI-050 and the family study.
+- **Product-owner approval gate:** Recorded as MARZI-D026 to MARZI-D030. Approval covers allocation, service creation within existing allowances, staging-only credentials, 30-day artifact retention, and exposure of a validated staging URL. It is not authorization to merge, release, or deploy to production.
+- **Asset dependency:** None. No artwork, icon, or generated asset is created or referenced.
+- **Economic-system dependency:** None in the application. Infrastructure cost is bounded to existing included allowances and approved metered provider budgets; a new fixed recurring charge stops the package before it is incurred.
+- **Security/privacy impact:** The verification job receives no secret of any kind and runs entirely against localhost with stubbed API routes. Staging credentials exist only inside a protected GitHub Environment and a separate Render service. No production credential, database, disk, domain, deploy hook, cookie, or learner record is copied, referenced, or reachable. Artifacts carry synthetic data only and are redacted for credential-shaped text.
+- **Accessibility/localization impact:** The independent matrix measures 390×844 and 320×568 at 100% and 200% text across German, Spanish, Arabic RTL and long German content. Measurement is not certification: no WCAG, accessibility, linguistic or specialist approval is claimed, and a numerically clean case may still be returned as CHANGES REQUIRED by a human reviewer.
+- **Implementation risk:** The application risk is nil — no runtime file changes. The real risk is a staging path that can reach production, which is why the staging service, Blueprint, workflow, script, environment, credentials, service ID and URL are all separate, and why production is denied by name, URL, branch and SHA in reviewed code.
+- **Rollback strategy:** Revert the single control-plane commit to remove the infrastructure. Staging rollback is separate and staging-only: it targets the prior successful staging deployment, or `e2e90925aa1b83ecaae4dbf0e39ccfade49546b1` when the service has never deployed. Rollback never targets production and never deletes a resource.
+- **Estimated engineering effort:** M.
+- **Can run in parallel:** Yes for documentation and review; the staging deployment itself is serialized by a MARZI-063-specific concurrency group.
+- **Completion evidence required:** Independent run ID and URL; pinned Node, npm, Playwright and Chromium versions with executable and lockfile hashes; the exact suite table; sixteen-case visual results with screenshot hashes; state and interaction records; the hashed artifact manifest; the Render deployment ID with requested and observed commit; post-deployment smoke results; and production non-change evidence before and after.
+
+**Staging boundary.** Deployment targets only `marzi-staging-r4a`. Production service `telefontrainer`, `render.yaml`, production environment, domains, deploy hooks, credentials and `main` are out of scope and must remain unchanged. Deployment must be refused when the resolved service name or URL matches or aliases production, when the branch is not `claude/marzi-017-product-refinement`, when auto-deploy is enabled, or when the deployed commit is anything other than the exact target SHA.
+
 # Dependency graph
 
 The graph contains every pre-release package. Parallel edges describe dependency eligibility, not authorization for two agents to edit application files simultaneously.
@@ -1266,6 +1292,8 @@ flowchart LR
   P039 --> P062
   P040 --> P062
   P050 --> P062
+  P062 --> P063["MARZI-063"]
+  P024 --> P063
 ~~~
 
 # Critical path

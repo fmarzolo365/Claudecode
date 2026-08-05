@@ -1,0 +1,17 @@
+{
+  "name": "marzi-063-independent-verification",
+  "version": "1.0.0",
+  "private": true,
+  "description": "MARZI-063 independent verification tooling. Test-only, pinned exactly, installed only under this directory and never into the source under test.",
+  "type": "module",
+  "engines": {
+    "node": "22.22.2",
+    "npm": "10.9.7"
+  },
+  "scripts": {
+    "verify": "node run.mjs"
+  },
+  "dependencies": {
+    "playwright-core": "1.62.1"
+  }
+}

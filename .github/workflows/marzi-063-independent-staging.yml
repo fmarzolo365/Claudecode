@@ -1,0 +1,243 @@
+# MARZI-063 — independent verification and gated staging deployment.
+#
+# Two jobs, deliberately unequal in power:
+#
+#   verify   no environment, no secrets, contents+actions read only. It checks
+#            out the exact MARZI-062 commit into sut/ and this control-plane
+#            commit into control/, installs the pinned tooling only under
+#            control/, and runs every gate. It cannot deploy anything.
+#
+#   deploy   depends on verify, requires the protected marzi-staging-r4a
+#            environment, re-verifies the artifact hashes, and deploys exactly
+#            one commit to exactly one staging service.
+#
+# The target application SHA is a literal constant here and in the runner. It is
+# not a workflow input, so no one can point this pipeline at another revision.
+#
+# Every action is pinned to a full commit SHA. A tag — even v7.0.0 — can be
+# moved; a commit cannot.
+
+name: MARZI-063 independent staging verification
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_deploy:
+        description: "Request the gated staging deployment after verification (still requires protected-environment approval)"
+        type: boolean
+        default: false
+        required: false
+
+# No overlap with any production workflow, and never two staging deploys at once.
+concurrency:
+  group: marzi-063-staging
+  cancel-in-progress: false
+
+permissions: {}
+
+env:
+  MARZI063_TARGET_COMMIT: d75a10bb96e83045090190777dda5c8a692bed55
+  MARZI063_PARENT_COMMIT: e2e90925aa1b83ecaae4dbf0e39ccfade49546b1
+  MARZI063_PROTECTED_MAIN: 7395cd0a75fc206077e19ecc60e4c1e978dd2c89
+  MARZI063_NODE_VERSION: 22.22.2
+  MARZI063_NPM_VERSION: 10.9.7
+  MARZI063_ARTIFACT_NAME: marzi-063-independent-evidence
+
+jobs:
+  verify:
+    name: Independent verification (no secrets)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Check out the MARZI-063 control plane
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          path: control
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Check out the exact MARZI-062 source under test
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: d75a10bb96e83045090190777dda5c8a692bed55
+          path: sut
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Pin Node and npm exactly
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22.22.2
+          cache: npm
+          cache-dependency-path: control/test/independent/marzi-063/package-lock.json
+
+      - name: Record and enforce the toolchain pins
+        run: |
+          set -euo pipefail
+          node --version | tee /tmp/node-version
+          npm --version | tee /tmp/npm-version
+          test "$(node --version)" = "v${MARZI063_NODE_VERSION}" || { echo "Node is not the pinned patch version"; exit 1; }
+          test "$(npm --version)" = "${MARZI063_NPM_VERSION}" || { echo "npm is not the version bundled with the pinned Node"; exit 1; }
+
+      - name: Prove the exact checkouts before anything runs
+        run: |
+          set -euo pipefail
+          SUT_HEAD="$(git -C sut rev-parse HEAD)"
+          test "$SUT_HEAD" = "$MARZI063_TARGET_COMMIT" || { echo "sut HEAD $SUT_HEAD is not the target"; exit 1; }
+          PARENTS="$(git -C sut rev-list --parents -n 1 HEAD | cut -d' ' -f2-)"
+          test "$PARENTS" = "$MARZI063_PARENT_COMMIT" || { echo "sut parent is '$PARENTS'"; exit 1; }
+          test -z "$(git -C sut status --porcelain)" || { echo "sut is dirty"; exit 1; }
+          git -C control fetch --no-tags origin main
+          MAIN="$(git -C control rev-parse origin/main)"
+          test "$MAIN" = "$MARZI063_PROTECTED_MAIN" || { echo "origin/main moved to $MAIN"; exit 1; }
+          test ! -e sut/node_modules || { echo "sut is contaminated with node_modules"; exit 1; }
+          test ! -e sut/test/independent || { echo "sut contains tool dependencies"; exit 1; }
+          echo "checkouts proven"
+
+      - name: Install the pinned verification tooling (control only)
+        run: |
+          set -euo pipefail
+          npm ci --prefix control/test/independent/marzi-063
+          npm ls --prefix control/test/independent/marzi-063 --all > "$RUNNER_TEMP/dependency-inventory.txt"
+          cat "$RUNNER_TEMP/dependency-inventory.txt"
+          test ! -e sut/node_modules || { echo "install leaked into sut"; exit 1; }
+
+      - name: Install pinned Chromium only
+        working-directory: control/test/independent/marzi-063
+        run: npx --no-install playwright-core install --with-deps chromium
+
+      - name: Run the independent verification
+        id: verification
+        env:
+          MARZI063_SUT: ${{ github.workspace }}/sut
+          MARZI063_CONTROL: ${{ github.workspace }}/control
+          MARZI063_ARTIFACT_DIR: ${{ runner.temp }}/marzi-063-artifacts
+          MARZI063_IMAGE_DIGEST: ${{ runner.os }}-${{ runner.arch }}-ubuntu-24.04
+          MARZI063_ACTION_SHAS: >-
+            {"actions/checkout":"9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0",
+             "actions/setup-node":"820762786026740c76f36085b0efc47a31fe5020",
+             "actions/upload-artifact":"bbbca2ddaa5d8feaa63e36b76fdaad77386f024f",
+             "actions/download-artifact":"70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3"}
+        run: |
+          set -euo pipefail
+          cp "$RUNNER_TEMP/dependency-inventory.txt" "$RUNNER_TEMP/marzi-063-artifacts/" 2>/dev/null || true
+          node control/test/independent/marzi-063/run.mjs
+
+      - name: Fail if any required artifact is missing or empty
+        if: always()
+        run: |
+          set -euo pipefail
+          DIR="${{ runner.temp }}/marzi-063-artifacts"
+          for f in provenance.json verification-summary.json suite-results.json junit.xml \
+                   visual-results.json accessibility-results.json interaction-results.json \
+                   browser-console.jsonl page-errors.jsonl network-failures.jsonl \
+                   staging-smoke.json production-non-change.json deploy-record.json \
+                   rollback-record.json SHA256SUMS; do
+            test -s "$DIR/$f" || { echo "missing or empty artifact: $f"; exit 1; }
+          done
+          test -d "$DIR/screenshots/layout" || { echo "missing layout screenshots"; exit 1; }
+          test -d "$DIR/screenshots/states" || { echo "missing state screenshots"; exit 1; }
+          test -d "$DIR/screenshots/interactions" || { echo "missing interaction screenshots"; exit 1; }
+          ( cd "$DIR" && sha256sum -c SHA256SUMS --quiet ) || { echo "artifact manifest does not verify"; exit 1; }
+          echo "artifact bytes: $(du -sb "$DIR" | cut -f1)"
+          echo "manifest sha256: $(sha256sum "$DIR/SHA256SUMS" | cut -d' ' -f1)"
+
+      - name: Upload the independent evidence
+        if: always()
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: ${{ env.MARZI063_ARTIFACT_NAME }}
+          path: ${{ runner.temp }}/marzi-063-artifacts
+          if-no-files-found: error
+          retention-days: 30
+
+  deploy:
+    name: Gated staging deployment (protected environment)
+    needs: verify
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_deploy }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      actions: read
+    # Approval gate. This environment must require Product Owner or platform
+    # owner review, and holds the ONLY staging credentials in this workflow.
+    environment:
+      name: marzi-staging-r4a
+      url: ${{ steps.deployed.outputs.staging_url }}
+    steps:
+      - name: Check out the MARZI-063 control plane
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          path: control
+          persist-credentials: false
+
+      - name: Pin Node and npm exactly
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22.22.2
+
+      - name: Download and re-verify the verification evidence
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
+        with:
+          name: ${{ env.MARZI063_ARTIFACT_NAME }}
+          path: ${{ runner.temp }}/evidence
+
+      - name: Re-read every exact count from the machine results
+        run: |
+          set -euo pipefail
+          DIR="${{ runner.temp }}/evidence"
+          ( cd "$DIR" && sha256sum -c SHA256SUMS --quiet ) || { echo "evidence manifest does not verify"; exit 1; }
+          node -e '
+            const fs = require("fs");
+            const s = JSON.parse(fs.readFileSync(process.env.DIR + "/verification-summary.json", "utf8"));
+            if (s.verdict !== "PASS") { console.error("verification verdict is " + s.verdict); process.exit(1); }
+            if (s.targetCommit !== process.env.MARZI063_TARGET_COMMIT) { console.error("evidence targets another commit"); process.exit(1); }
+            const need = { application: 51, "learning-contracts": 36, "marzi-061": 30, "marzi-062-package": 24, "browser-full": 675, "browser-marzi062": 107 };
+            for (const [id, want] of Object.entries(need)) {
+              const r = s.suites.find((x) => x.id === id);
+              if (!r || r.status !== "PASS" || r.total !== want || r.passed !== want || r.failed !== 0) {
+                console.error("gate " + id + " did not report exactly " + want); process.exit(1);
+              }
+            }
+            if (s.visualCases !== 16) { console.error("expected 16 visual cases"); process.exit(1); }
+            console.log("all independent gates re-read and confirmed");
+          '
+        env:
+          DIR: ${{ runner.temp }}/evidence
+
+      - name: Prove the staging target before touching it
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_STAGING_API_KEY }}
+          RENDER_STAGING_SERVICE_ID: ${{ secrets.RENDER_STAGING_SERVICE_ID }}
+          MARZI063_ARTIFACT_DIR: ${{ runner.temp }}/deploy-evidence
+        run: node control/.github/scripts/marzi-063-render-staging.mjs verify
+
+      - name: Deploy exactly the verified commit
+        id: deployed
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_STAGING_API_KEY }}
+          RENDER_STAGING_SERVICE_ID: ${{ secrets.RENDER_STAGING_SERVICE_ID }}
+          MARZI063_ARTIFACT_DIR: ${{ runner.temp }}/deploy-evidence
+        run: |
+          set -euo pipefail
+          node control/.github/scripts/marzi-063-render-staging.mjs deploy
+          for i in $(seq 1 60); do
+            if node control/.github/scripts/marzi-063-render-staging.mjs status; then break; fi
+            sleep 20
+          done
+          node control/.github/scripts/marzi-063-render-staging.mjs status
+          URL="$(node -e 'console.log(JSON.parse(require("fs").readFileSync(process.env.MARZI063_ARTIFACT_DIR + "/deploy-status.json","utf8")).serviceUrl)')"
+          echo "staging_url=$URL" >> "$GITHUB_OUTPUT"
+
+      - name: Upload the deployment evidence
+        if: always()
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: marzi-063-deploy-evidence
+          path: ${{ runner.temp }}/deploy-evidence
+          if-no-files-found: error
+          retention-days: 30

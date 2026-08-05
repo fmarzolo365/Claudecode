@@ -301,9 +301,12 @@ guardMain(TOOL, () => {
       register.matchAll(/^[|] MARZI-D([0-9]{3}) [|]/gm),
       (match) => Number(match[1])
     );
-    const expected = expectedSequence(1, 25);
-    if (!sameSequence(detailed, expected)) failures.push("Decision Register details must be MARZI-D001 through D025");
-    if (!sameSequence(indexed, expected)) failures.push("Decision Register index must be MARZI-D001 through D025");
+    /* MARZI-063: the register grew to D030 when the Product Owner recorded the
+       staging-infrastructure decisions. The range is the canonical inventory,
+       so it moves with the register rather than pinning it shut at D025. */
+    const expected = expectedSequence(1, 30);
+    if (!sameSequence(detailed, expected)) failures.push("Decision Register details must be MARZI-D001 through D030");
+    if (!sameSequence(indexed, expected)) failures.push("Decision Register index must be MARZI-D001 through D030");
     const requiredFields = [
       "Question",
       "Options",
@@ -318,10 +321,10 @@ guardMain(TOOL, () => {
       "Deadline",
       "Packages blocked"
     ];
-    for (let number = 1; number <= 25; number++) {
+    for (let number = 1; number <= 30; number++) {
       const id = String(number).padStart(3, "0");
       const start = register.indexOf("### MARZI-D" + id + " —");
-      const end = number < 25
+      const end = number < 30
         ? register.indexOf("### MARZI-D" + String(number + 1).padStart(3, "0") + " —", start)
         : register.indexOf("## Approval record template", start);
       const section = register.slice(start, end);

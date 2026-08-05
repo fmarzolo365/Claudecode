@@ -1,0 +1,60 @@
+# MARZI-063 — staging-only Render Blueprint.
+#
+# This file declares exactly one service, marzi-staging-r4a, for the MARZI-062
+# family visual preview. It is a SEPARATE Blueprint from render.yaml and must be
+# registered in Render as its own Blueprint. It must never manage, import,
+# reference, or inherit anything from the production service.
+#
+#   production service (NOT declared here, NOT touched): telefontrainer
+#   production URL     (NOT referenced by any service here): telefontrainer.onrender.com
+#
+# It contains NO secret values. Every sensitive value is declared with
+# `sync: false`, which makes Render prompt for it once, per service, in the
+# staging service's own environment. A production key supplied under a different
+# variable name is still a production credential and must never be entered here.
+#
+# No database. No disk. No production environment group. No custom domain. No
+# production deploy hook. The application stores learner data in origin-scoped
+# localStorage, so the distinct staging origin is the isolation boundary and no
+# production learner data is copied.
+
+services:
+  - type: web
+    name: marzi-staging-r4a
+    runtime: node
+    plan: free
+    # Staging tracks the development branch only. main must never be able to
+    # trigger this service.
+    branch: claude/marzi-017-product-refinement
+    # Deployment is manual and exact-commit only. Auto-deploy is the single
+    # most dangerous default for a staging preview that must pin one reviewed
+    # revision, so it is off.
+    autoDeploy: false
+    # The application has no runtime dependencies (ADR-3) and no lockfile, so
+    # the build is a no-op and the start command is the unchanged production
+    # entry point. No runtime application file is modified by MARZI-063.
+    buildCommand: "echo 'marzi-staging-r4a: no build step; dependency-free Node app'"
+    startCommand: "node server.js"
+    healthCheckPath: /manifest.webmanifest
+    envVars:
+      # --- staging markers: non-secret, declared in full -------------------
+      - key: MARZI_ENV
+        value: staging
+      - key: MARZI_SERVICE_NAME
+        value: marzi-staging-r4a
+      - key: MARZI_EXPECTED_COMMIT
+        value: d75a10bb96e83045090190777dda5c8a692bed55
+      - key: MARZI_EXPECTED_BUILD_ID
+        value: MARZI-062-PREVIEW-1
+      # --- staging-only secrets: names only, never values ------------------
+      # Each is provisioned by hand in the marzi-staging-r4a service only. A
+      # value that production also uses is a production credential and is
+      # prohibited here regardless of the name it is given.
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: TTS_API_KEY
+        sync: false
+      # Access gate for the staging preview. Keeps the family preview from
+      # being publicly indexable while it is under review.
+      - key: TRAINER_PIN
+        sync: false
