@@ -1604,7 +1604,10 @@ check("world-class W2: honest voice profiles, inline help, live text, retry loop
   const styles = html.slice(html.indexOf("<style>"), html.indexOf("</style>"));
   if (!/\.callscreen\.text-off #vcSay, \.callscreen\.text-off #vcYou \{ visibility: hidden; \}/.test(styles))
     throw new Error("text-off must hide the live dialogue text (and only it)");
-  if (!/"you    you"/.test(styles)) throw new Error("the learner bubble needs its own grid row");
+  // both live lines share the pinned conversation band — no extra grid row
+  const lines = call.slice(call.indexOf('id="callLines"'), call.indexOf('id="vcMarzi"'));
+  if (!lines.includes('id="vcSay"') || !lines.includes('id="vcYou"'))
+    throw new Error("the conversation band must own both live lines");
   if (tt.toggleLiveText(false) !== false) throw new Error("toggle must report the new state");
   if (!el("vcAv").classList.has("text-off")) throw new Error("text-off state not applied to the call screen");
   if (tt.settingsPayload().liveText !== false) throw new Error("live-text choice must persist");

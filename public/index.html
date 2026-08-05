@@ -1265,13 +1265,12 @@
        the backdrop everything else floats on. Reading order top to bottom is
        who you are talking to, how the call is doing, what they just said,
        Marzi and her suggestion — then the controls in the fixed stack below. */
-    grid-template-rows: auto auto auto auto auto minmax(min(236px, 30dvh), 1fr);
+    grid-template-rows: auto auto auto auto minmax(min(236px, 30dvh), 1fr);
     grid-template-areas:
       "stage  stage"
       "status status"
       "alert  alert"
       "char   char"
-      "you    you"
       "marzi  hint";
     gap: var(--space-2);
     padding: 0 var(--space-4) var(--space-2);
@@ -1390,8 +1389,14 @@
   /* MARZI-062: both bubbles are grid items now. Each owns a row (or a cell in
      the Marzi row), so neither can grow into the other, into the identity, or
      into the controls when the text scales. */
+  /* W2: the conversation band — the character's line and the learner's own
+     line stacked in the pinned "char" band, so live text costs no extra row */
+  /* NO min-height:0 here: the bubbles' explicit minimums must reach the grid
+     as this row's floor, or the band collapses and the text paints over the
+     controls at 200% text. The bubbles scroll internally past their budget. */
+  .call-lines { grid-area: char; display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
   .call-bubble.char {
-    grid-area: char; justify-self: stretch; width: auto;
+    width: auto;
     /* MARZI-062: a scrollable box has an automatic minimum size of zero, so
        the grid was free to squeeze the character's line down to its 48px
        floor at 200% text. Three of its own lines is the reading budget the
@@ -1413,8 +1418,8 @@
   /* WORLD-CLASS W2: the learner's own line, right-aligned like a messenger's
      "me" bubble, so the exchange reads as a dialogue at a glance. */
   .call-bubble.you {
-    grid-area: you; justify-self: end; width: auto; max-width: 88%;
-    max-height: 22dvh; font-weight: 600;
+    align-self: flex-end; width: auto; max-width: 88%;
+    max-height: 22dvh; font-weight: 600; flex: 0 1 auto;
     background: var(--surface-soft); border-color: var(--line);
     border-start-end-radius: 6px;
   }
@@ -1505,7 +1510,19 @@
     border-radius: var(--radius-lg) var(--radius-lg) 0 0;
     box-shadow: 0 -6px 20px rgba(34, 27, 15, .06);
   }
-  .call-tools { display: flex; gap: var(--space-2); flex-wrap: wrap; justify-content: center; }
+  /* W2: one quiet row, always. Five labelled pills can outgrow a narrow or
+     text-scaled screen; the row then scrolls sideways instead of wrapping
+     into a tower that starves the conversation above it. The auto margins
+     centre the row while it fits and start-align it once it overflows. */
+  .call-tools {
+    display: flex; gap: var(--space-2); flex-wrap: nowrap;
+    max-width: 100%; overflow-x: auto; overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+  .call-tools::-webkit-scrollbar { display: none; }
+  .call-tools .call-pill { flex: 0 0 auto; }
+  .call-tools .call-pill:first-child { margin-inline-start: auto; }
+  .call-tools .call-pill:last-child { margin-inline-end: auto; }
   /* WORLD-CLASS W2: the inline help panel sits in the fixed stack, above the
      tool pills. It is bounded and scrolls its own overflow so it can never
      push the controls or the timer off the screen. */
@@ -1591,7 +1608,7 @@
   @media (max-height: 680px) {
     .call-stage-card { height: clamp(88px, 15dvh, 140px); }
     .call-mid {
-      grid-template-rows: auto auto auto auto auto minmax(min(92px, 17dvh), 1fr);
+      grid-template-rows: auto auto auto auto minmax(min(92px, 17dvh), 1fr);
       padding-inline: var(--space-3); gap: var(--space-1);
     }
     .call-bubble.char { min-height: max(var(--touch-min), 2lh); }
@@ -1987,11 +2004,14 @@
         </div>
         <div class="call-status-chip" id="callStatus" data-state="ready" role="status"></div>
         <div id="alert" class="call-alert hidden" role="alert"></div>
-        <button class="call-bubble char hidden" id="vcSay" type="button"></button>
-        <!-- WORLD-CLASS W2: the learner's own last line, inline beside the
-             character's — live text is a first-class part of the call, not a
-             modal. The Text pill hides both bubbles for listening-only mode. -->
-        <div class="call-bubble you hidden" id="vcYou"></div>
+        <!-- WORLD-CLASS W2: both live lines — theirs and the learner's own —
+             share the conversation band, so live text is a first-class part
+             of the call, not a modal. The Text pill hides both bubbles for
+             listening-only mode. One wrapper keeps the five-band grid. -->
+        <div class="call-lines" id="callLines">
+          <button class="call-bubble char hidden" id="vcSay" type="button"></button>
+          <div class="call-bubble you hidden" id="vcYou"></div>
+        </div>
         <div class="call-marzi vc-marzi" id="vcMarzi"></div>
         <button class="call-bubble marzi hidden" id="vcBubble" type="button"></button>
       </div>
@@ -6288,14 +6308,18 @@ function alertMsg(msg) {
   try { renderCallStatus(); } catch (e) {}
 }
 
-async function listen() {
+/* fromUser: only an explicit mic tap may escalate a failure into the typing
+   panel. The hands-free auto-listen retries silently with the alert as the
+   cue — auto-opening a panel the learner never asked for would also crush
+   the companion band on short screens. */
+async function listen(fromUser) {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR) { alertMsg(t().noMic); showTypeRow(); return; }
+  if (!SR) { alertMsg(t().noMic); if (fromUser) showTypeRow(); return; }
   if (S.listening) { try { S.rec.stop(); } catch (e) {} return; }
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio:true });
     stream.getTracks().forEach((tr) => tr.stop());
-  } catch (e) { alertMsg(t().micBlocked); showTypeRow(); return; }
+  } catch (e) { alertMsg(t().micBlocked); if (fromUser) showTypeRow(); return; }
 
   ENGINE.get("voice").stopAll();
   alertMsg(null);
@@ -6503,6 +6527,7 @@ function renderCall() {
   $("playBtn").disabled = !S.turns.some((x) => !x.me);
   // W2: inline help + live-text pills
   $("helpBtn").innerHTML = IC.help(ICON.sm) + `<span>${esc(L.helpLabel)}</span>`;
+  $("helpBtn").setAttribute("aria-label", L.helpLabel);
   $("helpBtn").setAttribute("aria-expanded", String(!!S.helpStage));
   $("helpBtn").setAttribute("aria-pressed", String(!!S.helpStage));
   const textOn = S.liveText !== false;
@@ -7642,6 +7667,7 @@ function goCall() {
 $("callBtn").onclick = goCall;
 function endCall() {
   if (sheetOpen()) closeCallSheet();
+  S.helpStage = 0; // the in-call help panel must not outlive the call
   S.handsFree = false;
   if (S.session) S.session.end(); // any pending AI reply is dropped by the engine
   SFX.ringStop();
@@ -7779,7 +7805,9 @@ document.addEventListener("keydown", (e) => {
   if (overlayTrapKeydown(e)) return;
   if (e.key !== "Escape") return;
   if (sheetOpen()) closeCallSheet();
-  else if (S.helpStage) openHelp(0);
+  // the help panel only claims Escape while the call screen is actually up —
+  // a stale stage must never eat an Escape meant for an overlay
+  else if (S.helpStage && !$("call").classList.contains("hidden")) openHelp(0);
   else if (offlineScreenOpen()) closeOffline();
   else if (premiumScreenOpen()) closePremiumScreen();
   else if (planScreenOpen()) closePlanScreen();
@@ -7807,7 +7835,7 @@ $("sheetBack").onclick = () => closeCallSheet();
 /* the circular controls are rebuilt on every render, so their handlers are
    re-attached here - no provider is ever called directly from a handler */
 function wireCallControls() {
-  $("micBtn").onclick = () => listen();
+  $("micBtn").onclick = () => listen(true);
   $("hangBtn").onclick = () => endCall();
   // MARZI-018-R3 (R2-APP-02): the character bubble is a control that promises
   // replay. It now runs the SAME approved path as #playBtn - one voice
