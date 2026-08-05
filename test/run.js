@@ -847,9 +847,24 @@ checkAsync("MARZI-006 call layer: states, sheet, guards, targets", async () => {
                         'class="callscreen"', "prefers-reduced-motion", 'role="dialog"']) {
     if (!html.includes(needle)) throw new Error("call layer missing: " + needle);
   }
-  const ctrlCss = html.slice(html.indexOf("  .call-ctrl {"), html.indexOf("  .call-ctrl .call-ctrl-lb"));
-  if (!/width:\s*64px/.test(ctrlCss)) throw new Error("controls must be at least 48px (64 specified)");
-  if (!/width:\s*72px/.test(html.slice(html.indexOf("  .call-ctrl.danger"), html.indexOf("  .call-ctrl.danger:hover")))) throw new Error("hang-up size");
+  /* Redesign: these used to pin 64px and 72px literally. The contract they
+     were protecting is that every call control clears the touch floor and that
+     the sizes are deliberate - so assert that, plus the hierarchy the literal
+     numbers used to invert: the microphone is the primary action and must be
+     LARGER than the destructive hang-up. */
+  const px = (block, sel) => {
+    const rule = block.slice(block.indexOf(sel));
+    const m = rule.slice(0, rule.indexOf("}")).match(/width:\s*(\d+)px/);
+    return m ? Number(m[1]) : 0;
+  };
+  const base = px(html, "  .call-ctrl {");
+  const primary = px(html, "  #micBtn.call-ctrl {");
+  const danger = px(html, "  .call-ctrl.danger {");
+  for (const [name, size] of [["base control", base], ["primary mic", primary], ["hang-up", danger]]) {
+    if (size < 48) throw new Error(name + " is below the 48px touch floor (" + size + ")");
+  }
+  if (primary <= danger) throw new Error("the microphone must be the largest control, not the hang-up (" + primary + " vs " + danger + ")");
+  if (primary <= base) throw new Error("the primary action must outrank the secondary controls (" + primary + " vs " + base + ")");
   const pillCss = html.slice(html.indexOf("  .call-pill {"), html.indexOf("  .call-pill[aria-pressed"));
   if (!/min-height:\s*var\(--touch-min\)/.test(pillCss)) throw new Error("tool pills must meet the touch floor");
   tt.S.session = null; tt.S.turns = [];

@@ -1199,7 +1199,15 @@
        is never covered and never covers the call. --staging-bar is 0 when the
        marker is absent, so this is identical to `inset: 0` without it. */
     position: fixed; inset: var(--staging-bar, 0px) 0 0 0; z-index: 70; overflow: hidden;
-    background: var(--call-bg); color: var(--white);
+    /* REDESIGN: the call used to be a near-black room with a full-bleed photo.
+       Every other screen in the app is cream, so the call read as a different
+       product — a phone dialler bolted onto a learning game. It now uses the
+       same warm surface, which is also what lets Marzi sit IN the scene
+       instead of being a cut-out pasted onto a dark photo. */
+    background:
+      radial-gradient(120% 60% at 50% 0%, var(--paper) 0%, transparent 62%),
+      var(--bg);
+    color: var(--ink);
     height: calc(100dvh - var(--staging-bar, 0px)); min-height: 0;
     display: flex; flex-direction: column;
     /* sole owner of both call insets - see R2-APP-04 */
@@ -1218,24 +1226,46 @@
     display: grid;
     /* the suggestion keeps a usable floor so Marzi's column can never squeeze
        it into a one-word-per-line strip; below that floor Marzi yields */
-    grid-template-columns: minmax(0, auto) minmax(min(45%, 200px), 1fr);
+    grid-template-columns: minmax(0, auto) minmax(min(52%, 230px), 1fr);
     /* MARZI-062: the companion's row keeps a floor so a long alert or a long
        character line cannot collapse him to nothing; past that floor the band
        scrolls rather than dropping him. */
-    grid-template-rows: auto auto auto minmax(min(96px, 18dvh), 1fr);
+    /* REDESIGN: five bands instead of four. The stage card is now a band of
+       its own, so the character occupies a bounded region rather than being
+       the backdrop everything else floats on. Reading order top to bottom is
+       who you are talking to, how the call is doing, what they just said,
+       Marzi and her suggestion — then the controls in the fixed stack below. */
+    grid-template-rows: auto auto auto auto minmax(min(236px, 30dvh), 1fr);
     grid-template-areas:
+      "stage  stage"
       "status status"
       "alert  alert"
       "char   char"
       "marzi  hint";
     gap: var(--space-2);
-    padding: 0 var(--space-3);
+    padding: 0 var(--space-4) var(--space-2);
     /* MARZI-062: at 320x568 with 200% text the identity block alone can be
        218px tall and the control stack 206px, so the middle band is genuinely
        out of room. It owns that overflow itself rather than pushing the
        character's line past the controls or off the screen: the page still
        does not scroll, and the controls, timer and identity stay put. */
     overflow-y: auto; overscroll-behavior: contain;
+  }
+  /* REDESIGN: the character now lives in a card with a defined height and a
+     rounded frame. Bounding the portrait is what removes its dominance and,
+     because every other band sits outside the card, it is also what stops a
+     speech bubble ever covering the character's face. */
+  .call-stage-card {
+    grid-area: stage; position: relative; overflow: hidden;
+    height: clamp(132px, 20dvh, 196px);
+    border-radius: var(--radius-lg);
+    background: linear-gradient(160deg, var(--stage-from), var(--stage-to));
+    border: 1.5px solid var(--stage-line);
+    box-shadow: var(--shadow);
+    display: grid; place-items: center;
+  }
+  .callscreen.speaking .call-stage-card {
+    border-color: var(--primary); box-shadow: 0 0 0 3px var(--tint-primary-35), var(--shadow);
   }
   .call-portrait {
     position: absolute; inset: 0; width: 100%; height: 100%;
@@ -1250,18 +1280,22 @@
     font-size: var(--text-f64); opacity: .9;
   }
   .callscreen:has(.call-portrait.ok) .call-emoji { display: none; }
-  /* MARZI-018 M-10: a soft floor under Marzi so the lower third reads as a
-     room he is standing in, not as empty space below a crop. */
+  /* MARZI-018 M-10: a floor under Marzi so the lower band reads as ground he
+     is standing on rather than empty space below a crop.
+     REDESIGN: on the cream surface this is a warm ground band with a soft top
+     edge instead of a dark gradient over a photo — the change that makes Marzi
+     look seated in the scene rather than pasted over it. */
   .call-mid::after {
-    content: ""; position: absolute; inset-inline: 0; bottom: 0; height: 38%;
-    z-index: 1; pointer-events: none;
-    background: linear-gradient(180deg, rgba(16,12,8,0) 0%, rgba(16,12,8,.42) 52%, rgba(16,12,8,.72) 100%);
+    content: ""; position: absolute; inset-inline: 0; bottom: 0; height: 34%;
+    z-index: 0; pointer-events: none; border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    background: linear-gradient(180deg, rgba(232,223,201,0) 0%, var(--surface-soft) 46%, var(--surface-strong) 100%);
   }
-  /* scrim keeps text legible over any portrait */
+  /* REDESIGN: the scrim used to darken the WHOLE screen so white text stayed
+     legible over the photo. With the portrait inside a card and the text
+     outside it, only the card's lower edge needs veiling. */
   .call-scrim {
-    position: absolute; inset: 0;
-    background:
-      linear-gradient(180deg, rgba(16,12,8,.78) 0%, rgba(16,12,8,.28) 26%, rgba(16,12,8,.20) 46%, rgba(16,12,8,.86) 78%, rgba(16,12,8,.96) 100%);
+    position: absolute; inset: auto 0 0 0; height: 34%;
+    background: linear-gradient(180deg, rgba(16,12,8,0) 0%, rgba(16,12,8,.34) 100%);
   }
   .callscreen.speaking .call-scrim { box-shadow: inset 0 0 0 3px var(--tint-primary-35); }
   .call-top {
@@ -1275,8 +1309,8 @@
   }
   .call-x {
     width: var(--touch-min); height: var(--touch-min); border-radius: 50%;
-    border: 0; background: rgba(255,255,255,.16); color: var(--white); cursor: pointer;
-    display: grid; place-items: center;
+    border: 1px solid var(--line); background: var(--card); color: var(--ink); cursor: pointer;
+    display: grid; place-items: center; box-shadow: var(--shadow-sm);
   }
   .call-id {
     min-width: 0; text-align: center; display: grid;
@@ -1291,12 +1325,17 @@
      to. Without this the name overflowed its box sideways at 200% text and was
      cut off at the edge instead of wrapping. */
   .call-id-kicker, .call-id-name, .call-id-place { min-width: 0; overflow-wrap: break-word; }
-  .call-id-kicker { font: 600 var(--text-f11-5) var(--font-sans); opacity: .82; }
-  .call-id-name { font: 800 var(--text-f18) var(--font-sans); line-height: 1.2; }
-  .call-id-place { font: 600 var(--text-f12) var(--font-sans); opacity: .78; line-height: 1.3; }
+  /* REDESIGN: three lines that used to be near-equal now read as a hierarchy —
+     a quiet kicker, the name as the anchor, the role beneath it. */
+  .call-id-kicker {
+    font: 700 var(--text-f10) var(--font-sans); color: var(--muted);
+    letter-spacing: .08em; text-transform: uppercase;
+  }
+  .call-id-name { font: 800 var(--text-lg) var(--font-sans); line-height: 1.18; color: var(--ink); letter-spacing: -.01em; }
+  .call-id-place { font: 600 var(--text-f12-5) var(--font-sans); color: var(--muted); line-height: 1.35; margin-top: 1px; }
   .call-conn {
     justify-self: end; display: inline-flex; align-items: center; gap: 4px; min-height: var(--touch-min);
-    font: 700 var(--text-f10) 'JetBrains Mono', monospace; color: var(--white); opacity: .85;
+    font: 700 var(--text-f10) 'JetBrains Mono', monospace; color: var(--muted);
   }
   /* dialogue bubbles */
   /* MARZI-018-R2: both bubbles are buttons (tap to replay / to use the
@@ -1312,34 +1351,45 @@
        one-word-per-line strip beside Marzi. */
     overflow-wrap: break-word; overflow-y: auto; overscroll-behavior: contain;
     display: flex; align-items: center;
-    background: var(--paper-3); color: var(--ink);
-    border: 1.5px solid var(--stage-line); border-radius: 18px;
-    padding: var(--space-2) var(--space-3); box-shadow: var(--shadow);
-    font: 600 var(--text-f13-5) var(--font-sans); line-height: 1.35;
+    background: var(--card); color: var(--ink);
+    border: 1.5px solid var(--stage-line); border-radius: var(--radius);
+    padding: var(--space-2) var(--space-3); box-shadow: var(--shadow-sm);
+    font: 600 var(--text-f14) var(--font-sans); line-height: 1.45;
   }
   /* MARZI-062: both bubbles are grid items now. Each owns a row (or a cell in
      the Marzi row), so neither can grow into the other, into the identity, or
      into the controls when the text scales. */
   .call-bubble.char {
-    grid-area: char; justify-self: start; width: min(100%, 62ch);
+    grid-area: char; justify-self: stretch; width: auto;
     /* MARZI-062: a scrollable box has an automatic minimum size of zero, so
        the grid was free to squeeze the character's line down to its 48px
        floor at 200% text. Three of its own lines is the reading budget the
        row must honour at any text scale; anything longer scrolls inside the
        bubble, with the full turn always available in the transcript. */
-    min-height: max(var(--touch-min), 3lh); max-height: 34dvh;
-    border-end-start-radius: 6px;
+    min-height: max(var(--touch-min), 3lh); max-height: 30dvh;
+    border-start-start-radius: 6px;
+  }
+  /* the tail points UP at the stage card, so the line reads as coming from the
+     person in it — the relationship the old floating card never showed */
+  .call-bubble.char::before {
+    content: ""; position: absolute; inset-inline-start: 22px; top: -7px;
+    width: 12px; height: 12px; transform: rotate(45deg);
+    background: var(--card);
+    border-inline-start: 1.5px solid var(--stage-line);
+    border-block-start: 1.5px solid var(--stage-line);
+    border-start-start-radius: 3px;
   }
   .call-bubble.marzi {
     grid-area: hint; justify-self: stretch; width: 100%; align-self: end;
     max-height: 26dvh; cursor: pointer; border-end-start-radius: 6px;
-    background: var(--paper); border-color: var(--tint-leaf-35);
+    background: var(--primary-soft); border-color: var(--tint-leaf-35);
+    color: var(--marzi-dark); box-shadow: var(--shadow-sm);
   }
   /* the tail points back at Marzi, so bubble and companion read as one unit */
   .call-bubble.marzi::after {
     content: ""; position: absolute; inset-inline-start: -7px; bottom: 12px;
     width: 12px; height: 12px; transform: rotate(45deg);
-    background: var(--paper); border-inline-start: 1.5px solid var(--tint-leaf-35);
+    background: var(--primary-soft); border-inline-start: 1.5px solid var(--tint-leaf-35);
     border-block-end: 1.5px solid var(--tint-leaf-35); border-end-start-radius: 3px;
   }
   /* Marzi in-scene, lower-left, board position */
@@ -1390,40 +1440,72 @@
     border: 0; border-radius: 0; padding: 0; background: none; box-shadow: none;
     filter: drop-shadow(0 0 10px rgba(255,255,255,.34)) drop-shadow(0 6px 14px rgba(16,12,8,.55));
   }
+  /* REDESIGN: a monospace pill reading "Marzi · Studious frog · 5/6" looked
+     like a debug label stuck to the artwork. It is now a quiet caption in the
+     product's own typeface, with no chrome competing with Marzi herself. */
   .call-marzi .vc-marzi-cap {
-    font: 700 var(--text-f8) 'JetBrains Mono', monospace; letter-spacing: .03em;
-    color: var(--marzi-dark); background: var(--paper); border: 1px solid var(--tint-leaf-35);
-    border-radius: 999px; padding: 2px 7px; max-width: 126px; text-align: center; line-height: 1.2;
+    font: 700 var(--text-f10) var(--font-sans); letter-spacing: .01em;
+    color: var(--muted); background: none; border: 0;
+    border-radius: 0; padding: 0; max-width: 132px; text-align: center; line-height: 1.25;
   }
   /* bottom stack: tools row, controls, meta */
+  /* REDESIGN: the bottom of the screen used to be three stacked rows — tools,
+     controls, timer — six controls in 164px, with the red hang-up as the
+     largest thing on screen. It is now one quiet secondary row over one
+     obvious primary action, on a raised surface that separates "doing the
+     call" from "looking at the call". */
   .call-stack {
     position: relative; z-index: 4; flex: 0 0 auto;
-    display: grid; justify-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-3) 0;
+    display: grid; justify-items: center; gap: var(--space-2);
+    padding: var(--space-3) var(--space-4) var(--space-1);
+    background: var(--card); border-top: 1px solid var(--line);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    box-shadow: 0 -6px 20px rgba(34, 27, 15, .06);
   }
   .call-tools { display: flex; gap: var(--space-2); flex-wrap: wrap; justify-content: center; }
   .call-pill {
     min-height: var(--touch-min); min-width: var(--touch-min); justify-content: center;
     display: inline-flex; align-items: center; gap: 5px;
-    padding: 0 var(--space-2); border-radius: 999px; cursor: pointer; white-space: nowrap;
-    background: rgba(255,255,255,.16); color: var(--white); border: 1px solid rgba(255,255,255,.28);
-    font: 700 var(--text-f10-5) var(--font-sans);
+    padding: 0 var(--space-3); border-radius: 999px; cursor: pointer; white-space: nowrap;
+    background: var(--surface-soft); color: var(--ink); border: 1px solid var(--line);
+    font: 700 var(--text-f11-5) var(--font-sans);
   }
-  .call-pill[aria-pressed="true"] { background: var(--primary); border-color: var(--primary); }
+  /* an engaged toggle is tinted, not solid: solid MARZI green belongs to the
+     primary action alone, or the row competes with it for attention */
+  .call-pill[aria-pressed="true"] {
+    background: var(--primary-soft); border-color: var(--primary); color: var(--marzi-dark);
+  }
   .call-pill[disabled] { opacity: .45; cursor: not-allowed; }
-  .call-controls { display: flex; align-items: center; gap: var(--space-4); }
+  .call-controls { display: flex; align-items: center; justify-content: center; gap: var(--space-5); }
   .call-ctrl {
-    width: 64px; height: 64px; border-radius: 50%; border: 0; cursor: pointer;
-    display: grid; place-items: center; gap: 1px; color: var(--white);
-    background: rgba(255,255,255,.18); transition: background var(--dur-fast) var(--ease);
+    width: 66px; height: 66px; border-radius: 50%; border: 1px solid var(--line); cursor: pointer;
+    padding: 0 5px; box-sizing: border-box;
+    display: grid; place-items: center; gap: 2px; color: var(--ink);
+    background: var(--surface-soft); transition: background var(--dur-fast) var(--ease);
   }
   .call-ctrl .call-ctrl-lb {
-    font: 700 var(--text-f8) var(--font-sans); letter-spacing: .02em;
-    max-width: 62px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    /* REDESIGN: the label used to be capped at 62px and ellipsised, so the
+       primary action read "Tap and sp…". It now wraps inside a real width. */
+    font: 700 var(--text-f9) var(--font-sans); letter-spacing: .01em;
+    max-width: 100%; white-space: normal; line-height: 1.12; text-align: center;
+    overflow-wrap: break-word;
   }
-  .call-ctrl.danger { width: 72px; height: 72px; background: var(--red); }
+  /* THE primary action: the microphone is the biggest, greenest thing on the
+     screen. Previously it was the same size as replay and smaller than the red
+     hang-up, so the destructive action was the most prominent one. */
+  #micBtn.call-ctrl {
+    width: 92px; height: 92px; gap: 3px;
+    background: var(--primary); color: var(--on-primary); border-color: var(--primary-active);
+    box-shadow: 0 8px 20px rgba(84, 124, 44, .28);
+  }
+  #micBtn.call-ctrl .call-ctrl-lb { font-size: var(--text-f11); max-width: 100%; }
+  #micBtn.call-ctrl[disabled] { box-shadow: none; }
+  /* hang-up stays red and stays reachable, but stops out-shouting the mic */
+  .call-ctrl.danger { width: 66px; height: 66px; background: var(--red); color: var(--white); border-color: var(--red); }
   .call-ctrl.danger:hover { filter: brightness(1.08); }
   .call-ctrl[disabled] { opacity: .45; cursor: not-allowed; }
-  .call-ctrl[data-status="listening"] { background: var(--primary); animation: listeningPulse var(--loop-pulse) var(--ease) infinite; }
+  #micBtn.call-ctrl[data-status="listening"] { background: var(--primary-active); animation: listeningPulse var(--loop-pulse) var(--ease) infinite; }
+  .call-ctrl[data-status="listening"] { background: var(--primary); color: var(--on-primary); }
   .call-ctrl[data-status="processing"] { background: var(--disabled-fill); color: var(--ink); }
   /* MARZI-018 M-05: only .danger (hang-up) is red. A failed microphone is a
      warning state - never a second danger signal competing with hang-up. */
@@ -1432,21 +1514,47 @@
      remaining allowance are quieter context beside it. */
   .call-meta {
     display: flex; align-items: baseline; justify-content: center; gap: var(--space-2);
-    min-height: 20px; font: 700 var(--text-f11-5) 'JetBrains Mono', monospace;
-    color: var(--white); opacity: .9;
+    min-height: 20px; font: 700 var(--text-f11) 'JetBrains Mono', monospace;
+    color: var(--muted);
   }
-  .call-meta #timer { font-size: var(--text-md); opacity: 1; letter-spacing: .04em; }
-  .call-meta .call-meta-ctx { opacity: .72; }
+  .call-meta #timer { font-size: var(--text-md); color: var(--ink); letter-spacing: .04em; }
+  .call-meta .call-meta-ctx { color: var(--muted); }
   .call-meta .low { color: var(--coin); }
+  /* REDESIGN: on a short phone there is not enough height for a generous
+     portrait card AND the companion band. The card yields first - it is the
+     least information-dense band - so Marzi and her suggestion stay in the
+     first view instead of being pushed below the fold. */
+  @media (max-height: 680px) {
+    .call-stage-card { height: clamp(88px, 15dvh, 140px); }
+    .call-mid {
+      grid-template-rows: auto auto auto auto minmax(min(92px, 17dvh), 1fr);
+      padding-inline: var(--space-3); gap: var(--space-1);
+    }
+    .call-bubble.char { min-height: max(var(--touch-min), 2lh); }
+    .call-stack { padding: var(--space-2) var(--space-3) 0; gap: var(--space-1); }
+    .call-controls { gap: var(--space-4); }
+    #micBtn.call-ctrl { width: 80px; height: 80px; }
+    .call-ctrl, .call-ctrl.danger { width: 58px; height: 58px; }
+    .call-marzi .vc-marzi-cap { display: none; }
+  }
+
   /* status + alerts stay visible until resolved */
   .call-status-chip {
     grid-area: status; position: relative; justify-self: center; z-index: 5;
     max-width: 100%; overflow-wrap: break-word;
     display: inline-flex; align-items: center; gap: 6px; white-space: normal;
-    background: rgba(16,12,8,.72); border: 1px solid rgba(255,255,255,.24);
-    color: var(--white); border-radius: 999px; padding: 6px var(--space-3);
-    font: 700 var(--text-f11-5) var(--font-sans);
+    background: var(--card); border: 1.5px solid var(--stage-line);
+    color: var(--marzi-dark); border-radius: 999px; padding: 6px var(--space-3);
+    font: 700 var(--text-f11-5) var(--font-sans); box-shadow: var(--shadow-sm);
   }
+  /* in `ready` the chip would repeat the primary button's own label, so it
+     recedes; every other state carries information the button does not */
+  .call-status-chip[data-state="ready"] {
+    background: transparent; border-color: var(--line); color: var(--muted); box-shadow: none;
+  }
+  .call-status-chip[data-state="listening"] { background: var(--primary); border-color: var(--primary); color: var(--on-primary); }
+  .call-status-chip[data-state="speaking"] { background: var(--info-soft); border-color: var(--tint-info-28); color: var(--info-ink); }
+  .call-status-chip[data-state="processing"] { background: var(--surface-strong); border-color: var(--line); color: var(--ink); }
   .call-status-chip[data-state="error"], .call-status-chip[data-state="disconnected"] {
     background: var(--danger-soft); color: var(--danger-ink); border-color: var(--tint-danger-35);
   }
@@ -1795,14 +1903,12 @@
   </section>
 
   <!-- CALL -->
-  <!-- CALL: immersive full-screen layer (board 02_call.png). Portrait is the
-       dominant visual; transcript and tools live in a dismissible sheet. -->
+  <!-- CALL: the person you are speaking to sits in a bounded stage card rather
+       than filling the screen as a backdrop. Everything else — what they said,
+       Marzi, the controls — gets its own band underneath, so nothing is ever
+       laid over the character's face. Transcript and tools live in a sheet. -->
   <section id="call" class="hidden">
     <div class="callscreen" id="vcAv">
-      <img id="vcImg" class="call-portrait" alt="" />
-      <span class="call-emoji" id="vcEmoji" aria-hidden="true">🎧</span>
-      <div class="call-scrim" aria-hidden="true"></div>
-
       <header class="call-top">
         <button class="call-x" id="callMinBtn" type="button"></button>
         <div class="call-id" id="callId"></div>
@@ -1810,6 +1916,11 @@
       </header>
 
       <div class="call-mid">
+        <div class="call-stage-card">
+          <img id="vcImg" class="call-portrait" alt="" />
+          <span class="call-emoji" id="vcEmoji" aria-hidden="true">🎧</span>
+          <div class="call-scrim" aria-hidden="true"></div>
+        </div>
         <div class="call-status-chip" id="callStatus" data-state="ready" role="status"></div>
         <div id="alert" class="call-alert hidden" role="alert"></div>
         <button class="call-bubble char hidden" id="vcSay" type="button"></button>
@@ -2186,7 +2297,7 @@ const T = {
     stageWord:"Nivel", stageNames:["Huevos de rana","Renacuajo","Renacuajo con patas","Ranita joven","Rana estudiosa","Rana experta"],
     stageDescs:["Todo comienza con pequeñas bolitas llenas de posibilidades.","Empiezas a descubrir nuevas palabras y sonidos.","Entiendes más y formas tus primeras frases.","Ya puedes tener conversaciones básicas.","Aprendes cada día y tu alemán mejora mucho.","Dominas el alemán y puedes enseñar a otros."],
     stProcessing:"Pensando…", stSpeaking:"Hablando", stEnded:"Desconectado", stError:"Problema", playLast:"Escuchar de nuevo", contact:"Tu contacto", prepHint:"Preparación recomendada", timeLeft:"restantes",
-    hangUp:"COLGAR", speak:"Pulsa y habla", listening:"Escuchando…", repeat:"Repetir despacio",
+    hangUp:"COLGAR", speak:"Pulsa y habla", listening:"Escuchando…", repeat:"Repetir despacio", slowLabel:"Despacio", autoLabel:"Auto",
     hint:"¿Qué puedo decir?", type:"Escribir en vez de hablar", send:"Enviar", show:"Traducción",
     ended:"LLAMADA TERMINADA", review:"Tus correcciones", again:"OTRA LLAMADA", you:"TÚ",
     handsFree:"Manos libres", err:"No hay respuesta del servidor. ¿Está corriendo node server.js?",
@@ -2272,7 +2383,7 @@ const T = {
     stageWord:"Level", stageNames:["Frog eggs","Tadpole","Tadpole with legs","Young frog","Studious frog","Expert frog"],
     stageDescs:["It all starts with tiny eggs full of possibilities.","You begin to discover new words and sounds.","You understand more and form your first sentences.","You can already have basic conversations.","You learn every day and your German improves a lot.","You have mastered German and can teach others."],
     stProcessing:"Thinking…", stSpeaking:"Speaking", stEnded:"Disconnected", stError:"Problem", playLast:"Play again", contact:"Your contact", prepHint:"Preparation recommended", timeLeft:"left",
-    hangUp:"HANG UP", speak:"Tap and speak", listening:"Listening…", repeat:"Repeat slowly",
+    hangUp:"HANG UP", speak:"Tap and speak", listening:"Listening…", repeat:"Repeat slowly", slowLabel:"Slow", autoLabel:"Auto",
     hint:"What can I say?", type:"Type instead of speaking", send:"Send", show:"Translation",
     ended:"CALL ENDED", review:"Your corrections", again:"ANOTHER CALL", you:"YOU",
     handsFree:"Hands free", err:"No answer from the server. Is node server.js running?",
@@ -2361,7 +2472,7 @@ T.tr = { tagline:"Gerçek Almanca aramalar ve konuşmalar pratiği yap. Sen konu
   stageWord:"Seviye", stageNames:["Kurbağa yumurtaları","İribaş","Bacaklı iribaş","Genç kurbağa","Çalışkan kurbağa","Uzman kurbağa"],
   stageDescs:["Her şey olasılıklarla dolu minik yumurtalarla başlar.","Yeni kelimeler ve sesler keşfetmeye başlıyorsun.","Daha çok anlıyor ve ilk cümlelerini kuruyorsun.","Artık temel sohbetler yapabiliyorsun.","Her gün öğreniyorsun ve Almancan çok gelişiyor.","Almancaya hâkimsin ve başkalarına öğretebilirsin."],
   stProcessing:"Düşünüyor…", stSpeaking:"Konuşuyor", stEnded:"Bağlantı kesildi", stError:"Sorun", playLast:"Tekrar dinle", contact:"Görüşeceğin kişi", prepHint:"Hazırlık önerilir", timeLeft:"kaldı",
-  hangUp:"KAPAT", speak:"Bas ve konuş", listening:"Dinliyor…", repeat:"Yavaş tekrarla",
+  hangUp:"KAPAT", speak:"Bas ve konuş", listening:"Dinliyor…", repeat:"Yavaş tekrarla", slowLabel:"Yavaş", autoLabel:"Oto",
   hint:"Ne diyebilirim?", type:"Konuşmak yerine yaz", send:"Gönder", show:"Çeviri",
   ended:"GÖRÜŞME BİTTİ", review:"Düzeltmelerin", again:"YENİ ARAMA", you:"SEN",
   handsFree:"Eller serbest", err:"Sunucudan yanıt yok. node server.js çalışıyor mu?",
@@ -2449,7 +2560,7 @@ T.ar = { tagline:"تدرّب على مكالمات ومحادثات حقيقية
   stageWord:"المستوى", stageNames:["بيض الضفدع","شرغوف","شرغوف بأرجل","ضفدع صغير","ضفدع مجتهد","ضفدع خبير"],
   stageDescs:["كل شيء يبدأ ببويضات صغيرة مليئة بالإمكانات.","تبدأ باكتشاف كلمات وأصوات جديدة.","تفهم أكثر وتكوّن جملك الأولى.","يمكنك إجراء محادثات أساسية.","تتعلم كل يوم وتتحسن لغتك الألمانية كثيرًا.","أتقنت الألمانية ويمكنك تعليمها للآخرين."],
   stProcessing:"يفكّر…", stSpeaking:"يتحدث", stEnded:"انقطع الاتصال", stError:"مشكلة", playLast:"استمع مرة أخرى", contact:"من ستتحدث معه", prepHint:"يُنصح بالتحضير", timeLeft:"متبقّية",
-  hangUp:"إنهاء", speak:"اضغط وتكلّم", listening:"يستمع…", repeat:"إعادة ببطء",
+  hangUp:"إنهاء", speak:"اضغط وتكلّم", listening:"يستمع…", repeat:"إعادة ببطء", slowLabel:"ببطء", autoLabel:"تلقائي",
   hint:"ماذا يمكنني أن أقول؟", type:"اكتب بدلاً من الكلام", send:"إرسال", show:"الترجمة",
   ended:"انتهت المكالمة", review:"تصحيحاتك", again:"مكالمة أخرى", you:"أنت",
   handsFree:"دون استخدام اليدين", err:"لا يوجد رد من الخادم. هل node server.js يعمل؟",
@@ -2535,7 +2646,7 @@ T.uk = { tagline:"Тренуй реальні дзвінки й розмови �
   stageWord:"Рівень", stageNames:["Жаб'яча ікра","Пуголовок","Пуголовок з лапками","Молода жабка","Жабка-книголюб","Жабка-експерт"],
   stageDescs:["Усе починається з крихітних ікринок, повних можливостей.","Ти починаєш відкривати нові слова та звуки.","Ти розумієш більше й складаєш перші речення.","Ти вже можеш вести прості розмови.","Ти вчишся щодня, і твоя німецька значно кращає.","Ти опанував німецьку й можеш навчати інших."],
   stProcessing:"Думає…", stSpeaking:"Говорить", stEnded:"Роз'єднано", stError:"Проблема", playLast:"Прослухати ще раз", contact:"Твій співрозмовник", prepHint:"Радимо підготуватися", timeLeft:"залишилось",
-  hangUp:"ПОКЛАСТИ", speak:"Натисни і говори", listening:"Слухаю…", repeat:"Повторити повільно",
+  hangUp:"ПОКЛАСТИ", speak:"Натисни і говори", listening:"Слухаю…", repeat:"Повторити повільно", slowLabel:"Повільно", autoLabel:"Авто",
   hint:"Що можна сказати?", type:"Писати замість говорити", send:"Надіслати", show:"Переклад",
   ended:"ДЗВІНОК ЗАВЕРШЕНО", review:"Твої виправлення", again:"ЩЕ ДЗВІНОК", you:"ТИ",
   handsFree:"Вільні руки", err:"Немає відповіді від сервера. Чи запущено node server.js?",
@@ -2622,7 +2733,7 @@ T.it = { tagline:"Allenati con telefonate e conversazioni reali in tedesco. Tu p
   stageWord:"Livello", stageNames:["Uova di rana","Girino","Girino con zampe","Ranocchia giovane","Rana studiosa","Rana esperta"],
   stageDescs:["Tutto inizia con piccole uova piene di possibilità.","Inizi a scoprire nuove parole e suoni.","Capisci di più e formi le tue prime frasi.","Puoi già fare conversazioni di base.","Impari ogni giorno e il tuo tedesco migliora molto.","Padroneggi il tedesco e puoi insegnarlo agli altri."],
   stProcessing:"Sta pensando…", stSpeaking:"Sta parlando", stEnded:"Disconnesso", stError:"Problema", playLast:"Ascolta di nuovo", contact:"Il tuo interlocutore", prepHint:"Preparazione consigliata", timeLeft:"rimasti",
-  hangUp:"RIAGGANCIA", speak:"Premi e parla", listening:"In ascolto…", repeat:"Ripeti lentamente",
+  hangUp:"RIAGGANCIA", speak:"Premi e parla", listening:"In ascolto…", repeat:"Ripeti lentamente", slowLabel:"Lento", autoLabel:"Auto",
   hint:"Cosa posso dire?", type:"Scrivi invece di parlare", send:"Invia", show:"Traduzione",
   ended:"CHIAMATA TERMINATA", review:"Le tue correzioni", again:"UN'ALTRA CHIAMATA", you:"TU",
   handsFree:"Vivavoce", err:"Nessuna risposta dal server. node server.js è in esecuzione?",
@@ -6181,10 +6292,15 @@ function renderCall() {
   // icon-only with explicit labels so the row fits one line on a 360px phone
   $("sheetBtn").innerHTML = IC.list(ICON.sm) + `<span>${esc(L.transcript)}</span>`;
   $("sheetBtn").setAttribute("aria-label", L.transcript);
-  $("repeatBtn").innerHTML = IC.speaker(ICON.sm);
+  /* REDESIGN: these were bare icons - a speaker beside the speaker-shaped
+     "Play again" control, and a microphone beside the microphone-shaped
+     primary action - so the row read as duplicated controls. Naming them is
+     what separates slow repeat from normal replay, and hands-free from speak,
+     without removing anything. */
+  $("repeatBtn").innerHTML = IC.speaker(ICON.sm) + `<span>${esc(L.slowLabel)}</span>`;
   $("repeatBtn").setAttribute("aria-label", L.repeat);
   $("repeatBtn").title = L.repeat;
-  $("freeBtn").innerHTML = IC.mic(ICON.sm);
+  $("freeBtn").innerHTML = IC.mic(ICON.sm) + `<span>${esc(L.autoLabel)}</span>`;
   $("freeBtn").setAttribute("aria-label", L.handsFree);
   $("freeBtn").title = L.handsFree;
   $("freeBtn").setAttribute("aria-pressed", String(!!S.handsFree));
