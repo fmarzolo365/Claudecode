@@ -133,7 +133,8 @@ src += `\n;globalThis.__t = { T, TARGET, TARGETS, LEVELS, LEVEL_ORDER, SCENARIOS
   obCanAdvance, OB_STEPS, settingsPayload, fmtNum, plural, localeForLang, chipNum,
   isStandalone, installRecVisible, renderInstallRec, dismissInstallRec, INSTALL_DISMISS_KEY,
   weeklyActivity, recentActivity, renderRecommended, renderRecentActivity, renderJourneyPreview,
-  journeyPreview, hasBrandMarkAsset, __registerBrandMark, BRAND_MARK_ASSET };`;
+  journeyPreview, hasBrandMarkAsset, __registerBrandMark, BRAND_MARK_ASSET,
+  SPEEDS, VOICE_PROFILES, SPEED_ORDER, openHelp, renderHelpPanel, toggleLiveText, showTypeRow, startDrill, settingsPayload };`;
 eval(src);
 const tt = globalThis.__t;
 
@@ -415,7 +416,9 @@ check("MARZI-001 corrections: ledger idempotency, per-call ids, hardened storage
   const g3 = tt.recordCall();
   if (!(g1 > 0) || g2 !== 0 || !(g3 > 0)) throw new Error(`gains ${g1}/${g2}/${g3}, want >0/0/>0`);
   if (tt.loadStats().calls !== 2) throw new Error(`calls=${tt.loadStats().calls}, want 2`);
-  const startSrc = String(src.match(/function startConversation\(\)[\s\S]*?\n\}/)[0]);
+  // intent: every call start claims a fresh reward id, whatever the
+  // function's signature (W2 added an optional retry parameter)
+  const startSrc = String(src.match(/function startConversation\([^)]*\)[\s\S]*?\n\}/)[0]);
   if (!/S\.callId = newRewardId\(\)/.test(startSrc)) throw new Error("startConversation does not reset S.callId");
   // normalizeStats survives corrupt localStorage shapes
   const n = tt.normalizeStats({ xp: -3, coins: "x", seconds: NaN, days: [], ownedItemIds: "no" });
@@ -1539,6 +1542,86 @@ check("world-class IA: five tabs, canonical feature ownership", () => {
   // Profile keeps its canonical destinations
   if (!profile.includes('id="progressBtn"')) throw new Error("Profile must own My progress");
   if (!profile.includes('id="shareBtn"')) throw new Error("Profile must own Recommend the app");
+});
+
+check("world-class W2: honest voice profiles, inline help, live text, retry loop", () => {
+  // four profiles, honestly named; legacy stored keys stay resolvable
+  if (tt.SPEED_ORDER.join() !== "slow,clear,normal,real") throw new Error("profile order: " + tt.SPEED_ORDER.join());
+  for (const k of tt.SPEED_ORDER) if (!(k in tt.SPEEDS)) throw new Error("profile has no rate: " + k);
+  if (!("fast" in tt.SPEEDS)) throw new Error("legacy 'fast' key must stay resolvable for stored settings");
+  if (!/s\.speed === "fast"\) s\.speed = "real"/.test(src)) throw new Error("stored 'fast' must migrate to 'real'");
+  // the promise is kept at model level: explicit profiles reach the speech
+  // engine as pace INSTRUCTIONS and always win; slow/normal stay level-aware
+  const speakSrc = String(src.match(/function speak\([^)]*\)[\s\S]*?\n\}/)[0]);
+  if (!/prof === "clear" \|\| prof === "real" \? prof/.test(speakSrc)) throw new Error("clear/real must win the pace decision");
+  if (!/rate < 0\.92 \? "slow"/.test(speakSrc)) throw new Error("beginner levels must keep the careful slow instruction");
+  for (const l of ["es", "en", "it", "tr", "ar", "uk"]) {
+    for (const k of ["slow", "clear", "normal", "real"])
+      if (!tt.T[l].speedNotes || !tt.T[l].speedNotes[k]) throw new Error(l + " missing speedNotes." + k);
+  }
+  // the profile picker renders from the canonical order with a per-profile note
+  if (!/SPEED_ORDER\.map\(/.test(src) || !html.includes('id="speedNote"')) throw new Error("profile picker not canonical");
+
+  // in-call help panel: inline in the call stack, owns SOS + hint + typing;
+  // the sheet is the full transcript only
+  const call = html.slice(html.indexOf('<section id="call"'), html.indexOf('<section id="done"'));
+  const help = call.slice(call.indexOf('id="helpPanel"'), call.indexOf('class="call-tools"'));
+  for (const id of ["sosRow", "hintBox", "typeRow", "helpMoreBtn", "helpCloseBtn"])
+    if (!help.includes(`id="${id}"`)) throw new Error("help panel must own " + id);
+  const sheet = call.slice(call.indexOf('id="callSheet"'));
+  for (const id of ["sosRow", "hintBox", "typeRow", "hintBtn"])
+    if (sheet.includes(`id="${id}"`)) throw new Error(id + " must not live in the transcript sheet");
+  if (!sheet.includes('id="log"')) throw new Error("the sheet keeps the transcript");
+  if (!/\$\("hintLabel"\)\.textContent = TARGET\.hintLabel/.test(src)) throw new Error("hint label must come from TARGET, not hardcoded German");
+  if (!tt.TARGETS.de.hintLabel || !tt.TARGETS.en.hintLabel) throw new Error("TARGETS must carry hintLabel");
+
+  // stages: closed -> SOS chips -> phrase -> full answer, clamped, learner-driven
+  tt.S.lang = "en";
+  const A = tt.SCENARIOS.find((x) => x.id === "arzt");
+  tt.S.scenario = A; tt.S.active = A; tt.S.busy = false;
+  tt.S.hint = "Ich hätte gern einen Termin.";
+  tt.S.turns = [{ me: false, text: "Praxis, guten Tag?" }, { me: true, text: "Guten Tag." }];
+  const el = (id) => document.getElementById(id);
+  if (tt.openHelp(1) !== 1 || el("helpPanel").classList.has("hidden")) throw new Error("stage 1 must open the panel");
+  if (!el("hintBox").classList.has("hidden")) throw new Error("stage 1 must NOT reveal the phrase yet");
+  if (tt.openHelp(2) !== 2 || el("hintBox").classList.has("hidden")) throw new Error("stage 2 reveals the suggested phrase");
+  if (el("hintText").textContent !== tt.S.hint) throw new Error("the phrase is not the live suggestion");
+  if (!el("helpFullRow").classList.has("hidden")) throw new Error("stage 2 must NOT reveal the full row yet");
+  if (tt.openHelp(9) !== 3) throw new Error("stages clamp at 3");
+  if (el("helpFullRow").classList.has("hidden")) throw new Error("stage 3 reveals slow playback + typing");
+  if (tt.openHelp(0) !== 0 || !el("helpPanel").classList.has("hidden")) throw new Error("help closes cleanly");
+  // a failed microphone routes typing through the panel, which must open it
+  const strSrc = String(src.match(/function showTypeRow\(\)[\s\S]*?\n\}/)[0]);
+  if (!/S\.helpStage = 3/.test(strSrc)) throw new Error("mic failure must open the help panel's typing stage");
+  if (/typeRow"\)\.classList\.remove\("hidden"\)/.test(String(src.match(/function listen\(\)[\s\S]*?\n\}/) || "")) )
+    throw new Error("listen() must use showTypeRow, not reach into the panel");
+
+  // live text: both sides of the dialogue inline; hide persists as a setting
+  const lastMeSrc = String(src.match(/const lastMe = [^\n]*/)[0]);
+  if (!/\[\.\.\.S\.turns\]\.reverse\(\)\.find\(\(x\) => x\.me\)/.test(lastMeSrc)) throw new Error("learner line not derived from the turn list");
+  tt.renderCall();
+  if (el("vcYou").textContent !== "Guten Tag.") throw new Error("learner's own line not rendered inline");
+  const styles = html.slice(html.indexOf("<style>"), html.indexOf("</style>"));
+  if (!/\.callscreen\.text-off #vcSay, \.callscreen\.text-off #vcYou \{ visibility: hidden; \}/.test(styles))
+    throw new Error("text-off must hide the live dialogue text (and only it)");
+  if (!/"you    you"/.test(styles)) throw new Error("the learner bubble needs its own grid row");
+  if (tt.toggleLiveText(false) !== false) throw new Error("toggle must report the new state");
+  if (!el("vcAv").classList.has("text-off")) throw new Error("text-off state not applied to the call screen");
+  if (tt.settingsPayload().liveText !== false) throw new Error("live-text choice must persist");
+  if (tt.toggleLiveText(true) !== true || el("vcAv").classList.has("text-off")) throw new Error("text returns");
+
+  // post-call: evaluation and corrections lead, rewards follow, retry closes the loop
+  const done = html.slice(html.indexOf('<section id="done"'), html.indexOf('<section id="mistakes"'));
+  const order = ["evalBox", "review", "rewardBox", "retryMistakesBtn", "againBtn"].map((id) => done.indexOf(`id="${id}"`));
+  if (order.some((i) => i < 0) || String(order) !== String([...order].sort((a, b) => a - b)))
+    throw new Error("done screen must read goal/eval -> corrections -> rewards -> retry");
+  if (!/function startDrill\(seedTexts\)/.test(src) || !/seed\.has\(x\.f\.text\)/.test(src))
+    throw new Error("post-call drill must seed from this call's mistakes");
+  const againSrc = String(src.match(/\$\("againBtn"\)\.onclick[\s\S]*?\n\};/)[0]);
+  if (!/planUsedToday\(\) >= planLimitToday\(\)/.test(againSrc) || !/startConversation\(true\)/.test(againSrc))
+    throw new Error("call-again must retry through the same gates");
+  if (!/keepGoal && g\.includes\(keepGoal\)/.test(src)) throw new Error("retry must keep the same goal");
+  tt.S.turns = []; tt.S.hint = null; tt.S.helpStage = 0;
 });
 
 check("MARZI-017 brand lockup: mark before wordmark, one implementation", () => {

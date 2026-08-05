@@ -1265,12 +1265,13 @@
        the backdrop everything else floats on. Reading order top to bottom is
        who you are talking to, how the call is doing, what they just said,
        Marzi and her suggestion — then the controls in the fixed stack below. */
-    grid-template-rows: auto auto auto auto minmax(min(236px, 30dvh), 1fr);
+    grid-template-rows: auto auto auto auto auto minmax(min(236px, 30dvh), 1fr);
     grid-template-areas:
       "stage  stage"
       "status status"
       "alert  alert"
       "char   char"
+      "you    you"
       "marzi  hint";
     gap: var(--space-2);
     padding: 0 var(--space-4) var(--space-2);
@@ -1409,6 +1410,18 @@
     border-block-start: 1.5px solid var(--stage-line);
     border-start-start-radius: 3px;
   }
+  /* WORLD-CLASS W2: the learner's own line, right-aligned like a messenger's
+     "me" bubble, so the exchange reads as a dialogue at a glance. */
+  .call-bubble.you {
+    grid-area: you; justify-self: end; width: auto; max-width: 88%;
+    max-height: 22dvh; font-weight: 600;
+    background: var(--surface-soft); border-color: var(--line);
+    border-start-end-radius: 6px;
+  }
+  /* Text off = listening-only mode: the live dialogue text leaves the scene
+     (visibility, so layout stays stable and nothing phantom-focuses).
+     Marzi's hint bubble is help, not live text — it stays. */
+  .callscreen.text-off #vcSay, .callscreen.text-off #vcYou { visibility: hidden; }
   .call-bubble.marzi {
     grid-area: hint; justify-self: stretch; width: 100%; align-self: end;
     max-height: 26dvh; cursor: pointer; border-end-start-radius: 6px;
@@ -1493,6 +1506,27 @@
     box-shadow: 0 -6px 20px rgba(34, 27, 15, .06);
   }
   .call-tools { display: flex; gap: var(--space-2); flex-wrap: wrap; justify-content: center; }
+  /* WORLD-CLASS W2: the inline help panel sits in the fixed stack, above the
+     tool pills. It is bounded and scrolls its own overflow so it can never
+     push the controls or the timer off the screen. */
+  .call-help {
+    width: 100%; box-sizing: border-box;
+    max-height: min(46dvh, 340px); overflow-y: auto; overscroll-behavior: contain;
+    background: var(--surface-soft); border: 1.5px solid var(--stage-line);
+    border-radius: var(--radius); padding: var(--space-2) var(--space-3) var(--space-3);
+    display: grid; gap: var(--space-2);
+  }
+  .call-help .help-head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); }
+  /* Target-language content stays LTR inside an RTL UI, or its punctuation
+     jumps to the wrong side ("?Wie bitte"). Isolation keeps the surrounding
+     layout direction untouched. */
+  #hintText, #sosRow button, #draft, #vcSay, #vcYou {
+    direction: ltr; unicode-bidi: isolate;
+  }
+  .call-help .help-head b { font: 800 var(--text-f14) var(--font-sans); color: var(--ink); }
+  .call-help .row { margin: 0; }
+  .call-help .help-more { width: 100%; }
+  .call-help .hint { margin: 0; }
   .call-pill {
     min-height: var(--touch-min); min-width: var(--touch-min); justify-content: center;
     display: inline-flex; align-items: center; gap: 5px;
@@ -1557,7 +1591,7 @@
   @media (max-height: 680px) {
     .call-stage-card { height: clamp(88px, 15dvh, 140px); }
     .call-mid {
-      grid-template-rows: auto auto auto auto minmax(min(92px, 17dvh), 1fr);
+      grid-template-rows: auto auto auto auto auto minmax(min(92px, 17dvh), 1fr);
       padding-inline: var(--space-3); gap: var(--space-1);
     }
     .call-bubble.char { min-height: max(var(--touch-min), 2lh); }
@@ -1905,6 +1939,7 @@
     <p class="note one" id="levelNote"></p>
     <div class="label" id="lblSpeed"></div>
     <div class="seg" id="speeds"></div>
+    <p class="note one" id="speedNote"></p>
 
     <button class="big cta" id="callBtn" style="margin-top:14px"></button>
     <div class="allow-row">
@@ -1953,13 +1988,42 @@
         <div class="call-status-chip" id="callStatus" data-state="ready" role="status"></div>
         <div id="alert" class="call-alert hidden" role="alert"></div>
         <button class="call-bubble char hidden" id="vcSay" type="button"></button>
+        <!-- WORLD-CLASS W2: the learner's own last line, inline beside the
+             character's — live text is a first-class part of the call, not a
+             modal. The Text pill hides both bubbles for listening-only mode. -->
+        <div class="call-bubble you hidden" id="vcYou"></div>
         <div class="call-marzi vc-marzi" id="vcMarzi"></div>
         <button class="call-bubble marzi hidden" id="vcBubble" type="button"></button>
       </div>
       <div id="callStatusLive" class="sr-only" aria-live="polite"></div>
 
       <div class="call-stack">
+        <!-- WORLD-CLASS W2: progressive in-call help. Stage 1: quick SOS
+             phrases. Stage 2: a suggested phrase. Stage 3: the full answer
+             with slow playback and typing. Escalation is always the
+             learner's choice — never the full answer first. -->
+        <div class="call-help hidden" id="helpPanel" role="group" aria-labelledby="helpTitle">
+          <div class="help-head"><b id="helpTitle"></b><button class="mini" id="helpCloseBtn" type="button"></button></div>
+          <p class="note one" id="helpTip"></p>
+          <div class="row sos" id="sosRow">
+            <button class="ghost" data-sos="Wie bitte?">Wie bitte?</button>
+            <button class="ghost" data-sos="Langsamer, bitte.">Langsamer, bitte</button>
+            <button class="ghost" data-sos="Können Sie das noch einmal sagen?">Noch einmal, bitte</button>
+          </div>
+          <div id="hintBox" class="hint hidden"><div class="label" id="hintLabel">VORSCHLAG</div><div id="hintText"></div></div>
+          <div class="row hidden" id="helpFullRow">
+            <button class="ghost" id="helpPlayBtn" type="button"></button>
+            <button class="ghost" id="typeBtn" type="button"></button>
+          </div>
+          <div class="row hidden" id="typeRow">
+            <input type="text" id="draft" placeholder="Guten Tag, ich möchte…" />
+            <button class="ghost" id="sendBtn" style="flex:0 0 auto"></button>
+          </div>
+          <button class="ghost help-more" id="helpMoreBtn" type="button"></button>
+        </div>
         <div class="call-tools">
+          <button class="call-pill" id="helpBtn" type="button"></button>
+          <button class="call-pill" id="textBtn" type="button"></button>
           <button class="call-pill" id="sheetBtn" type="button"></button>
           <button class="call-pill" id="repeatBtn" type="button"></button>
           <button class="call-pill" id="freeBtn" type="button"></button>
@@ -1974,32 +2038,26 @@
       <div class="sheet-grab" aria-hidden="true"></div>
       <div class="sheet-head"><b id="sheetTitle"></b><button class="btn" id="sheetClose" type="button"></button></div>
       <div class="sheet-body">
+        <!-- WORLD-CLASS W2: the sheet is now the full-transcript review only.
+             Hints, SOS phrases and typing moved inline into #helpPanel. -->
         <div class="log" id="log"></div>
         <p class="note hidden" id="tapHint"></p>
-        <div id="hintBox" class="hint hidden"><div class="label">VORSCHLAG</div><div id="hintText"></div></div>
-        <div class="row"><button class="ghost" id="hintBtn" type="button"></button></div>
-        <div class="row sos" id="sosRow">
-          <button class="ghost" data-sos="Wie bitte?">Wie bitte?</button>
-          <button class="ghost" data-sos="Langsamer, bitte.">Langsamer, bitte</button>
-          <button class="ghost" data-sos="Können Sie das noch einmal sagen?">Noch einmal, bitte</button>
-        </div>
-        <div class="row" id="typeRow">
-          <input type="text" id="draft" placeholder="Guten Tag, ich möchte…" />
-          <button class="ghost" id="sendBtn" style="flex:0 0 auto"></button>
-        </div>
-        <button class="mini hidden" id="typeBtn" type="button"></button>
       </div>
     </aside>
   </section>
 
   <!-- DONE -->
+  <!-- WORLD-CLASS W2: the summary leads with what the learner came for — did
+       I reach the goal, what should I fix — and only then the rewards. The
+       retry loop (practise these mistakes / call again) closes the screen. -->
   <section id="done" class="hidden">
     <div class="plate"><span id="doneTitle"></span></div>
     <div id="rewardLive" class="sr-only" aria-live="polite"></div>
+    <div class="list" style="margin-top:14px;padding:16px 14px" id="evalBox"></div>
+    <div class="list" style="margin-top:14px;padding:16px 14px" id="review"></div>
     <div id="rewardBox"></div>
     <button class="ghost hidden" id="replayBtn" style="width:100%;margin-top:16px"></button>
-    <div class="list" style="margin-top:14px;padding:16px 14px" id="review"></div>
-    <div class="list" style="margin-top:14px;padding:16px 14px" id="evalBox"></div>
+    <button class="ghost hidden" id="retryMistakesBtn" style="width:100%;margin-top:14px"></button>
     <button class="big" id="againBtn"></button>
     <div class="ui-modal-back hidden" id="evoCelBack"></div>
     <div id="evoCelBox" class="hidden"></div>
@@ -2190,7 +2248,7 @@ const TARGETS = {
         skip:["der","die","das","den","dem","des","ein","eine","einen","einem","einer"],
         deckChar:"kollegen", deckVoice:"coral", voiceHint:"google|deutsch|anna|katja",
         sos:[["Wie bitte?","Wie bitte?"],["Langsamer, bitte.","Langsamer, bitte"],["Können Sie das noch einmal sagen?","Noch einmal, bitte"]],
-        draftPH:"Guten Tag, ich möchte…" },
+        draftPH:"Guten Tag, ich möchte…", hintLabel:"VORSCHLAG" },
   en: { code:"en", locale:"en-US", name:"English", nativeName:"English", exam:"IELTS",
         charset:"a-z", seed:"[The phone rings. Pick up.]",
         fixEx:`"Oh, I see what you mean! By the way, we'd usually say: 'I'd like to make an appointment.' So, when suits you best?"`,
@@ -2200,7 +2258,7 @@ const TARGETS = {
         skip:["the","a","an"],
         deckChar:"enjob", deckVoice:"sage", voiceHint:"google|english|samantha|allison|ava",
         sos:[["Sorry?","Sorry?"],["Slower, please.","Slower, please"],["Could you say that again?","Again, please"]],
-        draftPH:"Hello, I'd like to…" },
+        draftPH:"Hello, I'd like to…", hintLabel:"SUGGESTION" },
 };
 const TARGET = (() => {
   try {
@@ -2337,7 +2395,16 @@ const T = {
     exportAnki:"Exportar para Anki", clearHistory:"Borrar historial", clearConfirm:"¿Borrar todas las correcciones guardadas?",
     back:"VOLVER", evalTitle:"EVALUACIÓN", evalLoading:"Evaluando tu llamada…", evalFail:"(No se pudo generar la evaluación)",
     saved:"guardadas", pinAsk:"Introduce el PIN de acceso:",
-    speed:"Velocidad de la voz", speedSlow:"Lenta", speedNormal:"Normal", speedFast:"Rápida",
+    speed:"Velocidad de la voz", speedSlow:"Lenta", speedClear:"Clara", speedNormal:"Natural", speedReal:"Real",
+    speedNotes:{ slow:"Más despacio y con pausas — ideal para empezar.",
+      clear:"Ritmo normal con pronunciación muy cuidada.",
+      normal:"Habla natural, ajustada a tu nivel.",
+      real:"Como habla la gente de verdad por teléfono." },
+    helpLabel:"Ayuda", helpTitle:"¿Necesitas ayuda?", helpTip:"Toca una frase para decirla ahora mismo:",
+    helpMorePhrase:"Ver una frase sugerida", helpMoreFull:"Respuesta completa y audio",
+    helpPlaySlow:"Escuchar despacio",
+    liveTextLabel:"Texto", liveTextShow:"Mostrar el texto de la conversación", liveTextHide:"Ocultar el texto de la conversación",
+    retryMistakes:"Practicar estos errores", callAgain:"REPETIR LA LLAMADA",
     days:"días seguidos", calls:"llamadas", minutes:"min practicados",
     customPH:"Ej.: llamar al gimnasio para cancelar mi abono",
     sayIt:"Escuchar bien dicho", replayAll:"Reproducir la llamada corregida",
@@ -2423,7 +2490,16 @@ const T = {
     exportAnki:"Export for Anki", clearHistory:"Clear history", clearConfirm:"Delete all saved corrections?",
     back:"BACK", evalTitle:"EVALUATION", evalLoading:"Evaluating your call…", evalFail:"(Could not generate the evaluation)",
     saved:"saved", pinAsk:"Enter the access PIN:",
-    speed:"Voice speed", speedSlow:"Slow", speedNormal:"Normal", speedFast:"Fast",
+    speed:"Voice speed", speedSlow:"Slow", speedClear:"Clear", speedNormal:"Natural", speedReal:"Real-world",
+    speedNotes:{ slow:"Slower, with pauses — ideal when starting out.",
+      clear:"Normal tempo with extra-careful pronunciation.",
+      normal:"Natural speech, tuned to your level.",
+      real:"The way people actually sound on the phone." },
+    helpLabel:"Help", helpTitle:"Need help?", helpTip:"Tap a phrase to say it right now:",
+    helpMorePhrase:"Show a suggested phrase", helpMoreFull:"Full answer + audio",
+    helpPlaySlow:"Hear it slowly",
+    liveTextLabel:"Text", liveTextShow:"Show the conversation text", liveTextHide:"Hide the conversation text",
+    retryMistakes:"Practise these mistakes", callAgain:"CALL AGAIN",
     days:"day streak", calls:"calls", minutes:"min practised",
     customPH:"E.g.: call the gym to cancel my membership",
     sayIt:"Hear it said right", replayAll:"Replay the corrected call",
@@ -2512,7 +2588,16 @@ T.tr = { tagline:"Gerçek Almanca aramalar ve konuşmalar pratiği yap. Sen konu
   exportAnki:"Anki için dışa aktar", clearHistory:"Geçmişi sil", clearConfirm:"Tüm kayıtlı düzeltmeler silinsin mi?",
   back:"GERİ", evalTitle:"DEĞERLENDİRME", evalLoading:"Araman değerlendiriliyor…", evalFail:"(Değerlendirme oluşturulamadı)",
   saved:"kayıtlı", pinAsk:"Erişim PIN kodunu gir:",
-  speed:"Ses hızı", speedSlow:"Yavaş", speedNormal:"Normal", speedFast:"Hızlı",
+  speed:"Ses hızı", speedSlow:"Yavaş", speedClear:"Net", speedNormal:"Doğal", speedReal:"Gerçek hayat",
+  speedNotes:{ slow:"Daha yavaş ve duraklamalı — başlangıç için ideal.",
+    clear:"Normal tempoda, özenle telaffuz edilmiş konuşma.",
+    normal:"Seviyene ayarlanmış doğal konuşma.",
+    real:"İnsanların telefonda gerçekte konuştuğu gibi." },
+  helpLabel:"Yardım", helpTitle:"Yardım mı lazım?", helpTip:"Hemen söylemek için bir cümleye dokun:",
+  helpMorePhrase:"Önerilen bir cümle göster", helpMoreFull:"Tam yanıt + ses",
+  helpPlaySlow:"Yavaşça dinle",
+  liveTextLabel:"Metin", liveTextShow:"Konuşma metnini göster", liveTextHide:"Konuşma metnini gizle",
+  retryMistakes:"Bu hataları çalış", callAgain:"TEKRAR ARA",
   days:"günlük seri", calls:"arama", minutes:"dk pratik",
   customPH:"Örn.: spor salonunu arayıp üyeliğimi iptal etmek",
   sayIt:"Doğrusunu dinle", replayAll:"Düzeltilmiş aramayı dinle",
@@ -2600,7 +2685,16 @@ T.ar = { tagline:"تدرّب على مكالمات ومحادثات حقيقية
   exportAnki:"تصدير إلى Anki", clearHistory:"مسح السجل", clearConfirm:"هل تريد حذف جميع التصحيحات المحفوظة؟",
   back:"رجوع", evalTitle:"التقييم", evalLoading:"جارٍ تقييم مكالمتك…", evalFail:"(تعذّر إنشاء التقييم)",
   saved:"محفوظة", pinAsk:"أدخل رمز PIN:",
-  speed:"سرعة الصوت", speedSlow:"بطيئة", speedNormal:"عادية", speedFast:"سريعة",
+  speed:"سرعة الصوت", speedSlow:"بطيئة", speedClear:"واضحة", speedNormal:"طبيعية", speedReal:"واقعية",
+  speedNotes:{ slow:"أبطأ ومع وقفات — مثالية للبداية.",
+    clear:"إيقاع عادي مع نطق شديد العناية.",
+    normal:"كلام طبيعي مضبوط على مستواك.",
+    real:"كما يتحدث الناس فعلًا على الهاتف." },
+  helpLabel:"مساعدة", helpTitle:"هل تحتاج مساعدة؟", helpTip:"اضغط على عبارة لقولها الآن:",
+  helpMorePhrase:"اعرض عبارة مقترحة", helpMoreFull:"الإجابة الكاملة مع الصوت",
+  helpPlaySlow:"استمع ببطء",
+  liveTextLabel:"النص", liveTextShow:"إظهار نص المحادثة", liveTextHide:"إخفاء نص المحادثة",
+  retryMistakes:"تدرّب على هذه الأخطاء", callAgain:"كرِّر المكالمة",
   days:"أيام متتالية", calls:"مكالمات", minutes:"دقيقة تدريب",
   customPH:"مثال: الاتصال بالنادي الرياضي لإلغاء اشتراكي",
   sayIt:"استمع إلى النطق الصحيح", replayAll:"استمع إلى المكالمة المصحّحة",
@@ -2686,7 +2780,16 @@ T.uk = { tagline:"Тренуй реальні дзвінки й розмови �
   exportAnki:"Експорт для Anki", clearHistory:"Очистити історію", clearConfirm:"Видалити всі збережені виправлення?",
   back:"НАЗАД", evalTitle:"ОЦІНКА", evalLoading:"Оцінюю твій дзвінок…", evalFail:"(Не вдалося створити оцінку)",
   saved:"збережено", pinAsk:"Введи PIN доступу:",
-  speed:"Швидкість мовлення", speedSlow:"Повільно", speedNormal:"Звичайно", speedFast:"Швидко",
+  speed:"Швидкість мовлення", speedSlow:"Повільно", speedClear:"Чітко", speedNormal:"Природно", speedReal:"Як у житті",
+  speedNotes:{ slow:"Повільніше, з паузами — ідеально для початку.",
+    clear:"Звичайний темп з дуже чіткою вимовою.",
+    normal:"Природне мовлення, підлаштоване під твій рівень.",
+    real:"Так, як люди справді говорять по телефону." },
+  helpLabel:"Допомога", helpTitle:"Потрібна допомога?", helpTip:"Торкнись фрази, щоб сказати її зараз:",
+  helpMorePhrase:"Показати підказану фразу", helpMoreFull:"Повна відповідь + аудіо",
+  helpPlaySlow:"Послухати повільно",
+  liveTextLabel:"Текст", liveTextShow:"Показати текст розмови", liveTextHide:"Приховати текст розмови",
+  retryMistakes:"Відпрацювати ці помилки", callAgain:"ПОДЗВОНИТИ ЩЕ РАЗ",
   days:"днів поспіль", calls:"дзвінків", minutes:"хв практики",
   customPH:"Напр.: подзвонити у спортзал і скасувати абонемент",
   sayIt:"Послухай, як правильно", replayAll:"Прослухати виправлену розмову",
@@ -2773,7 +2876,16 @@ T.it = { tagline:"Allenati con telefonate e conversazioni reali in tedesco. Tu p
   exportAnki:"Esporta per Anki", clearHistory:"Cancella cronologia", clearConfirm:"Eliminare tutte le correzioni salvate?",
   back:"INDIETRO", evalTitle:"VALUTAZIONE", evalLoading:"Sto valutando la tua chiamata…", evalFail:"(Impossibile generare la valutazione)",
   saved:"salvate", pinAsk:"Inserisci il PIN di accesso:",
-  speed:"Velocità della voce", speedSlow:"Lenta", speedNormal:"Normale", speedFast:"Veloce",
+  speed:"Velocità della voce", speedSlow:"Lenta", speedClear:"Chiara", speedNormal:"Naturale", speedReal:"Reale",
+  speedNotes:{ slow:"Più lenta e con pause — ideale per iniziare.",
+    clear:"Ritmo normale con pronuncia molto curata.",
+    normal:"Parlato naturale, adattato al tuo livello.",
+    real:"Come parla davvero la gente al telefono." },
+  helpLabel:"Aiuto", helpTitle:"Ti serve aiuto?", helpTip:"Tocca una frase per dirla subito:",
+  helpMorePhrase:"Mostra una frase suggerita", helpMoreFull:"Risposta completa + audio",
+  helpPlaySlow:"Ascolta lentamente",
+  liveTextLabel:"Testo", liveTextShow:"Mostra il testo della conversazione", liveTextHide:"Nascondi il testo della conversazione",
+  retryMistakes:"Allenati su questi errori", callAgain:"RIPETI LA CHIAMATA",
   days:"giorni di fila", calls:"chiamate", minutes:"min di pratica",
   customPH:"Es.: chiamare la palestra per disdire l'abbonamento",
   sayIt:"Ascolta come si dice", replayAll:"Riascolta la chiamata corretta",
@@ -3193,7 +3305,14 @@ if (TARGET.code === "en") {
     ar:"إنجليزية طبيعية مع مفاجآت", uk:"Природна англійська з несподіванками" });
 }
 
-const SPEEDS = { slow:0.8, normal:1, fast:1.2 };
+/* WORLD-CLASS W2: voice profiles. The playback multiplier only fine-tunes;
+   the actual delivery style is an honest, model-level pace instruction the
+   server sends to the speech model (see PACE in server.js) — "Real-world" is
+   real native prosody, never just sped-up audio. Legacy stored keys
+   ("normal", "fast") stay resolvable; "fast" migrates to "real" on load. */
+const SPEEDS = { slow:0.8, clear:0.96, normal:1, fast:1.2, real:1.1 };
+const VOICE_PROFILES = { slow:"slow", clear:"clear", normal:"normal", real:"real" };
+const SPEED_ORDER = ["slow", "clear", "normal", "real"];
 
 const S = { scenario:SCENARIOS[0], level:"A1", lang:"es", targetLang:TARGET.code, speed:"normal", turns:[], busy:false,
             listening:false, handsFree:true, seconds:0, timerId:null, hint:null, voice:null, rec:null,
@@ -3204,7 +3323,7 @@ const S = { scenario:SCENARIOS[0], level:"A1", lang:"es", targetLang:TARGET.code
 const SET_KEY = "marzi.settings.v1";
 /* one shape for the settings record, so every writer persists the same fields */
 function settingsPayload() {
-  return { scenario:S.scenario.id, level:S.level, lang:S.lang, targetLang:S.targetLang, speed:S.speed, customTopic:S.customTopic, sound:S.sound !== false, reduceMotion:!!S.reduceMotion };
+  return { scenario:S.scenario.id, level:S.level, lang:S.lang, targetLang:S.targetLang, speed:S.speed, customTopic:S.customTopic, sound:S.sound !== false, reduceMotion:!!S.reduceMotion, liveText:S.liveText !== false };
 }
 function saveSettings() {
   try {
@@ -3219,10 +3338,14 @@ function saveSettings() {
     if (LEVELS[s.level]) S.level = s.level;
     if (T[s.lang]) S.lang = s.lang;
     if (TARGETS[s.targetLang]) S.targetLang = s.targetLang;
+    // W2 profile migration: the old "fast" chip is now the honest "real"
+    // profile (real native delivery at model level, not sped-up audio)
+    if (s.speed === "fast") s.speed = "real";
     if (SPEEDS[s.speed]) S.speed = s.speed;
     if (typeof s.customTopic === "string") S.customTopic = s.customTopic;
     if (s.sound === false) S.sound = false;
     if (s.reduceMotion === true) S.reduceMotion = true;
+    if (s.liveText === false) S.liveText = false;
     // first run: preselect the correction language from the phone's language
     // and remember to show the onboarding (language pair picker)
     if (!localStorage.getItem(SET_KEY)) {
@@ -4332,7 +4455,13 @@ function speak(text, slow, done, sp) {
   stopAudio();
   const rate = slow ? 0.6 : LEVELS[S.level].rate * (SPEEDS[S.speed] || 1);
   if (neuralOK) {
-    const pace = slow || rate < 0.92 ? "slow" : rate > 1.08 ? "fast" : "normal";
+    /* W2: explicit profiles ("clear", "real") name the delivery they promise
+       and always win. "slow"/"normal" stay level-aware: a beginner's level
+       rate still yields the careful slow instruction it always did. */
+    const prof = VOICE_PROFILES[S.speed];
+    const pace = slow ? "slow"
+      : prof === "clear" || prof === "real" ? prof
+      : rate < 0.92 ? "slow" : rate > 1.08 ? "fast" : "normal";
     neuralSpeak(text, rate, done, voiceOf(sp || 1), pace, charOf(sp || 1)).catch(() => deviceSpeak(text, rate, done));
     return;
   }
@@ -4626,10 +4755,13 @@ function renderSetup() {
     b.onclick = () => { S.level = b.dataset.k; saveSettings(); renderSetup(); });
   $("levelNote").textContent = LEVELS[S.level][S.lang];
 
-  $("speeds").innerHTML = [["slow", L.speedSlow], ["normal", L.speedNormal], ["fast", L.speedFast]].map(([k, n]) =>
-    `<button class="${k === S.speed ? "on" : ""}" data-k="${k}">${n}</button>`).join("");
+  // W2: four honest voice profiles; each explains what it actually does
+  const spdName = { slow: L.speedSlow, clear: L.speedClear, normal: L.speedNormal, real: L.speedReal };
+  $("speeds").innerHTML = SPEED_ORDER.map((k) =>
+    `<button class="${k === S.speed ? "on" : ""}" data-k="${k}">${esc(spdName[k])}</button>`).join("");
   $("speeds").querySelectorAll("button").forEach((b) =>
     b.onclick = () => { S.speed = b.dataset.k; saveSettings(); renderSetup(); });
+  $("speedNote").textContent = (L.speedNotes || {})[S.speed === "fast" ? "real" : S.speed] || "";
 
   $("lblTrainNow").textContent = L.trainNow;
   $("lblTrainRecent").textContent = L.trainRecent;
@@ -5379,9 +5511,17 @@ function exportAnki() {
 
 /* ---------- mistake drill (spaced-repetition-lite over saved corrections) ---------- */
 let D = null;
-function startDrill() {
+function startDrill(seedTexts) {
   const all = loadFixes();
-  const items = all.map((f, i) => ({ f, i })).filter((x) => x.f.corrected);
+  let items = all.map((f, i) => ({ f, i })).filter((x) => x.f.corrected);
+  // W2: a post-call retry drills the sentences from THAT call first; if none
+  // of them are stored (yet), fall back to the normal queue rather than a
+  // dead end.
+  if (Array.isArray(seedTexts) && seedTexts.length) {
+    const seed = new Set(seedTexts);
+    const sub = items.filter((x) => seed.has(x.f.text));
+    if (sub.length) items = sub;
+  }
   if (!items.length) return;
   // least-practised first, then least-recently practised
   items.sort((a, b) => ((a.f.box || 0) - (b.f.box || 0)) || ((a.f.drilled || "") < (b.f.drilled || "") ? -1 : 1));
@@ -6150,12 +6290,12 @@ function alertMsg(msg) {
 
 async function listen() {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR) { alertMsg(t().noMic); $("typeRow").classList.remove("hidden"); return; }
+  if (!SR) { alertMsg(t().noMic); showTypeRow(); return; }
   if (S.listening) { try { S.rec.stop(); } catch (e) {} return; }
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio:true });
     stream.getTracks().forEach((tr) => tr.stop());
-  } catch (e) { alertMsg(t().micBlocked); $("typeRow").classList.remove("hidden"); return; }
+  } catch (e) { alertMsg(t().micBlocked); showTypeRow(); return; }
 
   ENGINE.get("voice").stopAll();
   alertMsg(null);
@@ -6361,8 +6501,16 @@ function renderCall() {
   $("freeBtn").setAttribute("aria-pressed", String(!!S.handsFree));
   $("repeatBtn").disabled = !S.turns.some((x) => !x.me);
   $("playBtn").disabled = !S.turns.some((x) => !x.me);
-  $("hintBtn").innerHTML = IC.help(ICON.sm) + " " + esc(L.hint);
-  $("hintBtn").disabled = !S.hint;
+  // W2: inline help + live-text pills
+  $("helpBtn").innerHTML = IC.help(ICON.sm) + `<span>${esc(L.helpLabel)}</span>`;
+  $("helpBtn").setAttribute("aria-expanded", String(!!S.helpStage));
+  $("helpBtn").setAttribute("aria-pressed", String(!!S.helpStage));
+  const textOn = S.liveText !== false;
+  $("textBtn").innerHTML = IC.chat(ICON.sm) + `<span>${esc(L.liveTextLabel)}</span>`;
+  $("textBtn").setAttribute("aria-pressed", String(textOn));
+  $("textBtn").setAttribute("aria-label", textOn ? L.liveTextHide : L.liveTextShow);
+  $("textBtn").title = textOn ? L.liveTextHide : L.liveTextShow;
+  $("vcAv").classList.toggle("text-off", !textOn);
   $("sendBtn").textContent = L.send;
   $("typeBtn").textContent = L.type;
 
@@ -6374,16 +6522,66 @@ function renderCall() {
   $("vcSay").setAttribute("aria-label", `${L.sayIt} — ${A.who}: ${lastChar ? lastChar.text : ""}`);
   $("vcSay").setAttribute("aria-disabled", lastChar ? "false" : "true");
 
+  // W2: the learner's own last line, inline — the other half of the dialogue
+  const lastMe = [...S.turns].reverse().find((x) => x.me);
+  $("vcYou").textContent = lastMe ? lastMe.text : "";
+  $("vcYou").classList.toggle("hidden", !lastMe);
+
   // Marzi's bubble carries the suggestion and is attached to Marzi
   $("vcBubble").textContent = S.hint || L.hint;
   $("vcBubble").classList.toggle("hidden", !(S.hint && !S.busy));
   $("vcBubble").setAttribute("aria-label", `Marzi: ${S.hint || L.hint}`);
 
-  if (S.hint && S.hintOpen) { $("hintText").textContent = S.hint; $("hintBox").classList.remove("hidden"); }
-  else $("hintBox").classList.add("hidden");
-
+  renderHelpPanel();
   renderCallStatus();
   renderTranscript();
+}
+
+/* ---------- WORLD-CLASS W2: progressive in-call help ----------
+   Stage 1: quick SOS phrases (say "sorry?" without leaving the flow).
+   Stage 2: Marzi's suggested phrase for this moment.
+   Stage 3: the full answer — hear it slowly, or type instead of speaking.
+   The learner asks for each step; the full answer is never the first offer. */
+function openHelp(stage) {
+  S.helpStage = Math.max(0, Math.min(3, stage | 0));
+  renderCall();
+  return S.helpStage;
+}
+function renderHelpPanel() {
+  const L = t();
+  const hs = S.helpStage || 0;
+  $("helpPanel").classList.toggle("hidden", !hs);
+  if (!hs) return;
+  $("helpTitle").textContent = L.helpTitle;
+  $("helpTip").textContent = L.helpTip;
+  $("helpCloseBtn").textContent = L.ok;
+  $("helpCloseBtn").setAttribute("aria-label", L.ok);
+  $("hintLabel").textContent = TARGET.hintLabel;
+  const hasHint = !!S.hint;
+  $("hintBox").classList.toggle("hidden", !(hs >= 2 && hasHint));
+  if (hasHint) $("hintText").textContent = S.hint;
+  $("helpFullRow").classList.toggle("hidden", hs < 3);
+  if (hs < 3) $("typeRow").classList.add("hidden");
+  $("helpPlayBtn").innerHTML = IC.speaker(ICON.sm) + " " + esc(L.helpPlaySlow);
+  $("helpPlayBtn").disabled = !hasHint;
+  $("helpMoreBtn").textContent = hs === 1 ? L.helpMorePhrase : L.helpMoreFull;
+  $("helpMoreBtn").classList.toggle("hidden", hs >= 3);
+  $("helpMoreBtn").disabled = hs === 1 && !hasHint;
+}
+/* Live text on/off: hiding is listening-only practice, never data loss — the
+   full transcript stays one tap away. Persisted with the other settings. */
+function toggleLiveText(on) {
+  S.liveText = on === undefined ? S.liveText === false : !!on;
+  saveSettings();
+  renderCall();
+  return S.liveText;
+}
+/* typing must stay reachable when the microphone fails: surface it through
+   the help panel's full stage (the panel is where typing now lives) */
+function showTypeRow() {
+  S.helpStage = 3;
+  renderCall();
+  $("typeRow").classList.remove("hidden");
 }
 
 /* transcript lives in the sheet; S.turns stays render-only state */
@@ -7104,7 +7302,7 @@ function renderDialog() {
        <div class="v-de" style="font-size:21px">${esc(step.ansXl[S.lang] || step.ansXl.en)}</div>
        ${DG.revealed ? `<div class="v-tr">${esc(step.ans)}</div>` : ""}
      </div>
-     ${stuck && !DG.revealed ? `<div class="hint"><div class="label">VORSCHLAG</div>${esc(step.hint)}</div>` : ""}
+     ${stuck && !DG.revealed ? `<div class="hint"><div class="label">${esc(TARGET.hintLabel)}</div>${esc(step.hint)}</div>` : ""}
      ${verdictHTML(DG, L)}
      <div class="row">
        ${stuck && !DG.revealed ? `<button class="ghost" data-dg="reveal">${esc(L.reveal)}</button>` : ""}
@@ -7129,9 +7327,14 @@ function renderDialog() {
 }
 
 /* ---------- wiring ---------- */
-function startConversation() {
+function startConversation(retry) {
   const REAL = SCENARIOS.filter((x) => x.goals);
-  if (S.scenario.id === "custom") {
+  // W2: "Call again" retries the SAME situation with the SAME goal — the
+  // learner is closing a loop, not spinning the wheel again.
+  const keepGoal = retry && S.active && S.currentGoal ? S.currentGoal : null;
+  if (retry && S.active) {
+    // keep S.active exactly as it was (matters for random/custom retries)
+  } else if (S.scenario.id === "custom") {
     const topic = ($("customTopic").value || "").trim();
     if (!topic) { $("customTopic").focus(); return; }
     S.customTopic = topic; saveSettings();
@@ -7144,10 +7347,10 @@ function startConversation() {
   } else {
     S.active = S.scenario;
   }
-  S.turns = []; S.hint = null; S.hintOpen = false; S.seconds = 0; S.handsFree = true; S.speaker = 1;
+  S.turns = []; S.hint = null; S.helpStage = 0; S.seconds = 0; S.handsFree = true; S.speaker = 1;
   S.callId = newRewardId(); // each call claims its reward under a fresh id
   const g = S.active.goals;
-  S.currentGoal = g[Math.floor(Math.random() * g.length)];
+  S.currentGoal = keepGoal && g.includes(keepGoal) ? keepGoal : g[Math.floor(Math.random() * g.length)];
   // the session's transcript is the canonical prompt history for this call
   S.session = createConversationSession({
     scenario: S.active, level: S.level, lang: S.lang,
@@ -7450,8 +7653,16 @@ function endCall() {
   try { S.rec && S.rec.abort(); } catch (e) {}
   const L = t();
   $("doneTitle").textContent = (S.active || S.scenario).kind === "face" ? L.endedTalk : L.ended;
-  $("againBtn").textContent = L.again;
+  $("againBtn").textContent = L.callAgain;
   const fixes = S.turns.filter((x) => x.me && x.fix);
+  // W2: close the loop — drill exactly what went wrong on THIS call
+  const drillable = fixes.filter((x) => x.corrected);
+  $("retryMistakesBtn").innerHTML = IC.target(ICON.sm) + " " + esc(L.retryMistakes);
+  $("retryMistakesBtn").classList.toggle("hidden", !drillable.length);
+  $("retryMistakesBtn").onclick = () => {
+    stopAudio(); speechSynthesis.cancel();
+    startDrill(drillable.map((x) => x.text));
+  };
   $("review").innerHTML = `<div class="label" style="margin:0">${esc(L.review)} · ${mmss()}</div>` +
     (fixes.length ? fixes.map((x, i) => `<div style="margin-top:14px"><div class="said">${esc(x.text)}</div><div class="fix">${esc(x.fix)}</div>${x.corrected ? `<div style="margin-top:4px"><button class="mini" data-sayr="${i}">&#9654; ${L.sayIt}</button></div>` : ""}</div>`).join("")
                   : '<p class="note">—</p>');
@@ -7479,7 +7690,14 @@ function endCall() {
   evaluateCall();
 }
 
-$("againBtn").onclick = () => { stopAudio(); speechSynthesis.cancel(); showTab("talk"); };
+/* W2: "Call again" repeats the same situation with the same goal, through the
+   same gates (offline, daily plan) the normal call button uses. */
+$("againBtn").onclick = () => {
+  stopAudio(); speechSynthesis.cancel();
+  if (isOffline()) { renderNetBanner(); showOffline(); return; }
+  if (planUsedToday() >= planLimitToday()) { showLimit(); return; }
+  startConversation(true);
+};
 function openDrawer() { $("drawer").classList.add("open"); $("drawerBack").classList.remove("hidden"); }
 function closeDrawer() { $("drawer").classList.remove("open"); $("drawerBack").classList.add("hidden"); }
 $("seeAllBtn").onclick = openDrawer;
@@ -7561,6 +7779,7 @@ document.addEventListener("keydown", (e) => {
   if (overlayTrapKeydown(e)) return;
   if (e.key !== "Escape") return;
   if (sheetOpen()) closeCallSheet();
+  else if (S.helpStage) openHelp(0);
   else if (offlineScreenOpen()) closeOffline();
   else if (premiumScreenOpen()) closePremiumScreen();
   else if (planScreenOpen()) closePlanScreen();
@@ -7615,8 +7834,14 @@ $("freeBtn").onclick = () => { S.handsFree = !S.handsFree; renderCall(); };
 $("repeatBtn").onclick = () => {
   for (let i = S.turns.length - 1; i >= 0; i--) if (!S.turns[i].me) { speak(S.turns[i].text, true, null, S.turns[i].sp); break; }
 };
-$("hintBtn").onclick = () => { S.hintOpen = !S.hintOpen; renderCall(); };
-$("vcBubble").onclick = () => { S.hintOpen = true; renderCall(); };
+/* W2: Marzi's bubble deep-links into help at the phrase stage; the pills own
+   the panel's lifecycle. */
+$("vcBubble").onclick = () => openHelp(2);
+$("helpBtn").onclick = () => openHelp(S.helpStage ? 0 : 1);
+$("helpCloseBtn").onclick = () => openHelp(0);
+$("helpMoreBtn").onclick = () => openHelp((S.helpStage || 1) + 1);
+$("helpPlayBtn").onclick = () => { if (S.hint) speak(S.hint, true); };
+$("textBtn").onclick = () => toggleLiveText(S.liveText === false);
 $("typeBtn").onclick = () => $("typeRow").classList.toggle("hidden");
 $("sendBtn").onclick = () => send($("draft").value);
 $("customTopic").oninput = (e) => { S.customTopic = e.target.value; };

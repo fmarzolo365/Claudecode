@@ -137,6 +137,10 @@ function ttsRequestBody(text, voice, pace, char, lang) {
       slow: `Speak VERY slowly and extra clearly, like a warm, patient native ${nat} speaker talking to a beginner: unhurried, clearly articulated, with small natural pauses between phrases. Keep the intonation lively and human - slow must never mean flat or robotic.`,
       fast: `Speak briskly, like a busy native ${nat} employee in a hurry - quick natural conversational pace, but still clearly articulated.`,
       normal: "Speak at a relaxed natural conversational pace.",
+      // voice profiles (world-class Talk setup): each is a genuinely different
+      // delivery asked from the model, never the same audio resampled
+      clear: `Speak at a normal, unhurried conversational tempo with EXTRA-CAREFUL articulation: every ending and consonant cluster clearly pronounced, tiny pauses at phrase boundaries, pedagogically clean but still warm and human - a patient native ${nat} teacher, never robotic.`,
+      real: `Speak like a real native ${nat} speaker in everyday life: full conversational speed, natural reductions and contractions, casual fillers where natural, lively real-world prosody. Do not slow down or over-articulate - this is how people actually sound on the phone.`,
     };
     const cleanChar = typeof char === "string" ? char.replace(/[^a-z0-9]/g, "") : "";
     const persona = AVATARS[cleanChar]
