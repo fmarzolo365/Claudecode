@@ -135,7 +135,7 @@ src += `\n;globalThis.__t = { T, TARGET, TARGETS, LEVELS, LEVEL_ORDER, SCENARIOS
   weeklyActivity, recentActivity, renderRecommended, renderRecentActivity, renderJourneyPreview,
   journeyPreview, hasBrandMarkAsset, __registerBrandMark, BRAND_MARK_ASSET,
   SPEEDS, VOICE_PROFILES, SPEED_ORDER, openHelp, renderHelpPanel, toggleLiveText, showTypeRow, startDrill, settingsPayload,
-  OUTFIT_ART, OUTFIT_GLYPHS, MARZI_ONESHOTS, marziOneShot, SFX, renderStore, renderLearn };`;
+  OUTFIT_ART, OUTFIT_GLYPHS, MARZI_ONESHOTS, marziOneShot, SFX, renderStore, renderLearn, GOAL_SCENARIO };`;
 eval(src);
 const tt = globalThis.__t;
 
@@ -1626,6 +1626,46 @@ check("world-class W2: honest voice profiles, inline help, live text, retry loop
     throw new Error("call-again must retry through the same gates");
   if (!/keepGoal && g\.includes\(keepGoal\)/.test(src)) throw new Error("retry must keep the same goal");
   tt.S.turns = []; tt.S.hint = null; tt.S.helpStage = 0;
+});
+
+check("world-class W4: localized weekdays, goal personalization, honest glyphs, share moments", () => {
+  // the week strip speaks the learner's language — no hardcoded German initials
+  if (/const WD = \["So","Mo","Di"/.test(src)) throw new Error("weekday initials are still hardcoded German");
+  tt.S.lang = "en";
+  localStorage.setItem("marzi.stats.v1", JSON.stringify({ days: {}, xp: 400, coins: 0 }));
+  tt.renderLearn();
+  const wk = document.getElementById("heroWeek").innerHTML;
+  if (/>Di</.test(wk) || />Mi</.test(wk)) throw new Error("English UI still shows German weekday initials");
+  // every learning goal maps to a real, playable scenario
+  if (Object.keys(tt.GOAL_SCENARIO).sort().join() !== [...tt.LEARN_GOALS].sort().join())
+    throw new Error("goal->scenario map must cover exactly the learning goals");
+  for (const g of tt.LEARN_GOALS) {
+    const sc = tt.SCENARIOS.find((x) => x.id === tt.GOAL_SCENARIO[g]);
+    if (!sc || !sc.goals) throw new Error(`goal ${g} maps to a non-playable scenario`);
+  }
+  // a brand-new learner lands on Talk with their goal's situation preselected;
+  // freshness is decided BEFORE the commit writes the settings record
+  const fin = String(src.match(/function obFinish\(\)[\s\S]*?\n\}/)[0]);
+  if (!/const fresh = !hasMeaningfulUserData\(\);[\s\S]*commitOnboarding/.test(fin)) throw new Error("freshness must be decided before the commit");
+  if (!/if \(fresh\)[\s\S]*showTab\("talk"\)/.test(fin)) throw new Error("a new learner must land ready to speak");
+  if (!/showTab\("learn"\)/.test(fin)) throw new Error("a returning user must keep landing on Learn");
+  // the pair chip's arrow points at the target in the UI's reading direction
+  if (!/RTL_LANGS\.includes\(S\.lang\) \? "←" : "→"/.test(src)) throw new Error("pair arrow ignores the reading direction");
+  // dismissing the install hint is a close action, not a confirmation
+  const inst = String(src.match(/function renderInstallRec\(\)[\s\S]*?\n\}/)[0]);
+  if (!inst.includes("IC.x(") || inst.includes("IC.check(")) throw new Error("install dismiss must be an X, never a checkmark");
+  // share: one implementation, moment-specific localized text everywhere
+  if (!/async function shareMoment\(text\)/.test(src)) throw new Error("one share implementation expected");
+  for (const l of ["es", "en", "it", "tr", "ar", "uk"]) {
+    for (const k of ["shareEvolved", "shareGoal", "shareStreak"]) {
+      if (!tt.T[l][k]) throw new Error(l + " missing " + k);
+    }
+    if (!tt.T[l].shareEvolved.includes("{n}")) throw new Error(l + " shareEvolved lost its stage slot");
+    if (!tt.T[l].shareStreak.includes("{n}")) throw new Error(l + " shareStreak lost its day slot");
+  }
+  if (!/\$\("evoCelShare"\)\.onclick/.test(src)) throw new Error("evolution share moment unwired");
+  if (!/data-sharegoal/.test(src)) throw new Error("goal-hit share moment unwired");
+  if (!/streak >= 3 \? t\(\)\.shareStreak/.test(src)) throw new Error("the profile share must tell the streak story when there is one");
 });
 
 check("world-class W3: distinct catalog art, stage-journey store, try-on, motion + sound", () => {
