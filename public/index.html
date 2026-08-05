@@ -112,6 +112,8 @@
     /* Animation scale - exact shipped timings */
     --dur-xfast: .1s; --dur-snap: .2s; --dur-med: .35s; --dur-slower: 1s;
     --loop-glow: 1.3s; --loop-pulse: 1.4s; --loop-bob: 3.4s; --loop-drift: 5.2s;
+    /* W3 one-shot gesture durations */
+    --shot-quick: .7s; --shot-wave: 1.1s; --shot-nudge: .9s; --shot-cheer: 1.2s;
     /* Fine type ramp: the exact sizes shipping today. Consolidating these
        into the semantic scale changes pixels and needs board sign-off. */
     --text-f8: 8px; --text-f8-5: 8.5px; --text-f9: 9px; --text-f10: 10px;
@@ -1083,6 +1085,17 @@
   @keyframes mThink { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
   @keyframes mTalk { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.035); } }
   @keyframes mCheer { 0% { transform: scale(.9) rotate(-4deg); } 60% { transform: scale(1.06) rotate(3deg); } 100% { transform: none; } }
+  /* W3 one-shot gestures: transient, self-clearing, layered over the state
+     machine via data-oneshot only (reduce-motion kills all animation) */
+  @keyframes mGreet { 0%, 100% { transform: rotate(0); } 22% { transform: rotate(-7deg) translateY(-2px); } 55% { transform: rotate(5deg); } 80% { transform: rotate(-2deg); } }
+  @keyframes mReact { 0%, 100% { transform: scale(1); } 35% { transform: scale(1.07) translateY(-3px); } 70% { transform: scale(.98); } }
+  @keyframes mPoint { 0%, 100% { transform: translateX(0) rotate(0); } 40% { transform: translateX(5%) rotate(4deg); } 75% { transform: translateX(3%) rotate(2deg); } }
+  @keyframes mCelebrate { 0%, 100% { transform: translateY(0); } 25% { transform: translateY(-9%) scale(1.05) rotate(-3deg); } 50% { transform: translateY(0); } 72% { transform: translateY(-5%) rotate(3deg); } }
+  [data-oneshot] svg, [data-oneshot] img { transform-origin: 50% 85%; }
+  [data-oneshot="greet"] svg, [data-oneshot="greet"] img { animation: mGreet var(--shot-wave) var(--ease); }
+  [data-oneshot="react"] svg, [data-oneshot="react"] img { animation: mReact var(--shot-quick) var(--ease); }
+  [data-oneshot="point"] svg, [data-oneshot="point"] img { animation: mPoint var(--shot-nudge) var(--ease); }
+  [data-oneshot="celebrate"] svg, [data-oneshot="celebrate"] img { animation: mCelebrate var(--shot-cheer) var(--ease); }
   /* ---------- MARZI-011: offline banner ---------- */
   .net-banner {
     position: sticky; top: 0; z-index: 45; display: flex; align-items: center; gap: var(--space-2);
@@ -1176,6 +1189,28 @@
   .cat-tab[data-empty="1"] { opacity: .55; }
   .cat-tab .cat-lb { max-width: 62px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .outfit-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-2); }
+  /* W3: the catalog reads as Marzi's journey — one labelled band per
+     evolution stage, with a check once that stage has been reached */
+  .store-stage-lbl { display: flex; align-items: center; gap: 6px; margin: 16px 2px 8px; }
+  .store-stage-lbl[data-reached="true"] { color: var(--primary-active); }
+  /* W3 try-on: Marzi at her earned stage beside the garment she would wear */
+  .store-tryon {
+    display: flex; align-items: flex-end; justify-content: center; gap: var(--space-2);
+    margin: 4px 0 10px;
+  }
+  .store-tryon .tryon-marzi { display: block; width: 96px; height: 96px; }
+  .store-tryon .tryon-marzi svg, .store-tryon .tryon-marzi img { width: 100%; height: 100%; display: block; }
+  .store-tryon .tryon-item { display: block; width: 64px; height: 64px; }
+  .store-tryon .tryon-item svg { width: 100%; height: 100%; display: block; }
+  /* W3: the equipped outfit, visible on the hero as a labelled chip */
+  .hero-fit {
+    display: inline-flex; align-items: center; gap: 6px; margin-top: 6px;
+    padding: 3px 10px 3px 4px; border-radius: 999px;
+    background: var(--card); border: 1px solid var(--line); box-shadow: var(--shadow-sm);
+    font: 700 var(--text-f11) var(--font-sans); color: var(--ink);
+  }
+  .hero-fit .fit-glyph { display: inline-flex; width: 22px; height: 22px; }
+  .hero-fit .fit-glyph svg { width: 100%; height: 100%; }
   .outfit-card {
     display: flex; flex-direction: column; overflow: hidden; cursor: pointer; text-align: center;
     border: 1.5px solid var(--line); border-radius: var(--radius); background: var(--card);
@@ -1900,6 +1935,9 @@
       </button>
       <div class="hero-stage" id="heroStage"></div>
       <div class="hero-stage-name" id="heroStageName"></div>
+      <!-- W3: the equipped outfit is visible ON the hero — a labelled chip
+           beside Marzi until per-outfit character art lands by filename -->
+      <div class="hero-fit hidden" id="heroFit"></div>
       <div class="xpbar"><div id="xpFill" style="width:0%"></div><span class="xp-val" id="heroXp"></span></div>
       <div class="hero-meta"><span id="heroLv"></span><span class="hero-sub" id="heroSub"></span></div>
     </div>
@@ -4138,6 +4176,9 @@ const CALL_POSE_TO_STATE = {
 const MARZI_CALL_ASSETS = Object.create(null);
 function marziCallPose(state) {
   if (CALL_POSE_STATES.includes(state)) return state;
+  // W3: "sad" maps onto two poses (limit, offline). Resolve by the actual
+  // condition instead of first-match, so offline art is used when offline.
+  if (state === "sad") { try { if (isOffline()) return "offline"; } catch (e) {} return "limit"; }
   const hit = Object.keys(CALL_POSE_TO_STATE).find((k) => CALL_POSE_TO_STATE[k] === state);
   return hit || "ready";
 }
@@ -4247,6 +4288,23 @@ function marziSVG(stage, mood) {
   }
   return `<svg viewBox="0 0 120 120" role="img" aria-label="Marzi">${body}</svg>`;
 }
+/* ---------- WORLD-CLASS W3: one-shot motion channel ----------
+   A transient gesture (greet / react / point / celebrate) layered over the
+   canonical state machine. It writes ONLY data-oneshot — data-state and the
+   MARZI-013 vocabulary stay untouched — and clears itself, so a one-shot can
+   never leave the companion stuck mid-gesture. Reduce-motion (in-app or OS)
+   disables it entirely. */
+const MARZI_ONESHOTS = ["greet", "react", "point", "celebrate"];
+function marziOneShot(el, kind) {
+  if (!el || !el.setAttribute || S.reduceMotion || !MARZI_ONESHOTS.includes(kind)) return false;
+  el.removeAttribute("data-oneshot");
+  void (el.offsetWidth); // flush styles so re-triggering the same kind restarts
+  el.setAttribute("data-oneshot", kind);
+  setTimeout(() => {
+    try { if (el.getAttribute("data-oneshot") === kind) el.removeAttribute("data-oneshot"); } catch (e) {}
+  }, 1300);
+  return true;
+}
 const MARZI_KEY = "marzi.stage.v1";
 
 /* ---------- tiny synth: jingle, coin, fanfare, German ringback ---------- */
@@ -4275,6 +4333,10 @@ const SFX = (() => {
     jingle() { if (jingled) return; jingled = true; melody([[523.25, 0, .45], [659.25, .13, .45], [783.99, .26, .45], [1046.5, .39, .85]], "triangle", .05); },
     coin() { melody([[987.77, 0, .1], [1318.5, .09, .22]], "square", .035); },
     fanfare() { melody([[523.25, 0, .16], [659.25, .13, .16], [783.99, .26, .16], [659.25, .42, .4], [783.99, .42, .4], [1046.5, .42, .55]], "triangle", .055); },
+    /* W3: a small vocabulary beyond "win": wearing something new is a light
+       two-note lift; a failed action is a soft low buzz, never a celebration */
+    equip() { melody([[659.25, 0, .12], [880, .1, .26]], "triangle", .05); },
+    error() { melody([[233.08, 0, .16], [174.61, .12, .3]], "square", .028); },
     ringStart() {
       this.ringStop(); if (!on()) return; const c = ac(); if (!c) return;
       const beep = () => { if (!on() || !ctx) return; note(ctx, 425, ctx.currentTime, 0.95, "sine", 0.04); };
@@ -4822,10 +4884,20 @@ function renderLearn() {
   const stage = marziStageForXp(xp);
   const stageName = marziNames()[stage - 1];
   $("learnHi").textContent = L.hello;
-  $("marzi").innerHTML = marziSVG(stage);
+  // W3: the hero renders through the registry-aware resolver, and carries the
+  // equipped outfit id so approved outfit-layer art can attach by filename
+  const worn = (st.equippedItemIds || [])[0] || "";
+  $("marzi").innerHTML = marziArt(stage, "neutral");
+  // data-worn, not data-outfit: the latter is the store's card selector
+  if ($("marzi").setAttribute) $("marzi").setAttribute("data-worn", worn);
+  const fit = $("heroFit");
+  fit.innerHTML = worn ? `<span class="fit-glyph">${OUTFIT_ART(worn)}</span><span>${esc(outfitName(worn))}</span>` : "";
+  fit.classList.toggle("hidden", !worn);
   // board hierarchy: Marzi, then stage number + stage name as the identity
   $("heroStage").textContent = `${L.stageWord} ${stage}`;
   $("heroStageName").textContent = stageName;
+  // a small one-shot wave the first time the home opens this session
+  if (!S.greeted) { S.greeted = true; marziOneShot($("marzi"), "greet"); }
   // the whole hero button opens the evolution showcase (clickable + keyboard)
   $("marziBtn").setAttribute("aria-label", `Marzi · ${stageName} · ${stage}/${MARZI_STAGE_COUNT} — ${L.evoTitle}`);
   $("marziBtn").onclick = () => {
@@ -4903,7 +4975,27 @@ let STORE_MSG = null;
 let STORE_CAT = "outfits";
 let STORE_PREVIEW = null;
 const CAT_ICON = { outfits: "shirt", hats: "hat", glasses: "glasses", backpacks: "bag", pants: "pants" };
-const OUTFIT_ART = (id) => IC.shirt(ICON.jumbo); // neutral silhouette until approved art lands
+/* WORLD-CLASS W3: nine distinct garment glyphs, one per catalog item, in the
+   product's flat illustration style. These are TEMPORARY canonical stand-ins
+   until the approved store art (docs/design/MARZI_ASSET_SPEC.md P3) lands by
+   filename — but each is distinct in colour, silhouette detail and motif, so
+   the catalog reads as nine real products rather than one repeated icon. */
+const OUTFIT_GLYPHS = {
+  explorer: { c: "#b9884a", d: `<rect x="24" y="31" width="7" height="8" rx="1.5" fill="#8a6534"/><rect x="33" y="31" width="7" height="8" rx="1.5" fill="#8a6534"/><circle cx="32" cy="22" r="3.4" fill="none" stroke="#f4ecd6" stroke-width="1.6"/><path d="M32 19.4 v5.2 M29.4 22 h5.2" stroke="#f4ecd6" stroke-width="1.1"/>` },
+  sporty: { c: "#d95436", d: `<path d="M28 15 h8 v39 h-8 Z" fill="#f4ecd6"/><path d="M30 34 h4 M30 40 h4" stroke="#d95436" stroke-width="2.4"/>` },
+  rainbow: { c: "#5b8fd4", d: `<path d="M21 36 q11 -9 22 0" stroke="#e5484d" stroke-width="3.2" fill="none"/><path d="M21 42 q11 -9 22 0" stroke="#f5a524" stroke-width="3.2" fill="none"/><path d="M21 48 q11 -9 22 0" stroke="#63b35c" stroke-width="3.2" fill="none"/>` },
+  classic: { c: "#6f8fae", d: `<path d="M26 15 L32 24 L38 15" fill="none" stroke="#f4ecd6" stroke-width="2.4"/><circle cx="32" cy="31" r="1.7" fill="#f4ecd6"/><circle cx="32" cy="38" r="1.7" fill="#f4ecd6"/><circle cx="32" cy="45" r="1.7" fill="#f4ecd6"/>` },
+  university: { c: "#38517d", d: `<path d="M26 15 q6 7 12 0 l0 9 q-6 5 -12 0 Z" fill="#2b3f63"/><path d="M29 25 v7 M35 25 v7" stroke="#c6d2e8" stroke-width="1.6"/><path d="M28 46 l4 -8 4 8 M29.5 43 h5" stroke="#c6d2e8" stroke-width="1.8" fill="none"/>` },
+  artistic: { c: "#8a5fa8", d: `<circle cx="27" cy="33" r="3" fill="#f5a524"/><circle cx="37" cy="43" r="2.6" fill="#63b35c"/><circle cx="35" cy="27" r="2" fill="#e5484d"/><path d="M24 47 q3 -3 6 0" stroke="#f4ecd6" stroke-width="1.7" fill="none"/>` },
+  professional: { c: "#414a57", d: `<path d="M26 15 L32 25 L38 15 L41 19 L35 29 L32 25 L29 29 L23 19 Z" fill="#f4ecd6"/><path d="M30.4 26 h3.2 l-0.8 12 -0.8 3 -0.8 -3 Z" fill="#9a2f2f"/>` },
+  adventurer: { c: "#55793f", d: `<path d="M32 15 v39" stroke="#3c5a2c" stroke-width="3"/><path d="M23 33 h6 M35 33 h6" stroke="#3c5a2c" stroke-width="2.2"/><circle cx="40" cy="46" r="4" fill="none" stroke="#d9c391" stroke-width="2"/>` },
+  graduate: { c: "#33333d", d: `<path d="M29 18 l3 34 3 -34 Z" fill="#8a2c3b"/><path d="M18 13 L32 7 L46 13 L32 19 Z" fill="#22222a"/><path d="M44 14 v6" stroke="#f5a524" stroke-width="1.8"/><circle cx="44" cy="21.5" r="1.6" fill="#f5a524"/>` },
+};
+const OUTFIT_ART = (id) => {
+  const g = OUTFIT_GLYPHS[id] || { c: "#8aa06b", d: "" };
+  return `<svg viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+    <path d="M23 10 L10 17 L14 29 L20 26 L20 54 Q20 56 22 56 L42 56 Q44 56 44 54 L44 26 L50 29 L54 17 L41 10 Q37 15 32 15 Q27 15 23 10 Z" fill="${g.c}"/>${g.d}</svg>`;
+};
 
 function renderStore() {
   const L = t();
@@ -4916,23 +5008,33 @@ function renderStore() {
     empty: !OUTFITS.some((o) => o.cat === c),
   }));
 
+  // W3: one balance, then the catalog grouped by the evolution stage that
+  // unlocks it — the store presents Marzi's journey, not a flat grid
+  const names = marziNames();
+  const stage = marziStageForXp(st.xp || 0);
+  const card = (o) => {
+    const state = outfitState(o.id, st);
+    return UI.outfitCard({
+      id: o.id, name: outfitName(o.id), price: o.price, state,
+      stageLabel: `${L.needStage} ${o.stage}`,
+      stateLabel: state === "equipped" ? L.equippedLbl : state === "owned" ? L.ownedLbl : "",
+      art: OUTFIT_ART(o.id),
+    });
+  };
   $("storeBody").innerHTML =
     `<div class="store-head">
        <span class="store-coins">${IC.coin(ICON.hero)} ${coins}</span>
-       <button class="store-x" id="storeClose" type="button" aria-label="${esc(L.back)}">${IC.list(ICON.lg)}</button>
      </div>` +
     UI.categoryTabs({ tabs, active: STORE_CAT, label: L.storeOutfits }) +
     (items.length
-      ? `<div class="outfit-grid-3">` + items.map((o) => {
-          const state = outfitState(o.id, st);
-          return UI.outfitCard({
-            id: o.id, name: outfitName(o.id), price: o.price, state,
-            stageLabel: `${L.needStage} ${o.stage}`,
-            stateLabel: state === "equipped" ? L.equippedLbl : state === "owned" ? L.ownedLbl : "",
-            art: OUTFIT_ART(o.id),
-          });
-        }).join("") + `</div>
-         <p class="store-note">${esc(L.collectAll)}</p>`
+      ? [4, 5, 6].map((sn) => {
+          const group = items.filter((o) => o.stage === sn);
+          if (!group.length) return "";
+          return `<div class="label store-stage-lbl" data-reached="${stage >= sn}">
+              <span>${esc(L.stageWord)} ${sn} · ${esc(names[sn - 1])}</span>
+              ${stage >= sn ? IC.check(ICON.xs) : ""}</div>
+            <div class="outfit-grid-3">` + group.map(card).join("") + `</div>`;
+        }).join("") + `<p class="store-note">${esc(L.collectAll)}</p>`
       : UI.emptyState({ icon: IC[CAT_ICON[STORE_CAT]](ICON.hero), title: L.comingLater, body: "" })) +
     `<div class="label" style="margin-top:18px">${esc(L.buyMinutes)}</div>
      <div class="list">` +
@@ -4957,7 +5059,6 @@ function renderStore() {
     b.onclick = () => { STORE_CAT = b.dataset.cat; renderStore(); });
   $("storeBody").querySelectorAll("[data-outfit]").forEach((b) =>
     b.onclick = () => openOutfitPreview(b.dataset.outfit));
-  $("storeClose").onclick = () => showTab("learn");
   if (STORE_MSG) announceStore(STORE_MSG);
   updateTopbar();
 }
@@ -5101,9 +5202,15 @@ function openOutfitPreview(id) {
     : state === "insufficient" ? `${L.notEnough} · ${item.price}`
     : state === "available" ? String(item.price)
     : state === "equipped" ? L.equippedLbl : L.ownedLbl;
+  // W3 try-on: Marzi herself stands beside the garment at her CURRENT earned
+  // stage, so the preview answers "how would this look on her" — honest
+  // composition of existing canonical art, never a pretend final render.
   $("storeModal").innerHTML = UI.modal({
     title: outfitName(id), labelledBy: "storeModalTitle", body,
-    actions: `<div class="store-modal-art" aria-hidden="true">${OUTFIT_ART(id)}</div>` +
+    actions: `<div class="store-tryon" aria-hidden="true">
+        <span class="tryon-marzi">${marziArt(currentMarziStage(), state === "equipped" ? "happy" : "neutral")}</span>
+        <span class="tryon-item">${OUTFIT_ART(id)}</span>
+      </div>` +
       primary + UI.buttonSecondary({ id: "storeCancel", label: L.cancelBtn, cls: "store-act" }),
   });
   $("storeModal").classList.remove("hidden");
@@ -5128,7 +5235,12 @@ function runStoreAction(res) {
                 insufficient: L.notEnough, locked: L.comingLater, already: L.ownedLbl,
                 "save-failed": L.saveFailed, "not-owned": L.notEnough }[res.code] || "";
   STORE_MSG = msg;
+  // W3: every store outcome has a distinct sound — success is never silent,
+  // and failure never celebrates
   if (res.ok && res.code === "bought") SFX.fanfare();
+  else if (res.ok && res.code === "equipped") SFX.equip();
+  else if (res.ok && res.code === "unequipped") SFX.equip();
+  else if (!res.ok) SFX.error();
   closeOutfitPreview();
   renderStore();
 }
@@ -6699,6 +6811,10 @@ function animateReward(sum) {
   const fill = $("rwXpFill");
   const val = $("rwXpVal");
   if (!fill) return;
+  // W3: a strong call earns a one-shot cheer from Marzi on the summary card
+  if (sum.state === "high" || sum.state === "evolved") {
+    try { marziOneShot($("rewardBox").querySelector(".rw-card .ui-marzi") || $("rewardBox").querySelector(".rw-top"), "celebrate"); } catch (e) {}
+  }
   if (prefersReducedMotion() || !sum.xp) {
     fill.style.width = sum.stagePct + "%";
     if (val && sum.xp) val.textContent = `+${sum.xp} XP`;

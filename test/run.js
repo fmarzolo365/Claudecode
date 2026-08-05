@@ -134,7 +134,8 @@ src += `\n;globalThis.__t = { T, TARGET, TARGETS, LEVELS, LEVEL_ORDER, SCENARIOS
   isStandalone, installRecVisible, renderInstallRec, dismissInstallRec, INSTALL_DISMISS_KEY,
   weeklyActivity, recentActivity, renderRecommended, renderRecentActivity, renderJourneyPreview,
   journeyPreview, hasBrandMarkAsset, __registerBrandMark, BRAND_MARK_ASSET,
-  SPEEDS, VOICE_PROFILES, SPEED_ORDER, openHelp, renderHelpPanel, toggleLiveText, showTypeRow, startDrill, settingsPayload };`;
+  SPEEDS, VOICE_PROFILES, SPEED_ORDER, openHelp, renderHelpPanel, toggleLiveText, showTypeRow, startDrill, settingsPayload,
+  OUTFIT_ART, OUTFIT_GLYPHS, MARZI_ONESHOTS, marziOneShot, SFX, renderStore, renderLearn };`;
 eval(src);
 const tt = globalThis.__t;
 
@@ -1627,6 +1628,59 @@ check("world-class W2: honest voice profiles, inline help, live text, retry loop
   tt.S.turns = []; tt.S.hint = null; tt.S.helpStage = 0;
 });
 
+check("world-class W3: distinct catalog art, stage-journey store, try-on, motion + sound", () => {
+  tt.S.lang = "en";
+  const L = tt.T.en;
+  // nine DISTINCT glyphs — never one repeated placeholder icon
+  const arts = tt.OUTFITS.map((o) => tt.OUTFIT_ART(o.id));
+  if (new Set(arts).size !== 9) throw new Error("outfit art must be distinct per item");
+  for (const o of tt.OUTFITS) {
+    if (!tt.OUTFIT_GLYPHS[o.id]) throw new Error("no glyph for " + o.id);
+    if (!/^<svg/.test(tt.OUTFIT_ART(o.id).trim())) throw new Error(o.id + " art is not inline SVG");
+  }
+  // the store reads as Marzi's journey: one labelled band per unlock stage,
+  // all nine cards still present, minutes secondary, no stray close control
+  localStorage.setItem("marzi.stats.v1", JSON.stringify({ days: {}, xp: 1600, coins: 1250, ownedItemIds: ["explorer"], equippedItemIds: ["explorer"] }));
+  tt.renderStore();
+  const body = document.getElementById("storeBody").innerHTML;
+  if ((body.match(/store-stage-lbl/g) || []).length !== 3) throw new Error("three stage bands expected");
+  for (const sn of [4, 5, 6]) {
+    if (!body.includes(`${L.stageWord} ${sn} · ${tt.marziNames()[sn - 1]}`)) throw new Error("stage band " + sn + " unlabelled");
+  }
+  if ((body.match(/data-outfit="/g) || []).length !== 9) throw new Error("nine cards must survive the grouping");
+  if (body.includes('id="storeClose"')) throw new Error("the stray store close control is back");
+  if (body.indexOf("data-outfit") > body.indexOf("+10 min")) throw new Error("minutes must stay secondary, after the catalog");
+  // try-on: the preview composes Marzi at her EARNED stage with the garment
+  tt.openOutfitPreview("explorer");
+  const modal = document.getElementById("storeModal").innerHTML;
+  if (!modal.includes("store-tryon")) throw new Error("preview has no try-on");
+  if (!modal.includes("tryon-marzi") || !modal.includes("tryon-item")) throw new Error("try-on must show Marzi AND the garment");
+  // feedback sounds: distinct success / equip / error voices exist and the
+  // synth stays lazy (no AudioContext until a gesture)
+  for (const fn of ["fanfare", "equip", "error", "coin"]) {
+    if (typeof tt.SFX[fn] !== "function") throw new Error("SFX." + fn + " missing");
+  }
+  if (!/else if \(res\.ok && res\.code === "equipped"\) SFX\.equip\(\)/.test(src)) throw new Error("equipping must sound");
+  if (!/else if \(!res\.ok\) SFX\.error\(\)/.test(src)) throw new Error("a failed store action must not be silent");
+  // one-shot motion channel: transient, canonical kinds only, reduce-motion off
+  if (tt.MARZI_ONESHOTS.join() !== "greet,react,point,celebrate") throw new Error("one-shot vocabulary changed");
+  const el = { attrs: {}, setAttribute(k, v) { this.attrs[k] = v; }, removeAttribute(k) { delete this.attrs[k]; },
+    getAttribute(k) { return this.attrs[k] ?? null; }, offsetWidth: 0 };
+  tt.S.reduceMotion = true;
+  if (tt.marziOneShot(el, "greet") !== false) throw new Error("one-shots must respect reduce motion");
+  tt.S.reduceMotion = false;
+  if (tt.marziOneShot(el, "nonsense") !== false) throw new Error("unknown gestures must be refused");
+  if (tt.marziOneShot(el, "greet") !== true || el.attrs["data-oneshot"] !== "greet") throw new Error("greet did not arm");
+  if (/data-state/.test(JSON.stringify(el.attrs))) throw new Error("a one-shot must never write data-state");
+  // the equipped outfit is visible on the Learn hero
+  tt.renderLearn();
+  const fit = document.getElementById("heroFit");
+  if (fit.classList.has("hidden") || !fit.innerHTML.includes(tt.outfitName("explorer"))) throw new Error("equipped outfit not visible on the hero");
+  if (document.getElementById("marzi").getAttribute && !src.includes('setAttribute("data-worn"')) throw new Error("hero must carry the outfit id for future art");
+  // sad resolves by condition, not first-match
+  if (!/if \(state === "sad"\)/.test(src)) throw new Error("sad pose must resolve by condition");
+});
+
 check("MARZI-017 brand lockup: mark before wordmark, one implementation", () => {
   const L = tt.T.en;
   tt.S.lang = "en";
@@ -2035,7 +2089,9 @@ check("MARZI-018 call poses: stable paths, empty registry, safe fallback", () =>
   if (tt.marziCallAssetPath(99, "ready") !== "/assets/marzi/call/stage-6-ready.svg") throw new Error("high stage not clamped");
   if (tt.marziCallAssetPath(5, "nonsense") !== "/assets/marzi/call/stage-5-ready.svg") throw new Error("unknown pose must fall back to ready");
   if (tt.marziCallPose("listening") !== "listening") throw new Error("pose passthrough");
-  if (tt.marziCallPose("sad") !== "limit") throw new Error("a canonical state must resolve to its pose");
+  // intent: "sad" maps to a sad-family pose, chosen by the actual condition —
+  // limit when online (the common case here), offline when the app is offline
+  if (!["limit", "offline"].includes(tt.marziCallPose("sad"))) throw new Error("a canonical state must resolve to its pose");
 
   // THE REGISTRY SHIPS EMPTY: no request is ever made for a missing file
   if (Object.keys(tt.MARZI_CALL_ASSETS).length !== 0) throw new Error("the call asset registry must ship empty");
