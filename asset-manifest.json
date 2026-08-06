@@ -1,0 +1,164 @@
+{
+  "pack": "marzi-apotheke-gold-pack-v1",
+  "baseline": {
+    "branch": "claude/marzi-gold-call-v1-freeze",
+    "commit": "e94c4d1",
+    "shellStatus": "FROZEN",
+    "stateContractReference": "marzi-doctor-wagner-state-pack-v1 @ 4ba3d15"
+  },
+  "contactId": "apotheke",
+  "backgroundFamily": "pharmacy",
+  "character": {
+    "displayName": "Adler-Apotheke",
+    "role": "pharmacist answering the phone",
+    "persona": "woman, around 40, white coat, warm and trustworthy, professional but friendly"
+  },
+  "stateAssets": {
+    "idle": {
+      "path": "public/assets/call/characters/apotheke/idle.webp",
+      "sourceMaster": "source-masters/apotheke-idle-master.svg",
+      "format": "webp",
+      "transparent": true,
+      "canvas": [
+        1600,
+        1800
+      ],
+      "objectFit": "contain",
+      "objectPosition": "50% 100%",
+      "focalPoint": {
+        "x": 0.5,
+        "y": 0.34
+      },
+      "bottomAligned": true
+    },
+    "listening": {
+      "path": "public/assets/call/characters/apotheke/listening.webp",
+      "sourceMaster": "source-masters/apotheke-listening-master.svg",
+      "format": "webp",
+      "transparent": true,
+      "canvas": [
+        1600,
+        1800
+      ],
+      "objectFit": "contain",
+      "objectPosition": "50% 100%",
+      "focalPoint": {
+        "x": 0.5,
+        "y": 0.34
+      },
+      "bottomAligned": true
+    },
+    "thinking": {
+      "path": "public/assets/call/characters/apotheke/thinking.webp",
+      "sourceMaster": "source-masters/apotheke-thinking-master.svg",
+      "format": "webp",
+      "transparent": true,
+      "canvas": [
+        1600,
+        1800
+      ],
+      "objectFit": "contain",
+      "objectPosition": "50% 100%",
+      "focalPoint": {
+        "x": 0.5,
+        "y": 0.34
+      },
+      "bottomAligned": true
+    },
+    "speaking": {
+      "path": "public/assets/call/characters/apotheke/speaking.webp",
+      "sourceMaster": "source-masters/apotheke-speaking-master.svg",
+      "format": "webp",
+      "transparent": true,
+      "canvas": [
+        1600,
+        1800
+      ],
+      "objectFit": "contain",
+      "objectPosition": "50% 100%",
+      "focalPoint": {
+        "x": 0.5,
+        "y": 0.34
+      },
+      "bottomAligned": true
+    },
+    "success": {
+      "path": "public/assets/call/characters/apotheke/success.webp",
+      "sourceMaster": "source-masters/apotheke-success-master.svg",
+      "format": "webp",
+      "transparent": true,
+      "canvas": [
+        1600,
+        1800
+      ],
+      "objectFit": "contain",
+      "objectPosition": "50% 100%",
+      "focalPoint": {
+        "x": 0.5,
+        "y": 0.34
+      },
+      "bottomAligned": true
+    }
+  },
+  "backgroundAsset": {
+    "path": "public/assets/call/backgrounds/pharmacy.webp",
+    "sourceMaster": "source-masters/pharmacy-background-master.svg",
+    "format": "webp",
+    "transparent": false,
+    "canvas": [
+      1800,
+      1000
+    ],
+    "objectFit": "cover"
+  },
+  "stateMapping": {
+    "ready": "idle",
+    "listening": "listening",
+    "processing": "thinking",
+    "speaking": "speaking",
+    "success": "success",
+    "error": "idle",
+    "disconnected": "idle"
+  },
+  "preload": {
+    "beforeStageReveal": [
+      "idle",
+      "listening"
+    ],
+    "warmImmediatelyAfterStart": [
+      "thinking",
+      "speaking",
+      "success"
+    ],
+    "decodeBeforeSwap": true
+  },
+  "transition": {
+    "normalMs": 160,
+    "rangeMs": [
+      120,
+      180
+    ],
+    "reducedMotionMs": 0,
+    "rule": "Never blank, fallback, resize, or recrop between approved states."
+  },
+  "geometryContract": {
+    "sameCanvasAllStates": [
+      1600,
+      1800
+    ],
+    "sameFocalPointAllStates": {
+      "x": 0.5,
+      "y": 0.34
+    },
+    "sameObjectFitAllStates": "contain",
+    "sameObjectPositionAllStates": "50% 100%",
+    "goldStageHeight390x844Px": 253.2
+  },
+  "artRules": [
+    "These five supplied assets are production-state inputs for the Adler-Apotheke pharmacist.",
+    "Do not redraw, regenerate, trace, recolor, or crop them differently per state.",
+    "Do not alter the frozen Gold Call shell to accommodate a state.",
+    "Use state-specific art only through registry/mapping/preload/crossfade wiring.",
+    "Do not show generated/emoji/SVG fallbacks between valid production states."
+  ]
+}

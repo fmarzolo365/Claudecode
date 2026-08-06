@@ -1,0 +1,62 @@
+{
+  "README_FIRST.md": {
+    "bytes": 2231,
+    "sha256": "5bb339cc42220580c8a8043b263b61e3ed3ae75139dcc88d4cd5c1dd2e5b379a"
+  },
+  "STATE_PACK_PREVIEW.png": {
+    "bytes": 207698,
+    "sha256": "abed3ee85ee502f574bd08c8bac7583dc02f4e9cd8d13ab6409ea286d5b8e788"
+  },
+  "asset-manifest.json": {
+    "bytes": 4283,
+    "sha256": "b66b0921f22c224bc4d006a546710a2e50ad286a46912775279b51b0f05c62a6"
+  },
+  "public/assets/call/backgrounds/pharmacy.webp": {
+    "bytes": 32180,
+    "sha256": "3f7b29dc4f0cdcca9bf3070ef2e755388fe8418a49669ad10dac62cca36c808f"
+  },
+  "public/assets/call/characters/apotheke/idle.webp": {
+    "bytes": 391042,
+    "sha256": "5d27e709f1ec420599d9cbb029dd862e2cf2fec7615c4bb884e026f025adb293"
+  },
+  "public/assets/call/characters/apotheke/listening.webp": {
+    "bytes": 187854,
+    "sha256": "a19ae3ca9a9a43adbb2f95ea660d95885ed10eb862927c3a30b60b5764d9a424"
+  },
+  "public/assets/call/characters/apotheke/speaking.webp": {
+    "bytes": 205756,
+    "sha256": "1e20754e0db4aabdb9ace270542e00bf4fa780b7075e5d0d9a43176b3289d9ce"
+  },
+  "public/assets/call/characters/apotheke/success.webp": {
+    "bytes": 381518,
+    "sha256": "da193cc72ed23d27b766d96079a3c4b54f734bd0fe804e35db4f9fa308183461"
+  },
+  "public/assets/call/characters/apotheke/thinking.webp": {
+    "bytes": 382816,
+    "sha256": "6caf6ab3f9e2a6eca33c96c8157755f830f58098b3b8c43d054c356107dbbd0f"
+  },
+  "source-masters/apotheke-idle-master.svg": {
+    "bytes": 9052,
+    "sha256": "a4988fceb5da125775956f1598b532c2dc377af02b0c02fb90fe08e386c23d54"
+  },
+  "source-masters/apotheke-listening-master.svg": {
+    "bytes": 10555,
+    "sha256": "3ffda28b34f9c1b114dad8b00e7444413e6beb810bc6531f6d78a8f9dd29d310"
+  },
+  "source-masters/apotheke-speaking-master.svg": {
+    "bytes": 12372,
+    "sha256": "954e09b910f5e811dd6912e73375093633cac575e972bf191bda81d95f3a0894"
+  },
+  "source-masters/apotheke-success-master.svg": {
+    "bytes": 9321,
+    "sha256": "e0cccccd85f9f08e020dda8be00ba5bbb17fcdac5f32e1b2d10fabbe680d0873"
+  },
+  "source-masters/apotheke-thinking-master.svg": {
+    "bytes": 9859,
+    "sha256": "9d2ab5c023ea44e2df2b1601ef062e5015cfc8e0725444cf738f59b819f8fa83"
+  },
+  "source-masters/pharmacy-background-master.svg": {
+    "bytes": 21788,
+    "sha256": "b8c7978e87648d3a741779dcab43cb179573dd48d838008dd8f0bbd906668448"
+  }
+}
