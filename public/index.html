@@ -1219,6 +1219,11 @@
      stage so the hidden dialogue space is reclaimed, breathing room stays below */
   .callscreen.text-off .call-convo { justify-content: flex-start; }
   .callscreen.text-off .call-coach { margin-top: var(--space-2); }
+  /* Text OFF + Help closed: the middle band stops stretching, so the controls
+     follow the coach row (~32px) and leftover space settles at the bottom
+     instead of forming a dead central region */
+  .callscreen.coach-flow .call-mid { flex: 0 0 auto; }
+  .callscreen.coach-flow .call-stack { padding-top: 28px; }
   /* anchored Speed popover above the pills; never covers the conversation */
   .call-pop {
     position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%);
@@ -5599,6 +5604,7 @@ function renderCall() {
   }).join("");
   $("callTurns").classList.toggle("hidden", !showText);
   $("vcAv").classList.toggle("text-off", !showText);
+  $("vcAv").classList.toggle("coach-flow", !showText && !step);
   $("callTurns").querySelectorAll("[data-ctr]").forEach((b) => b.onclick = () => {
     const x = S.turns[+b.dataset.ctr];
     if (x && x.tr) { x.open = !x.open; renderCall(); }
