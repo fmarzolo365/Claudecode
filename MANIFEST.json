@@ -1,0 +1,22 @@
+{
+  ".claude/agents/marzi-visual-director.md": {
+    "bytes": 4075,
+    "sha256": "aa3938ea085924d6a58fa0588b69365c69680e811d572fd247c335c75e2a2df0"
+  },
+  ".claude/skills/marzi-call-art-direction/SKILL.md": {
+    "bytes": 5783,
+    "sha256": "4500415a1d71932b54cb1d060a72a3444f6a542f337c032587313487e081ccb6"
+  },
+  "INSTALL_AND_RUN.md": {
+    "bytes": 1059,
+    "sha256": "4599c0b408c660573c341bc0aef125b153c80a67968320c8657dfa4a5ee71b6b"
+  },
+  "MARZI_PREMIUM_CALL_EXECUTION_PROMPT.md": {
+    "bytes": 3354,
+    "sha256": "512df98a0fc707b55fbf07bd7afa181c1a88188aec832033bcc7f74a5168c243"
+  },
+  "docs/design/MARZI_CALL_ASSET_SPEC.md": {
+    "bytes": 10692,
+    "sha256": "cffa11a6e7667417fb2fb956c95f155fa047f7f1db78905de53644020a669066"
+  }
+}
