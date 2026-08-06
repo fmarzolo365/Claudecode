@@ -763,9 +763,10 @@ checkAsync("MARZI-006 call layer: states, sheet, guards, targets", async () => {
   const idHTML = document.getElementById("callId").innerHTML;
   if (!idHTML.includes(sc.who) || !idHTML.includes("Talking with")) throw new Error("identity block");
   const ctrls = document.getElementById("callControls").innerHTML;
-  for (const id of ["micBtn", "hangBtn", "playBtn"]) if (!ctrls.includes(`id="${id}"`)) throw new Error("missing control " + id);
-  if (!/class="call-ctrl danger"/.test(ctrls)) throw new Error("hang-up must be the danger control");
-  if (!document.getElementById("sheetBtn").innerHTML.includes("Transcript")) throw new Error("sheet opener must be labelled, not icon-only");
+  if (!ctrls.includes('id="micBtn"')) throw new Error("missing mic control");
+  if (ctrls.includes('id="hangBtn"')) throw new Error("hang-up must not be a primary control - the top-left X ends the call");
+  if (!/class="call-ctrl primary wide"/.test(ctrls)) throw new Error("mic must be the wide primary control");
+  if (!document.getElementById("sheetBtn").innerHTML.includes("Text")) throw new Error("Text toggle must be labelled, not icon-only");
 
   // every call state renders icon + text, and the mic follows
   for (const [set, want] of [
@@ -826,8 +827,11 @@ checkAsync("MARZI-006 call layer: states, sheet, guards, targets", async () => {
     if (!html.includes(needle)) throw new Error("call layer missing: " + needle);
   }
   const ctrlCss = html.slice(html.indexOf("  .call-ctrl {"), html.indexOf("  .call-ctrl .call-ctrl-lb"));
-  if (!/width:\s*64px/.test(ctrlCss)) throw new Error("controls must be at least 48px (64 specified)");
-  if (!/width:\s*72px/.test(html.slice(html.indexOf("  .call-ctrl.danger"), html.indexOf("  .call-ctrl.danger:hover")))) throw new Error("hang-up size");
+  if (!/width:\s*72px/.test(ctrlCss)) throw new Error("controls must be at least 48px (72 specified)");
+  const micCss = html.slice(html.indexOf("  .call-ctrl.wide {"), html.indexOf("  .call-ctrl.wide .call-ctrl-lb"));
+  if (!/height:\s*64px/.test(micCss)) throw new Error("mic pill must be at least 48px tall (64 specified)");
+  const xCss = html.slice(html.indexOf("  .call-x::after"), html.indexOf("  .call-id {"));
+  if (!/var\(--touch-min\)/.test(xCss)) throw new Error("the X must keep the 48px touch floor");
   const pillCss = html.slice(html.indexOf("  .call-pill {"), html.indexOf("  .call-pill[aria-pressed"));
   if (!/min-height:\s*var\(--touch-min\)/.test(pillCss)) throw new Error("tool pills must meet the touch floor");
   tt.S.session = null; tt.S.turns = [];
@@ -1209,11 +1213,21 @@ check("MARZI-013 Marzi states: mapping, fallback, asset paths", () => {
     throw new Error("unknown state must fall back to neutral");
   if (tt.isMarziState("wat") || !tt.isMarziState("thinking")) throw new Error("state guard");
 
-  // every state renders, and with no approved files present it is the shipped
-  // artwork - never a request for a file that does not exist
-  if (Object.keys(tt.MARZI_ASSETS).length !== 0) throw new Error("asset registry must ship empty");
+  // production art ships only for approved slots (asset-manifest.json), and
+  // every registered entry must resolve to a real file on disk
+  for (const [slot, file] of Object.entries(tt.MARZI_ASSETS)) {
+    const rel = typeof file === "string" ? file : slot;
+    if (!fs.existsSync(path.join(__dirname, "..", "public", rel.replace(/^\//, ""))))
+      throw new Error("registered asset missing on disk: " + rel);
+  }
+  for (const st of ["listening", "thinking", "speaking"]) {
+    if (!tt.marziArt(1, st).includes("helping.webp")) throw new Error("approved stage-1 call pose not used for " + st);
+  }
+  // every unregistered slot still falls back to the shipped artwork - never a
+  // request for a file that does not exist
+  if (!tt.marziArt(1, "neutral").includes("<svg")) throw new Error("stage-1 hero slots must stay SVG");
   for (const st of tt.MARZI_STATES) {
-    for (const stage of [1, 3, 6]) {
+    for (const stage of [3, 6]) {
       const art = tt.marziArt(stage, st);
       if (!art.includes("<svg")) throw new Error(`${st}@${stage} did not fall back to the shipped artwork`);
       if (art.includes("<img")) throw new Error(`${st}@${stage} requested a file that does not exist`);

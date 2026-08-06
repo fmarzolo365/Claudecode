@@ -1170,12 +1170,18 @@
      pending the stage shows only the scene with a subtle cream treatment.
      A real load failure drops the .prod state and re-enters the old chain. */
   .call-stage.prod .call-emoji { display: none; }
-  .call-stage.prod:not(.art-ok)::after {
-    content: ""; position: absolute; inset: 0;
+  /* the veil stays subtle - the clinic remains clearly visible - and fades
+     out in ~200ms once the gold artwork has painted (reduced motion drops
+     both the pulse and the fade via the global rules) */
+  .call-stage.prod::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
     background: linear-gradient(180deg, var(--paper-3), var(--paper));
-    opacity: .55; animation: artPending var(--loop-pulse) var(--ease) infinite alternate;
+    opacity: 0; transition: opacity var(--dur-snap) var(--ease);
   }
-  @keyframes artPending { from { opacity: .4; } to { opacity: .65; } }
+  .call-stage.prod:not(.art-ok)::after {
+    opacity: .3; animation: artPending var(--loop-pulse) var(--ease) infinite alternate;
+  }
+  @keyframes artPending { from { opacity: .22; } to { opacity: .38; } }
   .call-emoji {
     position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
     font-size: var(--text-f64); opacity: .9;
@@ -1234,7 +1240,8 @@
      follow the coach row (~32px) and leftover space settles at the bottom
      instead of forming a dead central region */
   .callscreen.coach-flow .call-mid { flex: 0 0 auto; }
-  .callscreen.coach-flow .call-stack { padding-top: 28px; }
+  .callscreen.coach-flow .call-stack { padding-top: 24px; }
+  .callscreen.coach-flow .call-coach { margin-top: var(--space-1); }
   /* anchored Speed popover above the pills; never covers the conversation */
   .call-pop {
     position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%);
@@ -1350,12 +1357,13 @@
     max-width: none; font: 800 var(--text-f15-5) var(--font-sans);
     letter-spacing: .01em; line-height: 1;
   }
-  /* product-style connection/time footer */
+  /* product-style connection/time footer - product typography, no terminal
+     or debug treatment */
   .call-meta {
     display: flex; align-items: center; gap: var(--space-2); min-height: 20px;
     background: var(--card); border: 1px solid var(--line); border-radius: 999px;
     padding: 7px var(--space-4); box-shadow: var(--shadow-sm);
-    font: 700 var(--text-f11-5) 'JetBrains Mono', monospace; color: var(--ink);
+    font: 700 var(--text-f12-5) var(--font-sans); color: var(--ink);
   }
   .call-meta::before { content: ""; flex: 0 0 auto; width: 8px; height: 8px; border-radius: 50%; background: var(--primary); }
   .call-meta .low { color: var(--coin); }
@@ -2002,7 +2010,7 @@ const T = {
     ended:"LLAMADA TERMINADA", review:"Tus correcciones", again:"OTRA LLAMADA", you:"TÚ",
     help:"Ayuda", textLbl:"Texto", slow:"Despacio", replay:"Repetir",
     endCallQ:"¿Terminar esta llamada?", moreHelp:"Más ayuda", hideHelp:"Ocultar ayuda", hideTr:"Ocultar traducción",
-    speedLbl:"Velocidad", speedFluent:"Fluida", connected:"CONECTADO", inTalk:"EN PERSONA",
+    speedLbl:"Velocidad", speedFluent:"Fluida", connected:"Conectado", inTalk:"En persona",
     handsFree:"Manos libres", err:"No hay respuesta del servidor. ¿Está corriendo node server.js?",
     noMic:"Este navegador no reconoce voz. Usa Chrome.", micBlocked:"Micrófono bloqueado. Permite el acceso en el candado de la barra de direcciones.",
     noSpeech:"No se oyó nada. Habla más cerca del micrófono.", noDevice:"No se encuentra ningún micrófono.", micErr:"Error de micrófono",
@@ -2077,7 +2085,7 @@ const T = {
     ended:"CALL ENDED", review:"Your corrections", again:"ANOTHER CALL", you:"YOU",
     help:"Help", textLbl:"Text", slow:"Slow", replay:"Replay",
     endCallQ:"End this call?", moreHelp:"More help", hideHelp:"Hide help", hideTr:"Hide translation",
-    speedLbl:"Speed", speedFluent:"Fluent", connected:"CONNECTED", inTalk:"IN PERSON",
+    speedLbl:"Speed", speedFluent:"Fluent", connected:"Connected", inTalk:"In person",
     handsFree:"Hands free", err:"No answer from the server. Is node server.js running?",
     noMic:"This browser does not do speech recognition. Use Chrome.", micBlocked:"Microphone blocked. Allow access via the padlock in the address bar.",
     noSpeech:"Nothing was heard. Speak closer to the microphone.", noDevice:"No microphone found.", micErr:"Microphone error",
@@ -2155,7 +2163,7 @@ T.tr = { tagline:"Gerçek Almanca aramalar ve konuşmalar pratiği yap. Sen konu
   ended:"GÖRÜŞME BİTTİ", review:"Düzeltmelerin", again:"YENİ ARAMA", you:"SEN",
   help:"Yardım", textLbl:"Metin", slow:"Yavaş", replay:"Tekrar",
   endCallQ:"Bu görüşme bitirilsin mi?", moreHelp:"Daha fazla yardım", hideHelp:"Yardımı gizle", hideTr:"Çeviriyi gizle",
-  speedLbl:"Hız", speedFluent:"Akıcı", connected:"BAĞLANDI", inTalk:"YÜZ YÜZE",
+  speedLbl:"Hız", speedFluent:"Akıcı", connected:"Bağlandı", inTalk:"Yüz yüze",
   handsFree:"Eller serbest", err:"Sunucudan yanıt yok. node server.js çalışıyor mu?",
   noMic:"Bu tarayıcı sesi tanımıyor. Chrome kullan.", micBlocked:"Mikrofon engelli. Adres çubuğundaki kilitten izin ver.",
   noSpeech:"Ses duyulmadı. Mikrofona daha yakın konuş.", noDevice:"Mikrofon bulunamadı.", micErr:"Mikrofon hatası",
@@ -2305,7 +2313,7 @@ T.uk = { tagline:"Тренуй реальні дзвінки й розмови �
   ended:"ДЗВІНОК ЗАВЕРШЕНО", review:"Твої виправлення", again:"ЩЕ ДЗВІНОК", you:"ТИ",
   help:"Допомога", textLbl:"Текст", slow:"Повільно", replay:"Повтор",
   endCallQ:"Завершити цей дзвінок?", moreHelp:"Більше допомоги", hideHelp:"Сховати допомогу", hideTr:"Сховати переклад",
-  speedLbl:"Швидкість", speedFluent:"Вільно", connected:"З'ЄДНАНО", inTalk:"ОСОБИСТО",
+  speedLbl:"Швидкість", speedFluent:"Вільно", connected:"З'єднано", inTalk:"Особисто",
   handsFree:"Вільні руки", err:"Немає відповіді від сервера. Чи запущено node server.js?",
   noMic:"Цей браузер не розпізнає мовлення. Використовуй Chrome.", micBlocked:"Мікрофон заблоковано. Дозволь доступ через замок у рядку адреси.",
   noSpeech:"Нічого не чутно. Говори ближче до мікрофона.", noDevice:"Мікрофон не знайдено.", micErr:"Помилка мікрофона",
@@ -2381,7 +2389,7 @@ T.it = { tagline:"Allenati con telefonate e conversazioni reali in tedesco. Tu p
   ended:"CHIAMATA TERMINATA", review:"Le tue correzioni", again:"UN'ALTRA CHIAMATA", you:"TU",
   help:"Aiuto", textLbl:"Testo", slow:"Lento", replay:"Ripeti",
   endCallQ:"Terminare questa chiamata?", moreHelp:"Altro aiuto", hideHelp:"Nascondi aiuto", hideTr:"Nascondi traduzione",
-  speedLbl:"Velocità", speedFluent:"Fluente", connected:"CONNESSO", inTalk:"DI PERSONA",
+  speedLbl:"Velocità", speedFluent:"Fluente", connected:"Connesso", inTalk:"Di persona",
   handsFree:"Vivavoce", err:"Nessuna risposta dal server. node server.js è in esecuzione?",
   noMic:"Questo browser non riconosce la voce. Usa Chrome.", micBlocked:"Microfono bloccato. Consenti l'accesso dal lucchetto nella barra degli indirizzi.",
   noSpeech:"Non si è sentito nulla. Parla più vicino al microfono.", noDevice:"Nessun microfono trovato.", micErr:"Errore del microfono",
