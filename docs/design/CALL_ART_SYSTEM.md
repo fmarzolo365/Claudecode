@@ -1,6 +1,8 @@
 # MARZI Call Art System
 
-Status: shipped v1 (first production-quality vector generation)
+Status: frozen — generated vector art is FALLBACK ONLY (PO directive
+2026-08-06); final production artwork arrives externally as transparent
+PNG/WebP (Doctor Gold Pack first). No further generated variants.
 Canonical visual target: the call-screen art-direction reference board
 (warm · friendly · premium · clear · encouraging) and
 `docs/design/concept-boards/02_call.png`.
