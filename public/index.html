@@ -1141,10 +1141,11 @@
     justify-self: end; display: inline-flex; align-items: center; gap: 4px; min-height: var(--touch-min);
     font: 700 var(--text-f10) 'JetBrains Mono', monospace; color: var(--primary);
   }
-  /* the illustrated stage: gold geometry - the shallow stage is rejected */
+  /* the illustrated stage: gold geometry, stable across states — the doctor
+     must not jump in scale between Text/Help modes */
   .call-stage {
     position: relative; flex: 0 0 auto; overflow: hidden;
-    height: clamp(210px, 28dvh, 252px);
+    height: clamp(230px, 30dvh, 258px);
     margin: var(--space-2) var(--space-3) 0; border-radius: 20px;
     border: 1.5px solid var(--stage-line); box-shadow: var(--shadow);
     background: var(--paper-3) center / cover no-repeat;
@@ -1183,8 +1184,14 @@
     padding: var(--space-2) var(--space-3) var(--space-1);
   }
   .call-turns { display: flex; flex-direction: column; gap: var(--space-2); }
-  /* compact per-message actions (replay, Translation) */
+  /* compact per-message actions (replay, Translation): quiet chips, not links */
   .call-acts { display: flex; gap: 6px; margin-top: 6px; }
+  .call-acts .mini {
+    text-decoration: none; margin: 0; min-height: 30px; padding: 0 10px;
+    background: var(--card); border: 1px solid var(--line); border-radius: 999px;
+    font: 700 var(--text-f10-5) var(--font-sans); color: var(--muted);
+  }
+  .call-acts .mini[aria-expanded="true"] { color: var(--primary); border-color: var(--tint-primary-35); }
   /* progressive inline help panel, beside Marzi in the coach row */
   .call-help {
     flex: 1 1 auto; min-width: 0;
@@ -1196,10 +1203,18 @@
   .call-help .mini { align-self: center; }
   .call-help-sug { display: grid; gap: 2px; font: 600 var(--text-f13-5) var(--font-sans); color: var(--ink); }
   .call-help-sug b { font: 700 var(--text-f10-5) var(--font-sans); letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
-  /* Text OFF: the stage grows into the reclaimed space, the coach area moves
-     up beneath it — never a large dead middle */
-  .callscreen.text-off .call-stage { flex: 1 1 auto; height: auto; min-height: 210px; }
-  .callscreen.text-off .call-mid { flex: 0 1 auto; min-height: 0; }
+  /* premium coaching affordances — intentional chips, not bare links */
+  .call-help-acts { display: flex; gap: var(--space-2); justify-content: center; flex-wrap: wrap; }
+  .call-help-act {
+    min-height: 36px; padding: 0 14px; border-radius: 999px; cursor: pointer;
+    background: var(--card); color: var(--marzi-dark); border: 1px solid var(--tint-leaf-35);
+    font: 700 var(--text-f11-5) var(--font-sans); box-shadow: var(--shadow-sm);
+  }
+  /* Text OFF: the stage grows only slightly; the coach block centres in the
+     reclaimed space so there is no dead middle and no dramatic scale jump */
+  .callscreen.text-off .call-stage { height: clamp(250px, 34dvh, 300px); }
+  .callscreen.text-off .call-convo { justify-content: center; }
+  .callscreen.text-off .call-coach { margin-top: 0; }
   /* anchored Speed popover above the pills; never covers the conversation */
   .call-pop {
     position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%);
@@ -1286,6 +1301,7 @@
     background: var(--primary); border-color: var(--primary); color: var(--white);
   }
   .call-pill[disabled] { opacity: .45; cursor: not-allowed; }
+  .call-pill .call-pill-chev { font-size: var(--text-f10); opacity: .7; margin-inline-start: 1px; }
   .call-controls { display: flex; align-items: center; gap: var(--space-4); }
   .call-ctrl {
     width: 72px; height: 72px; border-radius: 50%; border: 0; cursor: pointer;
@@ -1304,13 +1320,16 @@
   .call-ctrl[data-status="processing"] { background: var(--disabled-fill); color: var(--ink); }
   .call-ctrl[data-status="failed"] { background: var(--red); }
   /* the mic is the sole dominant bottom action: a wide pill keeps the label
-     on one line, fully visible, above the safe area */
+     on one line, fully visible and vertically centred, above the safe area */
   .call-ctrl.wide {
-    width: auto; min-width: 220px; height: 64px; border-radius: 999px;
+    width: auto; min-width: 230px; height: 64px; border-radius: 999px;
     display: inline-flex; flex-direction: row; align-items: center; justify-content: center;
-    gap: 8px; padding: 0 26px;
+    gap: 10px; padding: 0 30px;
   }
-  .call-ctrl.wide .call-ctrl-lb { max-width: none; font: 800 var(--text-f13-5) var(--font-sans); }
+  .call-ctrl.wide .call-ctrl-lb {
+    max-width: none; font: 800 var(--text-f15-5) var(--font-sans);
+    letter-spacing: .01em; line-height: 1;
+  }
   /* product-style connection/time footer */
   .call-meta {
     display: flex; align-items: center; gap: var(--space-2); min-height: 20px;
@@ -1608,7 +1627,10 @@
                 <input type="text" id="draft" placeholder="Guten Tag, ich möchte…" />
                 <button class="ghost" id="sendBtn" style="flex:0 0 auto"></button>
               </div>
-              <button class="mini" id="helpMore" type="button"></button>
+              <div class="call-help-acts">
+                <button class="call-help-act" id="helpMore" type="button"></button>
+                <button class="call-help-act" id="helpHide" type="button"></button>
+              </div>
             </div>
           </div>
         </div>
@@ -1620,8 +1642,8 @@
         <div class="call-tools">
           <button class="call-pill" id="hintBtn" type="button" aria-expanded="false"></button>
           <button class="call-pill" id="sheetBtn" type="button"></button>
-          <button class="call-pill" id="speedBtn" type="button" aria-haspopup="menu" aria-expanded="false"></button>
           <button class="call-pill" id="playBtn" type="button"></button>
+          <button class="call-pill" id="speedBtn" type="button" aria-haspopup="menu" aria-expanded="false"></button>
           <button class="call-pill hidden" id="freeBtn" type="button"></button>
         </div>
         <div class="call-controls" id="callControls"></div>
@@ -1959,7 +1981,8 @@ const T = {
     hint:"¿Qué puedo decir?", type:"Escribir en vez de hablar", send:"Enviar", show:"Traducción",
     ended:"LLAMADA TERMINADA", review:"Tus correcciones", again:"OTRA LLAMADA", you:"TÚ",
     help:"Ayuda", textLbl:"Texto", slow:"Despacio", replay:"Repetir",
-    endCallQ:"¿Terminar esta llamada?", moreHelp:"Más ayuda",
+    endCallQ:"¿Terminar esta llamada?", moreHelp:"Más ayuda", hideHelp:"Ocultar ayuda",
+    speedLbl:"Velocidad", speedFluent:"Fluida", connected:"CONECTADO", inTalk:"EN PERSONA",
     handsFree:"Manos libres", err:"No hay respuesta del servidor. ¿Está corriendo node server.js?",
     noMic:"Este navegador no reconoce voz. Usa Chrome.", micBlocked:"Micrófono bloqueado. Permite el acceso en el candado de la barra de direcciones.",
     noSpeech:"No se oyó nada. Habla más cerca del micrófono.", noDevice:"No se encuentra ningún micrófono.", micErr:"Error de micrófono",
@@ -2033,7 +2056,8 @@ const T = {
     hint:"What can I say?", type:"Type instead of speaking", send:"Send", show:"Translation",
     ended:"CALL ENDED", review:"Your corrections", again:"ANOTHER CALL", you:"YOU",
     help:"Help", textLbl:"Text", slow:"Slow", replay:"Replay",
-    endCallQ:"End this call?", moreHelp:"More help",
+    endCallQ:"End this call?", moreHelp:"More help", hideHelp:"Hide help",
+    speedLbl:"Speed", speedFluent:"Fluent", connected:"CONNECTED", inTalk:"IN PERSON",
     handsFree:"Hands free", err:"No answer from the server. Is node server.js running?",
     noMic:"This browser does not do speech recognition. Use Chrome.", micBlocked:"Microphone blocked. Allow access via the padlock in the address bar.",
     noSpeech:"Nothing was heard. Speak closer to the microphone.", noDevice:"No microphone found.", micErr:"Microphone error",
@@ -2110,7 +2134,8 @@ T.tr = { tagline:"Gerçek Almanca aramalar ve konuşmalar pratiği yap. Sen konu
   hint:"Ne diyebilirim?", type:"Konuşmak yerine yaz", send:"Gönder", show:"Çeviri",
   ended:"GÖRÜŞME BİTTİ", review:"Düzeltmelerin", again:"YENİ ARAMA", you:"SEN",
   help:"Yardım", textLbl:"Metin", slow:"Yavaş", replay:"Tekrar",
-  endCallQ:"Bu görüşme bitirilsin mi?", moreHelp:"Daha fazla yardım",
+  endCallQ:"Bu görüşme bitirilsin mi?", moreHelp:"Daha fazla yardım", hideHelp:"Yardımı gizle",
+  speedLbl:"Hız", speedFluent:"Akıcı", connected:"BAĞLANDI", inTalk:"YÜZ YÜZE",
   handsFree:"Eller serbest", err:"Sunucudan yanıt yok. node server.js çalışıyor mu?",
   noMic:"Bu tarayıcı sesi tanımıyor. Chrome kullan.", micBlocked:"Mikrofon engelli. Adres çubuğundaki kilitten izin ver.",
   noSpeech:"Ses duyulmadı. Mikrofona daha yakın konuş.", noDevice:"Mikrofon bulunamadı.", micErr:"Mikrofon hatası",
@@ -2184,7 +2209,8 @@ T.ar = { tagline:"تدرّب على مكالمات ومحادثات حقيقية
   hint:"ماذا يمكنني أن أقول؟", type:"اكتب بدلاً من الكلام", send:"إرسال", show:"الترجمة",
   ended:"انتهت المكالمة", review:"تصحيحاتك", again:"مكالمة أخرى", you:"أنت",
   help:"مساعدة", textLbl:"نص", slow:"ببطء", replay:"إعادة",
-  endCallQ:"هل تريد إنهاء هذه المكالمة؟", moreHelp:"مزيد من المساعدة",
+  endCallQ:"هل تريد إنهاء هذه المكالمة؟", moreHelp:"مزيد من المساعدة", hideHelp:"إخفاء المساعدة",
+  speedLbl:"السرعة", speedFluent:"بطلاقة", connected:"متصل", inTalk:"وجهاً لوجه",
   handsFree:"دون استخدام اليدين", err:"لا يوجد رد من الخادم. هل node server.js يعمل؟",
   noMic:"هذا المتصفح لا يدعم التعرف على الصوت. استخدم Chrome.", micBlocked:"الميكروفون محظور. اسمح بالوصول من رمز القفل في شريط العنوان.",
   noSpeech:"لم يُسمع شيء. تكلّم أقرب إلى الميكروفون.", noDevice:"لم يتم العثور على ميكروفون.", micErr:"خطأ في الميكروفون",
@@ -2258,7 +2284,8 @@ T.uk = { tagline:"Тренуй реальні дзвінки й розмови �
   hint:"Що можна сказати?", type:"Писати замість говорити", send:"Надіслати", show:"Переклад",
   ended:"ДЗВІНОК ЗАВЕРШЕНО", review:"Твої виправлення", again:"ЩЕ ДЗВІНОК", you:"ТИ",
   help:"Допомога", textLbl:"Текст", slow:"Повільно", replay:"Повтор",
-  endCallQ:"Завершити цей дзвінок?", moreHelp:"Більше допомоги",
+  endCallQ:"Завершити цей дзвінок?", moreHelp:"Більше допомоги", hideHelp:"Сховати допомогу",
+  speedLbl:"Швидкість", speedFluent:"Вільно", connected:"З'ЄДНАНО", inTalk:"ОСОБИСТО",
   handsFree:"Вільні руки", err:"Немає відповіді від сервера. Чи запущено node server.js?",
   noMic:"Цей браузер не розпізнає мовлення. Використовуй Chrome.", micBlocked:"Мікрофон заблоковано. Дозволь доступ через замок у рядку адреси.",
   noSpeech:"Нічого не чутно. Говори ближче до мікрофона.", noDevice:"Мікрофон не знайдено.", micErr:"Помилка мікрофона",
@@ -2333,7 +2360,8 @@ T.it = { tagline:"Allenati con telefonate e conversazioni reali in tedesco. Tu p
   hint:"Cosa posso dire?", type:"Scrivi invece di parlare", send:"Invia", show:"Traduzione",
   ended:"CHIAMATA TERMINATA", review:"Le tue correzioni", again:"UN'ALTRA CHIAMATA", you:"TU",
   help:"Aiuto", textLbl:"Testo", slow:"Lento", replay:"Ripeti",
-  endCallQ:"Terminare questa chiamata?", moreHelp:"Altro aiuto",
+  endCallQ:"Terminare questa chiamata?", moreHelp:"Altro aiuto", hideHelp:"Nascondi aiuto",
+  speedLbl:"Velocità", speedFluent:"Fluente", connected:"CONNESSO", inTalk:"DI PERSONA",
   handsFree:"Vivavoce", err:"Nessuna risposta dal server. node server.js è in esecuzione?",
   noMic:"Questo browser non riconosce la voce. Usa Chrome.", micBlocked:"Microfono bloccato. Consenti l'accesso dal lucchetto nella barra degli indirizzi.",
   noSpeech:"Non si è sentito nulla. Parla più vicino al microfono.", noDevice:"Nessun microfono trovato.", micErr:"Errore del microfono",
@@ -2761,7 +2789,7 @@ if (TARGET.code === "en") {
     ar:"إنجليزية طبيعية مع مفاجآت", uk:"Природна англійська з несподіванками" });
 }
 
-const SPEEDS = { slow:0.8, normal:1, fast:1.2 };
+const SPEEDS = { slow:0.8, normal:1, fast:1.2, fluent:1.35 };
 
 const S = { scenario:SCENARIOS[0], level:"A1", lang:"es", targetLang:TARGET.code, speed:"normal", turns:[], busy:false,
             listening:false, handsFree:true, seconds:0, timerId:null, hint:null, voice:null, rec:null,
@@ -3929,7 +3957,7 @@ function renderSetup() {
     b.onclick = () => { S.level = b.dataset.k; saveSettings(); renderSetup(); });
   $("levelNote").textContent = LEVELS[S.level][S.lang];
 
-  $("speeds").innerHTML = [["slow", L.speedSlow], ["normal", L.speedNormal], ["fast", L.speedFast]].map(([k, n]) =>
+  $("speeds").innerHTML = [["slow", L.speedSlow], ["normal", L.speedNormal], ["fast", L.speedFast], ["fluent", L.speedFluent]].map(([k, n]) =>
     `<button class="${k === S.speed ? "on" : ""}" data-k="${k}">${n}</button>`).join("");
   $("speeds").querySelectorAll("button").forEach((b) =>
     b.onclick = () => { S.speed = b.dataset.k; saveSettings(); renderSetup(); });
@@ -5386,7 +5414,10 @@ function mmss() {
 }
 function timerText() {
   const A = S.active || S.scenario;
-  return (A.kind === "face" ? TARGET.timerFace + " · " : TARGET.timerCall + " · ") + mmss();
+  const L = t();
+  // one language per footer: the connection word follows the UI language,
+  // like the "min left" part next to it (PO: no mixed-language footer)
+  return (A.kind === "face" ? L.inTalk : L.connected) + " · " + mmss();
 }
 
 /* Mic button state (review §7): visual + announced. busy wins over listening. */
@@ -5421,6 +5452,9 @@ function renderCallStatus() {
   chip.dataset.state = st;
   chip.innerHTML = callStateIcon(st) + `<span>${esc(label)}</span>`;
   chip.setAttribute("role", "status");
+  // the stage chip is informational only — with no active status it hides,
+  // so it can never read as a second speaking CTA
+  chip.classList.toggle("hidden", st === "ready");
   $("callStatusLive").textContent = label;
   const mic = $("micBtn");
   if (mic) {
@@ -5525,8 +5559,9 @@ function renderCall() {
   $("sheetBtn").innerHTML = IC.chat(ICON.sm) + `<span>${esc(L.textLbl)}</span>`;
   $("sheetBtn").setAttribute("aria-label", L.textLbl);
   $("sheetBtn").setAttribute("aria-pressed", String(showText));
-  const speedName = { slow: L.speedSlow, normal: L.speedNormal, fast: L.speedFast }[S.speed] || L.speedNormal;
-  $("speedBtn").innerHTML = IC.clock(ICON.sm) + `<span>${esc(speedName)}</span>`;
+  const speedName = { slow: L.speedSlow, normal: L.speedNormal, fast: L.speedFast, fluent: L.speedFluent }[S.speed] || L.speedNormal;
+  $("speedBtn").innerHTML = IC.clock(ICON.sm) + `<span>${esc(L.speedLbl)} · ${esc(speedName)}</span>` +
+    `<span class="call-pill-chev" aria-hidden="true">▾</span>`;
   $("speedBtn").setAttribute("aria-label", L.speed);
   $("speedBtn").setAttribute("aria-expanded", String(!!S.speedOpen));
   $("speedBtn").title = L.speed;
@@ -5545,7 +5580,7 @@ function renderCall() {
     : `<span class="call-say-av" aria-hidden="true">${esc(A.avatar || "🎧")}</span>`;
   const trBtn = (i, x) =>
     `<button class="mini" data-ctr="${i}" aria-expanded="${String(!!x.open)}">${esc(L.show)}</button>`;
-  const first = Math.max(0, S.turns.length - 4);
+  const first = Math.max(0, S.turns.length - 3);
   $("callTurns").innerHTML = S.turns.slice(first).map((x, k) => {
     const i = first + k;
     if (x.me) {
@@ -5571,7 +5606,15 @@ function renderCall() {
   });
   $("callTurns").querySelectorAll("[data-w]").forEach((b) =>
     b.onclick = () => saveWordTap(+b.dataset.ti, b.dataset.w));
+  // the first visible message must always render fully: drop whole leading
+  // bubbles until the recent exchange fits the visible column
   const convo = $("callConvo");
+  const turnsEl = $("callTurns");
+  if (showText && turnsEl.children && convo.clientHeight) {
+    while (turnsEl.children.length > 1 && convo.scrollHeight > convo.clientHeight + 2) {
+      turnsEl.removeChild(turnsEl.firstElementChild);
+    }
+  }
   convo.scrollTop = convo.scrollHeight;
 
   // Marzi stays beside the coaching content: suggestion bubble when Help is
@@ -5588,6 +5631,7 @@ function renderCall() {
   $("typeRow").classList.toggle("hidden", step < 3);
   $("helpMore").textContent = L.moreHelp;
   $("helpMore").classList.toggle("hidden", step >= 3);
+  $("helpHide").textContent = L.hideHelp;
 
   renderCallStatus();
   renderTranscript();
@@ -5598,7 +5642,7 @@ function renderSpeedPop() {
   const pop = $("speedPop");
   pop.classList.toggle("hidden", !S.speedOpen);
   if (!S.speedOpen) { pop.innerHTML = ""; return; }
-  const names = { slow: L.speedSlow, normal: L.speedNormal, fast: L.speedFast };
+  const names = { slow: L.speedSlow, normal: L.speedNormal, fast: L.speedFast, fluent: L.speedFluent };
   pop.setAttribute("aria-label", L.speed);
   pop.innerHTML = Object.keys(SPEEDS).map((k) =>
     `<button class="call-pop-it" type="button" role="menuitemradio" aria-checked="${String(k === S.speed)}" data-spd="${k}">${esc(names[k])}</button>`).join("");
@@ -6688,6 +6732,7 @@ $("sheetBtn").onclick = () => { S.showText = S.showText === false; renderCall();
 // click would reach the outside-press listener with a detached target
 $("speedBtn").onclick = (e) => { e.stopPropagation(); setSpeedOpen(!S.speedOpen); };
 $("helpMore").onclick = () => { if (S.helpStep) setHelp(Math.min(3, S.helpStep + 1)); };
+$("helpHide").onclick = () => setHelp(0);
 // the top-left X is the single visible end-call control; it uses the existing
 // graceful end path and confirms only while a call is actively in progress
 $("callMinBtn").onclick = () => {

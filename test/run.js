@@ -279,10 +279,12 @@ check("voice gender matches the portrait gender for every character", () => {
 });
 
 check("timer label switches for face-to-face scenarios", () => {
+  // the footer follows the UI language (no mixed-language footer)
+  const L = tt.T[tt.S.lang] || tt.T.en;
   tt.S.active = tt.SCENARIOS.find((x) => x.id === "nachbar");
-  if (!tt.timerText().startsWith("IM GESPRÄCH")) throw new Error(tt.timerText());
+  if (!tt.timerText().startsWith(L.inTalk)) throw new Error(tt.timerText());
   tt.S.active = tt.SCENARIOS.find((x) => x.id === "arzt");
-  if (!tt.timerText().startsWith("VERBUNDEN")) throw new Error(tt.timerText());
+  if (!tt.timerText().startsWith(L.connected)) throw new Error(tt.timerText());
 });
 
 check("system prompt: face register, in-character correction, speaker contract", () => {
