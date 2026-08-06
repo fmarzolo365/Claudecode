@@ -1165,6 +1165,17 @@
   .call-stage.prod .call-portrait { object-fit: contain; object-position: 50% 100%; }
   /* the emoji is the last fallback: never over a loaded (transparent) portrait */
   .call-portrait.ok ~ .call-emoji { display: none; }
+  /* NO-FLASH: with approved production art, "not loaded yet" is not "failed".
+     The emoji/generated stand-ins never paint; while the gold artwork is
+     pending the stage shows only the scene with a subtle cream treatment.
+     A real load failure drops the .prod state and re-enters the old chain. */
+  .call-stage.prod .call-emoji { display: none; }
+  .call-stage.prod:not(.art-ok)::after {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(180deg, var(--paper-3), var(--paper));
+    opacity: .55; animation: artPending var(--loop-pulse) var(--ease) infinite alternate;
+  }
+  @keyframes artPending { from { opacity: .4; } to { opacity: .65; } }
   .call-emoji {
     position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
     font-size: var(--text-f64); opacity: .9;
@@ -1637,6 +1648,7 @@
                 <button class="ghost" id="sendBtn" style="flex:0 0 auto"></button>
               </div>
               <div class="call-help-acts">
+                <button class="call-help-act" id="helpTrBtn" type="button" aria-expanded="false"></button>
                 <button class="call-help-act" id="helpMore" type="button"></button>
               </div>
             </div>
@@ -1986,7 +1998,7 @@ const T = {
     stageDescs:["Todo comienza con pequeñas bolitas llenas de posibilidades.","Empiezas a descubrir nuevas palabras y sonidos.","Entiendes más y formas tus primeras frases.","Ya puedes tener conversaciones básicas.","Aprendes cada día y tu alemán mejora mucho.","Dominas el alemán y puedes enseñar a otros."],
     stProcessing:"Pensando…", stSpeaking:"Hablando", stEnded:"Desconectado", stError:"Problema", playLast:"Escuchar de nuevo", contact:"Tu contacto", prepHint:"Preparación recomendada", timeLeft:"restantes",
     hangUp:"COLGAR", speak:"Pulsa y habla", listening:"Escuchando…", repeat:"Repetir despacio",
-    hint:"¿Qué puedo decir?", type:"Escribir en vez de hablar", send:"Enviar", show:"Traducción",
+    hint:"¿Qué puedo decir?", type:"Escribir en vez de hablar", send:"Enviar", show:"Traducir",
     ended:"LLAMADA TERMINADA", review:"Tus correcciones", again:"OTRA LLAMADA", you:"TÚ",
     help:"Ayuda", textLbl:"Texto", slow:"Despacio", replay:"Repetir",
     endCallQ:"¿Terminar esta llamada?", moreHelp:"Más ayuda", hideHelp:"Ocultar ayuda", hideTr:"Ocultar traducción",
@@ -2061,7 +2073,7 @@ const T = {
     stageDescs:["It all starts with tiny eggs full of possibilities.","You begin to discover new words and sounds.","You understand more and form your first sentences.","You can already have basic conversations.","You learn every day and your German improves a lot.","You have mastered German and can teach others."],
     stProcessing:"Thinking…", stSpeaking:"Speaking", stEnded:"Disconnected", stError:"Problem", playLast:"Play again", contact:"Your contact", prepHint:"Preparation recommended", timeLeft:"left",
     hangUp:"HANG UP", speak:"Tap to speak", listening:"Listening…", repeat:"Repeat slowly",
-    hint:"What can I say?", type:"Type instead of speaking", send:"Send", show:"Translation",
+    hint:"What can I say?", type:"Type instead of speaking", send:"Send", show:"Translate",
     ended:"CALL ENDED", review:"Your corrections", again:"ANOTHER CALL", you:"YOU",
     help:"Help", textLbl:"Text", slow:"Slow", replay:"Replay",
     endCallQ:"End this call?", moreHelp:"More help", hideHelp:"Hide help", hideTr:"Hide translation",
@@ -2139,7 +2151,7 @@ T.tr = { tagline:"Gerçek Almanca aramalar ve konuşmalar pratiği yap. Sen konu
   stageDescs:["Her şey olasılıklarla dolu minik yumurtalarla başlar.","Yeni kelimeler ve sesler keşfetmeye başlıyorsun.","Daha çok anlıyor ve ilk cümlelerini kuruyorsun.","Artık temel sohbetler yapabiliyorsun.","Her gün öğreniyorsun ve Almancan çok gelişiyor.","Almancaya hâkimsin ve başkalarına öğretebilirsin."],
   stProcessing:"Düşünüyor…", stSpeaking:"Konuşuyor", stEnded:"Bağlantı kesildi", stError:"Sorun", playLast:"Tekrar dinle", contact:"Görüşeceğin kişi", prepHint:"Hazırlık önerilir", timeLeft:"kaldı",
   hangUp:"KAPAT", speak:"Bas ve konuş", listening:"Dinliyor…", repeat:"Yavaş tekrarla",
-  hint:"Ne diyebilirim?", type:"Konuşmak yerine yaz", send:"Gönder", show:"Çeviri",
+  hint:"Ne diyebilirim?", type:"Konuşmak yerine yaz", send:"Gönder", show:"Çevir",
   ended:"GÖRÜŞME BİTTİ", review:"Düzeltmelerin", again:"YENİ ARAMA", you:"SEN",
   help:"Yardım", textLbl:"Metin", slow:"Yavaş", replay:"Tekrar",
   endCallQ:"Bu görüşme bitirilsin mi?", moreHelp:"Daha fazla yardım", hideHelp:"Yardımı gizle", hideTr:"Çeviriyi gizle",
@@ -2214,7 +2226,7 @@ T.ar = { tagline:"تدرّب على مكالمات ومحادثات حقيقية
   stageDescs:["كل شيء يبدأ ببويضات صغيرة مليئة بالإمكانات.","تبدأ باكتشاف كلمات وأصوات جديدة.","تفهم أكثر وتكوّن جملك الأولى.","يمكنك إجراء محادثات أساسية.","تتعلم كل يوم وتتحسن لغتك الألمانية كثيرًا.","أتقنت الألمانية ويمكنك تعليمها للآخرين."],
   stProcessing:"يفكّر…", stSpeaking:"يتحدث", stEnded:"انقطع الاتصال", stError:"مشكلة", playLast:"استمع مرة أخرى", contact:"من ستتحدث معه", prepHint:"يُنصح بالتحضير", timeLeft:"متبقّية",
   hangUp:"إنهاء", speak:"اضغط وتكلّم", listening:"يستمع…", repeat:"إعادة ببطء",
-  hint:"ماذا يمكنني أن أقول؟", type:"اكتب بدلاً من الكلام", send:"إرسال", show:"الترجمة",
+  hint:"ماذا يمكنني أن أقول؟", type:"اكتب بدلاً من الكلام", send:"إرسال", show:"ترجم",
   ended:"انتهت المكالمة", review:"تصحيحاتك", again:"مكالمة أخرى", you:"أنت",
   help:"مساعدة", textLbl:"نص", slow:"ببطء", replay:"إعادة",
   endCallQ:"هل تريد إنهاء هذه المكالمة؟", moreHelp:"مزيد من المساعدة", hideHelp:"إخفاء المساعدة", hideTr:"إخفاء الترجمة",
@@ -2289,7 +2301,7 @@ T.uk = { tagline:"Тренуй реальні дзвінки й розмови �
   stageDescs:["Усе починається з крихітних ікринок, повних можливостей.","Ти починаєш відкривати нові слова та звуки.","Ти розумієш більше й складаєш перші речення.","Ти вже можеш вести прості розмови.","Ти вчишся щодня, і твоя німецька значно кращає.","Ти опанував німецьку й можеш навчати інших."],
   stProcessing:"Думає…", stSpeaking:"Говорить", stEnded:"Роз'єднано", stError:"Проблема", playLast:"Прослухати ще раз", contact:"Твій співрозмовник", prepHint:"Радимо підготуватися", timeLeft:"залишилось",
   hangUp:"ПОКЛАСТИ", speak:"Натисни і говори", listening:"Слухаю…", repeat:"Повторити повільно",
-  hint:"Що можна сказати?", type:"Писати замість говорити", send:"Надіслати", show:"Переклад",
+  hint:"Що можна сказати?", type:"Писати замість говорити", send:"Надіслати", show:"Перекласти",
   ended:"ДЗВІНОК ЗАВЕРШЕНО", review:"Твої виправлення", again:"ЩЕ ДЗВІНОК", you:"ТИ",
   help:"Допомога", textLbl:"Текст", slow:"Повільно", replay:"Повтор",
   endCallQ:"Завершити цей дзвінок?", moreHelp:"Більше допомоги", hideHelp:"Сховати допомогу", hideTr:"Сховати переклад",
@@ -2365,7 +2377,7 @@ T.it = { tagline:"Allenati con telefonate e conversazioni reali in tedesco. Tu p
   stageDescs:["Tutto inizia con piccole uova piene di possibilità.","Inizi a scoprire nuove parole e suoni.","Capisci di più e formi le tue prime frasi.","Puoi già fare conversazioni di base.","Impari ogni giorno e il tuo tedesco migliora molto.","Padroneggi il tedesco e puoi insegnarlo agli altri."],
   stProcessing:"Sta pensando…", stSpeaking:"Sta parlando", stEnded:"Disconnesso", stError:"Problema", playLast:"Ascolta di nuovo", contact:"Il tuo interlocutore", prepHint:"Preparazione consigliata", timeLeft:"rimasti",
   hangUp:"RIAGGANCIA", speak:"Premi e parla", listening:"In ascolto…", repeat:"Ripeti lentamente",
-  hint:"Cosa posso dire?", type:"Scrivi invece di parlare", send:"Invia", show:"Traduzione",
+  hint:"Cosa posso dire?", type:"Scrivi invece di parlare", send:"Invia", show:"Traduci",
   ended:"CHIAMATA TERMINATA", review:"Le tue correzioni", again:"UN'ALTRA CHIAMATA", you:"TU",
   help:"Aiuto", textLbl:"Testo", slow:"Lento", replay:"Ripeti",
   endCallQ:"Terminare questa chiamata?", moreHelp:"Altro aiuto", hideHelp:"Nascondi aiuto", hideTr:"Nascondi traduzione",
@@ -3888,10 +3900,20 @@ function renderScenarioCards() {
   })).join("");
   $("scnRail").querySelectorAll("[data-scn]").forEach((b) => {
     b.onclick = () => {
-      S.scenario = SCENARIOS.find((x) => x.id === b.dataset.scn);
-      saveSettings(); renderSetup();
+      selectScenario(b.dataset.scn);
+      renderSetup();
     };
   });
+}
+/* selecting a contact resets coaching/translation state (nothing may leak
+   between characters) and warms its approved production art */
+function selectScenario(id) {
+  const sc = SCENARIOS.find((x) => x.id === id);
+  if (!sc) return;
+  S.scenario = sc;
+  S.helpStep = 0; S.helpTrOpen = false; S.hint = null; S.hintTr = null;
+  saveSettings();
+  warmCallArt(sc.id);
 }
 /* Identity of the person the learner will speak to - existing scenario data
    and the existing cartoon portrait endpoint, nothing new. */
@@ -3940,8 +3962,8 @@ function renderSetup() {
   ).join("");
   $("scenarios").querySelectorAll(".item").forEach((b) =>
     b.onclick = () => {
-      S.scenario = SCENARIOS.find((x) => x.id === b.dataset.id);
-      saveSettings(); renderSetup();
+      selectScenario(b.dataset.id);
+      renderSetup();
       if (S.scenario.id !== "custom") closeDrawer();
     });
 
@@ -5310,6 +5332,10 @@ async function ask() {
     S.speaker = p.speaker === "second" ? 2 : 1;
     S.turns.push({ me:false, text:reply.text, tr:p.translation, sp:S.speaker });
     S.hint = p.suggestion || null;
+    // optional: a provider MAY translate the suggestion; the help Translate
+    // control only appears when it does. A new suggestion collapses it.
+    S.hintTr = typeof p.suggestionTranslation === "string" ? p.suggestionTranslation : null;
+    S.helpTrOpen = false;
     S.busy = false; renderCall();
     ENGINE.get("voice").speak({ text: reply.text, slow: false, speaker: S.speaker,
       done: () => { if (S.handsFree && !p.done) listen(); } });
@@ -5333,7 +5359,7 @@ function send(text) {
   // status chip shows what is happening NOW, not what failed before
   if (S.callError) alertMsg(null);
   S.turns.push({ me:true, text:clean });
-  S.hint = null;
+  S.hint = null; S.hintTr = null; S.helpTrOpen = false;
   $("draft").value = "";
   ask();
 }
@@ -5505,7 +5531,7 @@ function callArt(id, st) {
 function renderCall() {
   const L = t();
   const A = S.active || S.scenario;
-  const showText = S.showText !== false; // Text pill: inline dialogue on/off
+  const showText = S.showText === true; // Text pill: inline dialogue, OFF by default
   // identity: kicker + name + place, centred, never truncated (board 02)
   $("callId").innerHTML = UI.callIdentity({
     kicker: L.talkingWith, name: A.who, place: A[S.lang] || A.en || A.de || "",
@@ -5524,11 +5550,14 @@ function renderCall() {
     img.dataset.src = src;
     img.dataset.retried = "";
     img.classList.remove("ok");
+    stageEl.classList.remove("art-ok"); // pending, not failed: neutral treatment
     if (src) {
-      img.onload = () => img.classList.add("ok");
+      img.onload = () => { img.classList.add("ok"); $("callStage").classList.add("art-ok"); };
       img.onerror = () => {
         img.classList.remove("ok");
-        // missing production file: drop to the generated-portrait fallback
+        $("callStage").classList.remove("art-ok");
+        // a REAL load failure of the production file: only now does the
+        // generated-portrait fallback chain take over
         if (prod && img.dataset.src === prod.src) { CALL_ART_FAILED.add(prod.src); renderCall(); return; }
         // one delayed retry: generation can take ~10s on the very first view
         if (!img.dataset.retried) {
@@ -5537,6 +5566,7 @@ function renderCall() {
         }
       };
       img.src = src;
+      if (img.complete && img.naturalWidth > 0) { img.classList.add("ok"); stageEl.classList.add("art-ok"); }
     } else img.removeAttribute("src");
   }
 
@@ -5626,16 +5656,19 @@ function renderCall() {
   }
   convo.scrollTop = convo.scrollHeight;
 
-  // Marzi stays beside the coaching content: suggestion bubble when Help is
-  // closed, the progressive help panel (which carries the suggestion) when open
-  const showSug = S.hint && !S.busy && !step;
-  $("vcBubble").innerHTML = `<bdi dir="ltr">${esc(S.hint || L.hint)}</bdi>`;
-  $("vcBubble").classList.toggle("hidden", !showSug);
-  $("vcBubble").setAttribute("aria-label", `Marzi: ${S.hint || L.hint}`);
+  // coaching appears ONLY when the learner turns Help on: Marzi stays a quiet
+  // visual companion, and no suggestion is ever shown unsolicited
+  $("vcBubble").classList.add("hidden");
 
-  // progressive inline help: 1 = suggestion, 2 = + SOS phrases, 3 = + typing
+  // progressive inline help: 1 = suggested phrase, 2 = + SOS phrases,
+  // 3 = + typing. The suggestion carries its own inline Translate toggle.
   $("helpPanel").classList.toggle("hidden", step < 1);
-  $("helpSug").innerHTML = `<b>${esc(L.hint)}</b><bdi dir="ltr">${esc(S.hint || "…")}</bdi>`;
+  const trOpen = !!(S.helpTrOpen && S.hintTr);
+  $("helpSug").innerHTML = `<b>${esc(L.hint)}</b><bdi dir="ltr">${esc(S.hint || "…")}</bdi>` +
+    (trOpen ? `<span class="call-say-tr">${esc(S.hintTr)}</span>` : "");
+  $("helpTrBtn").textContent = trOpen ? L.hideTr : L.show;
+  $("helpTrBtn").setAttribute("aria-expanded", String(trOpen));
+  $("helpTrBtn").classList.toggle("hidden", !S.hintTr);
   $("sosRow").classList.toggle("hidden", step < 2);
   $("typeRow").classList.toggle("hidden", step < 3);
   $("helpMore").textContent = L.moreHelp;
@@ -6416,9 +6449,11 @@ function startConversation() {
   } else {
     S.active = S.scenario;
   }
-  S.turns = []; S.hint = null; S.seconds = 0; S.handsFree = true; S.speaker = 1;
-  S.showText = true; // gold default: inline dialogue visible (Text ON)
-  S.helpStep = 0; S.speedOpen = false; // Help and Speed start closed
+  S.turns = []; S.hint = null; S.hintTr = null; S.seconds = 0; S.handsFree = true; S.speaker = 1;
+  // clean default call: the conversation looks like a real call until the
+  // learner explicitly asks for Text or Help
+  S.showText = false; S.helpStep = 0; S.helpTrOpen = false; S.speedOpen = false;
+  warmCallArt(S.active.id); // production art loads before the stage paints
   S.callId = newRewardId(); // each call claims its reward under a fresh id
   const g = S.active.goals;
   S.currentGoal = g[Math.floor(Math.random() * g.length)];
@@ -6558,6 +6593,14 @@ function notifyStorageFailure() {
   el.classList.remove("hidden");
 }
 
+/* warm the approved production assets so the first visible character frame
+   is already the gold artwork - never a temporary stand-in */
+function warmCallArt(id) {
+  const a = callArt(id, "ready");
+  if (!a || typeof Image === "undefined") return;
+  try { new Image().src = a.src; new Image().src = a.background; } catch (e) {}
+}
+
 function goCall() {
   // offline: refuse with a clear recovery path instead of a generic failure.
   // The banner is the channel - #alert lives inside the call screen and would
@@ -6574,8 +6617,8 @@ function goCall() {
 $("callBtn").onclick = goCall;
 function endCall() {
   if (sheetOpen()) closeCallSheet();
-  // Help and Speed reset fully when the call ends
-  S.helpStep = 0; S.speedOpen = false;
+  // Help, translations and Speed reset fully when the call ends
+  S.helpStep = 0; S.helpTrOpen = false; S.speedOpen = false;
   HELP_HISTORY = false; SPEED_HISTORY = false;
   S.handsFree = false;
   if (S.session) S.session.end(); // any pending AI reply is dropped by the engine
@@ -6734,12 +6777,21 @@ document.addEventListener("click", (e) => {
   setSpeedOpen(false);
 });
 // Text pill shows/hides the inline dialogue (product decision: no live
-// transcript sheet or modal on the call — the sheet has no live-call route)
-$("sheetBtn").onclick = () => { S.showText = S.showText === false; renderCall(); };
+// transcript sheet or modal on the call — the sheet has no live-call route).
+// Reopening Text starts every dialogue translation collapsed.
+$("sheetBtn").onclick = () => {
+  S.showText = S.showText !== true;
+  if (S.showText) S.turns.forEach((x) => { x.open = false; });
+  renderCall();
+};
+// the suggestion's own inline translation, inside the coaching card
+$("helpTrBtn").onclick = () => { S.helpTrOpen = !S.helpTrOpen; renderCall(); };
 // stopPropagation: renderCall replaces the pill's children, so the bubbled
 // click would reach the outside-press listener with a detached target
 $("speedBtn").onclick = (e) => { e.stopPropagation(); setSpeedOpen(!S.speedOpen); };
-$("helpMore").onclick = () => { if (S.helpStep) setHelp(Math.min(3, S.helpStep + 1)); };
+// More help progresses the coaching; each step starts with the translation
+// collapsed so no content leaks from the previous step
+$("helpMore").onclick = () => { if (S.helpStep) { S.helpTrOpen = false; setHelp(Math.min(3, S.helpStep + 1)); } };
 // the top-left X is the single visible end-call control; it uses the existing
 // graceful end path and confirms only while a call is actively in progress
 $("callMinBtn").onclick = () => {
@@ -6783,9 +6835,9 @@ if (TARGET.code !== "de") {
 document.querySelectorAll("[data-sos]").forEach((b) =>
   b.onclick = () => { if (!S.busy) send(b.dataset.sos); });
 $("freeBtn").onclick = () => { S.handsFree = !S.handsFree; renderCall(); };
-// Help is a true toggle: open at step 1, close from any open step
-$("hintBtn").onclick = () => setHelp(S.helpStep ? 0 : 1);
-$("vcBubble").onclick = () => { if (!S.helpStep) setHelp(1); };
+// Help is a true toggle: open at step 1, close from any open step; opening
+// and closing always starts from a collapsed help translation
+$("hintBtn").onclick = () => { S.helpTrOpen = false; setHelp(S.helpStep ? 0 : 1); };
 $("sendBtn").onclick = () => send($("draft").value);
 $("customTopic").oninput = (e) => { S.customTopic = e.target.value; };
 $("shareBtn").onclick = async () => {
