@@ -110,6 +110,7 @@ src += `\n;globalThis.__t = { T, TARGET, TARGETS, LEVELS, LEVEL_ORDER, SCENARIOS
   UI, IC, ICON, evolutionHTML, renderCallStatus,
   MARZI_STATES, marziStateForCall, marziStateForReward, isMarziState, marziArt,
   marziAssetPath, hasMarziAsset, MARZI_ASSETS, marziSVG,
+  HUB, pickCharacter, pickHubScenario, selectedHubScenario, canLaunch, recordHubResult, renderGoalCards, callArt,
   showLimit, closeLimit, limitOpen, planSnapshot, mbFromSeconds, MB_PER_MINUTE, isPremium,
   premiumPreviewState, __setPremiumPreview, openPlanScreen, closePlanScreen, planScreenOpen,
   openPremiumScreen, closePremiumScreen, premiumScreenOpen, applyLangDirection, RTL_LANGS, isOffline, renderNetBanner, notifyStorageFailure, buildRewardSummary, isHighPerformance, renderRewardSummary, animateReward, celebrateEvolution,
@@ -555,6 +556,99 @@ checkAsync("MARZI-004 integration: live call flow runs on the engine, guarded", 
   tt.S.session.end(); tt.S.session = null; tt.S.turns = [];
 });
 
+checkAsync("MARZI-006 hub: registry, selection, gating, binding, persistence", async () => {
+  const H = tt.HUB;
+  // -- registry validation: derived 1:1 from the existing playable contacts --
+  const playable = tt.SCENARIOS.filter((s) => s.goals && s.id !== "custom" && s.id !== "random");
+  if (H.characters.length !== playable.length) throw new Error(`roster ${H.characters.length} != ${playable.length}`);
+  for (const c of H.characters) {
+    for (const k of ["id", "name", "role", "portrait", "description", "difficulty", "voice", "context", "scenarioIds", "unlocked"])
+      if (c[k] === undefined) throw new Error(`character ${c.id} missing ${k}`);
+    if (!c.portrait.emoji || !c.voice.primary) throw new Error("portrait/voice config missing on " + c.id);
+    if (!c.scenarioIds.length) throw new Error("character without scenarios: " + c.id);
+    if (H.scenariosFor(c.id).length !== c.scenarioIds.length) throw new Error("scenario filter mismatch for " + c.id);
+    for (const x of H.scenariosFor(c.id)) if (x.characterId !== c.id) throw new Error("filter leaked a foreign scenario");
+  }
+  for (const x of H.scenarios) {
+    for (const k of ["id", "characterId", "title", "objective", "difficulty", "estimatedMinutes",
+                     "rewardXp", "rewardCoins", "opening", "context", "help", "timer"])
+      if (x[k] === undefined) throw new Error(`scenario ${x.id} missing ${k}`);
+    if (!H.character(x.characterId)) throw new Error("orphan scenario " + x.id);
+  }
+  // approved production art binds where it shipped; everyone else keeps the
+  // existing generated-portrait/emoji chain
+  if (!H.character("arzt").portrait.production) throw new Error("arzt production portrait not bound");
+  if (!tt.callArt("arzt", "ready")) throw new Error("call art resolver lost the production entry");
+
+  // -- character selection, scenario filtering, launch gating --
+  tt.S.session = null; tt.S.sound = false;
+  tt.pickCharacter("arzt");
+  if (tt.S.scenario.id !== "arzt" || tt.S.goalId !== null) throw new Error("selection must reset the scenario choice");
+  if (tt.canLaunch()) throw new Error("launch must stay gated until a scenario is picked");
+  tt.pickHubScenario("bank:1"); // another character's scenario: rejected
+  if (tt.S.goalId !== null) throw new Error("foreign scenario accepted");
+  tt.pickHubScenario("arzt:2");
+  if (tt.S.goalId !== "arzt:2" || !tt.canLaunch()) throw new Error("valid selection must open the launch");
+  const wantGoal = playable.find((s) => s.id === "arzt").goals[1];
+  if (tt.selectedHubScenario().context.goal !== wantGoal) throw new Error("goal binding");
+
+  // -- prompt / portrait / voice binding --
+  const sys = tt.PromptBuilder.rolePlay({ scenario: tt.S.scenario, level: "A2", lang: "en", goal: wantGoal });
+  if (!sys.includes(wantGoal)) throw new Error("selected goal does not reach the system prompt");
+  if (tt.CharacterRegistry.get("arzt", 1).voice !== H.character("arzt").voice.primary) throw new Error("voice binding");
+  if (tt.CharacterRegistry.get("arzt", 2).voice !== H.character("arzt").voice.secondary) throw new Error("handover voice binding");
+  const startSrc = String(src.match(/function startConversation\(\)[\s\S]*?\n\}/)[0]);
+  if (!/selectedHubScenario\(\)/.test(startSrc)) throw new Error("startConversation ignores the hub selection");
+
+  // -- switching characters ends the session; the late reply is dropped --
+  let lateResolve;
+  const P6 = tt.createProviderRegistry();
+  P6.register("ai", { complete: () => new Promise((r) => { lateResolve = r; }) });
+  tt.S.session = tt.createConversationSession({ scenario: tt.S.scenario, level: "A2", lang: "en", goal: wantGoal, providers: P6 }).start();
+  const pending = tt.S.session.ask();
+  const before = tt.S.session;
+  tt.pickCharacter("bank");
+  if (before.state !== "ended") throw new Error("switching characters left the session active");
+  if (tt.S.goalId !== null) throw new Error("goal must reset when the character changes");
+  lateResolve({ text: "zu spät", raw: {} });
+  if (await pending !== null) throw new Error("late AI reply not dropped after the switch");
+  if (before.transcript.list().length !== 0) throw new Error("late reply leaked into the transcript");
+
+  // -- persistence: selection and results survive storage round-trips --
+  if (JSON.parse(localStorage.getItem("marzi.settings.v1")).scenario !== "bank") throw new Error("character not persisted");
+  tt.pickCharacter("arzt"); tt.pickHubScenario("arzt:1");
+  if (JSON.parse(localStorage.getItem("marzi.settings.v1")).goalId !== "arzt:1") throw new Error("scenario not persisted");
+  if (!/typeof s\.goalId === "string"/.test(src)) throw new Error("loadSettings does not restore the selection");
+  tt.recordHubResult("arzt:1", 34, false);
+  tt.recordHubResult("arzt:1", 21, false);
+  tt.recordHubResult("arzt:1", 55, true); // abandoned: best updates, the count does not
+  const rec = tt.loadStats().hub["arzt:1"];
+  if (rec.done !== 2 || rec.bestXp !== 55) throw new Error("completion record: " + JSON.stringify(rec));
+  const norm = tt.normalizeStats(JSON.parse(localStorage.getItem("marzi.stats.v1")));
+  if (!norm.hub || norm.hub["arzt:1"].done !== 2) throw new Error("hub results lost in normalization");
+  tt.recordHubResult("nope:9", 10, false); // unknown scenario: never recorded
+  if (tt.loadStats().hub["nope:9"]) throw new Error("unknown scenario recorded");
+
+  // -- exit / re-entry: ending a call keeps the selection --
+  const endSrc = String(src.match(/function endCall\(\)[\s\S]*?\n\}/)[0]);
+  if (/S\.scenario\s*=|S\.goalId\s*=/.test(endSrc)) throw new Error("endCall must keep the character/scenario selection");
+
+  // -- roster and scenario cards render with clear selected states --
+  tt.S.lang = "en";
+  tt.renderScenarioCards();
+  const rail = document.getElementById("scnRail").innerHTML;
+  if ((rail.match(/data-scn=/g) || []).length !== playable.length + 2) throw new Error("roster must show every character (+ random/custom)");
+  if (!rail.includes("scn-meta")) throw new Error("difficulty/scenario-count meta missing");
+  if (!rail.includes("listening.webp")) throw new Error("approved production portrait missing from the roster");
+  if ((rail.match(/aria-pressed="true"/g) || []).length !== 1) throw new Error("exactly one selected character");
+  tt.renderGoalCards();
+  const goals = document.getElementById("goalList").innerHTML;
+  if ((goals.match(/data-goal=/g) || []).length !== H.scenariosFor("arzt").length) throw new Error("scenario cards");
+  if ((goals.match(/aria-pressed="true"/g) || []).length !== 1) throw new Error("exactly one selected scenario");
+  if (!goals.includes(wantGoal.slice(0, 20))) throw new Error("objective text missing from the card");
+  tt.S.session = null;
+});
+
 check("MARZI-005 practice + call UI: cards, states, bubbles, a11y", () => {
   const L = tt.T[tt.S.lang] || tt.T.en;
   // every call state resolves, and each has BOTH an icon and a text label
@@ -763,9 +857,10 @@ checkAsync("MARZI-006 call layer: states, sheet, guards, targets", async () => {
   const idHTML = document.getElementById("callId").innerHTML;
   if (!idHTML.includes(sc.who) || !idHTML.includes("Talking with")) throw new Error("identity block");
   const ctrls = document.getElementById("callControls").innerHTML;
-  for (const id of ["micBtn", "hangBtn", "playBtn"]) if (!ctrls.includes(`id="${id}"`)) throw new Error("missing control " + id);
-  if (!/class="call-ctrl danger"/.test(ctrls)) throw new Error("hang-up must be the danger control");
-  if (!document.getElementById("sheetBtn").innerHTML.includes("Transcript")) throw new Error("sheet opener must be labelled, not icon-only");
+  if (!ctrls.includes('id="micBtn"')) throw new Error("missing mic control");
+  if (ctrls.includes('id="hangBtn"')) throw new Error("hang-up must not be a primary control - the top-left X ends the call");
+  if (!/class="call-ctrl primary wide"/.test(ctrls)) throw new Error("mic must be the wide primary control");
+  if (!document.getElementById("sheetBtn").innerHTML.includes("Text")) throw new Error("Text toggle must be labelled, not icon-only");
 
   // every call state renders icon + text, and the mic follows
   for (const [set, want] of [
@@ -826,8 +921,11 @@ checkAsync("MARZI-006 call layer: states, sheet, guards, targets", async () => {
     if (!html.includes(needle)) throw new Error("call layer missing: " + needle);
   }
   const ctrlCss = html.slice(html.indexOf("  .call-ctrl {"), html.indexOf("  .call-ctrl .call-ctrl-lb"));
-  if (!/width:\s*64px/.test(ctrlCss)) throw new Error("controls must be at least 48px (64 specified)");
-  if (!/width:\s*72px/.test(html.slice(html.indexOf("  .call-ctrl.danger"), html.indexOf("  .call-ctrl.danger:hover")))) throw new Error("hang-up size");
+  if (!/width:\s*72px/.test(ctrlCss)) throw new Error("controls must be at least 48px (72 specified)");
+  const micCss = html.slice(html.indexOf("  .call-ctrl.wide {"), html.indexOf("  .call-ctrl.wide .call-ctrl-lb"));
+  if (!/height:\s*64px/.test(micCss)) throw new Error("mic pill must be at least 48px tall (64 specified)");
+  const xCss = html.slice(html.indexOf("  .call-x::after"), html.indexOf("  .call-id {"));
+  if (!/var\(--touch-min\)/.test(xCss)) throw new Error("the X must keep the 48px touch floor");
   const pillCss = html.slice(html.indexOf("  .call-pill {"), html.indexOf("  .call-pill[aria-pressed"));
   if (!/min-height:\s*var\(--touch-min\)/.test(pillCss)) throw new Error("tool pills must meet the touch floor");
   tt.S.session = null; tt.S.turns = [];
@@ -1209,11 +1307,21 @@ check("MARZI-013 Marzi states: mapping, fallback, asset paths", () => {
     throw new Error("unknown state must fall back to neutral");
   if (tt.isMarziState("wat") || !tt.isMarziState("thinking")) throw new Error("state guard");
 
-  // every state renders, and with no approved files present it is the shipped
-  // artwork - never a request for a file that does not exist
-  if (Object.keys(tt.MARZI_ASSETS).length !== 0) throw new Error("asset registry must ship empty");
+  // production art ships only for approved slots (asset-manifest.json), and
+  // every registered entry must resolve to a real file on disk
+  for (const [slot, file] of Object.entries(tt.MARZI_ASSETS)) {
+    const rel = typeof file === "string" ? file : slot;
+    if (!fs.existsSync(path.join(__dirname, "..", "public", rel.replace(/^\//, ""))))
+      throw new Error("registered asset missing on disk: " + rel);
+  }
+  for (const st of ["listening", "thinking", "speaking"]) {
+    if (!tt.marziArt(1, st).includes("helping.webp")) throw new Error("approved stage-1 call pose not used for " + st);
+  }
+  // every unregistered slot still falls back to the shipped artwork - never a
+  // request for a file that does not exist
+  if (!tt.marziArt(1, "neutral").includes("<svg")) throw new Error("stage-1 hero slots must stay SVG");
   for (const st of tt.MARZI_STATES) {
-    for (const stage of [1, 3, 6]) {
+    for (const stage of [3, 6]) {
       const art = tt.marziArt(stage, st);
       if (!art.includes("<svg")) throw new Error(`${st}@${stage} did not fall back to the shipped artwork`);
       if (art.includes("<img")) throw new Error(`${st}@${stage} requested a file that does not exist`);

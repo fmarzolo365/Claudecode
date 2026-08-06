@@ -843,6 +843,31 @@
   }
   .scn-card .scn-on { display: none; color: var(--marzi-dark); flex: 0 0 auto; }
   .scn-card[aria-pressed="true"] .scn-on { display: block; }
+  /* MARZI-006: approved production portrait thumb + difficulty/count meta */
+  .scn-card .scn-art {
+    flex: 0 0 auto; width: 34px; height: 34px; border-radius: 50%;
+    object-fit: cover; object-position: 50% 12%;
+    border: 1px solid var(--line); background: var(--paper);
+  }
+  .scn-card .scn-meta { color: var(--marzi-dark); font-weight: 700; }
+  /* MARZI-006: the selected character's scenario cards */
+  .goal-list { display: grid; gap: var(--space-2); margin-top: var(--space-2); }
+  .goal-card {
+    display: flex; gap: var(--space-2); align-items: center; text-align: start;
+    min-height: var(--touch-min); padding: 10px 12px; cursor: pointer;
+    background: var(--card); color: var(--ink); font: inherit;
+    border: 1.5px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow-sm);
+  }
+  .goal-card .goal-txt { min-width: 0; flex: 1; }
+  .goal-card b { display: block; font: 700 var(--text-f13-5) var(--font-sans); line-height: 1.3; overflow-wrap: anywhere; }
+  .goal-card .goal-meta {
+    display: inline-flex; align-items: center; gap: 3px; flex-wrap: wrap;
+    margin-top: 2px; color: var(--muted); font-size: var(--text-xs); line-height: 1.3;
+  }
+  .goal-card .goal-meta .ic { color: var(--coin); }
+  .goal-card .scn-on { display: none; color: var(--marzi-dark); flex: 0 0 auto; }
+  .goal-card[aria-pressed="true"] { border-color: var(--primary); background: var(--primary-soft); }
+  .goal-card[aria-pressed="true"] .scn-on { display: block; }
   .char-card {
     display: flex; gap: var(--space-3); align-items: center; margin-top: var(--space-2);
     padding: 10px 12px; background: var(--card); border: 1px solid var(--line);
@@ -1553,6 +1578,11 @@
     <div class="label" id="lblPick"></div>
     <div class="scn-rail" id="scnRail" role="group"></div>
     <div id="charCard"></div>
+    <!-- MARZI-006: the selected character's scenarios; the call button stays
+         disabled until one is picked -->
+    <div class="label" id="lblGoal"></div>
+    <div class="goal-list" id="goalList" role="group"></div>
+    <p class="note one hidden" id="goalNote"></p>
     <button class="picked" id="pickedCard">
       <b id="pickedTitle"></b><small id="pickedSub"></small><span class="chev">&rsaquo;</span>
     </button>
@@ -1990,6 +2020,7 @@ const T = {
     ended:"LLAMADA TERMINADA", review:"Tus correcciones", again:"OTRA LLAMADA", you:"TÚ",
     help:"Ayuda", textLbl:"Texto", slow:"Despacio", replay:"Repetir",
     endCallQ:"¿Terminar esta llamada?", moreHelp:"Más ayuda", hideHelp:"Ocultar ayuda", hideTr:"Ocultar traducción",
+    goalsLbl:"Objetivos", pickGoal:"Elige primero un objetivo", doneTimes:"hecho", lockedLbl:"Bloqueado",
     speedLbl:"Velocidad", speedFluent:"Fluida", connected:"CONECTADO", inTalk:"EN PERSONA",
     handsFree:"Manos libres", err:"No hay respuesta del servidor. ¿Está corriendo node server.js?",
     noMic:"Este navegador no reconoce voz. Usa Chrome.", micBlocked:"Micrófono bloqueado. Permite el acceso en el candado de la barra de direcciones.",
@@ -2065,6 +2096,7 @@ const T = {
     ended:"CALL ENDED", review:"Your corrections", again:"ANOTHER CALL", you:"YOU",
     help:"Help", textLbl:"Text", slow:"Slow", replay:"Replay",
     endCallQ:"End this call?", moreHelp:"More help", hideHelp:"Hide help", hideTr:"Hide translation",
+    goalsLbl:"Goals", pickGoal:"Pick a goal first", doneTimes:"done", lockedLbl:"Locked",
     speedLbl:"Speed", speedFluent:"Fluent", connected:"CONNECTED", inTalk:"IN PERSON",
     handsFree:"Hands free", err:"No answer from the server. Is node server.js running?",
     noMic:"This browser does not do speech recognition. Use Chrome.", micBlocked:"Microphone blocked. Allow access via the padlock in the address bar.",
@@ -2143,6 +2175,7 @@ T.tr = { tagline:"Gerçek Almanca aramalar ve konuşmalar pratiği yap. Sen konu
   ended:"GÖRÜŞME BİTTİ", review:"Düzeltmelerin", again:"YENİ ARAMA", you:"SEN",
   help:"Yardım", textLbl:"Metin", slow:"Yavaş", replay:"Tekrar",
   endCallQ:"Bu görüşme bitirilsin mi?", moreHelp:"Daha fazla yardım", hideHelp:"Yardımı gizle", hideTr:"Çeviriyi gizle",
+  goalsLbl:"Hedefler", pickGoal:"Önce bir hedef seç", doneTimes:"tamamlandı", lockedLbl:"Kilitli",
   speedLbl:"Hız", speedFluent:"Akıcı", connected:"BAĞLANDI", inTalk:"YÜZ YÜZE",
   handsFree:"Eller serbest", err:"Sunucudan yanıt yok. node server.js çalışıyor mu?",
   noMic:"Bu tarayıcı sesi tanımıyor. Chrome kullan.", micBlocked:"Mikrofon engelli. Adres çubuğundaki kilitten izin ver.",
@@ -2218,6 +2251,7 @@ T.ar = { tagline:"تدرّب على مكالمات ومحادثات حقيقية
   ended:"انتهت المكالمة", review:"تصحيحاتك", again:"مكالمة أخرى", you:"أنت",
   help:"مساعدة", textLbl:"نص", slow:"ببطء", replay:"إعادة",
   endCallQ:"هل تريد إنهاء هذه المكالمة؟", moreHelp:"مزيد من المساعدة", hideHelp:"إخفاء المساعدة", hideTr:"إخفاء الترجمة",
+  goalsLbl:"الأهداف", pickGoal:"اختر هدفًا أولاً", doneTimes:"تم", lockedLbl:"مقفل",
   speedLbl:"السرعة", speedFluent:"بطلاقة", connected:"متصل", inTalk:"وجهاً لوجه",
   handsFree:"دون استخدام اليدين", err:"لا يوجد رد من الخادم. هل node server.js يعمل؟",
   noMic:"هذا المتصفح لا يدعم التعرف على الصوت. استخدم Chrome.", micBlocked:"الميكروفون محظور. اسمح بالوصول من رمز القفل في شريط العنوان.",
@@ -2293,6 +2327,7 @@ T.uk = { tagline:"Тренуй реальні дзвінки й розмови �
   ended:"ДЗВІНОК ЗАВЕРШЕНО", review:"Твої виправлення", again:"ЩЕ ДЗВІНОК", you:"ТИ",
   help:"Допомога", textLbl:"Текст", slow:"Повільно", replay:"Повтор",
   endCallQ:"Завершити цей дзвінок?", moreHelp:"Більше допомоги", hideHelp:"Сховати допомогу", hideTr:"Сховати переклад",
+  goalsLbl:"Цілі", pickGoal:"Спочатку вибери ціль", doneTimes:"виконано", lockedLbl:"Заблоковано",
   speedLbl:"Швидкість", speedFluent:"Вільно", connected:"З'ЄДНАНО", inTalk:"ОСОБИСТО",
   handsFree:"Вільні руки", err:"Немає відповіді від сервера. Чи запущено node server.js?",
   noMic:"Цей браузер не розпізнає мовлення. Використовуй Chrome.", micBlocked:"Мікрофон заблоковано. Дозволь доступ через замок у рядку адреси.",
@@ -2369,6 +2404,7 @@ T.it = { tagline:"Allenati con telefonate e conversazioni reali in tedesco. Tu p
   ended:"CHIAMATA TERMINATA", review:"Le tue correzioni", again:"UN'ALTRA CHIAMATA", you:"TU",
   help:"Aiuto", textLbl:"Testo", slow:"Lento", replay:"Ripeti",
   endCallQ:"Terminare questa chiamata?", moreHelp:"Altro aiuto", hideHelp:"Nascondi aiuto", hideTr:"Nascondi traduzione",
+  goalsLbl:"Obiettivi", pickGoal:"Scegli prima un obiettivo", doneTimes:"fatto", lockedLbl:"Bloccato",
   speedLbl:"Velocità", speedFluent:"Fluente", connected:"CONNESSO", inTalk:"DI PERSONA",
   handsFree:"Vivavoce", err:"Nessuna risposta dal server. node server.js è in esecuzione?",
   noMic:"Questo browser non riconosce la voce. Usa Chrome.", micBlocked:"Microfono bloccato. Consenti l'accesso dal lucchetto nella barra degli indirizzi.",
@@ -2801,14 +2837,14 @@ const SPEEDS = { slow:0.8, normal:1, fast:1.2, fluent:1.35 };
 
 const S = { scenario:SCENARIOS[0], level:"A1", lang:"es", targetLang:TARGET.code, speed:"normal", turns:[], busy:false,
             listening:false, handsFree:true, seconds:0, timerId:null, hint:null, voice:null, rec:null,
-            currentGoal:null, wakeLock:null, active:null, customTopic:"", speaker:1,
+            currentGoal:null, wakeLock:null, active:null, customTopic:"", speaker:1, goalId:null,
             callStatus:"ready", callId:null, speaking:false, callError:false, session:null };
 
 /* ---------- settings persistence ---------- */
 const SET_KEY = "marzi.settings.v1";
 function saveSettings() {
   try {
-    localStorage.setItem(SET_KEY, JSON.stringify({ scenario:S.scenario.id, level:S.level, lang:S.lang, targetLang:S.targetLang, speed:S.speed, customTopic:S.customTopic, sound:S.sound !== false, reduceMotion:!!S.reduceMotion }));
+    localStorage.setItem(SET_KEY, JSON.stringify({ scenario:S.scenario.id, level:S.level, lang:S.lang, targetLang:S.targetLang, speed:S.speed, customTopic:S.customTopic, sound:S.sound !== false, reduceMotion:!!S.reduceMotion, goalId:S.goalId || null }));
   } catch (e) { try { notifyStorageFailure(); } catch (e2) {} }
 }
 (function loadSettings() {
@@ -2821,6 +2857,8 @@ function saveSettings() {
     if (TARGETS[s.targetLang]) S.targetLang = s.targetLang;
     if (SPEEDS[s.speed]) S.speed = s.speed;
     if (typeof s.customTopic === "string") S.customTopic = s.customTopic;
+    // last selected hub scenario; validated lazily against the registry
+    if (typeof s.goalId === "string") S.goalId = s.goalId;
     if (s.sound === false) S.sound = false;
     if (s.reduceMotion === true) S.reduceMotion = true;
     // first run: preselect the correction language from the phone's language
@@ -2884,6 +2922,7 @@ function normalizeStats(value) {
     version: 1,
     days: obj(s.days), secDays: obj(s.secDays), extraSecs: obj(s.extraSecs),
     vocabDays: obj(s.vocabDays), drillDays: obj(s.drillDays), scenariosDone: obj(s.scenariosDone),
+    hub: obj(s.hub), // MARZI-006: per-scenario completion counts and best XP
     calls: finiteNonNegative(s.calls), seconds: finiteNonNegative(s.seconds),
     xp: finiteNonNegative(s.xp), coins: finiteNonNegative(s.coins),
     ...normalizeWardrobe(idList(s.ownedItemIds), idList(s.equippedItemIds), idList(s.legacyUnknownItemIds)),
@@ -3221,11 +3260,15 @@ const UI = {
       `</div></div>`;
   },
   /* --- 8. Scenario card: a practisable situation, selectable --- */
-  scenarioCard({ scenario, selected = false, subtitle = "" } = {}) {
+  scenarioCard({ scenario, selected = false, subtitle = "", meta = "", art = "" } = {}) {
     const s = scenario || {};
+    // MARZI-006: `art` swaps the emoji for an approved production portrait,
+    // `meta` carries difficulty · scenario count (or the lock state)
     return `<button class="scn-card" type="button" data-scn="${esc(s.id)}" aria-pressed="${selected}">` +
-      `<span class="scn-emoji" aria-hidden="true">${esc(s.avatar || "🎧")}</span>` +
-      `<span class="scn-txt"><b>${esc(s.de || "")}</b><small>${esc(subtitle)}</small></span>` +
+      (art ? `<img class="scn-art" src="${esc(art)}" alt="" />`
+           : `<span class="scn-emoji" aria-hidden="true">${esc(s.avatar || "🎧")}</span>`) +
+      `<span class="scn-txt"><b>${esc(s.de || "")}</b><small>${esc(subtitle)}</small>` +
+      (meta ? `<small class="scn-meta">${esc(meta)}</small>` : "") + `</span>` +
       `<span class="scn-on" aria-hidden="true">${IC.check(ICON.md)}</span></button>`;
   },
   /* --- 9. Conversation bubble: one transcript turn --- */
@@ -3874,24 +3917,50 @@ function scenarioSubtitle(s) {
 }
 function renderScenarioCards() {
   const L = t();
-  // the selected scenario is always in the rail, even when picked from the
-  // drawer's full list - otherwise nothing would show as selected
-  const playable = SCENARIOS.filter((s) => s.goals);
-  const cards = playable.slice(0, 8);
-  if (!cards.some((s) => s.id === S.scenario.id)) {
-    const sel = playable.find((s) => s.id === S.scenario.id);
-    if (sel) cards.unshift(sel);
-  }
+  // MARZI-006: the full roster - every existing character plus the random and
+  // custom entries - as selectable cards with portrait, difficulty, scenario
+  // count and lock state. All existing content ships unlocked.
+  const cards = SCENARIOS.filter((s) => s.goals)
+    .concat(SCENARIOS.filter((s) => s.id === "random" || s.id === "custom"));
   $("scnRail").setAttribute("aria-label", L.pick);
-  $("scnRail").innerHTML = cards.map((s) => UI.scenarioCard({
-    scenario: s, selected: s.id === S.scenario.id, subtitle: scenarioSubtitle(s),
-  })).join("");
+  $("scnRail").innerHTML = cards.map((s) => {
+    const c = HUB.character(s.id);
+    const meta = c
+      ? (c.unlocked ? `${c.difficulty} · ${c.scenarioIds.length} ${L.goalsLbl.toLowerCase()}` : L.lockedLbl)
+      : "";
+    return UI.scenarioCard({
+      scenario: s, selected: s.id === S.scenario.id, subtitle: scenarioSubtitle(s),
+      meta, art: c && c.portrait.production ? c.portrait.production : "",
+    });
+  }).join("");
   $("scnRail").querySelectorAll("[data-scn]").forEach((b) => {
-    b.onclick = () => {
-      S.scenario = SCENARIOS.find((x) => x.id === b.dataset.scn);
-      saveSettings(); renderSetup();
-    };
+    b.onclick = () => { pickCharacter(b.dataset.scn); renderSetup(); };
   });
+}
+/* the selected character's scenarios: objective, difficulty, duration,
+   reward and completion state; selection gates the call launch */
+function renderGoalCards() {
+  const L = t();
+  const chr = HUB.character(S.scenario.id);
+  $("lblGoal").textContent = L.goalsLbl;
+  $("lblGoal").classList.toggle("hidden", !chr);
+  $("goalList").classList.toggle("hidden", !chr);
+  if (!chr) { $("goalList").innerHTML = ""; $("goalNote").classList.add("hidden"); return; }
+  const done = loadStats().hub || {};
+  $("goalList").innerHTML = HUB.scenariosFor(chr.id).map((x) => {
+    const d = done[x.id];
+    const bits = [x.difficulty, `~${x.estimatedMinutes} min`, `+${x.rewardCoins} ${IC.coin(ICON.xs)}`];
+    if (d && d.done) bits.push(`${d.done}× ${esc(L.doneTimes)}`);
+    return `<button class="goal-card" type="button" data-goal="${esc(x.id)}" aria-pressed="${x.id === S.goalId}">` +
+      `<span class="goal-txt"><b>${esc(x.objective)}</b>` +
+      `<small class="goal-meta">${bits.join(" · ")}</small></span>` +
+      `<span class="scn-on" aria-hidden="true">${IC.check(ICON.md)}</span></button>`;
+  }).join("");
+  $("goalList").querySelectorAll("[data-goal]").forEach((b) => {
+    b.onclick = () => { pickHubScenario(b.dataset.goal); renderSetup(); };
+  });
+  $("goalNote").textContent = L.pickGoal;
+  $("goalNote").classList.toggle("hidden", canLaunch());
 }
 /* Identity of the person the learner will speak to - existing scenario data
    and the existing cartoon portrait endpoint, nothing new. */
@@ -3924,6 +3993,7 @@ function renderSetup() {
   $("callBtn").innerHTML = S.scenario.kind === "face"
     ? IC.chat(ICON.lg) + " " + esc(L.talk)
     : IC.phone(ICON.lg) + " " + esc(L.call);
+  $("callBtn").disabled = !canLaunch(); // MARZI-006: a valid scenario gates the launch
   const lim = planLimitToday(), used = planUsedToday();
   $("allowMin").innerHTML = `${IC.clock(ICON.chip)} ${Math.max(0, Math.round((lim - used) / 60))}/${Math.round(lim / 60)} ${esc(L.minLeft)}`;
   $("allowBuy").innerHTML = `<span style="display:inline-flex;color:var(--coin)">${IC.coin(ICON.chip)}</span> ${esc(L.buyMinutes)}`;
@@ -3940,13 +4010,14 @@ function renderSetup() {
   ).join("");
   $("scenarios").querySelectorAll(".item").forEach((b) =>
     b.onclick = () => {
-      S.scenario = SCENARIOS.find((x) => x.id === b.dataset.id);
-      saveSettings(); renderSetup();
+      pickCharacter(b.dataset.id);
+      renderSetup();
       if (S.scenario.id !== "custom") closeDrawer();
     });
 
   renderScenarioCards();
   renderCharacterCard();
+  renderGoalCards();
 
   $("drawerTitle").textContent = L.pick;
   // the cards above cover the common situations; this opens the full list
@@ -6420,8 +6491,13 @@ function startConversation() {
   S.showText = true; // gold default: inline dialogue visible (Text ON)
   S.helpStep = 0; S.speedOpen = false; // Help and Speed start closed
   S.callId = newRewardId(); // each call claims its reward under a fresh id
+  // MARZI-006: the selected hub scenario binds the goal; random/custom (and a
+  // missing selection) keep the original random pick from the same goal list
   const g = S.active.goals;
-  S.currentGoal = g[Math.floor(Math.random() * g.length)];
+  const hubSel = selectedHubScenario();
+  S.currentGoal = hubSel && hubSel.characterId === S.active.id
+    ? hubSel.context.goal
+    : g[Math.floor(Math.random() * g.length)];
   // the session's transcript is the canonical prompt history for this call
   S.session = createConversationSession({
     scenario: S.active, level: S.level, lang: S.lang,
@@ -6558,6 +6634,108 @@ function notifyStorageFailure() {
   el.classList.remove("hidden");
 }
 
+/* ---------- MARZI-006: character & scenario hub ----------
+   One validated, frozen source of truth DERIVED from the existing SCENARIOS
+   data: characters are the approved contact identities; each contact's
+   existing goals become its selectable scenarios. Nothing new is invented -
+   portraits are the shipped production art / generated portraits / emoji,
+   titles reuse the localized activity strings, objectives are the canonical
+   goal texts and rewards mirror the live economy (20 coins per claimed call,
+   XP by performance via recordCall). */
+function hubDifficulty(s) { return /^dtz/.test(s.id) ? "B1" : s.kind === "face" ? "A1" : "A2"; }
+function hubMinutes(s) { return /^dtz/.test(s.id) ? 8 : s.kind === "face" ? 4 : 5; }
+const HUB = (() => {
+  const characters = [], scenarios = [];
+  for (const s of SCENARIOS) {
+    if (!s.goals || s.id === "custom" || s.id === "random") continue;
+    const art = CALL_ART[s.id];
+    const ids = s.goals.map((_, i) => `${s.id}:${i + 1}`);
+    characters.push(Object.freeze({
+      id: s.id, name: s.who, role: s.role, kind: s.kind || "phone",
+      portrait: Object.freeze({
+        production: art ? art.dir + art.states.ready + art.ext : null,
+        api: `/api/avatar/${s.id}`, emoji: s.avatar,
+      }),
+      description: s, // localized activity strings live on the scenario entry
+      difficulty: hubDifficulty(s),
+      voice: Object.freeze({ primary: s.voice, secondary: s.voice2 || s.voice }),
+      context: Object.freeze({ role: s.role, place: s.place, tag: s.tag }),
+      scenarioIds: Object.freeze(ids),
+      unlocked: true, // nothing ships locked; the field is the availability contract
+    }));
+    s.goals.forEach((goal, i) => scenarios.push(Object.freeze({
+      id: ids[i], characterId: s.id, index: i,
+      title: goal, objective: goal,
+      difficulty: hubDifficulty(s), estimatedMinutes: hubMinutes(s),
+      rewardXp: 0, rewardCoins: 20, // XP is performance-based (recordCall); coins per claimed call
+      opening: Object.freeze({ by: "character", seeded: true }), // TARGET.seed opens, the contact speaks first
+      context: Object.freeze({ goal }), // PromptBuilder.rolePlay binds this goal verbatim
+      help: Object.freeze({ sos: true, suggestions: true, vocab: s.id }),
+      timer: Object.freeze({ countUp: true, dailyPlanSeconds: PLAN_SECONDS }),
+    })));
+  }
+  // validation: the registry must be internally consistent or fail loudly at load
+  const cids = new Set(characters.map((c) => c.id));
+  if (cids.size !== characters.length) throw new Error("HUB: duplicate character id");
+  const sids = new Set(scenarios.map((x) => x.id));
+  if (sids.size !== scenarios.length) throw new Error("HUB: duplicate scenario id");
+  for (const x of scenarios) if (!cids.has(x.characterId)) throw new Error("HUB: orphan scenario " + x.id);
+  for (const c of characters) {
+    if (!c.scenarioIds.length) throw new Error("HUB: character without scenarios: " + c.id);
+    for (const id of c.scenarioIds) if (!sids.has(id)) throw new Error("HUB: missing scenario " + id);
+  }
+  return Object.freeze({
+    characters: Object.freeze(characters),
+    scenarios: Object.freeze(scenarios),
+    character(id) { return characters.find((c) => c.id === id) || null; },
+    scenario(id) { return scenarios.find((x) => x.id === id) || null; },
+    scenariosFor(charId) { return scenarios.filter((x) => x.characterId === charId); },
+  });
+})();
+/* selection: the character IS the persisted S.scenario; the chosen hub
+   scenario is S.goalId. Both survive reloads via saveSettings. */
+function selectedHubScenario() {
+  const x = S.goalId ? HUB.scenario(S.goalId) : null;
+  return x && x.characterId === S.scenario.id ? x : null;
+}
+function canLaunch() {
+  if (S.scenario.id === "custom") return !!(S.customTopic || "").trim();
+  if (S.scenario.id === "random") return true;
+  return !!selectedHubScenario();
+}
+/* switching characters can never leak a session, audio, timer or late reply */
+function pickCharacter(id) {
+  const sc = SCENARIOS.find((x) => x.id === id);
+  if (!sc) return;
+  if (S.session && S.session.state === "active") {
+    S.session.end(); // late AI replies are dropped by the engine
+    stopAudio();
+    try { speechSynthesis.cancel(); } catch (e) {}
+    SFX.ringStop();
+    clearInterval(S.timerId); S.timerId = null;
+  }
+  if (S.scenario.id !== sc.id) S.goalId = null; // scenarios belong to one character
+  S.scenario = sc;
+  saveSettings();
+}
+function pickHubScenario(id) {
+  const x = HUB.scenario(id);
+  if (!x || x.characterId !== S.scenario.id) return;
+  S.goalId = x.id;
+  saveSettings();
+}
+/* per-scenario completion: count + best XP, hardened by normalizeStats */
+function recordHubResult(scenarioId, xp, abandoned) {
+  if (!HUB.scenario(scenarioId)) return;
+  const st = loadStats();
+  const cur = (st.hub || {})[scenarioId] || {};
+  st.hub = { ...(st.hub || {}), [scenarioId]: {
+    done: finiteNonNegative(cur.done) + (abandoned ? 0 : 1),
+    bestXp: Math.max(finiteNonNegative(cur.bestXp), finiteNonNegative(xp)),
+  } };
+  commitStats(st);
+}
+
 function goCall() {
   // offline: refuse with a clear recovery path instead of a generic failure.
   // The banner is the channel - #alert lives inside the call screen and would
@@ -6568,6 +6746,7 @@ function goCall() {
     return;
   }
   if (planUsedToday() >= planLimitToday()) { showLimit(); return; }
+  if (!canLaunch()) { renderSetup(); return; } // no valid scenario selected yet
   if (S.level === "A0" && canPrep() && !PREPPED.has(S.scenario.id)) startPrep();
   else startConversation();
 }
@@ -6602,6 +6781,10 @@ function endCall() {
   const xpBefore = before.xp || 0, coinsBefore = before.coins || 0;
   const abandoned = !!S.busy;
   const gained = recordCall();
+  // MARZI-006: completion + best result for the selected hub scenario (never
+  // for random/custom stand-ins, whose goal is not the selected one)
+  const hubSel = selectedHubScenario();
+  if (hubSel && S.active && S.active.id === hubSel.characterId) recordHubResult(hubSel.id, gained, abandoned);
   // 2. build the canonical summary from committed state only
   const summary = buildRewardSummary({
     xpBefore, coinsBefore, gained, claim: LAST_CLAIM,
