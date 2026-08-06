@@ -1165,12 +1165,11 @@
   .call-stage.prod .call-portrait { object-fit: contain; object-position: 50% 100%; }
   /* state pack v1: second portrait layer for state changes. The current
      approved frame stays visible underneath while the next production state
-     fades in over 160ms (asset-manifest.json transition contract); reduced
-     motion swaps instantly via the global transition kill. Both layers share
+     fades in over 150ms, wall-clock-driven from JS (asset-manifest.json
+     transition contract); reduced motion swaps instantly. Both layers share
      the same .call-portrait geometry, so no state can recrop or jump. */
-  .call-portrait.xfade { z-index: 1; opacity: 0; transition: opacity 160ms var(--ease); }
+  .call-portrait.xfade { z-index: 1; opacity: 0; }
   .call-portrait.xfade.show { display: block; }
-  .call-portrait.xfade.in { opacity: 1; }
   /* the emoji is the last fallback: never over a loaded (transparent) portrait */
   .call-portrait.ok ~ .call-emoji { display: none; }
   /* NO-FLASH: with approved production art, "not loaded yet" is not "failed".
@@ -3680,6 +3679,12 @@ let lifeRAF = null;
 function lifeStart() {
   if (lifeRAF) return;
   if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  // state pack: production character art keeps one exact geometry in every
+  // state and transition - no scale/drift transform, ever. The speaking glow
+  // on the stage frame stays; the camera drift remains for the legacy
+  // generated-portrait chain only.
+  const stage = $("callStage");
+  if (stage && stage.classList.contains("prod")) return;
   const img = $("vcImg");
   if (img) img.style.transition = "";
   const tick = () => {
@@ -5578,26 +5583,45 @@ function warmArtSrc(src) {
   return w.ready;
 }
 /* asset-manifest.json transition contract: current approved frame stays
-   visible -> next production state decodes -> 160ms crossfade. Reduced
+   visible -> next production state decodes -> 150ms crossfade. Reduced
    motion swaps instantly after decode. On a decode failure the stage simply
    stays on the current approved frame - never a blank or a fallback. */
-const CALL_XFADE_MS = 160;
-let CALL_XFADE_TIMER = null;
+const CALL_XFADE_MS = 150;
+let CALL_XFADE_RAF = 0;
 function crossfadeStageArt(img, src) {
   warmArtSrc(src).then(() => {
     if (img.dataset.src !== src) return; // state moved on while decoding
     const ov = $("vcImgX");
+    // commit: move the settled frame onto the base layer, and only drop the
+    // (fully opaque) overlay once the base has it too - no back-flash
     const apply = () => {
+      if (img.dataset.src !== src) return;
+      const done = () => {
+        if (ov && img.dataset.src === src) { ov.classList.remove("show"); ov.style.opacity = ""; ov.removeAttribute("src"); }
+      };
+      img.addEventListener("load", done, { once: true });
       img.src = src;
-      if (ov) { clearTimeout(CALL_XFADE_TIMER); ov.classList.remove("show", "in"); ov.removeAttribute("src"); }
+      if (img.complete && img.naturalWidth > 0) done();
+      setTimeout(done, CALL_XFADE_MS); // safety net only
     };
     if (prefersReducedMotion() || !ov) { apply(); return; }
-    ov.style.transform = img.style.transform || ""; // mirror the speaking life motion
+    ov.style.transform = img.style.transform || ""; // layer parity: identical geometry
     ov.src = src;
+    ov.style.opacity = "0";
     ov.classList.add("show");
-    requestAnimationFrame(() => requestAnimationFrame(() => ov.classList.add("in")));
-    clearTimeout(CALL_XFADE_TIMER);
-    CALL_XFADE_TIMER = setTimeout(apply, CALL_XFADE_MS + 40);
+    // wall-clock fade: opacity tracks elapsed time, so the transition always
+    // completes 150ms after the state request even when the compositor drops
+    // frames - a CSS transition can start tens of ms late under load
+    cancelAnimationFrame(CALL_XFADE_RAF);
+    const start = performance.now();
+    const tick = () => {
+      if (img.dataset.src !== src) return; // superseded by a newer state
+      const p = Math.min(1, (performance.now() - start) / CALL_XFADE_MS);
+      ov.style.opacity = String(p * (2 - p)); // ease-out
+      if (p >= 1) { apply(); return; }
+      CALL_XFADE_RAF = requestAnimationFrame(tick);
+    };
+    CALL_XFADE_RAF = requestAnimationFrame(tick);
   }).catch(() => {}); // keep the current approved frame
 }
 /* light per-state art update (called from renderCallStatus): only swaps
@@ -6707,11 +6731,36 @@ function warmCallArt(id) {
     if (lst) warmArtSrc(lst.src).catch(() => {});
   } catch (e) {}
 }
+let CALL_ART_RASTER_DONE = false;
 function warmCallStates(id) {
-  if (typeof Image === "undefined") return;
-  ["processing", "speaking", "success"].forEach((st) => {
-    const a = callArt(id, st);
-    if (a) warmArtSrc(a.src).catch(() => {});
+  if (typeof document === "undefined" || !document.createElement) return;
+  const stage = $("callStage");
+  if (!stage || !stage.querySelectorAll) return;
+  const a = CALL_ART[id];
+  if (!a) { // non-production character: no resident layers may linger
+    stage.querySelectorAll(".call-art-warm").forEach((el) => el.remove());
+    delete stage.dataset.warmId;
+    return;
+  }
+  if (stage.dataset.warmId === id) return; // this cast's layers already resident
+  stage.querySelectorAll(".call-art-warm").forEach((el) => el.remove());
+  stage.dataset.warmId = id;
+  CALL_ART_RASTER_DONE = false;
+  // every state frame stays mounted at 0.1% opacity for the whole call: the
+  // decoded rasters remain hot in the compositor, so no state change can
+  // ever stall a frame on a cold decode mid-crossfade
+  const files = [...new Set(Object.values(a.states))].map((f) => a.dir + f + a.ext);
+  let left = files.length;
+  files.forEach((src) => {
+    warmArtSrc(src).then(() => {
+      const w = document.createElement("img");
+      w.className = "call-portrait ok call-art-warm";
+      w.style.cssText = "opacity:.001;pointer-events:none";
+      w.alt = ""; w.src = src;
+      stage.insertBefore(w, $("vcEmoji"));
+      const done = () => { if (--left === 0) CALL_ART_RASTER_DONE = true; };
+      (w.decode ? w.decode().catch(() => {}) : Promise.resolve()).then(done, done);
+    }).catch(() => { if (--left === 0) CALL_ART_RASTER_DONE = true; });
   });
 }
 
