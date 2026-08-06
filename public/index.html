@@ -1183,6 +1183,37 @@
     padding: var(--space-2) var(--space-3) var(--space-1);
   }
   .call-turns { display: flex; flex-direction: column; gap: var(--space-2); }
+  /* compact per-message actions (replay, Translation) */
+  .call-acts { display: flex; gap: 6px; margin-top: 6px; }
+  /* progressive inline help panel, beside Marzi in the coach row */
+  .call-help {
+    flex: 1 1 auto; min-width: 0;
+    display: flex; flex-direction: column; gap: var(--space-2); align-items: stretch;
+    background: var(--paper); border: 1.5px dashed var(--tint-leaf-35);
+    border-radius: 14px; border-end-start-radius: 6px; padding: var(--space-2) var(--space-3);
+  }
+  .call-help .row { margin: 0; }
+  .call-help .mini { align-self: center; }
+  .call-help-sug { display: grid; gap: 2px; font: 600 var(--text-f13-5) var(--font-sans); color: var(--ink); }
+  .call-help-sug b { font: 700 var(--text-f10-5) var(--font-sans); letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+  /* Text OFF: the stage grows into the reclaimed space, the coach area moves
+     up beneath it — never a large dead middle */
+  .callscreen.text-off .call-stage { flex: 1 1 auto; height: auto; min-height: 210px; }
+  .callscreen.text-off .call-mid { flex: 0 1 auto; min-height: 0; }
+  /* anchored Speed popover above the pills; never covers the conversation */
+  .call-pop {
+    position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%);
+    z-index: 8; display: flex; flex-direction: column; gap: 2px; min-width: 150px;
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+    box-shadow: var(--shadow-lg); padding: 6px;
+  }
+  .call-pop.hidden { display: none; }
+  .call-pop-it {
+    min-height: var(--touch-min); border: 0; background: transparent; color: var(--ink);
+    font: 700 var(--text-f12-5) var(--font-sans); border-radius: 10px; cursor: pointer;
+    text-align: start; padding: 0 12px;
+  }
+  .call-pop-it[aria-checked="true"] { background: var(--tint-primary-04); color: var(--primary); }
   .call-bubble {
     max-width: 86%; text-align: start;
     background: var(--paper-3); color: var(--ink);
@@ -1251,7 +1282,9 @@
     background: var(--card); color: var(--ink); border: 1px solid var(--line);
     font: 700 var(--text-f11-5) var(--font-sans); box-shadow: var(--shadow-sm);
   }
-  .call-pill[aria-pressed="true"] { background: var(--primary); border-color: var(--primary); color: var(--white); }
+  .call-pill[aria-pressed="true"], .call-pill[aria-expanded="true"] {
+    background: var(--primary); border-color: var(--primary); color: var(--white);
+  }
   .call-pill[disabled] { opacity: .45; cursor: not-allowed; }
   .call-controls { display: flex; align-items: center; gap: var(--space-4); }
   .call-ctrl {
@@ -1270,6 +1303,14 @@
   .call-ctrl[data-status="listening"] { background: var(--primary); animation: listeningPulse var(--loop-pulse) var(--ease) infinite; }
   .call-ctrl[data-status="processing"] { background: var(--disabled-fill); color: var(--ink); }
   .call-ctrl[data-status="failed"] { background: var(--red); }
+  /* the mic is the sole dominant bottom action: a wide pill keeps the label
+     on one line, fully visible, above the safe area */
+  .call-ctrl.wide {
+    width: auto; min-width: 220px; height: 64px; border-radius: 999px;
+    display: inline-flex; flex-direction: row; align-items: center; justify-content: center;
+    gap: 8px; padding: 0 26px;
+  }
+  .call-ctrl.wide .call-ctrl-lb { max-width: none; font: 800 var(--text-f13-5) var(--font-sans); }
   /* product-style connection/time footer */
   .call-meta {
     display: flex; align-items: center; gap: var(--space-2); min-height: 20px;
@@ -1550,19 +1591,36 @@
         <div id="alert" class="call-alert hidden" role="alert"></div>
         <div class="call-convo" id="callConvo">
           <div class="call-turns hidden" id="callTurns"></div>
+          <!-- Marzi stays beside the coaching content: the suggestion bubble
+               when Help is closed, the progressive help panel when open.
+               Steps: 1 suggestion, 2 + SOS phrases, 3 + type-instead. -->
           <div class="call-coach">
             <div class="call-marzi vc-marzi" id="vcMarzi"></div>
             <button class="call-bubble marzi hidden" id="vcBubble" type="button"></button>
+            <div class="call-help hidden" id="helpPanel" role="group">
+              <div class="call-help-sug" id="helpSug"></div>
+              <div class="row sos hidden" id="sosRow">
+                <button class="ghost" data-sos="Wie bitte?">Wie bitte?</button>
+                <button class="ghost" data-sos="Langsamer, bitte.">Langsamer, bitte</button>
+                <button class="ghost" data-sos="Können Sie das noch einmal sagen?">Noch einmal, bitte</button>
+              </div>
+              <div class="row hidden" id="typeRow">
+                <input type="text" id="draft" placeholder="Guten Tag, ich möchte…" />
+                <button class="ghost" id="sendBtn" style="flex:0 0 auto"></button>
+              </div>
+              <button class="mini" id="helpMore" type="button"></button>
+            </div>
           </div>
         </div>
       </div>
       <div id="callStatusLive" class="sr-only" aria-live="polite"></div>
 
       <div class="call-stack">
+        <div class="call-pop hidden" id="speedPop" role="menu"></div>
         <div class="call-tools">
-          <button class="call-pill" id="hintBtn" type="button"></button>
+          <button class="call-pill" id="hintBtn" type="button" aria-expanded="false"></button>
           <button class="call-pill" id="sheetBtn" type="button"></button>
-          <button class="call-pill" id="repeatBtn" type="button"></button>
+          <button class="call-pill" id="speedBtn" type="button" aria-haspopup="menu" aria-expanded="false"></button>
           <button class="call-pill" id="playBtn" type="button"></button>
           <button class="call-pill hidden" id="freeBtn" type="button"></button>
         </div>
@@ -1578,17 +1636,6 @@
       <div class="sheet-body">
         <div class="log" id="log"></div>
         <p class="note hidden" id="tapHint"></p>
-        <div id="hintBox" class="hint hidden"><div class="label">VORSCHLAG</div><div id="hintText"></div></div>
-        <div class="row sos" id="sosRow">
-          <button class="ghost" data-sos="Wie bitte?">Wie bitte?</button>
-          <button class="ghost" data-sos="Langsamer, bitte.">Langsamer, bitte</button>
-          <button class="ghost" data-sos="Können Sie das noch einmal sagen?">Noch einmal, bitte</button>
-        </div>
-        <div class="row" id="typeRow">
-          <input type="text" id="draft" placeholder="Guten Tag, ich möchte…" />
-          <button class="ghost" id="sendBtn" style="flex:0 0 auto"></button>
-        </div>
-        <button class="mini hidden" id="typeBtn" type="button"></button>
       </div>
     </aside>
   </section>
@@ -1912,6 +1959,7 @@ const T = {
     hint:"¿Qué puedo decir?", type:"Escribir en vez de hablar", send:"Enviar", show:"Traducción",
     ended:"LLAMADA TERMINADA", review:"Tus correcciones", again:"OTRA LLAMADA", you:"TÚ",
     help:"Ayuda", textLbl:"Texto", slow:"Despacio", replay:"Repetir",
+    endCallQ:"¿Terminar esta llamada?", moreHelp:"Más ayuda",
     handsFree:"Manos libres", err:"No hay respuesta del servidor. ¿Está corriendo node server.js?",
     noMic:"Este navegador no reconoce voz. Usa Chrome.", micBlocked:"Micrófono bloqueado. Permite el acceso en el candado de la barra de direcciones.",
     noSpeech:"No se oyó nada. Habla más cerca del micrófono.", noDevice:"No se encuentra ningún micrófono.", micErr:"Error de micrófono",
@@ -1981,10 +2029,11 @@ const T = {
     stageWord:"Level", stageNames:["Frog eggs","Tadpole","Tadpole with legs","Young frog","Studious frog","Expert frog"],
     stageDescs:["It all starts with tiny eggs full of possibilities.","You begin to discover new words and sounds.","You understand more and form your first sentences.","You can already have basic conversations.","You learn every day and your German improves a lot.","You have mastered German and can teach others."],
     stProcessing:"Thinking…", stSpeaking:"Speaking", stEnded:"Disconnected", stError:"Problem", playLast:"Play again", contact:"Your contact", prepHint:"Preparation recommended", timeLeft:"left",
-    hangUp:"HANG UP", speak:"Tap and speak", listening:"Listening…", repeat:"Repeat slowly",
+    hangUp:"HANG UP", speak:"Tap to speak", listening:"Listening…", repeat:"Repeat slowly",
     hint:"What can I say?", type:"Type instead of speaking", send:"Send", show:"Translation",
     ended:"CALL ENDED", review:"Your corrections", again:"ANOTHER CALL", you:"YOU",
     help:"Help", textLbl:"Text", slow:"Slow", replay:"Replay",
+    endCallQ:"End this call?", moreHelp:"More help",
     handsFree:"Hands free", err:"No answer from the server. Is node server.js running?",
     noMic:"This browser does not do speech recognition. Use Chrome.", micBlocked:"Microphone blocked. Allow access via the padlock in the address bar.",
     noSpeech:"Nothing was heard. Speak closer to the microphone.", noDevice:"No microphone found.", micErr:"Microphone error",
@@ -2061,6 +2110,7 @@ T.tr = { tagline:"Gerçek Almanca aramalar ve konuşmalar pratiği yap. Sen konu
   hint:"Ne diyebilirim?", type:"Konuşmak yerine yaz", send:"Gönder", show:"Çeviri",
   ended:"GÖRÜŞME BİTTİ", review:"Düzeltmelerin", again:"YENİ ARAMA", you:"SEN",
   help:"Yardım", textLbl:"Metin", slow:"Yavaş", replay:"Tekrar",
+  endCallQ:"Bu görüşme bitirilsin mi?", moreHelp:"Daha fazla yardım",
   handsFree:"Eller serbest", err:"Sunucudan yanıt yok. node server.js çalışıyor mu?",
   noMic:"Bu tarayıcı sesi tanımıyor. Chrome kullan.", micBlocked:"Mikrofon engelli. Adres çubuğundaki kilitten izin ver.",
   noSpeech:"Ses duyulmadı. Mikrofona daha yakın konuş.", noDevice:"Mikrofon bulunamadı.", micErr:"Mikrofon hatası",
@@ -2134,6 +2184,7 @@ T.ar = { tagline:"تدرّب على مكالمات ومحادثات حقيقية
   hint:"ماذا يمكنني أن أقول؟", type:"اكتب بدلاً من الكلام", send:"إرسال", show:"الترجمة",
   ended:"انتهت المكالمة", review:"تصحيحاتك", again:"مكالمة أخرى", you:"أنت",
   help:"مساعدة", textLbl:"نص", slow:"ببطء", replay:"إعادة",
+  endCallQ:"هل تريد إنهاء هذه المكالمة؟", moreHelp:"مزيد من المساعدة",
   handsFree:"دون استخدام اليدين", err:"لا يوجد رد من الخادم. هل node server.js يعمل؟",
   noMic:"هذا المتصفح لا يدعم التعرف على الصوت. استخدم Chrome.", micBlocked:"الميكروفون محظور. اسمح بالوصول من رمز القفل في شريط العنوان.",
   noSpeech:"لم يُسمع شيء. تكلّم أقرب إلى الميكروفون.", noDevice:"لم يتم العثور على ميكروفون.", micErr:"خطأ في الميكروفون",
@@ -2207,6 +2258,7 @@ T.uk = { tagline:"Тренуй реальні дзвінки й розмови �
   hint:"Що можна сказати?", type:"Писати замість говорити", send:"Надіслати", show:"Переклад",
   ended:"ДЗВІНОК ЗАВЕРШЕНО", review:"Твої виправлення", again:"ЩЕ ДЗВІНОК", you:"ТИ",
   help:"Допомога", textLbl:"Текст", slow:"Повільно", replay:"Повтор",
+  endCallQ:"Завершити цей дзвінок?", moreHelp:"Більше допомоги",
   handsFree:"Вільні руки", err:"Немає відповіді від сервера. Чи запущено node server.js?",
   noMic:"Цей браузер не розпізнає мовлення. Використовуй Chrome.", micBlocked:"Мікрофон заблоковано. Дозволь доступ через замок у рядку адреси.",
   noSpeech:"Нічого не чутно. Говори ближче до мікрофона.", noDevice:"Мікрофон не знайдено.", micErr:"Помилка мікрофона",
@@ -2281,6 +2333,7 @@ T.it = { tagline:"Allenati con telefonate e conversazioni reali in tedesco. Tu p
   hint:"Cosa posso dire?", type:"Scrivi invece di parlare", send:"Invia", show:"Traduzione",
   ended:"CHIAMATA TERMINATA", review:"Le tue correzioni", again:"UN'ALTRA CHIAMATA", you:"TU",
   help:"Aiuto", textLbl:"Testo", slow:"Lento", replay:"Ripeti",
+  endCallQ:"Terminare questa chiamata?", moreHelp:"Altro aiuto",
   handsFree:"Vivavoce", err:"Nessuna risposta dal server. node server.js è in esecuzione?",
   noMic:"Questo browser non riconosce la voce. Usa Chrome.", micBlocked:"Microfono bloccato. Consenti l'accesso dal lucchetto nella barra degli indirizzi.",
   noSpeech:"Non si è sentito nulla. Parla più vicino al microfono.", noDevice:"Nessun microfono trovato.", micErr:"Errore del microfono",
@@ -3050,6 +3103,7 @@ const IC = {
   share: (s) => ic('<path d="M12 3v11M8 6.5L12 3l4 3.5M5 12v7h14v-7"/>', false, s),
   star: (s) => ic('<path d="M12 2.7l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.5l-5.8 3.1 1.1-6.5L2.6 9.5l6.5-.9z"/>', true, s),
   help: (s) => ic('<path d="M9 9.2A3 3 0 1 1 12 12.4v1.6M12 17.5h.01"/><circle cx="12" cy="12" r="9.2" stroke-width="1.6"/>', false, s),
+  x: (s) => ic('<path d="M6 6l12 12M18 6 6 18"/>', false, s),
   clock: (s) => ic('<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>', false, s),
   book: (s) => ic('<path d="M12 6C10.4 4.3 8.2 3.5 4 3.5v14c4.2 0 6.4.8 8 2.5 1.6-1.7 3.8-2.5 8-2.5v-14c-4.2 0-6.4.8-8 2.5zM12 6v14"/>', false, s),
   bag: (s) => ic('<path d="M5.5 8.5h13L17.5 20.5h-11z"/><path d="M9 11V6.5a3 3 0 0 1 6 0V11"/>', false, s),
@@ -5448,66 +5502,109 @@ function renderCall() {
   const left = callSecondsLeft();
   $("vcLeft").innerHTML = `· <span class="${left <= 300 ? "low" : ""}">${Math.ceil(left / 60)} min ${esc(L.timeLeft)}</span>`;
   $("callConn").innerHTML = IC.wave(ICON.sm) + `<span class="sr-only">${esc(callStateLabel(callStateFor(S)))}</span>`;
-  $("callMinBtn").innerHTML = IC.list(ICON.lg);
-  $("callMinBtn").setAttribute("aria-label", L.transcript);
+  // the top-left X is the single visible end-call control; the legacy
+  // transcript sheet has no live-call route
+  const endLbl = A.kind === "face" ? L.endTalk : L.hangUp;
+  $("callMinBtn").innerHTML = IC.x(ICON.lg);
+  $("callMinBtn").setAttribute("aria-label", endLbl);
+  $("callMinBtn").title = endLbl;
 
-  // primary controls (gold): mic + hang-up only
+  // primary control: the centred mic pill (hang-up moved to the top-left X)
   $("callControls").innerHTML =
-    UI.callControl({ id: "micBtn", icon: IC.mic(ICON.xl), label: S.listening ? L.listening : L.speak, variant: "primary", attrs: `data-status="${micStatusFor(S)}"` }) +
-    UI.callControl({ id: "hangBtn", icon: IC.phone(ICON.xl), label: A.kind === "face" ? L.endTalk : L.hangUp, variant: "danger" });
+    UI.callControl({ id: "micBtn", icon: IC.mic(ICON.xl), label: S.listening ? L.listening : L.speak, variant: "primary wide", attrs: `data-status="${micStatusFor(S)}"` });
   wireCallControls();
 
-  // secondary pills (gold): Help · Text · Slow · Replay. Hands-free stays on
+  // secondary pills: Help · Text · Speed · Replay. Hands-free stays on
   // silently — product decision: no visible Auto control.
+  const step = S.helpStep || 0;
   $("hintBtn").innerHTML = IC.help(ICON.sm) + `<span>${esc(L.help)}</span>`;
   $("hintBtn").setAttribute("aria-label", L.hint);
+  $("hintBtn").setAttribute("aria-expanded", String(step > 0));
   $("hintBtn").title = L.hint;
-  $("hintBtn").disabled = !S.hint;
+  $("hintBtn").disabled = false;
   $("sheetBtn").innerHTML = IC.chat(ICON.sm) + `<span>${esc(L.textLbl)}</span>`;
   $("sheetBtn").setAttribute("aria-label", L.textLbl);
   $("sheetBtn").setAttribute("aria-pressed", String(showText));
-  $("repeatBtn").innerHTML = IC.clock(ICON.sm) + `<span>${esc(L.slow)}</span>`;
-  $("repeatBtn").setAttribute("aria-label", L.repeat);
-  $("repeatBtn").title = L.repeat;
+  const speedName = { slow: L.speedSlow, normal: L.speedNormal, fast: L.speedFast }[S.speed] || L.speedNormal;
+  $("speedBtn").innerHTML = IC.clock(ICON.sm) + `<span>${esc(speedName)}</span>`;
+  $("speedBtn").setAttribute("aria-label", L.speed);
+  $("speedBtn").setAttribute("aria-expanded", String(!!S.speedOpen));
+  $("speedBtn").title = L.speed;
   $("playBtn").innerHTML = IC.speaker(ICON.sm) + `<span>${esc(L.replay)}</span>`;
   $("playBtn").setAttribute("aria-label", L.playLast);
   $("playBtn").title = L.playLast;
-  $("repeatBtn").disabled = !S.turns.some((x) => !x.me);
   $("playBtn").disabled = !S.turns.some((x) => !x.me);
   $("sendBtn").textContent = L.send;
-  $("typeBtn").textContent = L.type;
+  renderSpeedPop();
 
-  // inline dialogue (gold): the recent exchange, chronological. Tapping a
-  // character bubble expands its translation inline below the message; the
-  // Text pill shows/hides the whole block.
+  // inline dialogue: the recent exchange, chronological. Each message carries
+  // compact actions — replay and a Translation toggle that expands inline
+  // below that message. German stays LTR-isolated inside RTL help languages.
   const chip = prod
     ? `<img class="call-say-av" src="${esc(prod.src)}" alt="" />`
     : `<span class="call-say-av" aria-hidden="true">${esc(A.avatar || "🎧")}</span>`;
+  const trBtn = (i, x) =>
+    `<button class="mini" data-ctr="${i}" aria-expanded="${String(!!x.open)}">${esc(L.show)}</button>`;
   const first = Math.max(0, S.turns.length - 4);
-  $("callTurns").innerHTML = S.turns.slice(first).map((x, k) => x.me
-    ? `<div class="call-bubble me">${esc(x.text)}</div>`
-    : `<button class="call-bubble char" type="button" data-turn="${first + k}"` +
-      ` aria-label="${esc(A.who)}: ${esc(x.text)}">${chip}<span class="call-say-body">${esc(x.text)}` +
+  $("callTurns").innerHTML = S.turns.slice(first).map((x, k) => {
+    const i = first + k;
+    if (x.me) {
+      return `<div class="call-bubble me"><span class="call-say-body"><bdi dir="ltr">${esc(x.text)}</bdi>` +
+        (x.tr && x.open ? `<span class="call-say-tr">${esc(x.tr)}</span>` : "") +
+        (x.tr ? `<span class="call-acts">${trBtn(i, x)}</span>` : "") + `</span></div>`;
+    }
+    return `<div class="call-bubble char">${chip}<span class="call-say-body">` +
+      `<bdi dir="ltr">${tappable(x.text, i)}</bdi>` +
       (x.tr && x.open ? `<span class="call-say-tr">${esc(x.tr)}</span>` : "") +
-      `</span></button>`).join("");
+      `<span class="call-acts"><button class="mini" data-cplay="${i}" aria-label="${esc(L.playLast)}">&#9834;</button>` +
+      (x.tr ? trBtn(i, x) : "") + `</span></span></div>`;
+  }).join("");
   $("callTurns").classList.toggle("hidden", !showText);
-  $("callTurns").querySelectorAll("[data-turn]").forEach((b) => b.onclick = () => {
-    const x = S.turns[Number(b.dataset.turn)];
+  $("vcAv").classList.toggle("text-off", !showText);
+  $("callTurns").querySelectorAll("[data-ctr]").forEach((b) => b.onclick = () => {
+    const x = S.turns[+b.dataset.ctr];
     if (x && x.tr) { x.open = !x.open; renderCall(); }
   });
+  $("callTurns").querySelectorAll("[data-cplay]").forEach((b) => b.onclick = () => {
+    const x = S.turns[+b.dataset.cplay];
+    if (x) speak(x.text, true, null, x.sp);
+  });
+  $("callTurns").querySelectorAll("[data-w]").forEach((b) =>
+    b.onclick = () => saveWordTap(+b.dataset.ti, b.dataset.w));
   const convo = $("callConvo");
   convo.scrollTop = convo.scrollHeight;
 
-  // Marzi's bubble carries the suggestion and sits beside Marzi (gold)
-  $("vcBubble").textContent = S.hint || L.hint;
-  $("vcBubble").classList.toggle("hidden", !(S.hint && !S.busy));
+  // Marzi stays beside the coaching content: suggestion bubble when Help is
+  // closed, the progressive help panel (which carries the suggestion) when open
+  const showSug = S.hint && !S.busy && !step;
+  $("vcBubble").innerHTML = `<bdi dir="ltr">${esc(S.hint || L.hint)}</bdi>`;
+  $("vcBubble").classList.toggle("hidden", !showSug);
   $("vcBubble").setAttribute("aria-label", `Marzi: ${S.hint || L.hint}`);
 
-  if (S.hint && S.hintOpen) { $("hintText").textContent = S.hint; $("hintBox").classList.remove("hidden"); }
-  else $("hintBox").classList.add("hidden");
+  // progressive inline help: 1 = suggestion, 2 = + SOS phrases, 3 = + typing
+  $("helpPanel").classList.toggle("hidden", step < 1);
+  $("helpSug").innerHTML = `<b>${esc(L.hint)}</b><bdi dir="ltr">${esc(S.hint || "…")}</bdi>`;
+  $("sosRow").classList.toggle("hidden", step < 2);
+  $("typeRow").classList.toggle("hidden", step < 3);
+  $("helpMore").textContent = L.moreHelp;
+  $("helpMore").classList.toggle("hidden", step >= 3);
 
   renderCallStatus();
   renderTranscript();
+}
+/* Speed popover: the existing SPEEDS profiles, anchored above the pills */
+function renderSpeedPop() {
+  const L = t();
+  const pop = $("speedPop");
+  pop.classList.toggle("hidden", !S.speedOpen);
+  if (!S.speedOpen) { pop.innerHTML = ""; return; }
+  const names = { slow: L.speedSlow, normal: L.speedNormal, fast: L.speedFast };
+  pop.setAttribute("aria-label", L.speed);
+  pop.innerHTML = Object.keys(SPEEDS).map((k) =>
+    `<button class="call-pop-it" type="button" role="menuitemradio" aria-checked="${String(k === S.speed)}" data-spd="${k}">${esc(names[k])}</button>`).join("");
+  pop.querySelectorAll("[data-spd]").forEach((b) => b.onclick = () => {
+    S.speed = b.dataset.spd; saveSettings(); setSpeedOpen(false);
+  });
 }
 
 /* transcript lives in the sheet; S.turns stays render-only state */
@@ -6267,8 +6364,9 @@ function startConversation() {
   } else {
     S.active = S.scenario;
   }
-  S.turns = []; S.hint = null; S.hintOpen = false; S.seconds = 0; S.handsFree = true; S.speaker = 1;
+  S.turns = []; S.hint = null; S.seconds = 0; S.handsFree = true; S.speaker = 1;
   S.showText = true; // gold default: inline dialogue visible (Text ON)
+  S.helpStep = 0; S.speedOpen = false; // Help and Speed start closed
   S.callId = newRewardId(); // each call claims its reward under a fresh id
   const g = S.active.goals;
   S.currentGoal = g[Math.floor(Math.random() * g.length)];
@@ -6424,6 +6522,9 @@ function goCall() {
 $("callBtn").onclick = goCall;
 function endCall() {
   if (sheetOpen()) closeCallSheet();
+  // Help and Speed reset fully when the call ends
+  S.helpStep = 0; S.speedOpen = false;
+  HELP_HISTORY = false; SPEED_HISTORY = false;
   S.handsFree = false;
   if (S.session) S.session.end(); // any pending AI reply is dropped by the engine
   SFX.ringStop();
@@ -6534,20 +6635,65 @@ function closeCallSheet(fromPop) {
   else SHEET_HISTORY = false;
   try { $("sheetBtn").focus(); } catch (e) {}
 }
-window.addEventListener("popstate", () => { if (sheetOpen()) closeCallSheet(true); });
+/* Help panel and Speed popover: true toggles that also close on Escape and
+   Android back (history integration mirrors the sheet's), and always close
+   BEFORE anything can end the call. */
+let HELP_HISTORY = false, SPEED_HISTORY = false;
+let POP_SWALLOW = 0; // pops we caused ourselves (already closed) - never re-handle
+function setHelp(step) {
+  const opening = step > 0 && !S.helpStep;
+  const closing = step === 0 && S.helpStep > 0;
+  S.helpStep = step;
+  if (opening) { try { window.history.pushState({ marziHelp: true }, ""); HELP_HISTORY = true; } catch (e) {} }
+  if (closing && HELP_HISTORY) { HELP_HISTORY = false; POP_SWALLOW++; try { window.history.back(); } catch (e) { POP_SWALLOW--; } }
+  renderCall();
+}
+function setSpeedOpen(open) {
+  const opening = open && !S.speedOpen;
+  const closing = !open && S.speedOpen;
+  S.speedOpen = !!open;
+  if (opening) { try { window.history.pushState({ marziSpeed: true }, ""); SPEED_HISTORY = true; } catch (e) {} }
+  if (closing && SPEED_HISTORY) { SPEED_HISTORY = false; POP_SWALLOW++; try { window.history.back(); } catch (e) { POP_SWALLOW--; } }
+  renderCall();
+}
+window.addEventListener("popstate", () => {
+  if (POP_SWALLOW > 0) { POP_SWALLOW--; return; }
+  if (S.speedOpen) { S.speedOpen = false; SPEED_HISTORY = false; renderCall(); return; }
+  if (S.helpStep) { S.helpStep = 0; HELP_HISTORY = false; renderCall(); return; }
+  if (sheetOpen()) closeCallSheet(true);
+});
 document.addEventListener("keydown", (e) => {
   if (e.key !== "Escape") return;
-  if (sheetOpen()) closeCallSheet();
+  if (S.speedOpen) setSpeedOpen(false);
+  else if (S.helpStep) setHelp(0);
+  else if (sheetOpen()) closeCallSheet();
   else if (premiumScreenOpen()) closePremiumScreen();
   else if (planScreenOpen()) closePlanScreen();
   else if (limitOpen()) closeLimit();
   else if (evolutionCelebrationOpen()) closeEvolutionCelebration();
   else if (STORE_PREVIEW) closeOutfitPreview();
 });
+// outside press closes the Speed popover
+document.addEventListener("click", (e) => {
+  if (!S.speedOpen) return;
+  const pop = $("speedPop"), btn = $("speedBtn");
+  if ((pop && pop.contains && pop.contains(e.target)) ||
+      (btn && btn.contains && btn.contains(e.target))) return;
+  setSpeedOpen(false);
+});
 // Text pill shows/hides the inline dialogue (product decision: no live
-// transcript sheet on the call; the top-left button keeps the tools sheet)
+// transcript sheet or modal on the call — the sheet has no live-call route)
 $("sheetBtn").onclick = () => { S.showText = S.showText === false; renderCall(); };
-$("callMinBtn").onclick = () => openCallSheet();
+// stopPropagation: renderCall replaces the pill's children, so the bubbled
+// click would reach the outside-press listener with a detached target
+$("speedBtn").onclick = (e) => { e.stopPropagation(); setSpeedOpen(!S.speedOpen); };
+$("helpMore").onclick = () => { if (S.helpStep) setHelp(Math.min(3, S.helpStep + 1)); };
+// the top-left X is the single visible end-call control; it uses the existing
+// graceful end path and confirms only while a call is actively in progress
+$("callMinBtn").onclick = () => {
+  if (S.session && S.session.state === "active" && !confirm(t().endCallQ)) return;
+  endCall();
+};
 $("sheetClose").onclick = () => closeCallSheet();
 $("sheetBack").onclick = () => closeCallSheet();
 /* swipe down to dismiss */
@@ -6567,7 +6713,6 @@ $("sheetBack").onclick = () => closeCallSheet();
    re-attached here - no provider is ever called directly from a handler */
 function wireCallControls() {
   $("micBtn").onclick = () => listen();
-  $("hangBtn").onclick = () => endCall();
   $("playBtn").onclick = () => {
     for (let i = S.turns.length - 1; i >= 0; i--) {
       if (!S.turns[i].me) {
@@ -6586,12 +6731,9 @@ if (TARGET.code !== "de") {
 document.querySelectorAll("[data-sos]").forEach((b) =>
   b.onclick = () => { if (!S.busy) send(b.dataset.sos); });
 $("freeBtn").onclick = () => { S.handsFree = !S.handsFree; renderCall(); };
-$("repeatBtn").onclick = () => {
-  for (let i = S.turns.length - 1; i >= 0; i--) if (!S.turns[i].me) { speak(S.turns[i].text, true, null, S.turns[i].sp); break; }
-};
-$("hintBtn").onclick = () => { S.hintOpen = !S.hintOpen; renderCall(); };
-$("vcBubble").onclick = () => { S.hintOpen = true; renderCall(); };
-$("typeBtn").onclick = () => $("typeRow").classList.toggle("hidden");
+// Help is a true toggle: open at step 1, close from any open step
+$("hintBtn").onclick = () => setHelp(S.helpStep ? 0 : 1);
+$("vcBubble").onclick = () => { if (!S.helpStep) setHelp(1); };
 $("sendBtn").onclick = () => send($("draft").value);
 $("customTopic").oninput = (e) => { S.customTopic = e.target.value; };
 $("shareBtn").onclick = async () => {
