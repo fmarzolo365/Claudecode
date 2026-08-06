@@ -1,46 +1,82 @@
 {
-  "ASSET_PREVIEW.png": {
-    "bytes": 615702,
-    "sha256": "6f27e6a433a3ba4ebc258a52832a90e56a89dd7013a792dd2d5ea3b8a48e8b7c"
-  },
   "CLAUDE_INTEGRATION_PROMPT.md": {
-    "bytes": 2133,
-    "sha256": "65bcf5ade82265598b6f7f92c04b940f9c41547ad99dc8d13ff9598ee2557106"
+    "bytes": 4473,
+    "sha256": "d46d0c5e673020c5c0aeb41d4aa3c81e7043121f690f0cc05cfd3bac7880ca57"
   },
-  "README_FIRST.txt": {
-    "bytes": 340,
-    "sha256": "7998cc8a995fe40676bbcfb7efb132411ac4f4240e06c1dbc1c54ffbcf9d9352"
+  "README_FIRST.md": {
+    "bytes": 729,
+    "sha256": "15e1dc0e8725652fe69981c95173c3fb501d3b2fccb98ec5c03ed3d9b4d947a5"
+  },
+  "STATE_PACK_PREVIEW.png": {
+    "bytes": 353535,
+    "sha256": "90887ec2d640d3fe3173e8bc704cbf9142bf997f18a9e452aa6ac6ce4d6abc00"
   },
   "asset-manifest.json": {
-    "bytes": 2500,
-    "sha256": "cccd5eb86934d26d543fa38d12eef69f3dbadad270ba4c755b936ce379668166"
+    "bytes": 3730,
+    "sha256": "0644e98388303b66baa96ad6c0c3aa5ebb9bd5ca76754027b193043559353f51"
   },
-  "public/assets/call/backgrounds/clinic.webp": {
-    "bytes": 99598,
-    "sha256": "d428d4bf0b9aa3edd8e1130a38dab40ea5ce7c5725179e53719266808aec4005"
+  "public/assets/call/characters/arzt/idle.webp": {
+    "bytes": 860020,
+    "sha256": "bf63248cd135ced65f4108c4537f13ff872a56a542b171b0412ad412636b30c1"
   },
   "public/assets/call/characters/arzt/listening.webp": {
-    "bytes": 712888,
-    "sha256": "216d108624bdc317ec916ce0e64341079cf7792b31c6cebe2b8526a33fcdd4f4"
+    "bytes": 882288,
+    "sha256": "bf73d7aa18130ae1d2b2ca5be8978bba988c45bbda1a0c66db86a2bd0f2c066d"
   },
-  "public/assets/marzi/call/stage-1/helping.webp": {
-    "bytes": 237888,
-    "sha256": "54f72f464e0e6745eeb36f9a1460cf774cd38832fe92390343b7865add978fde"
+  "public/assets/call/characters/arzt/speaking.webp": {
+    "bytes": 876340,
+    "sha256": "214d9594d2222a9c10bd66273f4a45ef85794eead7b1ea668d52195b2e182cb0"
   },
-  "reference/MARZI_CALL_SCREEN_GOLD_REFERENCE.png": {
-    "bytes": 1858247,
-    "sha256": "55a25e694515affbe992d22af45d089c2d31481038bdd0ea72df2f3e971d075e"
+  "public/assets/call/characters/arzt/success.webp": {
+    "bytes": 837738,
+    "sha256": "92ad844df75b7e3c38ac1abcbd97554256b3fbc9995e5027347dc7ca6c6ddd3f"
+  },
+  "public/assets/call/characters/arzt/thinking.webp": {
+    "bytes": 803474,
+    "sha256": "bab9c823ef0d1bdf123a011d8a7981bfc4bee636eadedf0ba3a0a6ffe42481d0"
+  },
+  "reference/DOCTOR_WAGNER_STATE_REFERENCE.png": {
+    "bytes": 2658045,
+    "sha256": "72e58d7db633044d159e55a883ea881c762c7684b09ff2a30f5df631c9ae31e5"
+  },
+  "source-masters/arzt-idle-master.png": {
+    "bytes": 1425548,
+    "sha256": "d7422b629795736448cbebf8820b7061bae3e5db4c0b393bece444ce0df6e5b9"
   },
   "source-masters/arzt-listening-master.png": {
-    "bytes": 1147417,
-    "sha256": "58b5553d6fcab9152aa7e14890a2dcdfbf245369c66c11ffcf191e834d9413e7"
+    "bytes": 1471506,
+    "sha256": "dd4777751dca61fa7c52b3d30ecf08203a87c6272b01016a65fbe340362a1cdd"
   },
-  "source-masters/clinic-master.png": {
-    "bytes": 917350,
-    "sha256": "4062dd25700c2d1a2ad44a9280fd1871ad60df4792cab61d1fee22e2e87a9800"
+  "source-masters/arzt-speaking-master.png": {
+    "bytes": 1466912,
+    "sha256": "ea0025ffa6fa2b22732424ddf08424a461ebab1e01dd5efbd6f46e6e08ce95a9"
   },
-  "source-masters/marzi-stage1-helping-master.png": {
-    "bytes": 401157,
-    "sha256": "b914b30684429596b8b555a8d9ea3d3f332bb408b0276d1f9a99bcd8ee0306e7"
+  "source-masters/arzt-success-master.png": {
+    "bytes": 1395950,
+    "sha256": "e5ab7813bf445e7db196aa8432c518f40f9b21e34cd777b4b22e2a70f64b4838"
+  },
+  "source-masters/arzt-thinking-master.png": {
+    "bytes": 1331407,
+    "sha256": "3560e4e19f2e504d23d0d2403b1edcfcfb691de62e945733f587d6b117d7640e"
+  },
+  "source-masters/idle-card-source.png": {
+    "bytes": 198926,
+    "sha256": "44b86758ac856331fe20cb86acd090851bac9bd8b47fa9c151cfff06aa5cd584"
+  },
+  "source-masters/listening-card-source.png": {
+    "bytes": 206213,
+    "sha256": "b9d7458779f3a0f757a010e8eee3251e4d1be921953167509450b750c8e0650f"
+  },
+  "source-masters/speaking-card-source.png": {
+    "bytes": 210996,
+    "sha256": "b342bc28dd6b8786683f477efe59833f3e899033806b2efb974c5565482be7c6"
+  },
+  "source-masters/success-card-source.png": {
+    "bytes": 212096,
+    "sha256": "f9e10bc22f8662791ab32b443f1cff3758b3d20eaf39fa70445028911a83b97b"
+  },
+  "source-masters/thinking-card-source.png": {
+    "bytes": 206889,
+    "sha256": "1d934d14fe66f0507f3c27334fa61e4895e68c699517a6aa40775468cf93cc50"
   }
 }

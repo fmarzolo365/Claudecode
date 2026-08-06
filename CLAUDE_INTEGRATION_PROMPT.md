@@ -1,67 +1,177 @@
-# MARZI DOCTOR GOLD PILOT — INTEGRATION ONLY
+# MARZI — INTEGRATE DR. WAGNER GOLD STATE PACK V1
+# REGISTRY / STATE-MAPPING ONLY
 
-The complete production pilot pack is attached and extracted at the repository root.
+Baseline:
+- branch: `claude/marzi-gold-call-v1-freeze`
+- frozen Gold shell commit: `e94c4d1`
 
-First verify these exact files:
+The attached/extracted pack contains the five approved Dr. Wagner state assets.
 
+This is an integration task only.
+
+DO NOT:
+- redesign the call shell;
+- change Text / Help / Translate / Speed / Replay UX;
+- alter stage geometry;
+- modify supplied artwork;
+- generate new artwork;
+- touch MARZI-006;
+- add characters or scenarios;
+- run a broad visual redesign;
+- deploy.
+
+Read:
 - `asset-manifest.json`
-- `reference/MARZI_CALL_SCREEN_GOLD_REFERENCE.png`
+- `reference/DOCTOR_WAGNER_STATE_REFERENCE.png`
+
+Verify exactly these files exist:
+
+- `public/assets/call/characters/arzt/idle.webp`
 - `public/assets/call/characters/arzt/listening.webp`
-- `public/assets/call/backgrounds/clinic.webp`
-- `public/assets/marzi/call/stage-1/helping.webp`
+- `public/assets/call/characters/arzt/thinking.webp`
+- `public/assets/call/characters/arzt/speaking.webp`
+- `public/assets/call/characters/arzt/success.webp`
 
-If any file is missing, stop.
+If any are missing, STOP.
 
-If all files exist:
+==================================================
+1. BIND STATES
+==================================================
 
-1. Read `asset-manifest.json`.
-2. Integrate the supplied WebP assets exactly as delivered.
-3. Do not generate, redraw, trace, recolor, or replace any artwork.
-4. Register WebP/PNG assets ahead of SVG fallbacks.
-5. Keep all generated SVG artwork as `FALLBACK_ONLY`.
-6. Preserve all call logic, Text, inline Translation, Need Help, timer, rewards, provider behavior, RTL and PWA behavior.
-7. Correct the shallow stage geometry:
-   `height: clamp(210px, 28dvh, 252px)` at the primary viewport.
-8. Use the supplied doctor as a transparent foreground layer over the supplied clinic background.
-9. Use the supplied Marzi pose beside the suggestion/help bubble, not alone in a large empty center.
-10. Do not run the full browser suite.
-11. Do not invoke the visual-director agent.
-12. Do not commit, push or deploy.
+Use exactly:
 
-Run only:
+ready       -> idle.webp
+listening   -> listening.webp
+processing  -> thinking.webp
+speaking    -> speaking.webp
+success     -> success.webp
+error       -> idle.webp
+disconnected-> idle.webp
 
-- syntax check for changed JavaScript;
-- asset-path existence check;
-- one focused fallback check;
-- one real Praxis Dr. Wagner render at `390×844`.
+Do not invent additional state mappings.
 
-The screenshot must show:
+==================================================
+2. PRESERVE GEOMETRY
+==================================================
 
-- complete doctor face, hair, shoulders and upper torso;
-- white coat, green clinical top and stethoscope;
-- clinic context;
-- Text ON;
-- one doctor bubble;
-- one learner bubble;
-- inline Translation expanded;
-- Marzi beside a suggestion;
-- Help, Text, Slow, Replay, microphone and Hang Up;
-- product-style connection/time footer;
-- no transcript sheet;
-- no visible Auto;
-- no large unused central void.
+All five assets share the same 1600×1800 transparent canvas.
 
-Capture exactly one screenshot, then stop.
+Render every state with the same:
+- object-fit;
+- object-position;
+- focal point;
+- stage height;
+- crop policy.
 
-Report only:
+At 390×844 the approved stage remains 253.2 CSS px.
 
-1. changed files;
-2. exact assets used;
-3. resolver changes;
-4. focused checks and results;
-5. screenshot path;
-6. known differences from the Gold Reference.
+No state may:
+- change stage height;
+- zoom differently;
+- shift the face;
+- jump vertically;
+- expose a different crop policy.
+
+==================================================
+3. PRELOAD
+==================================================
+
+Before first stage reveal:
+- preload/decode `idle.webp`
+- preload/decode `listening.webp`
+
+Immediately after call start:
+- warm `thinking.webp`
+- warm `speaking.webp`
+- warm `success.webp`
+
+The first visible frame follows the existing no-flash production-art rule.
+
+Do not show a generated/emoji/SVG doctor while a valid production state is pending.
+
+==================================================
+4. STATE TRANSITIONS
+==================================================
+
+When call state changes:
+
+current approved state stays visible
+-> next production image decodes
+-> crossfade to next image
+
+Target:
+160 ms
+acceptable range:
+120–180 ms
+
+With `prefers-reduced-motion`:
+instant swap, 0 ms.
+
+Never show:
+- blank frame;
+- clinic-only frame between valid state swaps;
+- fallback art between valid state swaps;
+- loading veil between already-warmed states.
+
+==================================================
+5. ARTWORK IMMUTABILITY
+==================================================
+
+Do not:
+- crop the five supplied files independently;
+- alter face scale;
+- recolor them;
+- add CSS filters that change their art;
+- regenerate states;
+- replace them with SVGs.
+
+They are the source assets for this state pilot.
+
+==================================================
+6. FOCUSED VALIDATION
+==================================================
+
+Before full validation, run focused checks only:
+
+A. registry paths all exist;
+B. each call state resolves to the required asset;
+C. idle/listening decoded before first reveal;
+D. thinking/speaking/success warm successfully;
+E. simulated state sequence:
+   idle -> listening -> thinking -> speaking -> success;
+F. no fallback becomes visible between valid states;
+G. stage geometry stays exactly stable;
+H. reduced-motion swap works.
+
+Capture exactly FIVE 390×844 screenshots using the same call shell:
+
+1. idle
+2. listening
+3. thinking
+4. speaking
+5. success
+
+For all five verify:
+- doctor face remains in the same visual position;
+- same apparent scale;
+- coat and stethoscope visible;
+- stage height unchanged;
+- shell/controls unchanged.
+
+Also capture one short state-transition trace/report showing resolved paths and transition timing. No video required.
+
+STOP for Product Owner visual review.
+
+Do not run the full suite yet.
+Do not merge.
+Do not deploy.
+
+If the repository stop hook requires preservation, commit/push only to a new dedicated branch:
+
+`claude/marzi-doctor-wagner-states-v1`
+
+Do not update or rewrite `claude/marzi-gold-call-v1-freeze`.
 
 End exactly:
 
-`READY FOR PRODUCT OWNER GOLD SCREENSHOT APPROVAL`
+READY FOR DR WAGNER STATE PACK REVIEW

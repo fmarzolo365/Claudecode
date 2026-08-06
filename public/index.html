@@ -1163,6 +1163,14 @@
   .call-portrait.ok { display: block; }
   /* manifest: transparent character foreground, contained, on the stage floor */
   .call-stage.prod .call-portrait { object-fit: contain; object-position: 50% 100%; }
+  /* state pack v1: second portrait layer for state changes. The current
+     approved frame stays visible underneath while the next production state
+     fades in over 160ms (asset-manifest.json transition contract); reduced
+     motion swaps instantly via the global transition kill. Both layers share
+     the same .call-portrait geometry, so no state can recrop or jump. */
+  .call-portrait.xfade { z-index: 1; opacity: 0; transition: opacity 160ms var(--ease); }
+  .call-portrait.xfade.show { display: block; }
+  .call-portrait.xfade.in { opacity: 1; }
   /* the emoji is the last fallback: never over a loaded (transparent) portrait */
   .call-portrait.ok ~ .call-emoji { display: none; }
   /* NO-FLASH: with approved production art, "not loaded yet" is not "failed".
@@ -1629,6 +1637,7 @@
 
       <div class="call-stage" id="callStage">
         <img id="vcImg" class="call-portrait" alt="" />
+        <img id="vcImgX" class="call-portrait xfade" alt="" aria-hidden="true" />
         <span class="call-emoji" id="vcEmoji" aria-hidden="true">🎧</span>
         <div class="call-scrim" aria-hidden="true"></div>
         <div class="call-status-chip" id="callStatus" data-state="ready" role="status"></div>
@@ -5338,6 +5347,9 @@ async function ask() {
       }
     }
     S.speaker = p.speaker === "second" ? 2 : 1;
+    // the character has said goodbye: the stage may show the success frame
+    // once the goodbye finishes (art-only - the state machine is untouched)
+    if (p.done) S.callDone = true;
     S.turns.push({ me:false, text:reply.text, tr:p.translation, sp:S.speaker });
     S.hint = p.suggestion || null;
     // optional: a provider MAY translate the suggestion; the help Translate
@@ -5505,6 +5517,9 @@ function renderCallStatus() {
   }
   const scr = $("vcAv");
   if (scr && scr.classList) scr.classList.toggle("speaking", st === "speaking");
+  // the stage follows every state change too - setSpeaking and the mic
+  // toggles come through here, not through the full renderCall
+  try { renderCallStageArt(); } catch (e) {}
   // Marzi's presentation state follows the same single source
   const comp = $("vcMarzi");
   if (comp && comp.dataset && comp.dataset.stage) {
@@ -5516,16 +5531,19 @@ function renderCallStatus() {
 function callSecondsLeft() {
   return Math.max(0, planLimitToday() - planUsedToday() - (S.seconds || 0));
 }
-/* ---------- DOCTOR GOLD PILOT: production call art (asset-manifest.json) ----------
+/* ---------- DR. WAGNER STATE PACK V1: production call art (asset-manifest.json) ----------
    Registered ahead of the generated /api/avatar portraits, which stay the
-   fallback chain (production -> generated portrait -> emoji). The pilot maps
-   every call state onto the approved listening art until per-state files ship. */
+   fallback chain (production -> generated portrait -> emoji). The five
+   approved per-state files share one 1600x1800 transparent canvas, so every
+   state renders through the same geometry (.call-stage.prod rules). The
+   mapping mirrors asset-manifest.json stateMapping exactly. */
 const CALL_ART = {
   arzt: {
     background: "/assets/call/backgrounds/clinic.webp",
     dir: "/assets/call/characters/arzt/",
-    states: { ready: "listening", listening: "listening", processing: "listening",
-              speaking: "listening", error: "listening", disconnected: "listening" },
+    states: { ready: "idle", listening: "listening", processing: "thinking",
+              speaking: "speaking", success: "success",
+              error: "idle", disconnected: "idle" },
     ext: ".webp",
   },
 };
@@ -5535,6 +5553,69 @@ function callArt(id, st) {
   if (!a) return null;
   const src = a.dir + (a.states[st] || a.states.ready) + a.ext;
   return CALL_ART_FAILED.has(src) ? null : { background: a.background, src };
+}
+/* stage-art state: the shell state machine (callStateFor) untouched, plus one
+   art-only overlay - after the character has said goodbye (the role-play
+   "done" flag) a quiet stage shows the approved success frame. The status
+   chip, mic button and live region never see this state. */
+function callArtStateFor(state) {
+  const st = callStateFor(state);
+  return st === "ready" && state.callDone ? "success" : st;
+}
+/* decode-warm cache: each production asset is fetched and decoded once, and
+   the Image is kept referenced so a later state swap never waits or blanks */
+const CALL_ART_WARM = new Map();
+function warmArtSrc(src) {
+  if (!src || typeof Image === "undefined") return Promise.resolve();
+  let w = CALL_ART_WARM.get(src);
+  if (!w) {
+    const img = new Image();
+    img.src = src;
+    const ready = img.decode ? img.decode() : Promise.resolve();
+    w = { img, ready: ready.catch(() => { CALL_ART_WARM.delete(src); throw 0; }) };
+    CALL_ART_WARM.set(src, w);
+  }
+  return w.ready;
+}
+/* asset-manifest.json transition contract: current approved frame stays
+   visible -> next production state decodes -> 160ms crossfade. Reduced
+   motion swaps instantly after decode. On a decode failure the stage simply
+   stays on the current approved frame - never a blank or a fallback. */
+const CALL_XFADE_MS = 160;
+let CALL_XFADE_TIMER = null;
+function crossfadeStageArt(img, src) {
+  warmArtSrc(src).then(() => {
+    if (img.dataset.src !== src) return; // state moved on while decoding
+    const ov = $("vcImgX");
+    const apply = () => {
+      img.src = src;
+      if (ov) { clearTimeout(CALL_XFADE_TIMER); ov.classList.remove("show", "in"); ov.removeAttribute("src"); }
+    };
+    if (prefersReducedMotion() || !ov) { apply(); return; }
+    ov.style.transform = img.style.transform || ""; // mirror the speaking life motion
+    ov.src = src;
+    ov.classList.add("show");
+    requestAnimationFrame(() => requestAnimationFrame(() => ov.classList.add("in")));
+    clearTimeout(CALL_XFADE_TIMER);
+    CALL_XFADE_TIMER = setTimeout(apply, CALL_XFADE_MS + 40);
+  }).catch(() => {}); // keep the current approved frame
+}
+/* light per-state art update (called from renderCallStatus): only swaps
+   between two already-valid production frames, via the crossfade. The cold
+   path - first reveal, fallback chain, veil - stays owned by renderCall. */
+function renderCallStageArt() {
+  const A = S.active || S.scenario;
+  if (!A || !A.id) return;
+  const prod = callArt(A.id, callArtStateFor(S));
+  if (!prod) return;
+  const img = $("vcImg"), stageEl = $("callStage");
+  if (!img || !stageEl) return;
+  const a = CALL_ART[A.id];
+  const warmSwap = img.classList.contains("ok") && stageEl.classList.contains("art-ok") &&
+    typeof img.dataset.src === "string" && img.dataset.src.indexOf(a.dir) === 0;
+  if (!warmSwap || img.dataset.src === prod.src) return;
+  img.dataset.src = prod.src;
+  crossfadeStageArt(img, prod.src);
 }
 function renderCall() {
   const L = t();
@@ -5546,7 +5627,7 @@ function renderCall() {
   });
   $("vcEmoji").textContent = A.avatar || "🎧";
   const img = $("vcImg");
-  const prod = callArt(A.id, callStateFor(S)); // production assets resolve first
+  const prod = callArt(A.id, callArtStateFor(S)); // production assets resolve first
   const stageEl = $("callStage");
   stageEl.classList.toggle("prod", !!prod);
   stageEl.style.backgroundImage = prod ? `url("${prod.background}")` : "";
@@ -5554,7 +5635,13 @@ function renderCall() {
     ? `/api/avatar/${A.id}${S.speaker === 2 ? "2" : ""}?v=3&pin=${encodeURIComponent(localStorage.getItem(PIN_KEY) || "")}`
     : "";
   const src = prod ? prod.src : apiSrc;
-  if (img.dataset.src !== src) {
+  const warmSwap = prod && img.classList.contains("ok") && stageEl.classList.contains("art-ok") &&
+    typeof img.dataset.src === "string" && img.dataset.src.indexOf(CALL_ART[A.id].dir) === 0;
+  if (warmSwap && img.dataset.src !== src) {
+    // between two valid production states: crossfade, never the pending veil
+    img.dataset.src = src;
+    crossfadeStageArt(img, src);
+  } else if (img.dataset.src !== src) {
     img.dataset.src = src;
     img.dataset.retried = "";
     img.classList.remove("ok");
@@ -5621,8 +5708,11 @@ function renderCall() {
   // inline dialogue: the recent exchange, chronological. Each message carries
   // compact actions — replay and a Translation toggle that expands inline
   // below that message. German stays LTR-isolated inside RTL help languages.
-  const chip = prod
-    ? `<img class="call-say-av" src="${esc(prod.src)}" alt="" />`
+  // the tiny bubble avatar stays pinned to the listening frame (the pilot's
+  // behaviour): the message list must not flicker through call states
+  const chipArt = callArt(A.id, "listening");
+  const chip = chipArt
+    ? `<img class="call-say-av" src="${esc(chipArt.src)}" alt="" />`
     : `<span class="call-say-av" aria-hidden="true">${esc(A.avatar || "🎧")}</span>`;
   const trBtn = (i, x) =>
     `<button class="mini" data-ctr="${i}" aria-expanded="${String(!!x.open)}">${esc(x.open ? L.hideTr : L.show)}</button>`;
@@ -6458,10 +6548,11 @@ function startConversation() {
     S.active = S.scenario;
   }
   S.turns = []; S.hint = null; S.hintTr = null; S.seconds = 0; S.handsFree = true; S.speaker = 1;
+  S.callDone = false; // fresh call: the success frame belongs to the last goodbye only
   // clean default call: the conversation looks like a real call until the
   // learner explicitly asks for Text or Help
   S.showText = false; S.helpStep = 0; S.helpTrOpen = false; S.speedOpen = false;
-  warmCallArt(S.active.id); // production art loads before the stage paints
+  warmCallArt(S.active.id); // idle + listening decode before the stage paints
   S.callId = newRewardId(); // each call claims its reward under a fresh id
   const g = S.active.goals;
   S.currentGoal = g[Math.floor(Math.random() * g.length)];
@@ -6471,6 +6562,7 @@ function startConversation() {
     goal: S.currentGoal, providers: ENGINE,
   }).start();
   show("call"); alertMsg(null); renderCall();
+  warmCallStates(S.active.id); // thinking/speaking/success decode while ringing
   renderCallCompanion();
   if (S.active.kind !== "face") SFX.ringStart();
   acquireWakeLock();
@@ -6602,11 +6694,25 @@ function notifyStorageFailure() {
 }
 
 /* warm the approved production assets so the first visible character frame
-   is already the gold artwork - never a temporary stand-in */
+   is already the gold artwork - never a temporary stand-in.
+   asset-manifest.json preload contract: idle + listening decode before the
+   first stage reveal; thinking/speaking/success warm right after call start. */
 function warmCallArt(id) {
   const a = callArt(id, "ready");
   if (!a || typeof Image === "undefined") return;
-  try { new Image().src = a.src; new Image().src = a.background; } catch (e) {}
+  try {
+    warmArtSrc(a.src).catch(() => {});
+    warmArtSrc(a.background).catch(() => {});
+    const lst = callArt(id, "listening");
+    if (lst) warmArtSrc(lst.src).catch(() => {});
+  } catch (e) {}
+}
+function warmCallStates(id) {
+  if (typeof Image === "undefined") return;
+  ["processing", "speaking", "success"].forEach((st) => {
+    const a = callArt(id, st);
+    if (a) warmArtSrc(a.src).catch(() => {});
+  });
 }
 
 function goCall() {
