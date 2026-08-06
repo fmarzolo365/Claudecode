@@ -1,0 +1,70 @@
+{
+ "contract": "marzi.learning.competencies.v1",
+ "schemaVersion": 1,
+ "curriculumVersion": "v1-draft",
+ "reviewStatus": "pending_specialist_review",
+ "sourceDocument": "docs/learning/LEARNING_MODEL.md",
+ "learnerFacingLabels": {
+  "status": "OPEN_GATE",
+  "gate": "MARZI-021-COMPETENCY-COPY",
+  "note": "Localized learner-facing competency labels are not authored in v1. Competency IDs are never shown as interface copy. Learner-facing text in v1 is limited to objective titles and completion/mastery state copy."
+ },
+ "families": [
+  {
+   "id": "COM",
+   "name": "Comprehension",
+   "scope": "What the learner understood from what the other party said."
+  },
+  {
+   "id": "INT",
+   "name": "Interaction management",
+   "scope": "How the learner runs the exchange itself."
+  },
+  {
+   "id": "FUN",
+   "name": "Functional outcomes",
+   "scope": "The real-world result the learner is trying to reach."
+  },
+  {
+   "id": "SOC",
+   "name": "Sociolinguistic control",
+   "scope": "Politeness, address, and channel convention."
+  },
+  {
+   "id": "LNG",
+   "name": "Language control",
+   "scope": "Vocabulary, form, and coherence in service of meaning."
+  },
+  {
+   "id": "STR",
+   "name": "Learning strategy",
+   "scope": "How the learner copes, repairs, and retrieves language."
+  }
+ ],
+ "competencies": [
+  {
+   "id": "COM.KEY_DETAIL",
+   "family": "COM",
+   "observableCapability": "Identifies an essential fact, question, offer, or requested detail and responds consistently with it.",
+   "reviewStatus": "pending_specialist_review"
+  },
+  {
+   "id": "COM.CONSTRAINT",
+   "family": "COM",
+   "observableCapability": "Understands a limitation, condition, refusal, alternative, date, amount, or other constraint.",
+   "reviewStatus": "pending_specialist_review"
+  },
+  {
+   "id": "COM.MULTISTEP",
+   "family": "COM",
+   "observableCapability": "Follows connected information or more than one required action without losing the task.",
+   "reviewStatus": "pending_specialist_review"
+  },
+  {
+   "id": "COM.KEY_DETAIL",
+   "family": "COM",
+   "observableCapability": "Identifies an essential fact, question, offer, or requested detail and responds consistently with it.",
+   "reviewStatus": "pending_specialist_review"
+  }
+ ]
+}

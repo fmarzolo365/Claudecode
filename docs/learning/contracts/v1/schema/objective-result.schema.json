@@ -1,0 +1,203 @@
+{
+ "dialect": "marzi.schema-subset.v1",
+ "title": "Marzi derived objective result",
+ "type": "object",
+ "additionalProperties": false,
+ "required": [
+  "contract",
+  "schemaVersion",
+  "attemptId",
+  "objectiveId",
+  "curriculumVersion",
+  "rubricVersion",
+  "result",
+  "criteria",
+  "reasonCodes"
+ ],
+ "properties": {
+  "contract": {
+   "const": "marzi.learning.objective-result.v1"
+  },
+  "schemaVersion": {
+   "const": 1
+  },
+  "attemptId": {
+   "type": "string",
+   "pattern": "^[a-z0-9][a-z0-9_-]*$"
+  },
+  "objectiveId": {
+   "type": "string",
+   "pattern": "^(de|en)\\.[a-z0-9_]+\\.[a-z0-9_]+\\.[a-z0-9_]+$"
+  },
+  "curriculumVersion": {
+   "type": "string",
+   "pattern": "^v[0-9]+(-draft)?$"
+  },
+  "rubricVersion": {
+   "type": "string",
+   "pattern": "^v[0-9]+(-draft)?$"
+  },
+  "result": {
+   "enum": [
+    "complete",
+    "partial",
+    "not_complete",
+    "insufficient_evidence",
+    "invalid"
+   ]
+  },
+  "criteria": {
+   "type": "array",
+   "minItems": 1,
+   "items": {
+    "$ref": "#/$defs/observation"
+   }
+  },
+  "reasonCodes": {
+   "type": "array",
+   "uniqueItems": true,
+   "items": {
+    "type": "string",
+    "pattern": "^[A-Z][A-Z0-9_]*$"
+   }
+  },
+  "accessibility": {
+   "$ref": "#/$defs/accessibility"
+  }
+ },
+ "$defs": {
+  "observation": {
+   "type": "object",
+   "additionalProperties": false,
+   "required": [
+    "criterionId",
+    "attemptId",
+    "curriculumVersion",
+    "outcome",
+    "opportunityIds",
+    "responseIds",
+    "assistance"
+   ],
+   "properties": {
+    "criterionId": {
+     "type": "string",
+     "pattern": "^[a-z0-9_]+$"
+    },
+    "attemptId": {
+     "type": "string",
+     "pattern": "^[a-z0-9][a-z0-9_-]*$"
+    },
+    "curriculumVersion": {
+     "type": "string",
+     "pattern": "^v[0-9]+(-draft)?$"
+    },
+    "outcome": {
+     "enum": [
+      "demonstrated",
+      "partially_demonstrated",
+      "not_demonstrated",
+      "not_observed",
+      "insufficient_evidence",
+      "invalid"
+     ]
+    },
+    "opportunityIds": {
+     "type": "array",
+     "uniqueItems": true,
+     "items": {
+      "type": "string",
+      "pattern": "^opp-[a-z0-9_-]+$"
+     }
+    },
+    "responseIds": {
+     "type": "array",
+     "uniqueItems": true,
+     "items": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9_-]*$"
+     }
+    },
+    "assistance": {
+     "$ref": "#/$defs/assistance"
+    }
+   }
+  },
+  "assistance": {
+   "type": "object",
+   "additionalProperties": false,
+   "required": [
+    "mode",
+    "exposed",
+    "derivationRelation"
+   ],
+   "properties": {
+    "mode": {
+     "enum": [
+      "OFF",
+      "HINT",
+      "FULL"
+     ]
+    },
+    "exposed": {
+     "type": "boolean"
+    },
+    "opened": {
+     "type": "boolean"
+    },
+    "changedDuringResponse": {
+     "type": "boolean"
+    },
+    "helpItemId": {
+     "type": [
+      "string",
+      "null"
+     ]
+    },
+    "derivationRelation": {
+     "enum": [
+      "identical",
+      "materially_derived",
+      "independent",
+      "undetermined"
+     ]
+    },
+    "evaluatorConfidence": {
+     "enum": [
+      "high",
+      "medium",
+      "low",
+      "undetermined"
+     ]
+    }
+   }
+  },
+  "accessibility": {
+   "type": "object",
+   "additionalProperties": false,
+   "required": [
+    "accommodations",
+    "declaredBy",
+    "appliesToConstruct"
+   ],
+   "properties": {
+    "accommodations": {
+     "type": "array",
+     "uniqueItems": true,
+     "items": {
+      "type": "string",
+      "minLength": 1
+     }
+    },
+    "declaredBy": {
+     "enum": [
+      "learner",
+      "system_setting"
+     ]
+    },
+    "appliesToConstruct": {
+     "type": "boolean"
+    }
+   }
+  }
+ }
+}

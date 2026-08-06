@@ -1,0 +1,25 @@
+{
+ "contract": "marzi.learning.prerequisites.v1",
+ "schemaVersion": 1,
+ "curriculumVersion": "v1-draft",
+ "reviewStatus": "pending_specialist_review",
+ "hardLock": false,
+ "note": "Negative fixture: the recommended prerequisite graph must stay acyclic.",
+ "edges": [
+  {
+   "from": "INT.STATE_PURPOSE",
+   "to": "INT.PROVIDE_DETAIL",
+   "kind": "recommended"
+  },
+  {
+   "from": "INT.PROVIDE_DETAIL",
+   "to": "FUN.ARRANGE",
+   "kind": "recommended"
+  },
+  {
+   "from": "FUN.ARRANGE",
+   "to": "INT.STATE_PURPOSE",
+   "kind": "recommended"
+  }
+ ]
+}

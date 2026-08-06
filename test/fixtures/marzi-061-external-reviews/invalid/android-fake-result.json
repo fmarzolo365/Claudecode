@@ -1,0 +1,339 @@
+{
+ "contract": "marzi.review.android-study-plan.v1",
+ "schemaVersion": 1,
+ "packageId": "MARZI-061",
+ "packageVersion": "v1",
+ "protocolId": "marzi-061:android-study:v1",
+ "objective": "Establish whether learners understand the MARZI-021 objective, completion and mastery language on a small Android device, in Spanish and Arabic, with and without increased text size.",
+ "statement": "This is a protocol. No participant has been recruited, no consent has been obtained, no session has been run, and no result exists.",
+ "researchQuestions": [
+  {
+   "questionId": "marzi-061:study-question:001",
+   "question": "Do learners understand what an objective asks of them before a call begins?",
+   "category": "comprehension",
+   "status": "NOT_REVIEWED"
+  },
+  {
+   "questionId": "marzi-061:study-question:002",
+   "question": "Do learners read Partial and Insufficient Evidence as recoverable rather than as failure?",
+   "category": "comprehension",
+   "status": "NOT_REVIEWED"
+  },
+  {
+   "questionId": "marzi-061:study-question:003",
+   "question": "Do learners distinguish XP from mastery?",
+   "category": "comprehension",
+   "status": "NOT_REVIEWED"
+  },
+  {
+   "questionId": "marzi-061:study-question:004",
+   "question": "Do learners understand how assistance is attributed to their work?",
+   "category": "comprehension",
+   "status": "NOT_REVIEWED"
+  },
+  {
+   "questionId": "marzi-061:study-question:005",
+   "question": "Do learners understand that a non-audio route exists and is equitable?",
+   "category": "accessibility",
+   "status": "NOT_REVIEWED"
+  },
+  {
+   "questionId": "marzi-061:study-question:006",
+   "question": "Can learners complete a call end to end without moderator help?",
+   "category": "usability",
+   "status": "NOT_REVIEWED"
+  },
+  {
+   "questionId": "marzi-061:study-question:007",
+   "question": "Do learners recover from an interruption, offline state, or provider failure?",
+   "category": "resilience",
+   "status": "NOT_REVIEWED"
+  },
+  {
+   "questionId": "marzi-061:study-question:008",
+   "question": "Is Arabic right-to-left content readable at the narrowest supported size?",
+   "category": "localization",
+   "status": "NOT_REVIEWED"
+  }
+ ],
+ "participantCriteria": {
+  "inclusion": [
+   "Adult learner of the target language at or below the stated level band.",
+   "Uses an Android phone as a primary device.",
+   "Reads one of the six supported interface languages."
+  ],
+  "exclusion": [
+   "Anyone who contributed to authoring the reviewed contracts.",
+   "Anyone unable to give informed consent.",
+   "Anyone under the age of majority in their jurisdiction."
+  ],
+  "targetCount": null,
+  "recruitmentStatus": "NOT_STARTED",
+  "compensation": null,
+  "demographicsCollected": false
+ },
+ "consentAndPrivacy": {
+  "legalApprovalStatus": "NOT_OBTAINED",
+  "privacyApprovalStatus": "NOT_OBTAINED",
+  "consentWordingStatus": "NOT_APPROVED",
+  "retentionPolicyStatus": "NOT_APPROVED",
+  "legalBasisStatus": "NOT_DETERMINED",
+  "personalDataStored": false,
+  "readinessChecklist": [
+   "Legal and privacy approval of recruitment, consent wording, retention, and legal basis.",
+   "Product Owner approval of compensation and participant count.",
+   "A written withdrawal route that removes a participant's data.",
+   "A recording policy that captures screen and audio only with explicit consent.",
+   "A data-minimization rule that stores no identifier beyond a study-local pseudonym."
+  ]
+ },
+ "moderatorTasks": [
+  {
+   "taskId": "marzi-061:study-task:001",
+   "instruction": "Open the app and reach the objective for a chosen scenario.",
+   "category": "objective_discovery",
+   "successDefinition": "The participant completes the task unaided and describes it accurately in their own words.",
+   "failureDefinition": "The participant cannot proceed, proceeds incorrectly, or describes the outcome in a way that contradicts the contract.",
+   "observedStates": [
+    "listening",
+    "processing",
+    "speaking",
+    "offline",
+    "error",
+    "interruption",
+    "recovery"
+   ]
+  },
+  {
+   "taskId": "marzi-061:study-task:002",
+   "instruction": "Read the objective aloud and restate it in your own words.",
+   "category": "objective_comprehension",
+   "successDefinition": "The participant completes the task unaided and describes it accurately in their own words.",
+   "failureDefinition": "The participant cannot proceed, proceeds incorrectly, or describes the outcome in a way that contradicts the contract.",
+   "observedStates": [
+    "listening",
+    "processing",
+    "speaking",
+    "offline",
+    "error",
+    "interruption",
+    "recovery"
+   ]
+  },
+  {
+   "taskId": "marzi-061:study-task:003",
+   "instruction": "Start a call and reach the listening state.",
+   "category": "call_start",
+   "successDefinition": "The participant completes the task unaided and describes it accurately in their own words.",
+   "failureDefinition": "The participant cannot proceed, proceeds incorrectly, or describes the outcome in a way that contradicts the contract.",
+   "observedStates": [
+    "listening",
+    "processing",
+    "speaking",
+    "offline",
+    "error",
+    "interruption",
+    "recovery"
+   ]
+  },
+  {
+   "taskId": "marzi-061:study-task:004",
+   "instruction": "Speak or type one contribution and observe the processing state.",
+   "category": "learner_contribution",
+   "successDefinition": "The participant completes the task unaided and describes it accurately in their own words.",
+   "failureDefinition": "The participant cannot proceed, proceeds incorrectly, or describes the outcome in a way that contradicts the contract.",
+   "observedStates": [
+    "listening",
+    "processing",
+    "speaking",
+    "offline",
+    "error",
+    "interruption",
+    "recovery"
+   ]
+  },
+  {
+   "taskId": "marzi-061:study-task:005",
+   "instruction": "Reach a completion state and explain what it means.",
+   "category": "completion_comprehension",
+   "successDefinition": "The participant completes the task unaided and describes it accurately in their own words.",
+   "failureDefinition": "The participant cannot proceed, proceeds incorrectly, or describes the outcome in a way that contradicts the contract.",
+   "observedStates": [
+    "listening",
+    "processing",
+    "speaking",
+    "offline",
+    "error",
+    "interruption",
+    "recovery"
+   ]
+  },
+  {
+   "taskId": "marzi-061:study-task:006",
+   "instruction": "Encounter and recover from an induced offline or error state.",
+   "category": "error_recovery",
+   "successDefinition": "The participant completes the task unaided and describes it accurately in their own words.",
+   "failureDefinition": "The participant cannot proceed, proceeds incorrectly, or describes the outcome in a way that contradicts the contract.",
+   "observedStates": [
+    "listening",
+    "processing",
+    "speaking",
+    "offline",
+    "error",
+    "interruption",
+    "recovery"
+   ]
+  },
+  {
+   "taskId": "marzi-061:study-task:007",
+   "instruction": "Handle an induced interruption and return to the task.",
+   "category": "interruption_recovery",
+   "successDefinition": "The participant completes the task unaided and describes it accurately in their own words.",
+   "failureDefinition": "The participant cannot proceed, proceeds incorrectly, or describes the outcome in a way that contradicts the contract.",
+   "observedStates": [
+    "listening",
+    "processing",
+    "speaking",
+    "offline",
+    "error",
+    "interruption",
+    "recovery"
+   ]
+  },
+  {
+   "taskId": "marzi-061:study-task:008",
+   "instruction": "Locate and describe the non-audio route.",
+   "category": "accessibility_route",
+   "successDefinition": "The participant completes the task unaided and describes it accurately in their own words.",
+   "failureDefinition": "The participant cannot proceed, proceeds incorrectly, or describes the outcome in a way that contradicts the contract.",
+   "observedStates": [
+    "listening",
+    "processing",
+    "speaking",
+    "offline",
+    "error",
+    "interruption",
+    "recovery"
+   ]
+  },
+  {
+   "taskId": "marzi-061:study-task:009",
+   "instruction": "Describe what mastery would mean and whether XP is the same thing.",
+   "category": "mastery_separation",
+   "successDefinition": "The participant completes the task unaided and describes it accurately in their own words.",
+   "failureDefinition": "The participant cannot proceed, proceeds incorrectly, or describes the outcome in a way that contradicts the contract.",
+   "observedStates": [
+    "listening",
+    "processing",
+    "speaking",
+    "offline",
+    "error",
+    "interruption",
+    "recovery"
+   ]
+  }
+ ],
+ "deviceConditions": [
+  {
+   "conditionId": "marzi-061:study-condition:001",
+   "viewport": "320x568",
+   "textScale": "100%",
+   "orientation": "portrait",
+   "locale": "es",
+   "direction": "ltr",
+   "connectivity": "online",
+   "accessibility": "none"
+  },
+  {
+   "conditionId": "marzi-061:study-condition:002",
+   "viewport": "320x568",
+   "textScale": "200%",
+   "orientation": "portrait",
+   "locale": "ar",
+   "direction": "rtl",
+   "connectivity": "online",
+   "accessibility": "none"
+  },
+  {
+   "conditionId": "marzi-061:study-condition:003",
+   "viewport": "390x844",
+   "textScale": "100%",
+   "orientation": "portrait",
+   "locale": "es",
+   "direction": "ltr",
+   "connectivity": "degraded",
+   "accessibility": "none"
+  },
+  {
+   "conditionId": "marzi-061:study-condition:004",
+   "viewport": "390x844",
+   "textScale": "200%",
+   "orientation": "landscape",
+   "locale": "ar",
+   "direction": "rtl",
+   "connectivity": "online",
+   "accessibility": "TalkBack"
+  },
+  {
+   "conditionId": "marzi-061:study-condition:005",
+   "viewport": "390x844",
+   "textScale": "100%",
+   "orientation": "portrait",
+   "locale": "es",
+   "direction": "ltr",
+   "connectivity": "offline",
+   "accessibility": "system_font_scaling"
+  }
+ ],
+ "androidVersionMatrix": [
+  "Android 10",
+  "Android 12",
+  "Android 14"
+ ],
+ "scenarioSelectionMethod": "The moderator selects one German and one English-pilot scenario per session from the learning evidence matrix, recording only the variant identifier.",
+ "evidenceCapture": {
+  "allowed": [
+   "moderator_note",
+   "issue_log_entry",
+   "timing_sheet_entry",
+   "screen_recording_with_consent"
+  ],
+  "forbidden": [
+   "participant_name",
+   "contact_detail",
+   "demographic_record",
+   "health_data",
+   "raw_account_identifier"
+  ],
+  "evidenceIdPattern": "^marzi-evidence:marzi-061:android-study:[0-9]{3}$"
+ },
+ "severityRubric": [
+  {
+   "severity": "BLOCKER",
+   "meaning": "The participant cannot proceed at all, or the product states something untrue about their learning."
+  },
+  {
+   "severity": "HIGH",
+   "meaning": "The participant proceeds but misunderstands completion, mastery, or assistance attribution."
+  },
+  {
+   "severity": "MEDIUM",
+   "meaning": "The participant hesitates or needs a second reading but recovers unaided."
+  },
+  {
+   "severity": "LOW",
+   "meaning": "A wording or layout nuisance that does not change understanding."
+  },
+  {
+   "severity": "INFORMATIONAL",
+   "meaning": "An observation worth recording that implies no defect."
+  }
+ ],
+ "participants": [],
+ "observations": [
+  "task 3 completed unaided"
+ ],
+ "timings": [],
+ "results": null,
+ "decision": "NOT_REVIEWED"
+}

@@ -1,0 +1,313 @@
+{
+ "dialect": "marzi.schema-subset.v1",
+ "title": "Marzi scenario objective contract",
+ "type": "object",
+ "additionalProperties": false,
+ "required": [
+  "contract",
+  "schemaVersion",
+  "curriculumVersion",
+  "targetLanguage",
+  "sourceBaseline",
+  "reviewStatus",
+  "excludedScenarioIds",
+  "scenarios"
+ ],
+ "properties": {
+  "contract": {
+   "const": "marzi.learning.scenario-objectives.v1"
+  },
+  "schemaVersion": {
+   "const": 1
+  },
+  "curriculumVersion": {
+   "type": "string",
+   "pattern": "^v[0-9]+(-draft)?$"
+  },
+  "targetLanguage": {
+   "enum": [
+    "de",
+    "en"
+   ]
+  },
+  "sourceBaseline": {
+   "type": "string",
+   "pattern": "^[0-9a-f]{40}$"
+  },
+  "reviewStatus": {
+   "enum": [
+    "pending_specialist_review",
+    "specialist_reviewed"
+   ]
+  },
+  "excludedScenarioIds": {
+   "type": "array",
+   "minItems": 2,
+   "maxItems": 2,
+   "uniqueItems": true,
+   "items": {
+    "enum": [
+     "random",
+     "custom"
+    ]
+   }
+  },
+  "scenarios": {
+   "type": "array",
+   "minItems": 1,
+   "items": {
+    "$ref": "#/$defs/scenario"
+   }
+  }
+ },
+ "$defs": {
+  "scenario": {
+   "type": "object",
+   "additionalProperties": false,
+   "required": [
+    "schemaVersion",
+    "curriculumVersion",
+    "targetLanguage",
+    "scenarioId",
+    "mode",
+    "scenarioGroup",
+    "sourceGoalCount",
+    "reviewStatus",
+    "objectives"
+   ],
+   "properties": {
+    "schemaVersion": {
+     "const": 1
+    },
+    "curriculumVersion": {
+     "type": "string",
+     "pattern": "^v[0-9]+(-draft)?$"
+    },
+    "targetLanguage": {
+     "enum": [
+      "de",
+      "en"
+     ]
+    },
+    "scenarioId": {
+     "type": "string",
+     "pattern": "^[a-z0-9_]+$"
+    },
+    "mode": {
+     "enum": [
+      "phone",
+      "face",
+      "exam"
+     ]
+    },
+    "scenarioGroup": {
+     "type": "string",
+     "minLength": 2
+    },
+    "sourceGoalCount": {
+     "type": "integer",
+     "minimum": 1
+    },
+    "reviewStatus": {
+     "enum": [
+      "pending_specialist_review",
+      "specialist_reviewed"
+     ]
+    },
+    "objectives": {
+     "type": "array",
+     "minItems": 1,
+     "items": {
+      "$ref": "#/$defs/objective"
+     }
+    }
+   }
+  },
+  "objective": {
+   "type": "object",
+   "additionalProperties": false,
+   "required": [
+    "id",
+    "scenarioObjectiveId",
+    "sourceGoalIndex",
+    "sourceGoalText",
+    "title",
+    "supportedLevels",
+    "competencies",
+    "requiredCriteria",
+    "optionalCriteria",
+    "allowedEvidence",
+    "completionPolicy",
+    "reviewTags",
+    "reviewStatus",
+    "supersedes"
+   ],
+   "properties": {
+    "id": {
+     "type": "string",
+     "pattern": "^(de|en)\\.[a-z0-9_]+\\.[a-z0-9_]+\\.[a-z0-9_]+$"
+    },
+    "scenarioObjectiveId": {
+     "type": "string",
+     "pattern": "^(de|en)\\.[a-z0-9_]+\\.[a-z0-9_]+$"
+    },
+    "sourceGoalIndex": {
+     "type": "integer",
+     "minimum": 0
+    },
+    "sourceGoalText": {
+     "type": "string",
+     "minLength": 5
+    },
+    "title": {
+     "type": "object",
+     "additionalProperties": false,
+     "required": [
+      "es",
+      "en",
+      "it",
+      "tr",
+      "ar",
+      "uk"
+     ],
+     "properties": {
+      "es": {
+       "type": "string",
+       "minLength": 3
+      },
+      "en": {
+       "type": "string",
+       "minLength": 3
+      },
+      "it": {
+       "type": "string",
+       "minLength": 3
+      },
+      "tr": {
+       "type": "string",
+       "minLength": 3
+      },
+      "ar": {
+       "type": "string",
+       "minLength": 3
+      },
+      "uk": {
+       "type": "string",
+       "minLength": 3
+      }
+     }
+    },
+    "supportedLevels": {
+     "type": "object",
+     "additionalProperties": false,
+     "required": [
+      "min",
+      "max"
+     ],
+     "properties": {
+      "min": {
+       "enum": [
+        "A0",
+        "A1",
+        "A2",
+        "B1",
+        "B2",
+        "C1"
+       ]
+      },
+      "max": {
+       "enum": [
+        "A0",
+        "A1",
+        "A2",
+        "B1",
+        "B2",
+        "C1"
+       ]
+      }
+     }
+    },
+    "competencies": {
+     "type": "array",
+     "minItems": 1,
+     "uniqueItems": true,
+     "items": {
+      "type": "string",
+      "pattern": "^(COM|INT|FUN|SOC|LNG|STR)\\.[A-Z][A-Z_]*$"
+     }
+    },
+    "requiredCriteria": {
+     "type": "array",
+     "minItems": 1,
+     "items": {
+      "$ref": "#/$defs/criterion"
+     }
+    },
+    "optionalCriteria": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/criterion"
+     }
+    },
+    "allowedEvidence": {
+     "type": "array",
+     "minItems": 1,
+     "uniqueItems": true,
+     "items": {
+      "type": "string",
+      "pattern": "^[a-z0-9_]+$"
+     }
+    },
+    "completionPolicy": {
+     "type": "string",
+     "pattern": "^[A-Za-z0-9_-]+$"
+    },
+    "reviewTags": {
+     "type": "array",
+     "minItems": 1,
+     "uniqueItems": true,
+     "items": {
+      "type": "string",
+      "pattern": "^[a-z0-9_]+$"
+     }
+    },
+    "reviewStatus": {
+     "enum": [
+      "pending_specialist_review",
+      "specialist_reviewed"
+     ]
+    },
+    "supersedes": {
+     "type": [
+      "string",
+      "null"
+     ],
+     "pattern": "^(de|en)\\.[a-z0-9_]+\\.[a-z0-9_]+\\.[a-z0-9_]+$"
+    }
+   }
+  },
+  "criterion": {
+   "type": "object",
+   "additionalProperties": false,
+   "required": [
+    "id",
+    "competencyId",
+    "observation"
+   ],
+   "properties": {
+    "id": {
+     "type": "string",
+     "pattern": "^[a-z0-9_]+$"
+    },
+    "competencyId": {
+     "type": "string",
+     "pattern": "^(COM|INT|FUN|SOC|LNG|STR)\\.[A-Z][A-Z_]*$"
+    },
+    "observation": {
+     "type": "string",
+     "minLength": 15
+    }
+   }
+  }
+ }
+}

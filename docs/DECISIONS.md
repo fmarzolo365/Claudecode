@@ -2,6 +2,19 @@
 
 Short log of the decisions that shape this codebase. New entries go on top.
 
+## ADR-12 · The live call has no transcript sheet (2026-08-06)
+Binding Product Owner decisions for the premium call experience: the whole
+dialogue renders **inline** in the call as speech bubbles (word tap, per-line
+replay, inline translation, corrections — nothing lost from the sheet);
+`Text` shows/hides that band for listening-only practice; the visible `Auto`
+toggle is gone while hands-free stays the internal per-call default; visible
+controls are exactly mic (primary), hang-up, Need help, Text, Slow, Replay.
+Dialogue words are inline-sentence targets (WCAG 2.5.8 inline exception) and
+keep natural typography; every standalone control keeps the 48px floor.
+Production art drops in via registered slots (`/assets/call/characters/…`,
+`/assets/call/backgrounds/…`, spec in docs/design/MARZI_CALL_ASSET_SPEC.md);
+the generated portrait stays the labelled TEMPORARY stand-in until then.
+
 ## ADR-11 · Marzi product redesign grafted natively (2026-07-31)
 The "Marzi master product spec" (React/TS target) was implemented **natively
 in the single-file app** per ADR-9: design tokens (§6/§17 palette, Nunito
@@ -76,3 +89,34 @@ with no store review; only launcher icon/name changes need a new .aab.
 Role-play, evaluation, vocab and test prompts return strict JSON; parsing
 slices first `{`/`[` to last. The server proxies providers (Anthropic chat,
 OpenAI voice/images) and owns all keys; the client never sees them.
+
+## ADR-12 — Browser chrome is not removable; TWA is the packaging path
+
+**Context.** Launched from a link or a custom tab, the app shows browser
+chrome (X, URL, Share, overflow menu). Page JavaScript cannot remove it, and
+attempts to fake fullscreen produce a worse, less trustworthy result.
+
+**Decision.** Treat standalone as an *install-time* property, not a runtime
+one. `manifest.webmanifest` declares `display: standalone` with
+`display_override: ["standalone", "minimal-ui"]`; the app detects the mode via
+`display-mode` media queries plus the `navigator.standalone` fallback, and
+recommends installing **only** when running in a browser. The normal browser
+experience stays fully usable — the recommendation is dismissible and its
+dismissal persists. **No fake fullscreen.**
+
+For Play Store distribution the recorded path is a **Trusted Web Activity**,
+which runs the same origin without browser chrome. Documented in
+`docs/PLAY_LAUNCH.md`; not built in MARZI-017.
+
+## ADR-13 — Interface copy follows the help language; only content stays German
+
+**Context.** Learn rendered `Lv. 1 · Neuling` beside a Spanish stage name —
+three languages on one screen with no explanation.
+
+**Decision.** Rank titles, stage names, stage descriptions and every label are
+**interface copy** and follow the help language. German appears only where it
+is the learning content itself: scenario titles, prompts, corrections and
+spoken lines. The German rank titles remain in `RANKS` as the fallback and as
+the canonical order; `rankNames()` supplies the localized display. Rank
+thresholds and Marzi's six XP thresholds are unaffected and suite-frozen.
+

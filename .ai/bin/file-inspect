@@ -1,0 +1,432 @@
+#!/usr/bin/env node
+"use strict";
+
+const crypto = require("node:crypto");
+const fs = require("node:fs");
+const path = require("node:path");
+const {
+  EXIT,
+  ToolError,
+  assertSafeArgument,
+  emitJson,
+  git,
+  guardMain,
+  isInside,
+  resolveRepoRoot,
+  runFile
+} = require("./lib.cjs");
+
+const TOOL = "file-inspect";
+const MAX_READ_BYTES = 1024 * 1024;
+const MAX_COUNT_BYTES = 64 * 1024 * 1024;
+const SKIP_DIRECTORIES = new Set([".git", "node_modules"]);
+let systemFileAvailable = null;
+
+function usage() {
+  return [
+    "Usage:",
+    "  .ai/bin/file-inspect <path...>",
+    "  .ai/bin/file-inspect --hash <path...>",
+    "  .ai/bin/file-inspect --stat <path...>",
+    "  .ai/bin/file-inspect --read <path...>",
+    "  .ai/bin/file-inspect --find <exact-filename>",
+    "  .ai/bin/file-inspect --tmp-root /tmp/marzi-<task> <path...>",
+    "",
+    "All paths must resolve inside the repository. A task-owned /tmp tree is",
+    "allowed only when its root is declared with --tmp-root."
+  ].join("\n");
+}
+
+function parseArguments(argv) {
+  let mode = "inspect";
+  let modeSeen = false;
+  let tmpRoot = null;
+  let help = false;
+  const operands = [];
+
+  for (let index = 0; index < argv.length; index += 1) {
+    const value = argv[index];
+    if (value === "--help") {
+      help = true;
+      continue;
+    }
+    if (value === "--tmp-root") {
+      if (tmpRoot !== null) {
+        throw new ToolError("--tmp-root may be supplied only once", EXIT.USAGE);
+      }
+      const next = argv[index + 1];
+      if (!next) {
+        throw new ToolError("--tmp-root requires an absolute path", EXIT.USAGE);
+      }
+      assertSafeArgument(next, "temporary root");
+      tmpRoot = next;
+      index += 1;
+      continue;
+    }
+    if (["--hash", "--stat", "--read", "--find"].includes(value)) {
+      if (modeSeen) {
+        throw new ToolError("only one inspection mode may be selected", EXIT.USAGE);
+      }
+      mode = value.slice(2);
+      modeSeen = true;
+      continue;
+    }
+    if (value.startsWith("-")) {
+      throw new ToolError("unsupported option: " + value, EXIT.USAGE);
+    }
+    assertSafeArgument(value, "path");
+    operands.push(value);
+  }
+
+  if (help) {
+    if (argv.length !== 1) {
+      throw new ToolError("--help cannot be combined with other arguments", EXIT.USAGE);
+    }
+    return { help: true };
+  }
+  if (operands.length === 0) {
+    throw new ToolError("at least one path is required", EXIT.USAGE);
+  }
+  if (mode === "find" && operands.length !== 1) {
+    throw new ToolError("--find requires exactly one filename", EXIT.USAGE);
+  }
+  return { help: false, mode, operands, tmpRoot };
+}
+
+function containsTraversal(value) {
+  return value.split(/[\\/]+/u).some((part) => part === "..");
+}
+
+function validateTemporaryRoot(rawRoot) {
+  if (!rawRoot) {
+    return null;
+  }
+  if (!path.isAbsolute(rawRoot)) {
+    throw new ToolError("--tmp-root must be absolute", EXIT.USAGE);
+  }
+  const normalized = path.resolve(rawRoot);
+  if (normalized === "/tmp" || !normalized.startsWith("/tmp/marzi-")) {
+    throw new ToolError(
+      "--tmp-root must name a task-owned /tmp/marzi-* directory",
+      EXIT.USAGE
+    );
+  }
+  let lexicalInfo;
+  try {
+    lexicalInfo = fs.lstatSync(normalized);
+  } catch {
+    throw new ToolError("temporary root does not exist: " + normalized, EXIT.VALIDATION);
+  }
+  if (!lexicalInfo.isDirectory() || lexicalInfo.isSymbolicLink()) {
+    throw new ToolError("temporary root must be a real directory", EXIT.USAGE);
+  }
+  let real;
+  try {
+    real = fs.realpathSync(normalized);
+  } catch {
+    throw new ToolError("temporary root does not exist: " + normalized, EXIT.VALIDATION);
+  }
+  if (!real.startsWith("/tmp/marzi-")) {
+    throw new ToolError("temporary root resolves outside a task-owned directory", EXIT.USAGE);
+  }
+  return real;
+}
+
+function rejectGitInternals(repoRoot, candidate) {
+  if (!isInside(repoRoot, candidate)) {
+    return;
+  }
+  const relative = path.relative(repoRoot, candidate);
+  if (relative.split(path.sep).includes(".git")) {
+    throw new ToolError("inspection of .git internals is not supported", EXIT.USAGE);
+  }
+}
+
+function resolveAllowedPath(repoRoot, tmpRoot, rawPath) {
+  assertSafeArgument(rawPath, "path");
+  if (containsTraversal(rawPath)) {
+    throw new ToolError("path traversal is not supported: " + rawPath, EXIT.USAGE);
+  }
+  const lexical = path.resolve(path.isAbsolute(rawPath) ? "/" : repoRoot, rawPath);
+  const lexicalAllowed = isInside(repoRoot, lexical)
+    || (tmpRoot !== null && isInside(tmpRoot, lexical));
+  if (!lexicalAllowed) {
+    throw new ToolError("path is outside the allowed roots: " + rawPath, EXIT.USAGE);
+  }
+  rejectGitInternals(repoRoot, lexical);
+
+  let lexicalInfo;
+  try {
+    lexicalInfo = fs.lstatSync(lexical);
+  } catch {
+    throw new ToolError("path does not exist: " + rawPath, EXIT.VALIDATION);
+  }
+  if (lexicalInfo.isSymbolicLink()) {
+    throw new ToolError("symbolic links are not inspected", EXIT.USAGE);
+  }
+  let real;
+  try {
+    real = fs.realpathSync(lexical);
+  } catch {
+    throw new ToolError("path does not exist: " + rawPath, EXIT.VALIDATION);
+  }
+  if (!isInside(repoRoot, real) && !(tmpRoot !== null && isInside(tmpRoot, real))) {
+    throw new ToolError("resolved path escapes the allowed roots: " + rawPath, EXIT.USAGE);
+  }
+  rejectGitInternals(repoRoot, real);
+  const info = fs.lstatSync(real);
+  if (!info.isFile() && !info.isDirectory()) {
+    throw new ToolError("special files are not inspected: " + rawPath, EXIT.USAGE);
+  }
+  return { raw: rawPath, real, info };
+}
+
+function displayPath(repoRoot, tmpRoot, realPath) {
+  if (isInside(repoRoot, realPath)) {
+    const relative = path.relative(repoRoot, realPath);
+    return relative || ".";
+  }
+  if (tmpRoot && isInside(tmpRoot, realPath)) {
+    return realPath;
+  }
+  throw new ToolError("internal path-containment failure", EXIT.INTERNAL);
+}
+
+function mimeType(realPath, info) {
+  if (info.isDirectory()) {
+    return "inode/directory";
+  }
+  if (systemFileAvailable === false) {
+    return fallbackMimeType(realPath);
+  }
+  try {
+    const result = runFile("file", ["--brief", "--mime-type", "--", realPath], {
+      allowedExitCodes: [0]
+    });
+    systemFileAvailable = true;
+    return result.stdout.trim() || fallbackMimeType(realPath);
+  } catch (error) {
+    if (!(error instanceof ToolError) || error.exitCode !== EXIT.UNAVAILABLE) {
+      throw error;
+    }
+    systemFileAvailable = false;
+    return fallbackMimeType(realPath);
+  }
+}
+
+function fallbackMimeType(realPath) {
+  const extensionTypes = new Map([
+    [".css", "text/css"],
+    [".csv", "text/csv"],
+    [".html", "text/html"],
+    [".js", "text/javascript"],
+    [".cjs", "text/javascript"],
+    [".json", "application/json"],
+    [".md", "text/markdown"],
+    [".mjs", "text/javascript"],
+    [".svg", "image/svg+xml"],
+    [".txt", "text/plain"],
+    [".webmanifest", "application/manifest+json"],
+    [".xml", "application/xml"]
+  ]);
+  const byExtension = extensionTypes.get(path.extname(realPath).toLowerCase());
+  if (byExtension) {
+    return byExtension;
+  }
+  const sampleBuffer = Buffer.alloc(8192);
+  const descriptor = fs.openSync(realPath, "r");
+  let sample;
+  try {
+    const bytesRead = fs.readSync(descriptor, sampleBuffer, 0, sampleBuffer.length, 0);
+    sample = sampleBuffer.subarray(0, bytesRead);
+  } finally {
+    fs.closeSync(descriptor);
+  }
+  if (sample.length >= 3 && sample[0] === 0xff && sample[1] === 0xd8 && sample[2] === 0xff) {
+    return "image/jpeg";
+  }
+  if (sample.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]))) {
+    return "image/png";
+  }
+  if (sample.subarray(0, 4).toString("ascii") === "%PDF") {
+    return "application/pdf";
+  }
+  if (!sample.includes(0)) {
+    return "text/plain";
+  }
+  return "application/octet-stream";
+}
+
+function countLines(realPath, size) {
+  if (size > MAX_COUNT_BYTES) {
+    return null;
+  }
+  const buffer = fs.readFileSync(realPath);
+  let lines = 0;
+  for (const byte of buffer) {
+    if (byte === 10) {
+      lines += 1;
+    }
+  }
+  if (buffer.length > 0 && buffer[buffer.length - 1] !== 10) {
+    lines += 1;
+  }
+  return lines;
+}
+
+function sha256(realPath) {
+  return new Promise((resolve, reject) => {
+    const hash = crypto.createHash("sha256");
+    const input = fs.createReadStream(realPath);
+    input.on("error", reject);
+    input.on("data", (chunk) => hash.update(chunk));
+    input.on("end", () => resolve(hash.digest("hex")));
+  });
+}
+
+function isSensitiveForRead(realPath) {
+  const name = path.basename(realPath).toLowerCase();
+  return name === ".env"
+    || name.startsWith(".env.")
+    || /\.(?:pem|p12|pfx|key)$/u.test(name)
+    || /^(?:credentials|secrets?)(?:\.|$)/u.test(name);
+}
+
+function readText(realPath, info, detectedType) {
+  if (!info.isFile()) {
+    throw new ToolError("--read accepts regular files only", EXIT.USAGE);
+  }
+  if (info.size > MAX_READ_BYTES) {
+    throw new ToolError(
+      "file exceeds the " + MAX_READ_BYTES + "-byte read limit",
+      EXIT.VALIDATION
+    );
+  }
+  if (isSensitiveForRead(realPath)) {
+    throw new ToolError("reading likely credential material is not supported", EXIT.USAGE);
+  }
+  if (
+    detectedType !== "application/json"
+    && detectedType !== "application/xml"
+    && !detectedType.startsWith("text/")
+    && !detectedType.endsWith("+json")
+    && !detectedType.endsWith("+xml")
+  ) {
+    throw new ToolError("--read accepts text files only", EXIT.USAGE);
+  }
+  const content = fs.readFileSync(realPath, "utf8");
+  if (content.includes("\0")) {
+    throw new ToolError("--read rejected a file containing NUL bytes", EXIT.USAGE);
+  }
+  return content;
+}
+
+function gitMetadata(repoRoot, realPath) {
+  if (!isInside(repoRoot, realPath)) {
+    return { tracked: false, status: null };
+  }
+  const relative = path.relative(repoRoot, realPath) || ".";
+  const trackedResult = git(repoRoot, [
+    "ls-files",
+    "--error-unmatch",
+    "--",
+    relative
+  ], { allowedExitCodes: [0, 1] });
+  const statusResult = git(repoRoot, [
+    "status",
+    "--porcelain=v1",
+    "--untracked-files=all",
+    "--",
+    relative
+  ]);
+  const status = statusResult.stdout
+    .split("\n")
+    .filter(Boolean)
+    .map((line) => line.slice(0, 2).trim() || "clean");
+  return {
+    tracked: trackedResult.status === 0,
+    status: status.length === 0 ? ["clean"] : status
+  };
+}
+
+async function inspectOne(repoRoot, tmpRoot, rawPath, mode) {
+  const resolved = resolveAllowedPath(repoRoot, tmpRoot, rawPath);
+  const { real, info } = resolved;
+  const type = mimeType(real, info);
+  const result = {
+    path: displayPath(repoRoot, tmpRoot, real),
+    kind: info.isDirectory() ? "directory" : "file",
+    bytes: info.size,
+    lines: info.isFile() ? countLines(real, info.size) : null,
+    mimeType: type,
+    mode: (info.mode & 0o777).toString(8).padStart(3, "0"),
+    modifiedAt: info.mtime.toISOString(),
+    ...gitMetadata(repoRoot, real)
+  };
+  if (mode === "hash" && info.isFile()) {
+    result.sha256 = await sha256(real);
+  }
+  if (mode === "read") {
+    result.content = readText(real, info, type);
+  }
+  return result;
+}
+
+function findExact(root, expectedName) {
+  assertSafeArgument(expectedName, "filename");
+  if (path.basename(expectedName) !== expectedName || expectedName === "." || expectedName === "..") {
+    throw new ToolError("--find accepts an exact basename, not a path", EXIT.USAGE);
+  }
+  const matches = [];
+  const pending = [root];
+  while (pending.length > 0) {
+    const current = pending.pop();
+    const entries = fs.readdirSync(current, { withFileTypes: true })
+      .sort((left, right) => right.name.localeCompare(left.name));
+    for (const entry of entries) {
+      if (entry.isSymbolicLink()) {
+        continue;
+      }
+      const candidate = path.join(current, entry.name);
+      if (entry.isDirectory()) {
+        if (!SKIP_DIRECTORIES.has(entry.name)) {
+          pending.push(candidate);
+        }
+      } else if (entry.isFile() && entry.name === expectedName) {
+        matches.push(candidate);
+      }
+    }
+  }
+  return matches.sort();
+}
+
+async function main() {
+  const options = parseArguments(process.argv.slice(2));
+  if (options.help) {
+    process.stdout.write(usage() + "\n");
+    return;
+  }
+
+  const repoRoot = resolveRepoRoot();
+  const tmpRoot = validateTemporaryRoot(options.tmpRoot);
+  let paths = options.operands;
+  if (options.mode === "find") {
+    paths = findExact(repoRoot, options.operands[0]);
+    if (paths.length === 0) {
+      throw new ToolError("no file matched: " + options.operands[0], EXIT.VALIDATION);
+    }
+  }
+  const effectiveMode = options.mode === "find" ? "inspect" : options.mode;
+  const files = await Promise.all(
+    paths.map((item) => inspectOne(repoRoot, tmpRoot, item, effectiveMode))
+  );
+  emitJson({
+    status: "PASS",
+    tool: TOOL,
+    repositoryRoot: repoRoot,
+    operation: options.mode,
+    files
+  });
+}
+
+guardMain(TOOL, main);

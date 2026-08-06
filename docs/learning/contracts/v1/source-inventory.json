@@ -1,0 +1,26 @@
+{
+ "contract": "marzi.learning.source-inventory.v1",
+ "schemaVersion": 1,
+ "curriculumVersion": "v1-draft",
+ "baselineCommit": "ee88e0e2ecde8bcccb38c37ef7710c7e4f31bad4",
+ "sourceFile": "public/index.html",
+ "sourceSha256": "b6363ea6c86becb72e5066c17ba7fa8a356f6526279bcd1dac3f0f29513e695b",
+ "excludedScenarioIds": [
+  "random",
+  "custom"
+ ],
+ "exclusionReason": "random selects one production scenario at call time and inherits that scenario's objectives; custom is a learner-authored goal with no production objective. Neither is part of finite production coverage.",
+ "totals": {
+  "de": {
+   "scenarios": 19,
+   "variants": 61
+  },
+  "en": {
+   "scenarios": 10,
+   "variants": 33
+  },
+  "scenarios": 29,
+  "variants": 94
+ },
+ "driftRule": "The validator re-reads public/index.html at every run and compares the live scenario and goal inventory against scenarios.de.json and scenarios.en.json. Any added, removed, reordered, or edited production goal fails validation until the mapping is reviewed."
+}

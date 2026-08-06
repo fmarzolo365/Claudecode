@@ -1,0 +1,195 @@
+#!/usr/bin/env node
+"use strict";
+
+const {
+  EXIT,
+  ToolError,
+  assertSafeArgument,
+  assertSafeRef,
+  emitJson,
+  git,
+  guardMain,
+  parseNameStatusZ,
+  resolveRepoRoot
+} = require("./lib.cjs");
+
+const TOOL = "commit-inspect";
+
+function help() {
+  process.stdout.write(
+    "Usage:\n" +
+    "  .ai/bin/commit-inspect <commit>\n" +
+    "  .ai/bin/commit-inspect <commit1> <commit2>\n" +
+    "  .ai/bin/commit-inspect --stat <commit>\n" +
+    "  .ai/bin/commit-inspect --files <commit>\n" +
+    "  .ai/bin/commit-inspect --diff <commit1> <commit2>\n" +
+    "  .ai/bin/commit-inspect --json <commit> [commit2]\n"
+  );
+}
+
+function parseArgs(argv) {
+  for (const argument of argv) assertSafeArgument(argument);
+  if (argv.length === 1 && argv[0] === "--help") return { help: true };
+
+  let mode = "summary";
+  let refs = argv;
+  if (argv[0] && argv[0].startsWith("-")) {
+    const supported = new Map([
+      ["--stat", "stat"],
+      ["--files", "files"],
+      ["--diff", "diff"],
+      ["--json", "summary"]
+    ]);
+    if (!supported.has(argv[0])) {
+      throw new ToolError("unsupported or mutation-oriented option: " + argv[0], EXIT.USAGE);
+    }
+    mode = supported.get(argv[0]);
+    refs = argv.slice(1);
+  }
+
+  const required = mode === "diff" ? 2 : (mode === "summary" ? [1, 2] : 1);
+  if (Array.isArray(required)) {
+    if (!required.includes(refs.length)) {
+      throw new ToolError("summary mode requires one or two commits or refs", EXIT.USAGE);
+    }
+  } else if (refs.length !== required) {
+    throw new ToolError(mode + " mode requires exactly " + required + " commit or ref argument(s)", EXIT.USAGE);
+  }
+  refs.forEach((ref, index) => assertSafeRef(ref, "commit or ref " + (index + 1)));
+  return { help: false, mode, refs };
+}
+
+function validateCommit(root, ref) {
+  const check = git(
+    root,
+    ["cat-file", "-e", ref + "^{commit}"],
+    { allowedExitCodes: [0, 1, 128] }
+  );
+  if (check.status !== 0) {
+    throw new ToolError("unknown or non-commit ref: " + ref, EXIT.VALIDATION);
+  }
+  return git(root, ["rev-parse", "--verify", ref + "^{commit}"]).stdout.trim();
+}
+
+function metadata(root, ref) {
+  const format = "%H%x00%T%x00%P%x00%an%x00%ae%x00%aI%x00%s";
+  const output = git(root, ["show", "-s", "--no-color", "--format=" + format, ref]).stdout;
+  const fields = output.replace(/\r?\n$/, "").split("\0");
+  if (fields.length !== 7) {
+    throw new ToolError("Git returned malformed commit metadata for " + ref, EXIT.INTERNAL);
+  }
+  return {
+    requestedRef: ref,
+    sha: fields[0],
+    tree: fields[1],
+    parents: fields[2] ? fields[2].split(" ") : [],
+    author: {
+      name: fields[3],
+      email: fields[4]
+    },
+    authoredAt: fields[5],
+    subject: fields[6]
+  };
+}
+
+function filesForCommit(root, ref) {
+  const output = git(
+    root,
+    ["show", "--format=", "--name-status", "-z", "--no-renames", ref]
+  ).stdout;
+  return parseNameStatusZ(output);
+}
+
+function filesForRange(root, from, to) {
+  const output = git(
+    root,
+    ["diff", "--name-status", "-z", "--no-renames", from, to]
+  ).stdout;
+  return parseNameStatusZ(output);
+}
+
+guardMain(TOOL, () => {
+  const parsed = parseArgs(process.argv.slice(2));
+  if (parsed.help) {
+    help();
+    return;
+  }
+
+  const root = resolveRepoRoot();
+  parsed.refs.forEach((ref) => validateCommit(root, ref));
+
+  if (parsed.mode === "stat") {
+    emitJson({
+      status: "PASS",
+      tool: TOOL,
+      mode: "stat",
+      repositoryRoot: root,
+      commit: metadata(root, parsed.refs[0]),
+      stat: git(
+        root,
+        ["show", "--stat", "--oneline", "--no-color", "--no-ext-diff", parsed.refs[0]]
+      ).stdout
+    });
+    return;
+  }
+
+  if (parsed.mode === "files") {
+    emitJson({
+      status: "PASS",
+      tool: TOOL,
+      mode: "files",
+      repositoryRoot: root,
+      commit: metadata(root, parsed.refs[0]),
+      files: filesForCommit(root, parsed.refs[0])
+    });
+    return;
+  }
+
+  if (parsed.mode === "diff") {
+    emitJson({
+      status: "PASS",
+      tool: TOOL,
+      mode: "diff",
+      repositoryRoot: root,
+      from: metadata(root, parsed.refs[0]),
+      to: metadata(root, parsed.refs[1]),
+      files: filesForRange(root, parsed.refs[0], parsed.refs[1]),
+      patch: git(
+        root,
+        [
+          "diff",
+          "--no-color",
+          "--no-ext-diff",
+          "--no-renames",
+          parsed.refs[0],
+          parsed.refs[1]
+        ],
+        { maxBuffer: 32 * 1024 * 1024 }
+      ).stdout
+    });
+    return;
+  }
+
+  const commits = parsed.refs.map((ref) => metadata(root, ref));
+  const report = {
+    status: "PASS",
+    tool: TOOL,
+    mode: "summary",
+    repositoryRoot: root,
+    commits
+  };
+  if (parsed.refs.length === 1) {
+    report.files = filesForCommit(root, parsed.refs[0]);
+  } else {
+    const ancestor = git(
+      root,
+      ["merge-base", "--is-ancestor", parsed.refs[0], parsed.refs[1]],
+      { allowedExitCodes: [0, 1] }
+    );
+    report.relationship = {
+      firstIsAncestorOfSecond: ancestor.status === 0,
+      filesBetween: filesForRange(root, parsed.refs[0], parsed.refs[1])
+    };
+  }
+  emitJson(report);
+});

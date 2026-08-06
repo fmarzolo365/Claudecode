@@ -1,0 +1,86 @@
+{
+ "contract": "marzi.learning.placement.v1",
+ "schemaVersion": 1,
+ "curriculumVersion": "v1-draft",
+ "reviewStatus": "pending_specialist_review",
+ "decision": {
+  "id": "MARZI-D009",
+  "status": "APPROVED",
+  "selectedOption": "A",
+  "summary": "Optional, bounded placement calibration.",
+  "approvalDate": "2026-08-03",
+  "approverRole": "Product Owner",
+  "certificationClaim": false
+ },
+ "boundary": {
+  "optional": true,
+  "skippable": true,
+  "bounded": true,
+  "resultIsProvisional": true,
+  "revisableByLaterEvidence": true,
+  "producesPermanentLabel": false,
+  "externalCertificationClaim": false
+ },
+ "allowedModalities": [
+  "vocabulary",
+  "comprehension",
+  "listening"
+ ],
+ "speechModality": {
+  "permitted": true,
+  "condition": "only after the value and the alternatives have been explained and the learner has consented",
+  "microphonePermissionBeforeExplanation": false
+ },
+ "nonAudioRoute": {
+  "required": true,
+  "rule": "A non-audio route with extended-time usability must exist for every calibration item."
+ },
+ "resultContract": {
+  "fields": [
+   "placementId",
+   "curriculumVersion",
+   "startingBand",
+   "perCompetencyStates",
+   "confidence",
+   "skipped",
+   "source"
+  ],
+  "startingBandSource": [
+   "calibration",
+   "learner_selected",
+   "not_enough_evidence"
+  ],
+  "perCompetencyStatesReference": "marzi.learning.mastery.v1 states",
+  "mustSupport": [
+   "not_enough_evidence",
+   "learner_selected_starting_point"
+  ],
+  "mustNotProduce": [
+   "single_cefr_truth_claim",
+   "certification",
+   "permanent_label",
+   "reward",
+   "xp",
+   "coins"
+  ]
+ },
+ "accessibility": {
+  "accommodationsDoNotLowerStandards": true,
+  "extendedTimeUsable": true,
+  "rule": "Accessibility accommodation is recorded separately from calibration evidence and never lowers the mastery standard applied."
+ },
+ "outOfScope": [
+  "onboarding UI",
+  "onboarding step count",
+  "microphone permission timing in the UI",
+  "generated calibration content",
+  "scoring constants",
+  "persistence",
+  "reward"
+ ],
+ "calibrationContent": {
+  "status": "OPEN_GATE",
+  "gate": "MARZI-021-PLACEMENT-CONTENT",
+  "note": "Target-specific validated calibration items are not authored in this package. Content authoring and localization require specialist review."
+ }
+}

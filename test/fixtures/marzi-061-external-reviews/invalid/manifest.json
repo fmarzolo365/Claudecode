@@ -1,0 +1,158 @@
+{
+ "contract": "marzi.review.negative-fixtures.v1",
+ "schemaVersion": 1,
+ "packageId": "MARZI-061",
+ "note": "Each fixture below must be refused by test/marzi-061-external-review-readiness.js, and the FIRST reported reason code must be exactly its declared expectedReason.",
+ "fixtures": [
+  {
+   "file": "android-fake-participant.json",
+   "expectedReason": "M061_ER_PARTICIPANT_DATA_FORBIDDEN",
+   "description": "inserts a participant into a protocol that has not been run"
+  },
+  {
+   "file": "android-fake-result.json",
+   "expectedReason": "M061_ER_STUDY_RESULT_FORBIDDEN",
+   "description": "records a study observation that never happened"
+  },
+  {
+   "file": "appointed-with-null-reviewer.json",
+   "expectedReason": "M061_ER_APPOINTMENT_INCONSISTENT",
+   "description": "declares a reviewer appointed while the reviewer object is null"
+  },
+  {
+   "file": "approved-with-conditions-empty.json",
+   "expectedReason": "M061_ER_CONDITIONS_REQUIRED",
+   "description": "approves with conditions while listing none"
+  },
+  {
+   "file": "approved-without-evidence.json",
+   "expectedReason": "M061_ER_EVIDENCE_REQUIRED",
+   "description": "grants a decision without a completed, evidenced review"
+  },
+  {
+   "file": "arabic-not-rtl.json",
+   "expectedReason": "M061_ER_DIRECTION_INVALID",
+   "description": "declares Arabic as left to right"
+  },
+  {
+   "file": "audit-history-inconsistent.json",
+   "expectedReason": "M061_ER_AUDIT_HISTORY_INVALID",
+   "description": "records an external-review event while the gate is pending"
+  },
+  {
+   "file": "blocked-without-reason.json",
+   "expectedReason": "M061_ER_BLOCK_REASON_REQUIRED",
+   "description": "blocks a review without recording a blocking rationale"
+  },
+  {
+   "file": "changes-required-without-remediation.json",
+   "expectedReason": "M061_ER_REMEDIATION_REQUIRED",
+   "description": "requires changes without an open finding, remediation or re-review"
+  },
+  {
+   "file": "completed-without-reviewer.json",
+   "expectedReason": "M061_ER_REVIEWER_REQUIRED",
+   "description": "marks a review completed with no reviewer recorded"
+  },
+  {
+   "file": "decision-from-file-presence.json",
+   "expectedReason": "M061_ER_DECISION_INFERRED",
+   "description": "treats the existence of a matrix entry as a review outcome"
+  },
+  {
+   "file": "duplicate-review-id.json",
+   "expectedReason": "M061_ER_REVIEW_ID_DUPLICATE",
+   "description": "uses one review identifier for two tracks"
+  },
+  {
+   "file": "external-authority-claim.json",
+   "expectedReason": "M061_ER_AUTHORITY_CLAIM_UNSUPPORTED",
+   "description": "claims the package is WCAG compliant and certified"
+  },
+  {
+   "file": "fabricated-specialist-approval.json",
+   "expectedReason": "M061_ER_FALSE_APPROVAL",
+   "description": "records an approval with no appointed reviewer behind it"
+  },
+  {
+   "file": "fixture-path-escape.json",
+   "expectedReason": "M061_ER_FIXTURE_PATH_ESCAPE",
+   "description": "declares an artifact path that escapes the repository"
+  },
+  {
+   "file": "inventory-drift.json",
+   "expectedReason": "M061_ER_INVENTORY_DRIFT",
+   "description": "records a variant count that contradicts the approved inventory"
+  },
+  {
+   "file": "known-accessibility-issue-missing.json",
+   "expectedReason": "M061_ER_KNOWN_ISSUE_MISSING",
+   "description": "removes the open Arabic overflow issue from the accessibility plan"
+  },
+  {
+   "file": "learning-matrix-drift.json",
+   "expectedReason": "M061_ER_LEARNING_MATRIX_DRIFT",
+   "description": "changes a source goal index so the matrix no longer matches the contract"
+  },
+  {
+   "file": "linguistic-missing-locale.json",
+   "expectedReason": "M061_ER_LOCALE_SET_INVALID",
+   "description": "drops Ukrainian from the declared locale set"
+  },
+  {
+   "file": "linguistic-string-drift.json",
+   "expectedReason": "M061_ER_LINGUISTIC_TEXT_DRIFT",
+   "description": "edits a localized title instead of proposing a correction"
+  },
+  {
+   "file": "locale-name-mismatch.json",
+   "expectedReason": "M061_ER_LOCALE_NAME_INVALID",
+   "description": "names Ukrainian incorrectly in the locale table"
+  },
+  {
+   "file": "missing-review-track.json",
+   "expectedReason": "M061_ER_TRACK_SET_INVALID",
+   "description": "drops one of the four required review tracks"
+  },
+  {
+   "file": "open-gate-closed.json",
+   "expectedReason": "M061_ER_OPEN_GATE_CLOSED",
+   "description": "declares fewer open educational gates than remain open"
+  },
+  {
+   "file": "package-id-collision.json",
+   "expectedReason": "M061_ER_PACKAGE_ID_COLLISION",
+   "description": "claims the MARZI-022 package identity for external review readiness"
+  },
+  {
+   "file": "pending-with-review-date.json",
+   "expectedReason": "M061_ER_PENDING_STATE_INCONSISTENT",
+   "description": "records a review date while the gate is still pending"
+  },
+  {
+   "file": "privacy-data-present.json",
+   "expectedReason": "M061_ER_PERSONAL_DATA_FORBIDDEN",
+   "description": "stores a contact detail in the study protocol"
+  },
+  {
+   "file": "supersession-invalid.json",
+   "expectedReason": "M061_ER_SUPERSESSION_INVALID",
+   "description": "supersedes itself"
+  },
+  {
+   "file": "unexpected-property.json",
+   "expectedReason": "M061_ER_UNEXPECTED_PROPERTY",
+   "description": "adds an undeclared property to a controlled object"
+  },
+  {
+   "file": "unknown-artifact-reference.json",
+   "expectedReason": "M061_ER_ARTIFACT_REFERENCE_UNKNOWN",
+   "description": "references a reviewed artifact that does not exist"
+  },
+  {
+   "file": "unknown-review-type.json",
+   "expectedReason": "M061_ER_REVIEW_TYPE_UNKNOWN",
+   "description": "declares a review type outside the approved four"
+  }
+ ]
+}

@@ -1,7 +1,10 @@
 // Telefontrainer service worker: fast loads + offline shell.
 // Network-first for everything same-origin except /api/ (never cached),
 // falling back to cache when offline. Bump CACHE to invalidate.
-const CACHE = "telefontrainer-v35";
+// MARZI-062: version bump only. The staging shell changed, so an installed PWA
+// must not keep serving the previous shell from cache; the build id in the name
+// also makes the preview cache distinguishable from any other build's.
+const CACHE = "telefontrainer-v41-marzi-062-preview-1";
 const ASSETS = ["/", "/manifest.webmanifest", "/icons/icon-192.png", "/icons/icon-512.png"];
 
 self.addEventListener("install", (e) => {

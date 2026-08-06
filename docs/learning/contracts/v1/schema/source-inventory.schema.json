@@ -1,0 +1,111 @@
+{
+ "dialect": "marzi.schema-subset.v1",
+ "title": "Marzi frozen source inventory",
+ "type": "object",
+ "additionalProperties": false,
+ "required": [
+  "contract",
+  "schemaVersion",
+  "curriculumVersion",
+  "baselineCommit",
+  "sourceFile",
+  "sourceSha256",
+  "excludedScenarioIds",
+  "exclusionReason",
+  "totals",
+  "driftRule"
+ ],
+ "properties": {
+  "contract": {
+   "const": "marzi.learning.source-inventory.v1"
+  },
+  "schemaVersion": {
+   "const": 1
+  },
+  "curriculumVersion": {
+   "type": "string",
+   "pattern": "^v[0-9]+(-draft)?$"
+  },
+  "baselineCommit": {
+   "type": "string",
+   "pattern": "^[0-9a-f]{40}$"
+  },
+  "sourceFile": {
+   "const": "public/index.html"
+  },
+  "sourceSha256": {
+   "type": "string",
+   "pattern": "^[0-9a-f]{64}$"
+  },
+  "excludedScenarioIds": {
+   "type": "array",
+   "minItems": 2,
+   "maxItems": 2,
+   "uniqueItems": true,
+   "items": {
+    "enum": [
+     "random",
+     "custom"
+    ]
+   }
+  },
+  "exclusionReason": {
+   "type": "string",
+   "minLength": 40
+  },
+  "totals": {
+   "type": "object",
+   "additionalProperties": false,
+   "required": [
+    "de",
+    "en",
+    "scenarios",
+    "variants"
+   ],
+   "properties": {
+    "de": {
+     "type": "object",
+     "additionalProperties": false,
+     "required": [
+      "scenarios",
+      "variants"
+     ],
+     "properties": {
+      "scenarios": {
+       "const": 19
+      },
+      "variants": {
+       "const": 61
+      }
+     }
+    },
+    "en": {
+     "type": "object",
+     "additionalProperties": false,
+     "required": [
+      "scenarios",
+      "variants"
+     ],
+     "properties": {
+      "scenarios": {
+       "const": 10
+      },
+      "variants": {
+       "const": 33
+      }
+     }
+    },
+    "scenarios": {
+     "const": 29
+    },
+    "variants": {
+     "const": 94
+    }
+   }
+  },
+  "driftRule": {
+   "type": "string",
+   "minLength": 40
+  }
+ }
+}

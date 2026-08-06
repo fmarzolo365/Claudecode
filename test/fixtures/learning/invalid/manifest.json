@@ -1,0 +1,232 @@
+{
+ "contract": "marzi.learning.negative-fixtures.v1",
+ "schemaVersion": 1,
+ "note": "Each fixture below must be refused by test/learning-contracts.js and must fail for exactly its declared expectedReason: after deduplication the emitted reason-code set must equal that one code, with no unrelated distinct code. Repeated occurrences of the same code are acceptable.",
+ "fixtures": [
+  {
+   "file": "competencies-duplicate-id.json",
+   "expectedReason": "DUPLICATE_ID",
+   "description": "defines one competency identifier twice"
+  },
+  {
+   "file": "levels-out-of-order.json",
+   "expectedReason": "LEVEL_ORDER_INVALID",
+   "description": "reorders the internal learning bands"
+  },
+  {
+   "file": "mastery-invented-threshold.json",
+   "expectedReason": "INVENTED_DEFAULT",
+   "description": "fills in a mastery threshold that no owner has approved"
+  },
+  {
+   "file": "mastery-xp-input.json",
+   "expectedReason": "MASTERY_FORBIDDEN_INPUT_MISSING",
+   "description": "drops XP from the list of inputs mastery may never read"
+  },
+  {
+   "file": "prerequisites-cycle.json",
+   "expectedReason": "PREREQ_CYCLE",
+   "description": "closes a loop in the recommended prerequisite graph"
+  },
+  {
+   "file": "prerequisites-duplicate-edge.json",
+   "expectedReason": "PREREQ_DUPLICATE_EDGE",
+   "description": "declares the same recommended edge twice"
+  },
+  {
+   "file": "prerequisites-hard-lock.json",
+   "expectedReason": "PREREQ_KIND_UNSUPPORTED",
+   "description": "introduces a required edge that would hard-lock an existing scenario"
+  },
+  {
+   "file": "prerequisites-self-edge.json",
+   "expectedReason": "PREREQ_SELF_EDGE",
+   "description": "declares a competency as its own prerequisite"
+  },
+  {
+   "file": "prerequisites-unknown-node.json",
+   "expectedReason": "PREREQ_UNKNOWN_NODE",
+   "description": "references a competency identifier that does not exist"
+  },
+  {
+   "file": "result-accommodation-as-assistance.json",
+   "expectedReason": "ASSISTANCE_ACCOMMODATION_CONFLATED",
+   "description": "records an accessibility accommodation as a learning-help item"
+  },
+  {
+   "file": "result-acoustic-evidence.json",
+   "expectedReason": "ACOUSTIC_EVIDENCE_REJECTED",
+   "description": "smuggles an acoustic evidence identifier into a response reference"
+  },
+  {
+   "file": "result-assistance-as-accommodation.json",
+   "expectedReason": "ASSISTANCE_ACCOMMODATION_CONFLATED",
+   "description": "declares a learning-assistance mode as an accessibility accommodation"
+  },
+  {
+   "file": "result-complete-with-partial-required.json",
+   "expectedReason": "COMPLETION_RESULT_MISMATCH",
+   "description": "declares complete although a required criterion is only partially demonstrated"
+  },
+  {
+   "file": "result-completion-mismatch.json",
+   "expectedReason": "COMPLETION_RESULT_MISMATCH",
+   "description": "stores complete while a required criterion was never demonstrated"
+  },
+  {
+   "file": "result-cross-session-evidence.json",
+   "expectedReason": "EVIDENCE_CROSS_SESSION",
+   "description": "cites an observation recorded under a different attempt"
+  },
+  {
+   "file": "result-duplicate-observation.json",
+   "expectedReason": "EVIDENCE_DUPLICATE",
+   "description": "records the same criterion observation twice, which makes the evaluation context unusable"
+  },
+  {
+   "file": "result-insufficient-with-not-demonstrated.json",
+   "expectedReason": "COMPLETION_RESULT_MISMATCH",
+   "description": "declares insufficient evidence although valid negative evidence exists"
+  },
+  {
+   "file": "result-malformed-missing-field.json",
+   "expectedReason": "SCHEMA_REQUIRED_MISSING",
+   "description": "omits the rubric version required by every judgment"
+  },
+  {
+   "file": "result-not-complete-from-missing-only.json",
+   "expectedReason": "COMPLETION_RESULT_MISMATCH",
+   "description": "treats absence of evidence as learner failure"
+  },
+  {
+   "file": "result-optional-criterion-gates-completion.json",
+   "expectedReason": "COMPLETION_OPTIONAL_CRITERION_GATED",
+   "description": "lets an optional criterion prevent an otherwise complete objective"
+  },
+  {
+   "file": "result-partial-with-missing-evidence.json",
+   "expectedReason": "COMPLETION_RESULT_MISMATCH",
+   "description": "declares partial while a required criterion has no assessable observation"
+  },
+  {
+   "file": "result-partial-with-not-demonstrated.json",
+   "expectedReason": "COMPLETION_RESULT_MISMATCH",
+   "description": "declares partial while a required criterion was not demonstrated"
+  },
+  {
+   "file": "result-reward-value.json",
+   "expectedReason": "REWARD_VALUE_PRESENT",
+   "description": "records a reward outcome as a reason for a learning judgment"
+  },
+  {
+   "file": "result-stale-curriculum.json",
+   "expectedReason": "EVIDENCE_STALE",
+   "description": "cites an observation recorded against a superseded curriculum version"
+  },
+  {
+   "file": "result-unknown-criterion.json",
+   "expectedReason": "UNKNOWN_CRITERION_REF",
+   "description": "cites a criterion that does not belong to the objective"
+  },
+  {
+   "file": "result-unknown-field.json",
+   "expectedReason": "SCHEMA_UNKNOWN_FIELD",
+   "description": "adds an undeclared field to a judgment record"
+  },
+  {
+   "file": "result-unknown-objective.json",
+   "expectedReason": "UNKNOWN_OBJECTIVE_REF",
+   "description": "cites an objective identifier that no target pack defines"
+  },
+  {
+   "file": "result-unknown-state.json",
+   "expectedReason": "SCHEMA_ENUM_INVALID",
+   "description": "uses a completion state outside the approved five"
+  },
+  {
+   "file": "result-unsourced-judgment.json",
+   "expectedReason": "EVIDENCE_UNSOURCED",
+   "description": "claims a demonstrated outcome without citing any canonical response"
+  },
+  {
+   "file": "scenarios-acoustic-evidence.json",
+   "expectedReason": "ACOUSTIC_EVIDENCE_REJECTED",
+   "description": "allows a pronunciation score as objective evidence"
+  },
+  {
+   "file": "scenarios-draft-policy.json",
+   "expectedReason": "DRAFT_POLICY_IN_RELEASE",
+   "description": "keeps the pre-decision completion placeholder on a published objective"
+  },
+  {
+   "file": "scenarios-duplicate-objective-id.json",
+   "expectedReason": "DUPLICATE_ID",
+   "description": "reuses one stable objective identifier for two variants"
+  },
+  {
+   "file": "scenarios-duplicate-source-index.json",
+   "expectedReason": "SOURCE_COVERAGE_DUPLICATE",
+   "description": "maps two objective variants onto the same production goal index"
+  },
+  {
+   "file": "scenarios-excluded-scenario.json",
+   "expectedReason": "SCENARIO_EXCLUDED",
+   "description": "maps the random entry point as if it were a production scenario"
+  },
+  {
+   "file": "scenarios-goal-drift.json",
+   "expectedReason": "SOURCE_TEXT_DRIFT",
+   "description": "stores a goal string that no longer matches the production source"
+  },
+  {
+   "file": "scenarios-level-reversed.json",
+   "expectedReason": "LEVEL_RANGE_REVERSED",
+   "description": "declares a supported level interval whose minimum is above its maximum"
+  },
+  {
+   "file": "scenarios-level-unknown.json",
+   "expectedReason": "SCHEMA_ENUM_INVALID",
+   "description": "declares a level band outside A0 to C1"
+  },
+  {
+   "file": "scenarios-locale-parity.json",
+   "expectedReason": "LOCALE_PARITY",
+   "description": "leaves one of the six explanation languages effectively empty"
+  },
+  {
+   "file": "scenarios-proxy-criterion.json",
+   "expectedReason": "CRITERION_PROXY_REJECTED",
+   "description": "uses ending the call as evidence of learning"
+  },
+  {
+   "file": "scenarios-reward-value.json",
+   "expectedReason": "REWARD_VALUE_PRESENT",
+   "description": "attaches an XP value to a curriculum objective"
+  },
+  {
+   "file": "scenarios-supersedes-invalid-syntax.json",
+   "expectedReason": "SCHEMA_PATTERN_INVALID",
+   "description": "declares a supersession that does not use the objective identifier syntax"
+  },
+  {
+   "file": "scenarios-supersedes-non-null-v1.json",
+   "expectedReason": "SUPERSEDES_REF_INVALID",
+   "description": "declares a syntactically valid supersession although v1 has no predecessor registry"
+  },
+  {
+   "file": "scenarios-unknown-competency.json",
+   "expectedReason": "UNKNOWN_COMPETENCY_REF",
+   "description": "references a competency that the taxonomy does not define"
+  },
+  {
+   "file": "scenarios-unsafe-content.json",
+   "expectedReason": "UNSAFE_CONTENT",
+   "description": "puts executable markup into a learner-facing objective title"
+  },
+  {
+   "file": "scenarios-unsupported-evidence.json",
+   "expectedReason": "EVIDENCE_TYPE_UNSUPPORTED",
+   "description": "allows an evidence type that v1 does not define"
+  }
+ ]
+}

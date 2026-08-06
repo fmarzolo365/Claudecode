@@ -1,0 +1,196 @@
+{
+ "contract": "marzi.learning.competencies.v1",
+ "schemaVersion": 1,
+ "curriculumVersion": "v1-draft",
+ "reviewStatus": "pending_specialist_review",
+ "sourceDocument": "docs/learning/LEARNING_MODEL.md",
+ "learnerFacingLabels": {
+  "status": "OPEN_GATE",
+  "gate": "MARZI-021-COMPETENCY-COPY",
+  "note": "Localized learner-facing competency labels are not authored in v1. Competency IDs are never shown as interface copy. Learner-facing text in v1 is limited to objective titles and completion/mastery state copy."
+ },
+ "families": [
+  {
+   "id": "COM",
+   "name": "Comprehension",
+   "scope": "What the learner understood from what the other party said."
+  },
+  {
+   "id": "INT",
+   "name": "Interaction management",
+   "scope": "How the learner runs the exchange itself."
+  },
+  {
+   "id": "FUN",
+   "name": "Functional outcomes",
+   "scope": "The real-world result the learner is trying to reach."
+  },
+  {
+   "id": "SOC",
+   "name": "Sociolinguistic control",
+   "scope": "Politeness, address, and channel convention."
+  },
+  {
+   "id": "LNG",
+   "name": "Language control",
+   "scope": "Vocabulary, form, and coherence in service of meaning."
+  },
+  {
+   "id": "STR",
+   "name": "Learning strategy",
+   "scope": "How the learner copes, repairs, and retrieves language."
+  }
+ ],
+ "competencies": [
+  {
+   "id": "COM.KEY_DETAIL",
+   "family": "COM",
+   "observableCapability": "Identifies an essential fact, question, offer, or requested detail and responds consistently with it.",
+   "reviewStatus": "pending_specialist_review"
+  },
+  {
+   "id": "COM.CONSTRAINT",
+   "family": "COM",
+   "observableCapability": "Understands a limitation, condition, refusal, alternative, date, amount, or other constraint.",
+   "reviewStatus": "pending_specialist_review"
+  },
+  {
+   "id": "COM.MULTISTEP",
+   "family": "COM",
+   "observableCapability": "Follows connected information or more than one required action without losing the task.",
+   "reviewStatus": "pending_specialist_review"
+  },
+  {
+   "id": "INT.OPEN_CLOSE",
+   "family": "INT",
+   "observableCapability": "Opens and closes an exchange appropriately for channel and register.",
+   "reviewStatus": "pending_specialist_review"
+  },
+  {
+   "id": "INT.STATE_PURPOSE",
+   "family": "INT",
+   "observableCapability": "Makes the reason for the interaction understandable.",
+   "reviewStatus": "pending_specialist_review"
+  },
+  {
+   "id": "INT.PROVIDE_DETAIL",
+   "family": "INT",
+   "observableCapability": "Supplies relevant personal, temporal, quantitative, descriptive, or contextual information.",
+   "reviewStatus": "pending_specialist_review"
+  },
+  {
+   "id": "INT.ASK_INFORMATION",
+   "family": "INT",
+   "observableCapability": "Requests information needed to continue or decide.",
+   "reviewStatus": "pending_specialist_review"
+  },
+  {
+   "id": "INT.CLARIFY_REPAIR",
+   "family": "INT",
+   "observableCapability": "Signals non-understanding, asks for repetition or clarification, or repairs a misunderstanding.",
+   "reviewStatus": "pending_specialist_review"
+  },
+  {
+   "id": "INT.CONFIRM",
+   "family": "INT",
+   "observableCapability": "Confirms, checks, accepts, or rejects a detail or proposed outcome.",
+   "reviewStatus": "pending_specialist_review"
+  },
+  {
+   "id": "INT.NEGOTIATE",
+   "family": "INT",
+   "observableCapability": "Responds to a constraint with an alternative, counter-proposal, compromise, or justified preference.",
+   "reviewStatus": "pending_specialist_review"
+  },
+  {
+   "id": "FUN.ARRANGE",
+   "family": "FUN",
+   "observableCapability": "Creates, changes, cancels, or confirms an appointment, reservation, delivery, or other arrangement.",
+   "reviewStatus": "pending_specialist_review"
+  },
+  {
+   "id": "FUN.REQUEST_INFORMATION",
+   "family": "FUN",
+   "observableCapability": "Obtains practical information, requirements, status, cost, location, schedule, or next steps.",
+   "reviewStatus": "pending_specialist_review"
+  },
+  {
+   "id": "FUN.REPORT_PROBLEM",
+   "family": "FUN",
+   "observableCapability": "Describes a problem with enough relevant information for the other party to act.",
+   "reviewStatus": "pending_specialist_review"
+  },
+  {
+   "id": "FUN.REQUEST_REMEDY",
+   "family": "FUN",
+   "observableCapability": "Requests and reaches a repair, replacement, refund, escalation, or other remedy.",
+   "reviewStatus": "pending_specialist_review"
+  },
+  {
+   "id": "FUN.TRANSACT",
+   "family": "FUN",
+   "observableCapability": "Selects, orders, buys, exchanges, or returns a product or service while resolving required details.",
+   "reviewStatus": "pending_specialist_review"
+  },
+  {
+   "id": "FUN.SOCIAL_EXCHANGE",
+   "family": "FUN",
+   "observableCapability": "Sustains appropriate small talk, invitation, apology, request, boundary, or social relationship work.",
+   "reviewStatus": "pending_specialist_review"
+  },
+  {
+   "id": "FUN.PRESENT",
+   "family": "FUN",
+   "observableCapability": "Gives a coherent account of self, experience, plans, or a familiar topic and handles follow-up.",
+   "reviewStatus": "pending_specialist_review"
+  },
+  {
+   "id": "FUN.COLLABORATIVE_PLAN",
+   "family": "FUN",
+   "observableCapability": "Co-creates a plan by proposing, responding, agreeing, and confirming responsibilities and details.",
+   "reviewStatus": "pending_specialist_review"
+  },
+  {
+   "id": "FUN.INTERVIEW",
+   "family": "FUN",
+   "observableCapability": "Presents relevant experience, answers role questions, and obtains employment-process information.",
+   "reviewStatus": "pending_specialist_review"
+  },
+  {
+   "id": "SOC.REGISTER",
+   "family": "SOC",
+   "observableCapability": "Uses an understandable degree of politeness, directness, address, and channel convention.",
+   "reviewStatus": "pending_specialist_review"
+  },
+  {
+   "id": "LNG.LEXICAL_FIT",
+   "family": "LNG",
+   "observableCapability": "Selects vocabulary sufficient and appropriate for the intended meaning.",
+   "reviewStatus": "pending_specialist_review"
+  },
+  {
+   "id": "LNG.GRAMMATICAL_CONTROL",
+   "family": "LNG",
+   "observableCapability": "Forms language accurately enough for the intended meaning at the claimed band.",
+   "reviewStatus": "pending_specialist_review"
+  },
+  {
+   "id": "LNG.COHERENCE",
+   "family": "LNG",
+   "observableCapability": "Connects information so the exchange or presentation remains followable.",
+   "reviewStatus": "pending_specialist_review"
+  },
+  {
+   "id": "STR.SELF_REPAIR",
+   "family": "STR",
+   "observableCapability": "Notices and repairs or reformulates the learner's own contribution.",
+   "reviewStatus": "pending_specialist_review"
+  },
+  {
+   "id": "STR.INDEPENDENT_RETRIEVAL",
+   "family": "STR",
+   "observableCapability": "Produces useful language without copying a complete supplied answer.",
+   "reviewStatus": "pending_specialist_review"
+  }
+ ]
+}

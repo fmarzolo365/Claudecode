@@ -1,0 +1,222 @@
+{
+ "contract": "marzi.learning.mastery.v1",
+ "schemaVersion": 1,
+ "curriculumVersion": "v1-draft",
+ "reviewStatus": "pending_specialist_review",
+ "independenceRule": "Mastery aggregates valid competency evidence across distinct opportunities and attempts. It never reads XP, coins, rank, Marzi stage, time spent, hang-up, reward claims, or scenario visit count.",
+ "forbiddenInputs": [
+  "coins",
+  "rank",
+  "marzi_stage",
+  "elapsed_time",
+  "hang_up",
+  "reward_claim",
+  "scenariosDone",
+  "map_node_count",
+  "streak",
+  "premium_state"
+ ],
+ "states": [
+  {
+   "id": "not_enough_evidence",
+   "meaning": "Too little valid evidence to make a claim."
+  },
+  {
+   "id": "emerging",
+   "meaning": "Some demonstrated evidence exists, but it is limited, inconsistent, or highly supported."
+  },
+  {
+   "id": "developing",
+   "meaning": "Repeated evidence exists with material gaps or support dependence."
+  },
+  {
+   "id": "secure",
+   "meaning": "Repeated, sufficiently independent, current evidence meets the approved rubric across relevant contexts."
+  },
+  {
+   "id": "review_due",
+   "meaning": "Previously supported capability should be checked again because evidence is old, recently weak, or context-limited."
+  }
+ ],
+ "defaultState": "not_enough_evidence",
+ "confidenceDimensions": [
+  {
+   "id": "distinct_opportunities",
+   "meaning": "How many distinct valid opportunities produced evidence."
+  },
+  {
+   "id": "distinct_attempts",
+   "meaning": "How many distinct attempts produced evidence."
+  },
+  {
+   "id": "consistency",
+   "meaning": "How consistent the observations were with each other."
+  },
+  {
+   "id": "context_range",
+   "meaning": "How many scenarios, groups, and level bands the evidence spans."
+  },
+  {
+   "id": "assistance_profile",
+   "meaning": "The distribution of OFF, HINT, and FULL assistance across the evidence."
+  },
+  {
+   "id": "recency",
+   "meaning": "How current the evidence is under the approved recency policy."
+  },
+  {
+   "id": "rubric_validity",
+   "meaning": "Whether the evaluator and rubric version are still valid for the claim."
+  },
+  {
+   "id": "contradicting_evidence",
+   "meaning": "Evidence that points against the state."
+  }
+ ],
+ "thresholds": {
+  "status": "OPEN_GATE",
+  "gate": "MARZI-021-MASTERY-THRESHOLDS",
+  "blockedBy": [
+   "Product Owner numeric approval",
+   "learning specialist review"
+  ],
+  "minimumDistinctOpportunities": null,
+  "minimumDistinctContexts": null,
+  "recencyWindowDays": null,
+  "aggregationWeights": null,
+  "note": "Numeric minimums, recency windows, and aggregation weights are deliberately absent. No default is invented. Release-mode validation fails while this gate is open."
+ },
+ "boundaryFixtures": "test/fixtures/learning/",
+ "learnerFacingCopy": {
+  "not_enough_evidence": {
+   "es": {
+    "label": "Todavía sin datos suficientes",
+    "explanation": "Aún no hemos visto lo suficiente para decir nada sobre esta habilidad."
+   },
+   "en": {
+    "label": "Not enough evidence yet",
+    "explanation": "We have not seen enough yet to say anything about this skill."
+   },
+   "it": {
+    "label": "Ancora pochi elementi",
+    "explanation": "Non abbiamo ancora visto abbastanza per dire qualcosa su questa abilità."
+   },
+   "tr": {
+    "label": "Henüz yeterli veri yok",
+    "explanation": "Bu beceri hakkında bir şey söyleyecek kadarını henüz görmedik."
+   },
+   "ar": {
+    "label": "لا توجد أدلة كافية بعد",
+    "explanation": "لم نرَ بعد ما يكفي لنقول شيئًا عن هذه المهارة."
+   },
+   "uk": {
+    "label": "Поки замало свідчень",
+    "explanation": "Ми ще не побачили достатньо, щоб сказати щось про цю навичку."
+   }
+  },
+  "emerging": {
+   "es": {
+    "label": "Empezando",
+    "explanation": "Ya lo has hecho alguna vez, pero todavía con poca práctica o con mucha ayuda."
+   },
+   "en": {
+    "label": "Starting out",
+    "explanation": "You have done this before, but so far only a little or with a lot of help."
+   },
+   "it": {
+    "label": "Agli inizi",
+    "explanation": "L'hai già fatto, ma finora poche volte o con molto aiuto."
+   },
+   "tr": {
+    "label": "Yeni başlıyor",
+    "explanation": "Bunu daha önce yaptın ama şimdilik az ya da çok yardımla."
+   },
+   "ar": {
+    "label": "في البداية",
+    "explanation": "قمت بذلك من قبل، لكن حتى الآن قليلًا أو بمساعدة كبيرة."
+   },
+   "uk": {
+    "label": "Початок",
+    "explanation": "Ти вже це робив, але поки що небагато або з великою підтримкою."
+   }
+  },
+  "developing": {
+   "es": {
+    "label": "En progreso",
+    "explanation": "Ya lo haces varias veces, aunque todavía con algunos huecos o apoyándote en la ayuda."
+   },
+   "en": {
+    "label": "Coming along",
+    "explanation": "You do this repeatedly now, though there are still gaps or some reliance on help."
+   },
+   "it": {
+    "label": "In sviluppo",
+    "explanation": "Ormai lo fai più volte, ma restano alcune lacune o un po' di dipendenza dall'aiuto."
+   },
+   "tr": {
+    "label": "Gelişiyor",
+    "explanation": "Artık bunu birden fazla kez yapıyorsun ama hâlâ boşluklar ya da yardıma bağlılık var."
+   },
+   "ar": {
+    "label": "قيد التطور",
+    "explanation": "أصبحت تفعل ذلك مرارًا، لكن ما زالت هناك فجوات أو اعتماد على المساعدة."
+   },
+   "uk": {
+    "label": "Розвивається",
+    "explanation": "Ти вже робиш це неодноразово, але лишаються прогалини або опора на підказки."
+   }
+  },
+  "secure": {
+   "es": {
+    "label": "Consolidado",
+    "explanation": "Lo haces de forma constante, por tu cuenta y en distintas situaciones."
+   },
+   "en": {
+    "label": "Solid",
+    "explanation": "You do this consistently, on your own, and across different situations."
+   },
+   "it": {
+    "label": "Consolidato",
+    "explanation": "Lo fai in modo costante, da solo e in situazioni diverse."
+   },
+   "tr": {
+    "label": "Sağlam",
+    "explanation": "Bunu tutarlı biçimde, kendi başına ve farklı durumlarda yapıyorsun."
+   },
+   "ar": {
+    "label": "راسخ",
+    "explanation": "تفعل ذلك بثبات، وبمفردك، وفي مواقف مختلفة."
+   },
+   "uk": {
+    "label": "Впевнено",
+    "explanation": "Ти робиш це стабільно, самостійно і в різних ситуаціях."
+   }
+  },
+  "review_due": {
+   "es": {
+    "label": "Toca repasar",
+    "explanation": "Hace tiempo que no lo practicas o solo lo has hecho en una situación. Merece la pena repasarlo."
+   },
+   "en": {
+    "label": "Worth reviewing",
+    "explanation": "You have not practised this for a while, or only in one situation. It is worth going over again."
+   },
+   "it": {
+    "label": "Da ripassare",
+    "explanation": "Non lo pratichi da un po', o solo in una situazione. Vale la pena rivederlo."
+   },
+   "tr": {
+    "label": "Tekrar zamanı",
+    "explanation": "Bir süredir bunu çalışmadın ya da yalnızca tek bir durumda yaptın. Tekrar etmeye değer."
+   },
+   "ar": {
+    "label": "يستحق المراجعة",
+    "explanation": "لم تتدرب على هذا منذ فترة، أو فعلته في موقف واحد فقط. من المفيد مراجعته."
+   },
+   "uk": {
+    "label": "Варто повторити",
+    "explanation": "Ти давно цього не практикував або робив це лише в одній ситуації. Варто повторити."
+   }
+  }
+ }
+}

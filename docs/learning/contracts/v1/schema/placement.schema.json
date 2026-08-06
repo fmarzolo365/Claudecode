@@ -1,0 +1,270 @@
+{
+ "dialect": "marzi.schema-subset.v1",
+ "title": "Marzi placement boundary contract",
+ "type": "object",
+ "additionalProperties": false,
+ "required": [
+  "contract",
+  "schemaVersion",
+  "curriculumVersion",
+  "reviewStatus",
+  "decision",
+  "boundary",
+  "allowedModalities",
+  "speechModality",
+  "nonAudioRoute",
+  "resultContract",
+  "accessibility",
+  "outOfScope",
+  "calibrationContent"
+ ],
+ "properties": {
+  "contract": {
+   "const": "marzi.learning.placement.v1"
+  },
+  "schemaVersion": {
+   "const": 1
+  },
+  "curriculumVersion": {
+   "type": "string",
+   "pattern": "^v[0-9]+(-draft)?$"
+  },
+  "reviewStatus": {
+   "enum": [
+    "pending_specialist_review",
+    "specialist_reviewed"
+   ]
+  },
+  "decision": {
+   "type": "object",
+   "additionalProperties": false,
+   "required": [
+    "id",
+    "status",
+    "selectedOption",
+    "summary",
+    "approvalDate",
+    "approverRole",
+    "certificationClaim"
+   ],
+   "properties": {
+    "id": {
+     "const": "MARZI-D009"
+    },
+    "status": {
+     "const": "APPROVED"
+    },
+    "selectedOption": {
+     "const": "A"
+    },
+    "summary": {
+     "type": "string",
+     "minLength": 10
+    },
+    "approvalDate": {
+     "type": "string",
+     "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+    },
+    "approverRole": {
+     "const": "Product Owner"
+    },
+    "certificationClaim": {
+     "const": false
+    }
+   }
+  },
+  "boundary": {
+   "type": "object",
+   "additionalProperties": false,
+   "required": [
+    "optional",
+    "skippable",
+    "bounded",
+    "resultIsProvisional",
+    "revisableByLaterEvidence",
+    "producesPermanentLabel",
+    "externalCertificationClaim"
+   ],
+   "properties": {
+    "optional": {
+     "const": true
+    },
+    "skippable": {
+     "const": true
+    },
+    "bounded": {
+     "const": true
+    },
+    "resultIsProvisional": {
+     "const": true
+    },
+    "revisableByLaterEvidence": {
+     "const": true
+    },
+    "producesPermanentLabel": {
+     "const": false
+    },
+    "externalCertificationClaim": {
+     "const": false
+    }
+   }
+  },
+  "allowedModalities": {
+   "type": "array",
+   "minItems": 1,
+   "uniqueItems": true,
+   "items": {
+    "type": "string",
+    "pattern": "^[a-z0-9_]+$"
+   }
+  },
+  "speechModality": {
+   "type": "object",
+   "additionalProperties": false,
+   "required": [
+    "permitted",
+    "condition",
+    "microphonePermissionBeforeExplanation"
+   ],
+   "properties": {
+    "permitted": {
+     "type": "boolean"
+    },
+    "condition": {
+     "type": "string",
+     "minLength": 20
+    },
+    "microphonePermissionBeforeExplanation": {
+     "const": false
+    }
+   }
+  },
+  "nonAudioRoute": {
+   "type": "object",
+   "additionalProperties": false,
+   "required": [
+    "required",
+    "rule"
+   ],
+   "properties": {
+    "required": {
+     "const": true
+    },
+    "rule": {
+     "type": "string",
+     "minLength": 20
+    }
+   }
+  },
+  "resultContract": {
+   "type": "object",
+   "additionalProperties": false,
+   "required": [
+    "fields",
+    "startingBandSource",
+    "perCompetencyStatesReference",
+    "mustSupport",
+    "mustNotProduce"
+   ],
+   "properties": {
+    "fields": {
+     "type": "array",
+     "minItems": 1,
+     "uniqueItems": true,
+     "items": {
+      "type": "string",
+      "pattern": "^[a-zA-Z][a-zA-Z0-9]*$"
+     }
+    },
+    "startingBandSource": {
+     "type": "array",
+     "minItems": 1,
+     "uniqueItems": true,
+     "items": {
+      "type": "string",
+      "pattern": "^[a-z0-9_]+$"
+     }
+    },
+    "perCompetencyStatesReference": {
+     "type": "string",
+     "minLength": 5
+    },
+    "mustSupport": {
+     "type": "array",
+     "minItems": 1,
+     "uniqueItems": true,
+     "items": {
+      "type": "string",
+      "pattern": "^[a-z0-9_]+$"
+     }
+    },
+    "mustNotProduce": {
+     "type": "array",
+     "minItems": 1,
+     "uniqueItems": true,
+     "items": {
+      "type": "string",
+      "pattern": "^[a-z0-9_]+$"
+     }
+    }
+   }
+  },
+  "accessibility": {
+   "type": "object",
+   "additionalProperties": false,
+   "required": [
+    "accommodationsDoNotLowerStandards",
+    "extendedTimeUsable",
+    "rule"
+   ],
+   "properties": {
+    "accommodationsDoNotLowerStandards": {
+     "const": true
+    },
+    "extendedTimeUsable": {
+     "const": true
+    },
+    "rule": {
+     "type": "string",
+     "minLength": 20
+    }
+   }
+  },
+  "outOfScope": {
+   "type": "array",
+   "minItems": 1,
+   "items": {
+    "type": "string",
+    "minLength": 3
+   }
+  },
+  "calibrationContent": {
+   "type": "object",
+   "additionalProperties": false,
+   "required": [
+    "status",
+    "gate"
+   ],
+   "properties": {
+    "status": {
+     "const": "OPEN_GATE"
+    },
+    "gate": {
+     "type": "string",
+     "pattern": "^MARZI-[A-Z0-9-]+$"
+    },
+    "note": {
+     "type": "string",
+     "minLength": 10
+    },
+    "blockedBy": {
+     "type": "array",
+     "items": {
+      "type": "string",
+      "minLength": 3
+     }
+    }
+   }
+  }
+ }
+}

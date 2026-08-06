@@ -1,0 +1,535 @@
+#!/usr/bin/env node
+"use strict";
+
+const fs = require("node:fs");
+const path = require("node:path");
+const {
+  EXIT,
+  ToolError,
+  assertSafeArgument,
+  emitJson,
+  guardMain,
+  isInside,
+  redactSensitiveText,
+  resolveRepoRoot
+} = require("./lib.cjs");
+
+const TOOL = "browser-inspect";
+const GROUPS = new Set(["default", "onboarding", "call", "accessibility", "responsive"]);
+const LOCAL_HOSTS = new Set(["127.0.0.1", "localhost"]);
+
+function usage() {
+  return [
+    "Usage:",
+    "  .ai/bin/browser-inspect [options]",
+    "",
+    "Options:",
+    "  --url <http://localhost:port/path>",
+    "  --viewport <width>x<height>",
+    "  --lang <locale>",
+    "  --rtl",
+    "  --reduced-motion",
+    "  --accessibility",
+    "  --group <default|onboarding|call|accessibility|responsive>",
+    "  --screenshot",
+    "  --output-dir </tmp/marzi-browser-inspect-* directory>",
+    "  --validate-only",
+    "  --help",
+    "",
+    "The wrapper never installs dependencies and blocks every non-local request."
+  ].join("\n");
+}
+
+function takeValue(argv, index, option) {
+  const value = argv[index + 1];
+  if (!value) {
+    throw new ToolError(option + " requires a value", EXIT.USAGE);
+  }
+  assertSafeArgument(value, option);
+  return value;
+}
+
+function parseViewport(value) {
+  const match = /^([0-9]{3,4})x([0-9]{3,4})$/u.exec(value);
+  if (!match) {
+    throw new ToolError("viewport must use WIDTHxHEIGHT", EXIT.USAGE);
+  }
+  const width = Number(match[1]);
+  const height = Number(match[2]);
+  if (width < 240 || width > 4096 || height < 320 || height > 4096) {
+    throw new ToolError("viewport is outside the supported 240-4096 by 320-4096 range", EXIT.USAGE);
+  }
+  return { width, height };
+}
+
+function validateLocalUrl(value) {
+  assertSafeArgument(value, "URL");
+  let parsed;
+  try {
+    parsed = new URL(value);
+  } catch {
+    throw new ToolError("URL is invalid", EXIT.USAGE);
+  }
+  if (parsed.protocol !== "http:") {
+    throw new ToolError("only local HTTP URLs are supported", EXIT.USAGE);
+  }
+  if (!LOCAL_HOSTS.has(parsed.hostname)) {
+    throw new ToolError("only localhost or 127.0.0.1 is allowed", EXIT.USAGE);
+  }
+  if (parsed.username || parsed.password) {
+    throw new ToolError("URL credentials are forbidden", EXIT.USAGE);
+  }
+  return parsed.href;
+}
+
+function parseArguments(argv) {
+  const defaults = {
+    url: process.env.MARZI_URL
+      || "http://127.0.0.1:" + (process.env.PORT || "5173") + "/",
+    viewport: { width: 390, height: 844 },
+    lang: "en",
+    rtl: false,
+    reducedMotion: false,
+    accessibility: false,
+    group: "default",
+    screenshot: false,
+    outputDir: null,
+    validateOnly: false,
+    help: false
+  };
+  const seen = new Set();
+  for (let index = 0; index < argv.length; index += 1) {
+    const option = argv[index];
+    if (seen.has(option) && option.startsWith("--")) {
+      throw new ToolError("option may be supplied only once: " + option, EXIT.USAGE);
+    }
+    seen.add(option);
+    if (option === "--help") {
+      defaults.help = true;
+    } else if (option === "--url") {
+      defaults.url = takeValue(argv, index, option);
+      index += 1;
+    } else if (option === "--viewport") {
+      defaults.viewport = parseViewport(takeValue(argv, index, option));
+      index += 1;
+    } else if (option === "--lang") {
+      defaults.lang = takeValue(argv, index, option);
+      index += 1;
+    } else if (option === "--group") {
+      defaults.group = takeValue(argv, index, option);
+      index += 1;
+    } else if (option === "--output-dir") {
+      defaults.outputDir = takeValue(argv, index, option);
+      index += 1;
+    } else if (option === "--rtl") {
+      defaults.rtl = true;
+    } else if (option === "--reduced-motion") {
+      defaults.reducedMotion = true;
+    } else if (option === "--accessibility") {
+      defaults.accessibility = true;
+    } else if (option === "--screenshot") {
+      defaults.screenshot = true;
+    } else if (option === "--validate-only") {
+      defaults.validateOnly = true;
+    } else {
+      throw new ToolError("unsupported option: " + option, EXIT.USAGE);
+    }
+  }
+  if (defaults.help) {
+    if (argv.length !== 1) {
+      throw new ToolError("--help cannot be combined with other options", EXIT.USAGE);
+    }
+    return defaults;
+  }
+  defaults.url = validateLocalUrl(defaults.url);
+  if (!/^[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$/u.test(defaults.lang)) {
+    throw new ToolError("language must be a valid locale token", EXIT.USAGE);
+  }
+  if (!GROUPS.has(defaults.group)) {
+    throw new ToolError("unsupported inspection group: " + defaults.group, EXIT.USAGE);
+  }
+  if (defaults.group === "accessibility") {
+    defaults.accessibility = true;
+  }
+  return defaults;
+}
+
+function validateOutputDirectory(rawPath) {
+  if (!rawPath) {
+    return null;
+  }
+  if (!path.isAbsolute(rawPath)) {
+    throw new ToolError("--output-dir must be absolute", EXIT.USAGE);
+  }
+  const normalized = path.resolve(rawPath);
+  if (!normalized.startsWith("/tmp/marzi-browser-inspect-")) {
+    throw new ToolError(
+      "--output-dir must be a task-owned /tmp/marzi-browser-inspect-* directory",
+      EXIT.USAGE
+    );
+  }
+  let real;
+  let lexicalInfo;
+  try {
+    lexicalInfo = fs.lstatSync(normalized);
+  } catch {
+    throw new ToolError("--output-dir must already exist", EXIT.VALIDATION);
+  }
+  if (!lexicalInfo.isDirectory() || lexicalInfo.isSymbolicLink()) {
+    throw new ToolError("--output-dir is not a safe temporary directory", EXIT.USAGE);
+  }
+  try {
+    real = fs.realpathSync(normalized);
+  } catch {
+    throw new ToolError("--output-dir must already exist", EXIT.VALIDATION);
+  }
+  if (!real.startsWith("/tmp/marzi-browser-inspect-") || !isInside("/tmp", real)) {
+    throw new ToolError("--output-dir is not a safe temporary directory", EXIT.USAGE);
+  }
+  return real;
+}
+
+function findPlaywright(repoRoot) {
+  const names = [
+    "playwright",
+    "playwright-core",
+    "@playwright/test",
+    "/opt/node22/lib/node_modules/playwright-core",
+    "/opt/node22/lib/node_modules/playwright"
+  ];
+  for (const name of names) {
+    try {
+      const resolved = require.resolve(name, { paths: [repoRoot, __dirname] });
+      const loaded = require(resolved);
+      if (loaded && loaded.chromium && typeof loaded.chromium.launch === "function") {
+        return {
+          chromium: loaded.chromium,
+          executablePath: findChromiumExecutable(),
+          packageName: name
+        };
+      }
+    } catch (error) {
+      if (error && error.code !== "MODULE_NOT_FOUND") {
+        throw new ToolError(
+          "browser dependency could not be loaded: " + redactSensitiveText(error.message),
+          EXIT.UNAVAILABLE
+        );
+      }
+    }
+  }
+  throw new ToolError(
+    "Playwright or Playwright Core is unavailable; no dependency was installed",
+    EXIT.UNAVAILABLE
+  );
+}
+
+function findChromiumExecutable() {
+  const candidates = [
+    "/opt/pw-browsers/chromium",
+    "/usr/bin/chromium",
+    "/usr/bin/chromium-browser"
+  ];
+  for (const candidate of candidates) {
+    try {
+      const real = fs.realpathSync(candidate);
+      const allowed = isInside("/opt/pw-browsers", real)
+        || real === "/usr/bin/chromium"
+        || real === "/usr/bin/chromium-browser";
+      if (!allowed || !fs.statSync(real).isFile()) {
+        continue;
+      }
+      fs.accessSync(real, fs.constants.X_OK);
+      return real;
+    } catch {
+      // Continue through the fixed, host-controlled candidate list.
+    }
+  }
+  return null;
+}
+
+function requestIsLocal(rawUrl) {
+  if (/^(?:about:|blob:|data:)/u.test(rawUrl)) {
+    return true;
+  }
+  try {
+    const parsed = new URL(rawUrl);
+    return (parsed.protocol === "http:" || parsed.protocol === "ws:")
+      && LOCAL_HOSTS.has(parsed.hostname)
+      && !parsed.username
+      && !parsed.password;
+  } catch {
+    return false;
+  }
+}
+
+function screenshotDirectory(options) {
+  if (!options.screenshot) {
+    return null;
+  }
+  const explicit = validateOutputDirectory(options.outputDir);
+  return explicit || fs.mkdtempSync("/tmp/marzi-browser-inspect-");
+}
+
+async function collectMeasurements(page, options) {
+  return page.evaluate((expected) => {
+    const elements = Array.from(document.querySelectorAll("*"));
+    const ids = new Map();
+    for (const element of elements) {
+      if (element.id) {
+        ids.set(element.id, (ids.get(element.id) || 0) + 1);
+      }
+    }
+    const duplicates = Array.from(ids.entries())
+      .filter((entry) => entry[1] > 1)
+      .map((entry) => ({ id: entry[0], count: entry[1] }));
+    const controlSelector = [
+      "button",
+      "a[href]",
+      "input:not([type=hidden])",
+      "select",
+      "textarea",
+      "[role=button]",
+      "[role=link]",
+      "[tabindex]:not([tabindex='-1'])"
+    ].join(",");
+    const visible = (element) => {
+      const style = getComputedStyle(element);
+      const rect = element.getBoundingClientRect();
+      return style.display !== "none"
+        && style.visibility !== "hidden"
+        && Number(style.opacity) !== 0
+        && rect.width > 0
+        && rect.height > 0;
+    };
+    const accessibleName = (element) => (
+      element.getAttribute("aria-label")
+      || element.getAttribute("title")
+      || element.textContent
+      || element.getAttribute("value")
+      || ""
+    ).trim();
+    const controls = Array.from(document.querySelectorAll(controlSelector))
+      .filter(visible)
+      .map((element) => {
+        const rect = element.getBoundingClientRect();
+        return {
+          tag: element.tagName.toLowerCase(),
+          id: element.id || null,
+          name: accessibleName(element).slice(0, 160),
+          width: Math.round(rect.width * 100) / 100,
+          height: Math.round(rect.height * 100) / 100,
+          left: Math.round(rect.left * 100) / 100,
+          top: Math.round(rect.top * 100) / 100
+        };
+      });
+    const unnamedControls = controls.filter((control) => control.name.length === 0);
+    const undersizedControls = controls.filter(
+      (control) => control.width < 48 || control.height < 48
+    );
+    const imagesWithoutAlt = Array.from(document.querySelectorAll("img"))
+      .filter(visible)
+      .filter((image) => !image.hasAttribute("alt"))
+      .map((image) => image.id || image.getAttribute("src") || "unnamed image");
+    const direction = getComputedStyle(document.documentElement).direction;
+    const root = document.documentElement;
+    const body = document.body;
+    const scrollWidth = Math.max(root.scrollWidth, body ? body.scrollWidth : 0);
+    return {
+      title: document.title,
+      documentLanguage: root.lang || null,
+      documentDirection: root.dir || direction,
+      computedDirection: direction,
+      viewport: { width: innerWidth, height: innerHeight },
+      scrollWidth,
+      scrollX,
+      horizontalOverflow: Math.max(0, scrollWidth - innerWidth),
+      duplicateIds: duplicates,
+      controls,
+      unnamedControls,
+      undersizedControls,
+      imagesWithoutAlt,
+      prefersReducedMotion: matchMedia("(prefers-reduced-motion: reduce)").matches,
+      expected
+    };
+  }, {
+    language: options.lang,
+    rtl: options.rtl,
+    reducedMotion: options.reducedMotion,
+    group: options.group
+  });
+}
+
+function assess(measurements, options, pageErrors, blockedRequests, responseStatus) {
+  const failures = [];
+  const warnings = [];
+  if (responseStatus !== null && responseStatus >= 400) {
+    failures.push("page returned HTTP " + responseStatus);
+  }
+  if (pageErrors.length > 0) {
+    failures.push("page emitted " + pageErrors.length + " uncaught error(s)");
+  }
+  if (measurements.duplicateIds.length > 0) {
+    failures.push("duplicate DOM IDs were found");
+  }
+  if (["responsive", "onboarding", "call"].includes(options.group)
+      && measurements.horizontalOverflow > 0) {
+    failures.push("horizontal overflow was measured");
+  }
+  if (options.rtl && measurements.computedDirection !== "rtl") {
+    failures.push("RTL was requested but the rendered document direction is not RTL");
+  }
+  if (options.reducedMotion && !measurements.prefersReducedMotion) {
+    failures.push("reduced motion was requested but the media query does not match");
+  }
+  if (options.accessibility) {
+    if (!measurements.documentLanguage) {
+      failures.push("the document has no language");
+    }
+    if (measurements.unnamedControls.length > 0) {
+      failures.push("visible interactive controls lack accessible names");
+    }
+    if (measurements.imagesWithoutAlt.length > 0) {
+      failures.push("visible images lack alt attributes");
+    }
+    if (measurements.undersizedControls.length > 0) {
+      warnings.push("some visible interactive targets measure below 48x48 CSS pixels");
+    }
+  }
+  if (blockedRequests.length > 0) {
+    warnings.push("non-local requests were blocked");
+  }
+  return { failures, warnings };
+}
+
+async function runBrowser(options, repoRoot) {
+  const dependency = findPlaywright(repoRoot);
+  const outputDir = screenshotDirectory(options);
+  let browser;
+  try {
+    const launchOptions = { headless: true };
+    if (dependency.executablePath) {
+      launchOptions.executablePath = dependency.executablePath;
+    }
+    browser = await dependency.chromium.launch(launchOptions);
+  } catch (error) {
+    throw new ToolError(
+      "Chromium could not launch: " + redactSensitiveText(error.message),
+      EXIT.UNAVAILABLE
+    );
+  }
+
+  const pageErrors = [];
+  const blockedRequests = [];
+  try {
+    const context = await browser.newContext({
+      viewport: options.viewport,
+      locale: options.lang,
+      reducedMotion: options.reducedMotion ? "reduce" : "no-preference"
+    });
+    const page = await context.newPage();
+    page.on("pageerror", (error) => {
+      pageErrors.push(redactSensitiveText(error.message).slice(0, 500));
+    });
+    await page.route("**/*", async (route) => {
+      const requestUrl = route.request().url();
+      if (requestIsLocal(requestUrl)) {
+        await route.continue();
+      } else {
+        blockedRequests.push(redactSensitiveText(requestUrl).slice(0, 500));
+        await route.abort("blockedbyclient");
+      }
+    });
+
+    let response;
+    try {
+      response = await page.goto(options.url, {
+        waitUntil: "domcontentloaded",
+        timeout: 15000
+      });
+    } catch (error) {
+      throw new ToolError(
+        "local page could not be rendered: " + redactSensitiveText(error.message),
+        EXIT.VALIDATION
+      );
+    }
+    await page.waitForTimeout(250);
+    const measurements = await collectMeasurements(page, options);
+    const assessment = assess(
+      measurements,
+      options,
+      pageErrors,
+      blockedRequests,
+      response ? response.status() : null
+    );
+    let screenshot = null;
+    if (outputDir) {
+      screenshot = path.join(
+        outputDir,
+        options.group + "-" + options.viewport.width + "x" + options.viewport.height + ".png"
+      );
+      if (fs.existsSync(screenshot)) {
+        throw new ToolError("refusing to overwrite an existing temporary screenshot", EXIT.VALIDATION);
+      }
+      await page.screenshot({ path: screenshot, fullPage: false });
+    }
+    await context.close();
+    const report = {
+      status: assessment.failures.length === 0 ? "PASS" : "FAIL",
+      tool: TOOL,
+      browserProvider: dependency.packageName,
+      url: options.url,
+      group: options.group,
+      requested: {
+        viewport: options.viewport,
+        language: options.lang,
+        rtl: options.rtl,
+        reducedMotion: options.reducedMotion,
+        accessibility: options.accessibility
+      },
+      measurements,
+      pageErrors,
+      blockedRequests,
+      failures: assessment.failures,
+      warnings: assessment.warnings,
+      screenshot
+    };
+    emitJson(report);
+    if (assessment.failures.length > 0) {
+      process.exitCode = EXIT.VALIDATION;
+    }
+  } finally {
+    await browser.close();
+  }
+}
+
+async function main() {
+  const options = parseArguments(process.argv.slice(2));
+  if (options.help) {
+    process.stdout.write(usage() + "\n");
+    return;
+  }
+  validateOutputDirectory(options.outputDir);
+  if (options.validateOnly) {
+    emitJson({
+      status: "PASS",
+      tool: TOOL,
+      validationOnly: true,
+      configuration: {
+        url: options.url,
+        viewport: options.viewport,
+        language: options.lang,
+        rtl: options.rtl,
+        reducedMotion: options.reducedMotion,
+        accessibility: options.accessibility,
+        group: options.group,
+        screenshot: options.screenshot,
+        outputDir: options.outputDir
+      }
+    });
+    return;
+  }
+  const repoRoot = resolveRepoRoot();
+  await runBrowser(options, repoRoot);
+}
+
+guardMain(TOOL, main);

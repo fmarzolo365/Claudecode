@@ -1,0 +1,54 @@
+{
+ "contract": "marzi.learning.levels.v1",
+ "schemaVersion": 1,
+ "curriculumVersion": "v1-draft",
+ "reviewStatus": "pending_specialist_review",
+ "certificationClaim": false,
+ "note": "A0 is Marzi's internal pre-A1 label, not an additional CEFR certification. A level setting changes opportunity difficulty; it does not by itself prove a learner's level.",
+ "order": [
+  "A0",
+  "A1",
+  "A2",
+  "B1",
+  "B2",
+  "C1"
+ ],
+ "bands": [
+  {
+   "id": "A0",
+   "ordinal": 0,
+   "opportunityDesign": "Supported recognition and very short fixed or chosen chunks; one concrete purpose or detail at a time.",
+   "reviewStatus": "pending_specialist_review"
+  },
+  {
+   "id": "A1",
+   "ordinal": 1,
+   "opportunityDesign": "Simple predictable one-step exchange using familiar words and short clauses.",
+   "reviewStatus": "pending_specialist_review"
+  },
+  {
+   "id": "A2",
+   "ordinal": 2,
+   "opportunityDesign": "Routine multi-turn exchange, basic reasons and details, and simple repair or alternatives.",
+   "reviewStatus": "pending_specialist_review"
+  },
+  {
+   "id": "B1",
+   "ordinal": 3,
+   "opportunityDesign": "Connected explanation and handling of a realistic complication or negotiation.",
+   "reviewStatus": "pending_specialist_review"
+  },
+  {
+   "id": "B2",
+   "ordinal": 4,
+   "opportunityDesign": "Flexible, detailed interaction under multiple constraints with appropriate register and repair.",
+   "reviewStatus": "pending_specialist_review"
+  },
+  {
+   "id": "C1",
+   "ordinal": 5,
+   "opportunityDesign": "Precise, efficient, nuanced interaction with implicit meaning, complex constraints, and sustained coherence.",
+   "reviewStatus": "pending_specialist_review"
+  }
+ ]
+}

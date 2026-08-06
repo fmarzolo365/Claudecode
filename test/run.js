@@ -57,11 +57,13 @@ function mkEl() {
       toggle(c, f) { f === undefined ? (this._c.has(c) ? this._c.delete(c) : this._c.add(c)) : (f ? this._c.add(c) : this._c.delete(c)); },
       add(c) { this._c.add(c); }, remove(c) { this._c.delete(c); }, has(c) { return this._c.has(c); },
     },
-    style: {}, dataset: {}, innerHTML: "", textContent: "", value: "", placeholder: "",
+    style: { _p: {}, setProperty(k, v) { this._p[k] = v; }, getPropertyValue(k) { return this._p[k] ?? ""; } },
+    dataset: {}, innerHTML: "", textContent: "", value: "", placeholder: "",
     setAttribute() {}, getAttribute() { return null; },
     disabled: false, className: "", onclick: null, oninput: null, onkeydown: null,
     querySelector() { return null; }, querySelectorAll: () => [],
     appendChild() {}, focus() {}, removeAttribute() {}, scrollTop: 0, scrollHeight: 0,
+    offsetHeight: 0, offsetWidth: 0,
   };
 }
 globalThis.document = {
@@ -70,7 +72,11 @@ globalThis.document = {
   // body carries a real classList: modal-lock, in-call and reduce-motion are
   // all applied there, so the stub has to be able to observe them
   body: Object.assign(mkEl(), { appendChild() {} }), querySelectorAll: () => [],
+  // MARZI-062: every browser exposes documentElement, and the staging marker's
+  // observer writes --staging-bar on it. The stub lacked it entirely.
+  documentElement: mkEl(),
 };
+globalThis.ResizeObserver = function (cb) { this.observe = () => cb([]); this.disconnect = () => {}; };
 globalThis.window = globalThis;
 globalThis.addEventListener = () => {};
 globalThis.location = { hash: "", reload() {} };
@@ -99,14 +105,14 @@ const m = html.match(/<script>([\s\S]*)<\/script>/);
 if (!m) { console.error("FAIL  could not extract app script"); process.exit(1); }
 let src = m[1];
 src += `\n;globalThis.__t = { T, TARGET, TARGETS, LEVELS, LEVEL_ORDER, SCENARIOS, GROUPS, BASIC_DECKS, HELP_LANG,
-  saidWord, normDe, lev, rankFor, recordCall, addXp, loadStats, loadFixes, saveFixes,
+  saidWord, normDe, lev, rankFor, RANKS, rankNames, legacyPromptHistory, recordCall, addXp, loadStats, loadFixes, saveFixes,
   voiceOf, timerText, systemPrompt, S, chartSVG, loadTests, saveTestResult,
   marziNames, marziDescs, MARZI_STAGE_COUNT, marziStageForXp, currentMarziStage, renderCallCompanion, addCoins, COIN_PACKS, buyPack, planLimitToday, planUsedToday, PLAN_SECONDS,
   normalizeStats, claimReward, newRewardId, migratedName, migrateStorageKeys, micStatusFor, MARZI_KEY,
   TAB_HASH, tabFromHash, showTab, updateTopbar,
   ENGINE_CONTRACTS, validateProvider, createProviderRegistry, ScenarioRegistry, CharacterRegistry,
   createTranscript, PromptBuilder, createConversationSession, ENGINE, send, ask,
-  renderLearn, renderCall, renderTranscript, openCallSheet, closeCallSheet, sheetOpen, endCall, callStateFor, callStateLabel, callStateIcon, callSecondsLeft, renderScenarioCards, renderCharacterCard, scenarioSubtitle,
+  renderLearn, renderCall, renderTranscript, endCall, callStateFor, callStateLabel, callStateIcon, callSecondsLeft, renderScenarioCards, renderCharacterCard, scenarioSubtitle,
   UI, IC, ICON, evolutionHTML, renderCallStatus,
   MARZI_STATES, marziStateForCall, marziStateForReward, isMarziState, marziArt,
   marziAssetPath, hasMarziAsset, MARZI_ASSETS, marziSVG,
@@ -118,7 +124,20 @@ src += `\n;globalThis.__t = { T, TARGET, TARGETS, LEVELS, LEVEL_ORDER, SCENARIOS
   purchaseOutfit, equipOutfit, unequipOutfit, renderStore, openOutfitPreview, normalizeWardrobe,
   profileSnapshot, reviewedMistakeCount, ACHIEVEMENTS, achievementState, renderProfile, applyReduceMotion,
   MARZI_STAGE_XP, currentStreak, loadWords,
-  journeyNodes, journeyState, renderJourney, setJourneyView, goToScenario, renderLearn };`;
+  journeyNodes, journeyState, renderJourney, setJourneyView, goToScenario, renderLearn,
+  showOffline, closeOffline, offlineScreenOpen,
+  CALL_POSE_STATES, CALL_POSE_TO_STATE, MARZI_CALL_ASSETS, marziCallPose, marziCallAssetPath,
+  hasMarziCallAsset, marziCallArt, __registerCallAsset, renderCallCompanion,
+  CALL_ART, CONTACT_STATE_FOR_CALL, contactAssetPath, stageBackgroundPath, hasCallStageAsset,
+  resolveContactPortrait, resolveScenarioBackground, resolveMarziCallPose, resolveMarziOutfitAsset,
+  ONBOARD_KEY, LEARN_GOALS, DAILY_MINUTES, normalizeOnboarding, loadOnboarding, hasMeaningfulUserData,
+  onboardingComplete, commitOnboarding, showOnboarding, renderOnboard, obPick, obNext, obBack, obStep,
+  obCanAdvance, OB_STEPS, settingsPayload, fmtNum, plural, localeForLang, chipNum,
+  isStandalone, installRecVisible, renderInstallRec, dismissInstallRec, INSTALL_DISMISS_KEY,
+  weeklyActivity, recentActivity, renderRecommended, renderRecentActivity, renderJourneyPreview,
+  journeyPreview, hasBrandMarkAsset, __registerBrandMark, BRAND_MARK_ASSET,
+  SPEEDS, VOICE_PROFILES, SPEED_ORDER, openHelp, renderHelpPanel, toggleLiveText, showTypeRow, startDrill, settingsPayload,
+  OUTFIT_ART, OUTFIT_GLYPHS, MARZI_ONESHOTS, marziOneShot, SFX, renderStore, renderLearn, GOAL_SCENARIO };`;
 eval(src);
 const tt = globalThis.__t;
 
@@ -245,9 +264,17 @@ check("pronunciation matcher accepts honest attempts and rejects wrong words", (
 });
 
 check("XP and rank math", () => {
+  // MARZI-017: rank titles are interface copy and follow the help language;
+  // the thresholds and the rank ORDER are what must stay frozen.
+  tt.S.lang = "en";
   const r0 = tt.rankFor(0), r1 = tt.rankFor(85), rTop = tt.rankFor(99999);
-  if (r0.title !== "Neuling" || r0.next !== 80) throw new Error("rank0");
-  if (r1.title !== "Anrufer") throw new Error("rank1");
+  if (r0.n !== 1 || r0.base !== 0 || r0.next !== 80) throw new Error("rank0");
+  if (r1.n !== 2 || r1.base !== 80) throw new Error("rank1");
+  if (r0.title !== tt.T.en.rankTitles[0] || r1.title !== tt.T.en.rankTitles[1]) throw new Error("rank titles not localized");
+  tt.S.lang = "es";
+  if (tt.rankFor(0).title !== tt.T.es.rankTitles[0]) throw new Error("rank title did not follow the help language");
+  tt.S.lang = "en";
+  if (tt.RANKS.map((r) => r[0]).join() !== "0,80,200,400,700,1100,1700") throw new Error("rank thresholds changed");
   if (rTop.next !== null) throw new Error("top rank should have no next");
   tt.S.turns = [{ me: true, text: "a" }, { me: false, text: "b" }, { me: true, text: "c" }];
   tt.S.seconds = 60;
@@ -392,7 +419,9 @@ check("MARZI-001 corrections: ledger idempotency, per-call ids, hardened storage
   const g3 = tt.recordCall();
   if (!(g1 > 0) || g2 !== 0 || !(g3 > 0)) throw new Error(`gains ${g1}/${g2}/${g3}, want >0/0/>0`);
   if (tt.loadStats().calls !== 2) throw new Error(`calls=${tt.loadStats().calls}, want 2`);
-  const startSrc = String(src.match(/function startConversation\(\)[\s\S]*?\n\}/)[0]);
+  // intent: every call start claims a fresh reward id, whatever the
+  // function's signature (W2 added an optional retry parameter)
+  const startSrc = String(src.match(/function startConversation\([^)]*\)[\s\S]*?\n\}/)[0]);
   if (!/S\.callId = newRewardId\(\)/.test(startSrc)) throw new Error("startConversation does not reset S.callId");
   // normalizeStats survives corrupt localStorage shapes
   const n = tt.normalizeStats({ xp: -3, coins: "x", seconds: NaN, days: [], ownedItemIds: "no" });
@@ -415,8 +444,9 @@ check("MARZI-001 corrections: ledger idempotency, per-call ids, hardened storage
 
 check("MARZI-002 shell: hash routing, top-bar resources, reusable primitives", () => {
   // the four canonical tabs each own a hash; junk hashes resolve to null
-  if (Object.keys(tt.TAB_HASH).join() !== "learn,talk,store,profile") throw new Error("tab set changed");
+  if (Object.keys(tt.TAB_HASH).join() !== "learn,practice,talk,store,profile") throw new Error("tab set changed");
   if (tt.tabFromHash("#store") !== "store" || tt.tabFromHash("store") !== "store") throw new Error("hash not resolved");
+  if (tt.tabFromHash("#practice") !== "practice") throw new Error("practice tab not routable");
   if (tt.tabFromHash("#nope") !== null || tt.tabFromHash("") !== null || tt.tabFromHash(null) !== null) throw new Error("junk hash not rejected");
   // navigating writes the hash (back-button support)
   tt.showTab("store");
@@ -623,7 +653,8 @@ check("design system: canonical components, tokens and documentation", () => {
     "evolutionCard", "characterCard", "scenarioCard", "bubble", "storeItem", "outfitCard",
     "buttonPrimary", "buttonSecondary", "statusBadge", "progressCard", "rewardPopup",
     "modal", "emptyState", "errorState",
-    "callControl", "speechBubble", "callIdentity", "callSheet", "categoryTabs", "rewardSummary"];
+    "callControl", "speechBubble", "callIdentity", "categoryTabs", "rewardSummary",
+    "brandLockup", "statCard", "activitySummary"];
   for (const c of COMPONENTS) if (typeof tt.UI[c] !== "function") throw new Error("missing component: " + c);
   if (Object.keys(tt.UI).length !== COMPONENTS.length) {
     throw new Error("UI has undocumented members: " + Object.keys(tt.UI).filter((k) => !COMPONENTS.includes(k)));
@@ -747,7 +778,7 @@ check("home hero + XP bar follow the concept boards", () => {
   if (/url\(/.test(hero)) throw new Error("sparkles must not use image assets");
 });
 
-checkAsync("MARZI-006 call layer: states, sheet, guards, targets", async () => {
+checkAsync("MARZI-006 call layer: states, inline dialogue, guards, targets", async () => {
   const sc = tt.ScenarioRegistry.get(tt.ScenarioRegistry.ids()[0]);
   tt.S.lang = "en"; tt.S.active = sc; tt.S.turns = []; tt.S.busy = false;
   tt.S.listening = false; tt.S.speaking = false; tt.S.callError = false; tt.S.handsFree = false;
@@ -756,14 +787,21 @@ checkAsync("MARZI-006 call layer: states, sheet, guards, targets", async () => {
   tt.ENGINE.register("ai", { complete: async () => ({ text: "Praxis, guten Tag!", raw: { reply: "Praxis, guten Tag!", suggestion: "Ich möchte einen Termin.", speaker: "main" } }) });
   tt.S.session = tt.createConversationSession({ scenario: sc, level: "A1", lang: "en", goal: sc.goals[0], providers: tt.ENGINE }).start();
 
-  // identity, controls and the labelled sheet opener all render
+  // identity and the approved control set render: mic + hang-up circles,
+  // and the four labelled pills (Need help, Text, Slow, Replay)
   tt.renderCall();
   const idHTML = document.getElementById("callId").innerHTML;
   if (!idHTML.includes(sc.who) || !idHTML.includes("Talking with")) throw new Error("identity block");
   const ctrls = document.getElementById("callControls").innerHTML;
-  for (const id of ["micBtn", "hangBtn", "playBtn"]) if (!ctrls.includes(`id="${id}"`)) throw new Error("missing control " + id);
+  for (const id of ["micBtn", "hangBtn"]) if (!ctrls.includes(`id="${id}"`)) throw new Error("missing control " + id);
+  if (ctrls.includes('id="playBtn"')) throw new Error("replay must live in the labelled tool row, not as a third circle");
   if (!/class="call-ctrl danger"/.test(ctrls)) throw new Error("hang-up must be the danger control");
-  if (!document.getElementById("sheetBtn").innerHTML.includes("Transcript")) throw new Error("sheet opener must be labelled, not icon-only");
+  if (!document.getElementById("playBtn").innerHTML.includes("Replay")) throw new Error("the Replay pill must be labelled");
+  if (!document.getElementById("repeatBtn").innerHTML.includes("Slow")) throw new Error("the Slow pill must be labelled");
+  // binding PO decision 4: no visible Auto control (hands-free stays internal)
+  for (const gone of ['id="freeBtn"', 'id="sheetBtn"', 'id="callSheet"', 'id="sheetBack"'])
+    if (html.includes(gone)) throw new Error(gone + " must not exist in the live call");
+  if (typeof tt.S.handsFree === "undefined") throw new Error("hands-free default behavior must survive internally");
 
   // every call state renders icon + text, and the mic follows
   for (const [set, want] of [
@@ -784,16 +822,15 @@ checkAsync("MARZI-006 call layer: states, sheet, guards, targets", async () => {
   tt.S.session.end(); tt.renderCallStatus();
   if (document.getElementById("callStatus").dataset.state !== "disconnected") throw new Error("disconnected state");
 
-  // sheet: open/close, Escape and Android back all dismiss it
+  // the dialogue is INLINE in the call: the log lives in the conversation
+  // band of the call grid, never in a dialog/sheet
   tt.S.session = tt.createConversationSession({ scenario: sc, level: "A1", lang: "en", goal: sc.goals[0], providers: tt.ENGINE }).start();
-  tt.openCallSheet();
-  if (!tt.sheetOpen()) throw new Error("sheet did not open");
-  tt.closeCallSheet();
-  if (tt.sheetOpen()) throw new Error("sheet did not close");
-  tt.openCallSheet(); tt.closeCallSheet(true); // popstate path (Android back)
-  if (tt.sheetOpen()) throw new Error("back did not close the sheet");
+  const callHtml = html.slice(html.indexOf('<section id="call"'), html.indexOf('<section id="done"'));
+  const band = callHtml.slice(callHtml.indexOf('id="callLines"'), callHtml.indexOf('id="vcMarzi"'));
+  if (!band.includes('id="log"')) throw new Error("the conversation band must own the inline dialogue");
+  if (callHtml.includes('role="dialog"')) throw new Error("nothing in the live call may be a dialog overlay");
 
-  // full turn: transcript bubbles, no duplicates, speaker replay
+  // full turn: dialogue bubbles, no duplicates, speaker replay
   tt.send("Guten Morgen, ich hätte gern einen Termin.");
   tt.send("Guten Morgen, ich hätte gern einen Termin."); // immediate re-submit: must be ignored
   await new Promise((r) => setTimeout(r, 0));
@@ -823,9 +860,26 @@ checkAsync("MARZI-006 call layer: states, sheet, guards, targets", async () => {
                         'class="callscreen"', "prefers-reduced-motion", 'role="dialog"']) {
     if (!html.includes(needle)) throw new Error("call layer missing: " + needle);
   }
-  const ctrlCss = html.slice(html.indexOf("  .call-ctrl {"), html.indexOf("  .call-ctrl .call-ctrl-lb"));
-  if (!/width:\s*64px/.test(ctrlCss)) throw new Error("controls must be at least 48px (64 specified)");
-  if (!/width:\s*72px/.test(html.slice(html.indexOf("  .call-ctrl.danger"), html.indexOf("  .call-ctrl.danger:hover")))) throw new Error("hang-up size");
+  /* Redesign: these used to pin 64px and 72px literally. The contract they
+     were protecting is that every call control clears the touch floor and that
+     the sizes are deliberate - so assert that, plus the hierarchy the literal
+     numbers used to invert: the microphone is the primary action and must be
+     LARGER than the destructive hang-up. */
+  const px = (block, sel) => {
+    // circles may size via clamp(min, text-token scale, max); the MINIMUM is
+    // the enforced floor, so it is what the contract checks
+    const rule = block.slice(block.indexOf(sel));
+    const m = rule.slice(0, rule.indexOf("}")).match(/width:\s*(?:clamp\()?\s*(\d+)px/);
+    return m ? Number(m[1]) : 0;
+  };
+  const base = px(html, "  .call-ctrl {");
+  const primary = px(html, "  #micBtn.call-ctrl {");
+  const danger = px(html, "  .call-ctrl.danger {");
+  for (const [name, size] of [["base control", base], ["primary mic", primary], ["hang-up", danger]]) {
+    if (size < 48) throw new Error(name + " is below the 48px touch floor (" + size + ")");
+  }
+  if (primary <= danger) throw new Error("the microphone must be the largest control, not the hang-up (" + primary + " vs " + danger + ")");
+  if (primary <= base) throw new Error("the primary action must outrank the secondary controls (" + primary + " vs " + base + ")");
   const pillCss = html.slice(html.indexOf("  .call-pill {"), html.indexOf("  .call-pill[aria-pressed"));
   if (!/min-height:\s*var\(--touch-min\)/.test(pillCss)) throw new Error("tool pills must meet the touch floor");
   tt.S.session = null; tt.S.turns = [];
@@ -1067,7 +1121,10 @@ check("MARZI-010 direction + touch targets", () => {
   if (tt.applyLangDirection("en") !== "ltr") throw new Error("English must be ltr");
   // the document is updated at boot and whenever the help language changes
   if (!/applyLangDirection\(\);\s*\n/.test(src)) throw new Error("direction not applied at boot");
-  if (!/S\.lang = b\.dataset\.k; applyLangDirection\(\)/.test(src)) throw new Error("direction not applied on language change");
+  // whatever the picker's shape, changing the help language must re-apply direction
+  const obPick = String(src.match(/function obPick\([\s\S]*?\n\}/)[0]);
+  if (!/S\.lang = value/.test(obPick) || !/applyLangDirection\(\)/.test(obPick))
+    throw new Error("direction not applied on language change");
   // layout uses logical properties so RTL mirrors without a second stylesheet
   const styles = html.slice(html.indexOf("<style>"), html.indexOf("</style>"));
   for (const needle of ["inset-inline-start", "inset-inline-end", "margin-inline-start", "text-align: start"]) {
@@ -1084,7 +1141,7 @@ check("MARZI-010 direction + touch targets", () => {
   if (/inset-inline: 0/.test(hit)) throw new Error("hit area still anchored to the inline start");
   if (!/min-width: var\(--touch-min\)/.test(hit) || !/height: var\(--touch-min\)/.test(hit)) throw new Error("hit area below the touch floor");
   // small phones tighten the top bar so four resource chips fit without scroll
-  if (!/@media \(max-width: 380px\) \{\s*\.topbar-in \{ gap: 4px; \}/.test(styles)) throw new Error("narrow top-bar rule missing");
+  if (!/@media \(max-width: 420px\) \{\s*\.topbar-in \{ gap: 4px; \}/.test(styles)) throw new Error("narrow top-bar rule missing");
   if (!/\.seg button \{ min-height: var\(--touch-min\)/.test(styles)) throw new Error("segmented controls below the floor");
   if (!/\.routine button \{ min-height: var\(--touch-min\)/.test(styles)) throw new Error("routine chips below the floor");
   if (!/\.legal a \{[^}]*min-height: var\(--touch-min\)/.test(styles)) throw new Error("legal links below the floor");
@@ -1137,7 +1194,9 @@ check("release gates: hygiene, versioning and documentation", () => {
   // 2. the service worker is versioned and still excludes the API
   const sw = fs.readFileSync(path.join(__dirname, "..", "public", "sw.js"), "utf8");
   const cache = (sw.match(/const CACHE = "([^"]+)"/) || [])[1];
-  if (!/^telefontrainer-v\d+$/.test(cache || "")) throw new Error("service worker cache not versioned: " + cache);
+  // MARZI-062: a build identifier may follow the version so a preview cache is
+  // distinguishable, but the version itself is still mandatory
+  if (!/^telefontrainer-v\d+(-[a-z0-9-]+)?$/.test(cache || "")) throw new Error("service worker cache not versioned: " + cache);
   if (!/\/api\//.test(sw)) throw new Error("service worker must never cache API responses");
   // 3. CI runs both gates, on feature branches too
   const ci = fs.readFileSync(path.join(__dirname, "..", ".github", "workflows", "ci.yml"), "utf8");
@@ -1454,14 +1513,848 @@ check("MARZI-016 journey: existing scenarios, states, one next action, list view
   if (!list.includes(L.jrDone) || !list.includes(L.jrFuture)) throw new Error("states are not written out in the list view");
   tt.setJourneyView("map");
 
-  // the map lives inside Learn and the tab set is untouched
-  const learn = html.slice(html.indexOf('<section id="learn"'), html.indexOf('<section id="setup"'));
-  if (!learn.includes('id="jrBody"')) throw new Error("the journey must live inside Learn");
-  if (Object.keys(tt.TAB_HASH).join() !== "learn,talk,store,profile") throw new Error("navigation changed");
+  // World-class IA: Learn owns the journey (it is curriculum, not call setup),
+  // and there is exactly ONE journey rendering - no duplicated preview.
+  const learn = html.slice(html.indexOf('<section id="learn"'), html.indexOf('<section id="practice"'));
+  const talk = html.slice(html.indexOf('<section id="setup"'), html.indexOf('<section id="onboard"'));
+  if (!learn.includes('id="jrBody"')) throw new Error("Learn must own the journey map");
+  if (talk.includes('id="jrBody"') || html.includes('id="jrPreview"')) throw new Error("the journey is duplicated outside Learn");
+  if (Object.keys(tt.TAB_HASH).join() !== "learn,practice,talk,store,profile") throw new Error("navigation changed");
 
   // no new scenarios or characters were introduced
   if (tt.SCENARIOS.length !== new Set(tt.SCENARIOS.map((s) => s.id)).size) throw new Error("duplicate scenario ids");
   if (tt.GROUPS.flatMap((g) => g.ids).some((id) => !tt.SCENARIOS.find((s) => s.id === id))) throw new Error("a group points at a scenario that does not exist");
+});
+
+
+check("world-class IA: five tabs, canonical feature ownership", () => {
+  // exactly five primary tabs: Learn, Practice, Talk, Store, Profile
+  if (Object.keys(tt.TAB_HASH).join() !== "learn,practice,talk,store,profile") throw new Error("tab set changed");
+  const nav = html.slice(html.indexOf('<nav class="bottomnav"'), html.indexOf("</nav>"));
+  const tabs = (nav.match(/data-tab="([a-z]+)"/g) || []).map((m) => m.slice(10, -1));
+  if (tabs.join() !== "learn,practice,talk,store,profile") throw new Error("bottom nav tabs: " + tabs.join());
+  const learn = html.slice(html.indexOf('<section id="learn"'), html.indexOf('<section id="practice"'));
+  const practice = html.slice(html.indexOf('<section id="practice"'), html.indexOf('<section id="setup"'));
+  const talk = html.slice(html.indexOf('<section id="setup"'), html.indexOf('<section id="onboard"'));
+  const profile = html.slice(html.indexOf('<section id="profile"'), html.indexOf("</section>", html.indexOf('<section id="profile"')));
+  // no duplicated shortcut strips anywhere
+  if (html.includes('id="learnActs"')) throw new Error("the duplicated Learn shortcut strip is still present");
+  if (/data-la="(dialog|progress|mistakes)"/.test(src)) throw new Error("Learn still renders duplicate shortcuts");
+  // Practice owns preparation and improvement, first-class
+  for (const id of ["prepBtn", "dialogBtn", "vocabBtn", "drillBtn", "mistakesBtn", "wordsBtn"])
+    if (!practice.includes(`id="${id}"`)) throw new Error("Practice must own " + id);
+  for (const id of ["prepBtn", "dialogBtn", "drillBtn"])
+    if (talk.includes(`id="${id}"`) || learn.includes(`id="${id}"`)) throw new Error(id + " duplicated outside Practice");
+  // Talk owns selection and the call: recommended, ONE library entry, CTA
+  for (const id of ["lblTrainNow", "recoBody", "scnRail", "seeAllBtn", "charCard", "callBtn", "lblTrainRecent"])
+    if (!talk.includes(`id="${id}"`)) throw new Error("Talk missing: " + id);
+  if (html.includes('id="pickedCard"')) throw new Error("the duplicate choose-situation control is back");
+  if (html.includes('id="menuBtn"')) throw new Error("the redundant top-bar hamburger is back");
+  // Profile keeps its canonical destinations
+  if (!profile.includes('id="progressBtn"')) throw new Error("Profile must own My progress");
+  if (!profile.includes('id="shareBtn"')) throw new Error("Profile must own Recommend the app");
+});
+
+check("world-class W2: honest voice profiles, inline help, live text, retry loop", () => {
+  // four profiles, honestly named; legacy stored keys stay resolvable
+  if (tt.SPEED_ORDER.join() !== "slow,clear,normal,real") throw new Error("profile order: " + tt.SPEED_ORDER.join());
+  for (const k of tt.SPEED_ORDER) if (!(k in tt.SPEEDS)) throw new Error("profile has no rate: " + k);
+  if (!("fast" in tt.SPEEDS)) throw new Error("legacy 'fast' key must stay resolvable for stored settings");
+  if (!/s\.speed === "fast"\) s\.speed = "real"/.test(src)) throw new Error("stored 'fast' must migrate to 'real'");
+  // the promise is kept at model level: explicit profiles reach the speech
+  // engine as pace INSTRUCTIONS and always win; slow/normal stay level-aware
+  const speakSrc = String(src.match(/function speak\([^)]*\)[\s\S]*?\n\}/)[0]);
+  if (!/prof === "clear" \|\| prof === "real" \? prof/.test(speakSrc)) throw new Error("clear/real must win the pace decision");
+  if (!/rate < 0\.92 \? "slow"/.test(speakSrc)) throw new Error("beginner levels must keep the careful slow instruction");
+  for (const l of ["es", "en", "it", "tr", "ar", "uk"]) {
+    for (const k of ["slow", "clear", "normal", "real"])
+      if (!tt.T[l].speedNotes || !tt.T[l].speedNotes[k]) throw new Error(l + " missing speedNotes." + k);
+  }
+  // the profile picker renders from the canonical order with a per-profile note
+  if (!/SPEED_ORDER\.map\(/.test(src) || !html.includes('id="speedNote"')) throw new Error("profile picker not canonical");
+
+  // in-call help panel: inline in the call stack, owns SOS + hint + typing;
+  // the dialogue is inline too — there is NO transcript sheet in the live call
+  const call = html.slice(html.indexOf('<section id="call"'), html.indexOf('<section id="done"'));
+  const help = call.slice(call.indexOf('id="helpPanel"'), call.indexOf('class="call-tools"'));
+  for (const id of ["sosRow", "hintBox", "typeRow", "helpMoreBtn", "helpCloseBtn"])
+    if (!help.includes(`id="${id}"`)) throw new Error("help panel must own " + id);
+  if (call.includes('id="callSheet"') || /openCallSheet|closeCallSheet/.test(src))
+    throw new Error("the live call must not have a transcript sheet (binding decision 1)");
+  if (!call.includes('id="log"')) throw new Error("the call keeps the full dialogue inline");
+  if (!/\$\("hintLabel"\)\.textContent = TARGET\.hintLabel/.test(src)) throw new Error("hint label must come from TARGET, not hardcoded German");
+  if (!tt.TARGETS.de.hintLabel || !tt.TARGETS.en.hintLabel) throw new Error("TARGETS must carry hintLabel");
+
+  // stages: closed -> SOS chips -> phrase -> full answer, clamped, learner-driven
+  tt.S.lang = "en";
+  const A = tt.SCENARIOS.find((x) => x.id === "arzt");
+  tt.S.scenario = A; tt.S.active = A; tt.S.busy = false;
+  tt.S.hint = "Ich hätte gern einen Termin.";
+  tt.S.turns = [{ me: false, text: "Praxis, guten Tag?" }, { me: true, text: "Guten Tag." }];
+  const el = (id) => document.getElementById(id);
+  if (tt.openHelp(1) !== 1 || el("helpPanel").classList.has("hidden")) throw new Error("stage 1 must open the panel");
+  if (!el("hintBox").classList.has("hidden")) throw new Error("stage 1 must NOT reveal the phrase yet");
+  if (tt.openHelp(2) !== 2 || el("hintBox").classList.has("hidden")) throw new Error("stage 2 reveals the suggested phrase");
+  if (el("hintText").textContent !== tt.S.hint) throw new Error("the phrase is not the live suggestion");
+  if (!el("helpFullRow").classList.has("hidden")) throw new Error("stage 2 must NOT reveal the full row yet");
+  if (tt.openHelp(9) !== 3) throw new Error("stages clamp at 3");
+  if (el("helpFullRow").classList.has("hidden")) throw new Error("stage 3 reveals slow playback + typing");
+  if (tt.openHelp(0) !== 0 || !el("helpPanel").classList.has("hidden")) throw new Error("help closes cleanly");
+  // a failed microphone routes typing through the panel, which must open it
+  const strSrc = String(src.match(/function showTypeRow\(\)[\s\S]*?\n\}/)[0]);
+  if (!/S\.helpStage = 3/.test(strSrc)) throw new Error("mic failure must open the help panel's typing stage");
+  if (/typeRow"\)\.classList\.remove\("hidden"\)/.test(String(src.match(/function listen\(\)[\s\S]*?\n\}/) || "")) )
+    throw new Error("listen() must use showTypeRow, not reach into the panel");
+
+  // live text: BOTH sides of the dialogue render inline as bubbles with
+  // ownership tags; hide persists as a setting
+  tt.renderCall();
+  const feed = el("log").innerHTML;
+  if (!feed.includes("Guten Tag.") || !feed.includes('class="turn me"'))
+    throw new Error("learner's own line not rendered inline");
+  // character words render as tappable buttons, so match a word, not the line
+  if (!feed.includes("Praxis") || !feed.includes('class="turn char"'))
+    throw new Error("character line not rendered inline");
+  const styles = html.slice(html.indexOf("<style>"), html.indexOf("</style>"));
+  if (!/\.callscreen\.text-off #callLines \{ display: none; \}/.test(styles))
+    throw new Error("text-off must hide the live dialogue text (and only it)");
+  // the dialogue and its tap hint share the pinned conversation band
+  const lines = call.slice(call.indexOf('id="callLines"'), call.indexOf('id="vcMarzi"'));
+  if (!lines.includes('id="log"') || !lines.includes('id="tapHint"'))
+    throw new Error("the conversation band must own the dialogue and the tap hint");
+  if (tt.toggleLiveText(false) !== false) throw new Error("toggle must report the new state");
+  if (!el("vcAv").classList.has("text-off")) throw new Error("text-off state not applied to the call screen");
+  if (tt.settingsPayload().liveText !== false) throw new Error("live-text choice must persist");
+  if (tt.toggleLiveText(true) !== true || el("vcAv").classList.has("text-off")) throw new Error("text returns");
+
+  // post-call: evaluation and corrections lead, rewards follow, retry closes the loop
+  const done = html.slice(html.indexOf('<section id="done"'), html.indexOf('<section id="mistakes"'));
+  const order = ["evalBox", "review", "rewardBox", "retryMistakesBtn", "againBtn"].map((id) => done.indexOf(`id="${id}"`));
+  if (order.some((i) => i < 0) || String(order) !== String([...order].sort((a, b) => a - b)))
+    throw new Error("done screen must read goal/eval -> corrections -> rewards -> retry");
+  if (!/function startDrill\(seedTexts\)/.test(src) || !/seed\.has\(x\.f\.text\)/.test(src))
+    throw new Error("post-call drill must seed from this call's mistakes");
+  const againSrc = String(src.match(/\$\("againBtn"\)\.onclick[\s\S]*?\n\};/)[0]);
+  if (!/planUsedToday\(\) >= planLimitToday\(\)/.test(againSrc) || !/startConversation\(true\)/.test(againSrc))
+    throw new Error("call-again must retry through the same gates");
+  if (!/keepGoal && g\.includes\(keepGoal\)/.test(src)) throw new Error("retry must keep the same goal");
+  tt.S.turns = []; tt.S.hint = null; tt.S.helpStage = 0;
+});
+
+check("world-class W4: localized weekdays, goal personalization, honest glyphs, share moments", () => {
+  // the week strip speaks the learner's language — no hardcoded German initials
+  if (/const WD = \["So","Mo","Di"/.test(src)) throw new Error("weekday initials are still hardcoded German");
+  tt.S.lang = "en";
+  localStorage.setItem("marzi.stats.v1", JSON.stringify({ days: {}, xp: 400, coins: 0 }));
+  tt.renderLearn();
+  const wk = document.getElementById("heroWeek").innerHTML;
+  if (/>Di</.test(wk) || />Mi</.test(wk)) throw new Error("English UI still shows German weekday initials");
+  // every learning goal maps to a real, playable scenario
+  if (Object.keys(tt.GOAL_SCENARIO).sort().join() !== [...tt.LEARN_GOALS].sort().join())
+    throw new Error("goal->scenario map must cover exactly the learning goals");
+  for (const g of tt.LEARN_GOALS) {
+    const sc = tt.SCENARIOS.find((x) => x.id === tt.GOAL_SCENARIO[g]);
+    if (!sc || !sc.goals) throw new Error(`goal ${g} maps to a non-playable scenario`);
+  }
+  // a brand-new learner lands on Talk with their goal's situation preselected;
+  // freshness is decided BEFORE the commit writes the settings record
+  const fin = String(src.match(/function obFinish\(\)[\s\S]*?\n\}/)[0]);
+  if (!/const fresh = !hasMeaningfulUserData\(\);[\s\S]*commitOnboarding/.test(fin)) throw new Error("freshness must be decided before the commit");
+  if (!/if \(fresh\)[\s\S]*showTab\("talk"\)/.test(fin)) throw new Error("a new learner must land ready to speak");
+  if (!/showTab\("learn"\)/.test(fin)) throw new Error("a returning user must keep landing on Learn");
+  // the pair chip's arrow points at the target in the UI's reading direction
+  if (!/RTL_LANGS\.includes\(S\.lang\) \? "←" : "→"/.test(src)) throw new Error("pair arrow ignores the reading direction");
+  // dismissing the install hint is a close action, not a confirmation
+  const inst = String(src.match(/function renderInstallRec\(\)[\s\S]*?\n\}/)[0]);
+  if (!inst.includes("IC.x(") || inst.includes("IC.check(")) throw new Error("install dismiss must be an X, never a checkmark");
+  // share: one implementation, moment-specific localized text everywhere
+  if (!/async function shareMoment\(text\)/.test(src)) throw new Error("one share implementation expected");
+  for (const l of ["es", "en", "it", "tr", "ar", "uk"]) {
+    for (const k of ["shareEvolved", "shareGoal", "shareStreak"]) {
+      if (!tt.T[l][k]) throw new Error(l + " missing " + k);
+    }
+    if (!tt.T[l].shareEvolved.includes("{n}")) throw new Error(l + " shareEvolved lost its stage slot");
+    if (!tt.T[l].shareStreak.includes("{n}")) throw new Error(l + " shareStreak lost its day slot");
+  }
+  if (!/\$\("evoCelShare"\)\.onclick/.test(src)) throw new Error("evolution share moment unwired");
+  if (!/data-sharegoal/.test(src)) throw new Error("goal-hit share moment unwired");
+  if (!/streak >= 3 \? t\(\)\.shareStreak/.test(src)) throw new Error("the profile share must tell the streak story when there is one");
+});
+
+check("world-class W3: distinct catalog art, stage-journey store, try-on, motion + sound", () => {
+  tt.S.lang = "en";
+  const L = tt.T.en;
+  // nine DISTINCT glyphs — never one repeated placeholder icon
+  const arts = tt.OUTFITS.map((o) => tt.OUTFIT_ART(o.id));
+  if (new Set(arts).size !== 9) throw new Error("outfit art must be distinct per item");
+  for (const o of tt.OUTFITS) {
+    if (!tt.OUTFIT_GLYPHS[o.id]) throw new Error("no glyph for " + o.id);
+    if (!/^<svg/.test(tt.OUTFIT_ART(o.id).trim())) throw new Error(o.id + " art is not inline SVG");
+  }
+  // the store reads as Marzi's journey: one labelled band per unlock stage,
+  // all nine cards still present, minutes secondary, no stray close control
+  localStorage.setItem("marzi.stats.v1", JSON.stringify({ days: {}, xp: 1600, coins: 1250, ownedItemIds: ["explorer"], equippedItemIds: ["explorer"] }));
+  tt.renderStore();
+  const body = document.getElementById("storeBody").innerHTML;
+  if ((body.match(/store-stage-lbl/g) || []).length !== 3) throw new Error("three stage bands expected");
+  for (const sn of [4, 5, 6]) {
+    if (!body.includes(`${L.stageWord} ${sn} · ${tt.marziNames()[sn - 1]}`)) throw new Error("stage band " + sn + " unlabelled");
+  }
+  if ((body.match(/data-outfit="/g) || []).length !== 9) throw new Error("nine cards must survive the grouping");
+  if (body.includes('id="storeClose"')) throw new Error("the stray store close control is back");
+  if (body.indexOf("data-outfit") > body.indexOf("+10 min")) throw new Error("minutes must stay secondary, after the catalog");
+  // try-on: the preview composes Marzi at her EARNED stage with the garment
+  tt.openOutfitPreview("explorer");
+  const modal = document.getElementById("storeModal").innerHTML;
+  if (!modal.includes("store-tryon")) throw new Error("preview has no try-on");
+  if (!modal.includes("tryon-marzi") || !modal.includes("tryon-item")) throw new Error("try-on must show Marzi AND the garment");
+  // feedback sounds: distinct success / equip / error voices exist and the
+  // synth stays lazy (no AudioContext until a gesture)
+  for (const fn of ["fanfare", "equip", "error", "coin"]) {
+    if (typeof tt.SFX[fn] !== "function") throw new Error("SFX." + fn + " missing");
+  }
+  if (!/else if \(res\.ok && res\.code === "equipped"\) SFX\.equip\(\)/.test(src)) throw new Error("equipping must sound");
+  if (!/else if \(!res\.ok\) SFX\.error\(\)/.test(src)) throw new Error("a failed store action must not be silent");
+  // one-shot motion channel: transient, canonical kinds only, reduce-motion off
+  if (tt.MARZI_ONESHOTS.join() !== "greet,react,point,celebrate") throw new Error("one-shot vocabulary changed");
+  const el = { attrs: {}, setAttribute(k, v) { this.attrs[k] = v; }, removeAttribute(k) { delete this.attrs[k]; },
+    getAttribute(k) { return this.attrs[k] ?? null; }, offsetWidth: 0 };
+  tt.S.reduceMotion = true;
+  if (tt.marziOneShot(el, "greet") !== false) throw new Error("one-shots must respect reduce motion");
+  tt.S.reduceMotion = false;
+  if (tt.marziOneShot(el, "nonsense") !== false) throw new Error("unknown gestures must be refused");
+  if (tt.marziOneShot(el, "greet") !== true || el.attrs["data-oneshot"] !== "greet") throw new Error("greet did not arm");
+  if (/data-state/.test(JSON.stringify(el.attrs))) throw new Error("a one-shot must never write data-state");
+  // the equipped outfit is visible on the Learn hero
+  tt.renderLearn();
+  const fit = document.getElementById("heroFit");
+  if (fit.classList.has("hidden") || !fit.innerHTML.includes(tt.outfitName("explorer"))) throw new Error("equipped outfit not visible on the hero");
+  if (document.getElementById("marzi").getAttribute && !src.includes('setAttribute("data-worn"')) throw new Error("hero must carry the outfit id for future art");
+  // sad resolves by condition, not first-match
+  if (!/if \(state === "sad"\)/.test(src)) throw new Error("sad pose must resolve by condition");
+});
+
+check("MARZI-017 brand lockup: mark before wordmark, one implementation", () => {
+  const L = tt.T.en;
+  tt.S.lang = "en";
+  const lock = tt.UI.brandLockup({ label: L.appName });
+  // the mark must come BEFORE the wordmark in source order
+  const iMark = lock.indexOf("brand-mark"), iWord = lock.indexOf("wordmark");
+  if (iMark < 0 || iWord < 0 || iMark > iWord) throw new Error("the Marzi mark must sit before the wordmark");
+  if (!lock.includes('role="img"') || !lock.includes(L.appName)) throw new Error("lockup is not labelled");
+  // ships unregistered -> falls back to approved SVG, never requests a missing file
+  if (tt.hasBrandMarkAsset()) throw new Error("the brand mark asset must ship unregistered");
+  if (lock.includes("<img")) throw new Error("an unregistered mark must not emit an <img>");
+  tt.__registerBrandMark(true);
+  const withAsset = tt.UI.brandLockup({});
+  if (!withAsset.includes(tt.BRAND_MARK_ASSET)) throw new Error("a registered mark is not used");
+  tt.__registerBrandMark(false);
+  // one implementation: the top bar composes it rather than building its own
+  if (!/UI\.brandLockup\(/.test(String(src.match(/topBar\(\{[\s\S]*?\n  \},/)[0]))) throw new Error("topBar does not reuse the lockup");
+  const styles = html.slice(html.indexOf("<style>"), html.indexOf("</style>"));
+  if (!/\.brand-lockup \.wordmark \{ flex: 0 0 auto; \}/.test(styles)) throw new Error("the wordmark must never shrink");
+});
+
+check("MARZI-017 formatting: localized numbers, plurals, never concatenated", () => {
+  tt.S.lang = "en";
+  if (tt.fmtNum(1234) !== new Intl.NumberFormat("en-GB").format(1234)) throw new Error("fmtNum is not locale aware");
+  if (tt.plural(1, tt.T.en.callUnit) !== "call" || tt.plural(2, tt.T.en.callUnit) !== "calls") throw new Error("English plural");
+  tt.S.lang = "es";
+  if (tt.plural(1, tt.T.es.dayUnit) !== "día" || tt.plural(3, tt.T.es.dayUnit) !== "días") throw new Error("Spanish plural");
+  tt.S.lang = "en";
+  // chips may compact, but the exact value must survive in the accessible name
+  if (tt.chipNum(999) !== "999") throw new Error("small values must not compact");
+  if (!/k$/.test(tt.chipNum(12500))) throw new Error("large values must compact");
+  // the stat card keeps value and label as separate elements
+  const card = tt.UI.statCard({ icon: "", value: "0", label: "coins" });
+  if (/>0coins/.test(card) || !/<b class="stat-val">0<\/b>/.test(card)) throw new Error("value concatenated into its label");
+});
+
+check("MARZI-017 onboarding: steps, atomic save, rollback, existing-user migration", () => {
+  const L = tt.T.en;
+  const clear = () => ["marzi.stats.v1", "marzi.settings.v1", tt.ONBOARD_KEY, "telefontrainer.fixes",
+    "telefontrainer.words", "telefontrainer.tests", "marzi.reward-ledger.v1"].forEach((k) => localStorage.removeItem(k));
+
+  // --- genuinely new install: onboarding runs
+  clear();
+  if (tt.hasMeaningfulUserData()) throw new Error("an empty install must not look like an existing user");
+  if (tt.onboardingComplete()) throw new Error("a new install must see onboarding");
+
+  // --- existing user: never re-onboarded, never reset
+  clear();
+  localStorage.setItem("marzi.stats.v1", JSON.stringify({ days: {}, xp: 420, calls: 7, coins: 300 }));
+  if (!tt.hasMeaningfulUserData()) throw new Error("XP and calls must count as meaningful data");
+  if (!tt.onboardingComplete()) throw new Error("an existing user must not be re-onboarded");
+  // every individual signal counts on its own
+  for (const [key, value] of [
+    ["marzi.stats.v1", JSON.stringify({ days: { "2026-01-01": 1 }, xp: 0, calls: 0 })],
+    ["marzi.stats.v1", JSON.stringify({ days: {}, xp: 0, calls: 0, ownedItemIds: ["sporty"] })],
+    ["marzi.stats.v1", JSON.stringify({ days: {}, xp: 0, calls: 0, scenariosDone: { arzt: 1 } })],
+  ]) { clear(); localStorage.setItem(key, value); if (!tt.hasMeaningfulUserData()) throw new Error("missed signal: " + value); }
+  clear(); localStorage.setItem("telefontrainer.fixes", JSON.stringify([{ text: "a" }]));
+  if (!tt.hasMeaningfulUserData()) throw new Error("stored mistakes must count");
+  clear(); localStorage.setItem("marzi.reward-ledger.v1", JSON.stringify({ "call:1": true }));
+  if (!tt.hasMeaningfulUserData()) throw new Error("reward-ledger entries must count");
+
+  // --- the four steps, and Back walking them in reverse
+  clear();
+  tt.S.lang = "en";
+  tt.showOnboarding();
+  if (tt.OB_STEPS.join() !== "lang,target,goal,daily") throw new Error("step order");
+  if (tt.obStep() !== "lang") throw new Error("first step");
+  tt.obPick("es");
+  if (tt.S.lang !== "es") throw new Error("language preview not applied");
+  if (!tt.obNext() || tt.obStep() !== "target") throw new Error("advance to target");
+  tt.obPick("de"); tt.obNext();
+  if (tt.obStep() !== "goal") throw new Error("advance to goal");
+  if (tt.obCanAdvance()) throw new Error("goal step must require a choice");
+  tt.obPick("work"); tt.obNext();
+  if (tt.obStep() !== "daily") throw new Error("advance to daily");
+  if (!tt.obBack() || tt.obStep() !== "goal") throw new Error("Back must return to the previous step");
+  if (!tt.obBack() || tt.obStep() !== "target") throw new Error("Back must keep walking");
+  tt.obNext(); tt.obPick("10");
+  if (tt.obStep() !== "goal") throw new Error("step tracking after back/next");
+
+  // --- atomic commit: the record holds only what onboarding asked
+  clear();
+  tt.S.lang = "en"; tt.S.targetLang = "de";
+  const res = tt.commitOnboarding({ lang: "it", targetLang: "de", goal: "travel", dailyMin: 15 });
+  if (!res.ok) throw new Error("commit failed");
+  const rec = tt.loadOnboarding();
+  if (!rec.done || rec.goal !== "travel" || rec.dailyMin !== 15) throw new Error("onboarding record");
+  if (tt.S.lang !== "it") throw new Error("interface language not applied");
+  // the canonical settings record carries it - no second language state
+  const saved = JSON.parse(localStorage.getItem("marzi.settings.v1"));
+  if (saved.lang !== "it" || saved.targetLang !== "de") throw new Error("language must live in the canonical settings record");
+  if (Object.keys(rec).sort().join() !== "dailyMin,done,goal,version") throw new Error("onboarding key duplicates other state: " + Object.keys(rec));
+
+  // --- corruption and defaults
+  localStorage.setItem(tt.ONBOARD_KEY, "{not json");
+  if (tt.loadOnboarding().done !== false) throw new Error("corrupt record must default safely");
+  localStorage.setItem(tt.ONBOARD_KEY, JSON.stringify({ done: "yes", goal: "hacking", dailyMin: 999 }));
+  const norm = tt.loadOnboarding();
+  if (norm.done !== false || norm.goal !== null || norm.dailyMin !== null) throw new Error("normalization: " + JSON.stringify(norm));
+
+  // --- storage failure rolls back EXACTLY, saving nothing partially
+  clear();
+  tt.S.lang = "en"; tt.S.targetLang = "de";
+  localStorage.setItem("marzi.settings.v1", JSON.stringify({ lang: "en", targetLang: "de" }));
+  const before = localStorage.getItem("marzi.settings.v1");
+  const realSet = localStorage.setItem;
+  localStorage.setItem = function (k, v) { if (k === tt.ONBOARD_KEY) throw new Error("quota"); return realSet.call(localStorage, k, v); };
+  let failed;
+  try { failed = tt.commitOnboarding({ lang: "tr", targetLang: "de", goal: "work", dailyMin: 20 }); }
+  finally { localStorage.setItem = realSet; }
+  if (failed.ok !== false || failed.code !== "save-failed") throw new Error("failure not reported");
+  if (localStorage.getItem("marzi.settings.v1") !== before) throw new Error("settings not restored after failure");
+  if (localStorage.getItem(tt.ONBOARD_KEY) !== null) throw new Error("a partial onboarding record survived");
+  if (tt.S.lang !== "en" || tt.S.targetLang !== "de") throw new Error("in-memory state not restored");
+  if (!L.obSaveFailed) throw new Error("no localized recoverable error");
+});
+
+check("MARZI-017 existing-user data survives onboarding byte-for-byte", () => {
+  const keys = ["marzi.stats.v1", "telefontrainer.fixes", "telefontrainer.words", "marzi.reward-ledger.v1"];
+  const seed = {
+    "marzi.stats.v1": JSON.stringify({ days: { "2026-07-30": 2 }, calls: 9, seconds: 5400, xp: 900, coins: 750,
+      ownedItemIds: ["explorer"], equippedItemIds: ["explorer"], scenariosDone: { arzt: 3 } }),
+    "telefontrainer.fixes": JSON.stringify([{ text: "a", corrected: "A", drilled: "2026-07-30" }]),
+    "telefontrainer.words": JSON.stringify(["Haus"]),
+    "marzi.reward-ledger.v1": JSON.stringify({ "call:abc": { xp: 20, coins: 20 } }),
+  };
+  keys.forEach((k) => localStorage.setItem(k, seed[k]));
+  localStorage.removeItem(tt.ONBOARD_KEY);
+  if (!tt.onboardingComplete()) throw new Error("an existing learner was sent back to onboarding");
+  // even a deliberate commit must not touch learner data
+  tt.commitOnboarding({ lang: "en", targetLang: "de", goal: "daily", dailyMin: 10 });
+  for (const k of keys) if (localStorage.getItem(k) !== seed[k]) throw new Error("mutated learner data: " + k);
+});
+
+check("MARZI-017 store: nine outfits, locked stays visible and tappable", () => {
+  const L = tt.T.en;
+  tt.S.lang = "en";
+  // the canonical catalog, unchanged
+  if (tt.OUTFITS.length !== 9) throw new Error("catalog size: " + tt.OUTFITS.length);
+  if (tt.OUTFITS.map((o) => o.id).join() !== "explorer,sporty,rainbow,classic,university,artistic,professional,adventurer,graduate")
+    throw new Error("catalog order/ids changed");
+  if (tt.OUTFITS.filter((o) => o.stage === 4).length !== 3 || tt.OUTFITS.filter((o) => o.stage === 5).length !== 3 ||
+      tt.OUTFITS.filter((o) => o.stage === 6).length !== 3) throw new Error("stage distribution changed");
+  if (tt.OUTFITS.map((o) => o.price).join() !== "800,800,800,900,900,900,1200,1200,1200") throw new Error("outfit prices changed");
+
+  // a stage-1 learner still sees all nine, every one of them tappable
+  localStorage.setItem("marzi.stats.v1", JSON.stringify({ days: {}, xp: 0, coins: 0 }));
+  tt.renderStore();
+  const body = document.getElementById("storeBody").innerHTML;
+  const cards = body.match(/data-outfit="[a-z]+"/g) || [];
+  if (cards.length !== 9) throw new Error("visible outfits: " + cards.length);
+  if (/data-outfit="[^"]*"[^>]*\sdisabled/.test(body)) throw new Error("a locked card used the disabled attribute");
+  if (!body.includes('aria-disabled="true"')) throw new Error("locked cards must be aria-disabled");
+  if (!body.includes('data-state="locked"')) throw new Error("no locked state rendered");
+  // the locked card carries a stage badge and a price, and states are not colour-only
+  const locked = tt.UI.outfitCard({ id: "graduate", name: "Graduate", price: 1200, state: "locked", stageLabel: `${L.lockedAt} 6` });
+  if (!locked.includes("outfit-stage")) throw new Error("locked card has no stage badge");
+  if (!locked.includes("outfit-lock")) throw new Error("locked card has no lock icon");
+  if (!locked.includes("1200")) throw new Error("locked card hides the price");
+  if (!/aria-label="[^"]*6[^"]*1200/.test(locked)) throw new Error("locked accessible label incomplete");
+
+  // preview opens for a locked outfit, and offers no purchase
+  tt.openOutfitPreview("graduate");
+  const modal = document.getElementById("storeModal").innerHTML;
+  if (!modal.includes("Graduate") && !modal.includes(tt.outfitName("graduate"))) throw new Error("locked preview did not open");
+  if (modal.includes('id="storeBuy"')) throw new Error("a stage-locked outfit offered a purchase");
+  if (!modal.includes(L.lockedHow)) throw new Error("the modal must explain how it unlocks");
+  if (!modal.includes('id="storeCancel"')) throw new Error("no way to close the preview");
+
+  // the five canonical states still come from one function
+  const st = { xp: 0, coins: 0, ownedItemIds: [], equippedItemIds: [] };
+  if (tt.outfitState("graduate", st) !== "locked") throw new Error("locked state");
+  if (tt.outfitState("explorer", { ...st, xp: 900, coins: 0 }) !== "insufficient") throw new Error("insufficient state");
+  if (tt.outfitState("explorer", { ...st, xp: 900, coins: 5000 }) !== "available") throw new Error("available state");
+  if (tt.outfitState("explorer", { ...st, ownedItemIds: ["explorer"] }) !== "owned") throw new Error("owned state");
+  if (tt.outfitState("explorer", { ...st, ownedItemIds: ["explorer"], equippedItemIds: ["explorer"] }) !== "equipped") throw new Error("equipped state");
+});
+
+check("MARZI-017 profile: formatted cards, truthful weekly history, empty states", () => {
+  const L = tt.T.en;
+  tt.S.lang = "en";
+  // no dated history at all -> no chart is invented
+  localStorage.setItem("marzi.stats.v1", JSON.stringify({ days: {}, calls: 0, seconds: 0, xp: 0, coins: 0 }));
+  localStorage.setItem("telefontrainer.fixes", "[]");
+  localStorage.setItem("telefontrainer.words", "[]");
+  const empty = tt.weeklyActivity();
+  if (empty.hasHistory) throw new Error("an empty profile must not claim history");
+  if (empty.entries.length !== 7) throw new Error("a week is seven days");
+  if (empty.entries.some((e) => e.value !== 0)) throw new Error("fabricated values");
+  tt.renderProfile();
+  let body = document.getElementById("profBody").innerHTML;
+  if (!body.includes(L.profNoHistory)) throw new Error("missing weekly empty state");
+  if (body.includes("act-bars")) throw new Error("a zero-filled chart was rendered as history");
+  if (!body.includes('data-state="empty"')) throw new Error("zero counters must be marked empty");
+  // values and labels are separate, spaced, and pluralized
+  if (/>0calls</.test(body) || /\d[a-z]{3,}</.test(body.replace(/<[^>]+>/g, "")))
+    throw new Error("a value ran into its label");
+  if (!body.includes(">0</b>")) throw new Error("formatted zero missing");
+  // the old defect was two INLINE elements rendering as "0coins": both are blocks now
+  const st2 = html.slice(html.indexOf("<style>"), html.indexOf("</style>"));
+  if (!/\.stat-val \{ display: block;/.test(st2)) throw new Error("stat value is not a block");
+  if (!/\.stat-lb \{ display: block;/.test(st2)) throw new Error("stat label is not a block");
+
+  // real dated activity -> a real chart, from stats.days only
+  const today = new Date().toISOString().slice(0, 10);
+  localStorage.setItem("marzi.stats.v1", JSON.stringify({ days: { [today]: 2 }, secDays: { [today]: 600 },
+    calls: 2, seconds: 600, xp: 100, coins: 1500 }));
+  const wk = tt.weeklyActivity();
+  if (!wk.hasHistory) throw new Error("real history not detected");
+  if (wk.entries[wk.entries.length - 1].value !== 2) throw new Error("today's calls not read from stats.days");
+  if (wk.entries.reduce((a, e) => a + e.value, 0) !== 2) throw new Error("values beyond the stored day");
+  tt.renderProfile();
+  body = document.getElementById("profBody").innerHTML;
+  if (!body.includes("act-bars")) throw new Error("chart missing when history exists");
+  if (!body.includes(new Intl.NumberFormat("en-GB").format(1500))) throw new Error("coins not locale-formatted");
+  // recent activity lists only recorded calls
+  if (tt.recentActivity().length !== 1) throw new Error("recent activity must list only recorded days");
+  localStorage.setItem("marzi.stats.v1", JSON.stringify({ days: {}, calls: 0, seconds: 0, xp: 0, coins: 0 }));
+  if (tt.recentActivity().length !== 0) throw new Error("recent activity invented rows");
+});
+
+check("MARZI-017 PWA: manifest contract, standalone detection, install hint", () => {
+  const m = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "public", "manifest.webmanifest"), "utf8"));
+  if (m.display !== "standalone") throw new Error("display must be standalone");
+  if (!Array.isArray(m.display_override) || m.display_override[0] !== "standalone" || m.display_override[1] !== "minimal-ui")
+    throw new Error("display_override must be [standalone, minimal-ui]");
+  if (m.short_name !== "Marzi") throw new Error("short_name must be the product name: " + m.short_name);
+  if (!/Marzi/.test(m.name)) throw new Error("name must carry the brand: " + m.name);
+  for (const k of ["start_url", "scope", "theme_color", "background_color", "id"]) if (!m[k]) throw new Error("manifest missing " + k);
+  if (m.scope !== "/" || m.start_url.indexOf("/") !== 0) throw new Error("scope/start_url must stay in-origin");
+  if (!/^#[0-9a-f]{6}$/i.test(m.theme_color) || !/^#[0-9a-f]{6}$/i.test(m.background_color)) throw new Error("colour format");
+  const sizes = (m.icons || []).map((i) => i.sizes);
+  if (!sizes.includes("192x192") || !sizes.includes("512x512")) throw new Error("production icons missing");
+  if (!(m.icons || []).some((i) => i.purpose === "maskable")) throw new Error("no maskable icon");
+
+  // standalone detection handles both display-mode and the iOS fallback
+  const detect = String(src.match(/function isStandalone\(\)[\s\S]*?\n\}/)[0]);
+  if (!/display-mode: \$\{mode\}/.test(detect)) throw new Error("display-mode not queried");
+  if (!/navigator\.standalone/.test(detect)) throw new Error("navigator.standalone fallback missing");
+  // the hint is browser-only and its dismissal persists
+  const realMM = globalThis.matchMedia;
+  globalThis.matchMedia = () => ({ matches: true });
+  if (tt.isStandalone() !== true) throw new Error("standalone not detected");
+  if (tt.installRecVisible()) throw new Error("the install hint must never show in standalone mode");
+  globalThis.matchMedia = () => ({ matches: false });
+  localStorage.removeItem(tt.INSTALL_DISMISS_KEY);
+  if (!tt.installRecVisible()) throw new Error("the install hint must show in a browser");
+  tt.dismissInstallRec();
+  if (tt.installRecVisible()) throw new Error("dismissal must persist");
+  localStorage.removeItem(tt.INSTALL_DISMISS_KEY);
+  globalThis.matchMedia = realMM;
+  // safe-area contract survives
+  const styles = html.slice(html.indexOf("<style>"), html.indexOf("</style>"));
+  if (!/env\(safe-area-inset/.test(styles)) throw new Error("safe-area insets dropped");
+  if (/100vh(?![a-z-])/.test(styles.replace(/100vh\s*\)/g, "")) && !/100dvh/.test(styles)) throw new Error("dynamic viewport units dropped");
+});
+
+check("MARZI-017 regression: economy, prompts and engine untouched", () => {
+  // the six thresholds and the reward maths
+  if (tt.MARZI_STAGE_XP.join() !== "0,150,400,800,1500,2600") throw new Error("XP thresholds changed");
+  const rc = String(src.match(/function recordCall\(\)[\s\S]*?\n\}/)[0]);
+  if (!/const gained = 15 \+ Math\.min\(20, S\.turns\.filter\(\(x\) => x\.me\)\.length \* 2\)/.test(rc)) throw new Error("XP formula changed");
+  if (!/\{ xp: gained, coins: 20 \}/.test(rc)) throw new Error("coins per call changed");
+  if (!/claimReward\("call:"/.test(rc)) throw new Error("reward idempotency changed");
+  // prices
+  if (tt.COIN_PACKS.map((p) => p.price).join() !== "200,450,800,1500") throw new Error("minute-pack prices changed");
+  if (!/function buyPack\(id\) \{\n  const p = COIN_PACKS\.find/.test(src)) throw new Error("buyPack changed");
+  if (tt.PLAN_SECONDS !== 30 * 60) throw new Error("daily allowance changed");
+  if (tt.MB_PER_MINUTE !== 10) throw new Error("MB relationship changed");
+  if (tt.isPremium() !== false) throw new Error("Premium entitlement changed");
+  // engine + providers + prompts
+  if (tt.ENGINE_CONTRACTS.ai.join() !== "complete") throw new Error("AI provider contract changed");
+  if (!/function systemPrompt\(/.test(src)) throw new Error("systemPrompt missing");
+  for (const fn of ["createConversationSession", "createTranscript", "createProviderRegistry"])
+    if (typeof tt[fn] !== "function") throw new Error("engine export missing: " + fn);
+  if (!tt.PromptBuilder || typeof tt.PromptBuilder.rolePlay !== "function") throw new Error("PromptBuilder contract changed");
+  // storage stays backwards compatible: unknown keys survive normalization
+  const norm = tt.normalizeStats({ xp: 5, coins: 6, calls: 7, ownedItemIds: ["explorer"], mystery: 1 });
+  if (norm.xp !== 5 || norm.coins !== 6 || norm.calls !== 7) throw new Error("normalizeStats lost a counter");
+  if (norm.ownedItemIds.join() !== "explorer") throw new Error("wardrobe lost on normalization");
+  if (tt.normalizeStats(null).xp !== 0) throw new Error("normalizeStats must default safely");
+});
+
+
+check("MARZI-018 call render: last character line survives processing", () => {
+  // OBSERVED BEFORE CHANGING ANYTHING (MARZI-018 constraint 4): with a
+  // contract-correct stub the character's last line stayed visible right
+  // through the processing window. That is correct behaviour and this check
+  // locks it, rather than "fixing" something that already works.
+  tt.S.lang = "es";
+  const A = tt.SCENARIOS.find((x) => x.id === "arzt");
+  tt.S.scenario = A; tt.S.active = A;
+  tt.S.hint = "Ich möchte einen Termin reservieren.";
+  tt.S.turns = [
+    { me: false, text: "Guten Tag! Praxis Dr. Wagner." },
+    { me: true, text: "Ich hätte gern einen Termin." },
+  ];
+  // idle: the dialogue and the suggestion are both up
+  tt.S.busy = false;
+  tt.renderCall();
+  const bub = document.getElementById("vcBubble");
+  // character words render as tappable buttons, so match a word, not the line
+  if (!document.getElementById("log").innerHTML.includes("Wagner"))
+    throw new Error("character line not rendered");
+  if (bub.classList.has("hidden")) throw new Error("suggestion hidden while idle");
+
+  // processing: the character line MUST remain; the suggestion steps aside
+  tt.S.busy = true;
+  tt.renderCall();
+  const busyFeed = document.getElementById("log").innerHTML;
+  if (!busyFeed.includes("Wagner")) throw new Error("character line lost during processing");
+  if (!busyFeed.includes("· · ·")) throw new Error("processing must show a thinking indicator in the dialogue");
+  if (!bub.classList.has("hidden")) throw new Error("the suggestion must not survive into processing");
+
+  // the dialogue is derived from the render model: every turn renders
+  if (!/S\.turns\.map\(\(x, i\) => UI\.bubble\(/.test(src))
+    throw new Error("the dialogue is no longer derived from the turn list");
+  tt.S.busy = false; tt.S.turns = []; tt.S.hint = null;
+});
+
+
+check("MARZI-018 call chrome: emoji fallback, one danger control, targets, safe areas", () => {
+  const styles = html.slice(html.indexOf("<style>"), html.indexOf("</style>"));
+
+  // M-01 (mandatory): a loaded portrait removes the emoji from the scene
+  if (!/\.callscreen:has\(\.call-portrait\.ok\) \.call-emoji \{ display: none; \}/.test(styles))
+    throw new Error("a loaded portrait must hide the emoji fallback");
+  // ...and the fallback still exists, with an accessible name, when it fails
+  if (!/\.call-portrait\.ok \{ display: block; \}/.test(styles)) throw new Error("portrait success class lost");
+  if (!html.includes('id="vcEmoji"')) throw new Error("the emoji fallback element was removed");
+  if (!/\$\("vcEmoji"\)\.textContent = A\.avatar/.test(src)) throw new Error("the fallback no longer carries the character emoji");
+  // constraint 3: while the fallback IS the visual it must be announced;
+  // once the portrait loads it becomes decorative
+  const mk = String(src.match(/const markEmoji = [\s\S]*?\n  \};/)[0]);
+  if (!/portraitOk\)/.test(mk)) throw new Error("fallback accessibility does not follow portrait state");
+  if (!/aria-hidden", "true"/.test(mk)) throw new Error("a loaded portrait must leave the emoji decorative");
+  if (!/setAttribute\("role", "img"\)/.test(mk) || !/aria-label", A\.who/.test(mk))
+    throw new Error("the failure fallback must be announced with the character name");
+  if (!/markEmoji\(true\)/.test(src) || !/markEmoji\(false\)/.test(src))
+    throw new Error("markEmoji is not wired to load and error");
+  if (!/id="vcImg"/.test(html) || !/class="call-portrait"/.test(html)) throw new Error("portrait element changed");
+
+  // M-05 / constraint 7: only hang-up may be red
+  const dangerRules = (styles.match(/\.call-ctrl[^{]*\{[^}]*background: var\(--red\)[^}]*\}/g) || []);
+  if (dangerRules.length !== 1) throw new Error("exactly one call control may use the danger red, found " + dangerRules.length);
+  if (!/\.call-ctrl\.danger \{[^}]*background: var\(--red\)/.test(styles)) throw new Error("the danger red must belong to hang-up");
+  if (/\.call-ctrl\[data-status="failed"\] \{[^}]*var\(--red\)/.test(styles)) throw new Error("a failed mic must not borrow the hang-up red");
+  if (!/\.call-ctrl\[data-status="failed"\] \{[^}]*var\(--warn-soft\)/.test(styles)) throw new Error("failed mic has no warning treatment");
+
+  // M-06 / constraint 8: secondary tools meet the touch floor in BOTH axes
+  if (!/\.call-pill \{[^}]*min-height: var\(--touch-min\)[^}]*min-width: var\(--touch-min\)/.test(styles))
+    throw new Error("secondary call tools must be at least 48px in both axes");
+
+  // M-09: the call layer honours both safe areas
+  if (!/--safe-top: env\(safe-area-inset-top, 0px\)/.test(styles)) throw new Error("--safe-top token missing");
+  // R2-APP-04: exactly ONE owner per call safe-area edge. .callscreen owns
+  // both; anything else consuming them again double-counts the inset.
+  if (!/\.callscreen \{[^}]*padding: calc\(var\(--safe-top\) \+ var\(--space-2\)\) 0\s*calc\(var\(--safe-bottom\) \+ var\(--space-2\)\)/.test(styles))
+    throw new Error(".callscreen must be the single owner of both call insets");
+  const dupTop = (styles.match(/var\(--safe-top\)/g) || []).length;
+  const dupBot = (styles.match(/var\(--safe-bottom\)/g) || []).length;
+  if (dupTop !== 1) throw new Error("--safe-top must have exactly ONE consumer, found " + dupTop);
+  if (dupBot > 4) throw new Error("--safe-bottom consumed by too many owners: " + dupBot);
+  if (/body\.in-call \.call-(top|stack) \{[^}]*safe-(top|bottom)/.test(styles))
+    throw new Error("call chrome consumes an inset already owned by .callscreen");
+
+  // M-07: the timer reads as primary, remaining allowance as context
+  if (!/\.call-meta #timer \{ font-size: var\(--text-md\)/.test(styles)) throw new Error("timer is not the primary reading");
+  if (!html.includes('id="vcLeft" class="call-meta-ctx"')) throw new Error("remaining allowance is not marked as context");
+
+  // two primary circles — speak and hang-up — built by the same component;
+  // replay lives in the labelled tool row, so no circle duplicates the mic
+  const ctrls = String(src.match(/UI\.callControl\(\{ id: "micBtn"[\s\S]*?UI\.callControl\(\{ id: "hangBtn"[^\n]*/)[0]);
+  if ((ctrls.match(/UI\.callControl\(\{/g) || []).length !== 2) throw new Error("there must be exactly two primary controls");
+  if ((ctrls.match(/variant: "danger"/g) || []).length !== 1) throw new Error("exactly one primary control may be danger");
+
+  // identity: the name line is present and place is optional context
+  const idc = String(src.match(/callIdentity\(\{[\s\S]*?\n  \},/)[0]);
+  if (!/call-id-name/.test(idc) || !/call-id-place/.test(idc)) throw new Error("identity hierarchy changed");
+  if (!/place \?/.test(idc)) throw new Error("place must be optional so it cannot render empty");
+});
+
+
+check("MARZI-018 call poses: stable paths, shipped registry, safe fallback", () => {
+  // 21 canonical paths: stages 4-6 x seven poses
+  if (tt.CALL_POSE_STATES.join() !== "ready,listening,thinking,speaking,encouraging,limit,offline,error")
+    throw new Error("call pose vocabulary: " + tt.CALL_POSE_STATES.join());
+  const paths = [];
+  for (const st of [4, 5, 6]) for (const pose of tt.CALL_POSE_STATES) paths.push(tt.marziCallAssetPath(st, pose));
+  if (paths.length !== 24 || new Set(paths).size !== 24) throw new Error("expected 24 distinct paths");
+  if (paths[0] !== "/assets/marzi/call/stage-4-ready.svg") throw new Error("path shape: " + paths[0]);
+  if (paths[23] !== "/assets/marzi/call/stage-6-error.svg") throw new Error("last path: " + paths[23]);
+
+  // no new state vocabulary - every pose maps onto a shipped MARZI_STATE
+  for (const pose of tt.CALL_POSE_STATES) {
+    const mapped = tt.CALL_POSE_TO_STATE[pose];
+    if (!tt.MARZI_STATES.includes(mapped)) throw new Error(`pose ${pose} maps to unknown state ${mapped}`);
+  }
+  if (tt.MARZI_STATES.join() !== "neutral,happy,listening,thinking,speaking,sad,error,celebrating")
+    throw new Error("MARZI-013 state vocabulary changed");
+
+  // stages are clamped into the 4-6 range the spec defines
+  if (tt.marziCallAssetPath(1, "ready") !== "/assets/marzi/call/stage-4-ready.svg") throw new Error("low stage not clamped");
+  if (tt.marziCallAssetPath(99, "ready") !== "/assets/marzi/call/stage-6-ready.svg") throw new Error("high stage not clamped");
+  if (tt.marziCallAssetPath(5, "nonsense") !== "/assets/marzi/call/stage-5-ready.svg") throw new Error("unknown pose must fall back to ready");
+  if (tt.marziCallPose("listening") !== "listening") throw new Error("pose passthrough");
+  // intent: "sad" maps to a sad-family pose, chosen by the actual condition —
+  // limit when online (the common case here), offline when the app is offline
+  if (!["limit", "offline"].includes(tt.marziCallPose("sad"))) throw new Error("a canonical state must resolve to its pose");
+
+  // THE REGISTRY SHIPS WITH THE PRODUCTION FILES REGISTERED — and every
+  // registered path must exist on disk, so no live request can ever 404
+  const pubDir = path.join(__dirname, "..", "public");
+  for (const st of [4, 5, 6]) for (const pose of tt.CALL_POSE_STATES) {
+    if (!tt.hasMarziCallAsset(st, pose)) throw new Error(`shipped pose ${st}/${pose} is not registered`);
+    if (!fs.existsSync(path.join(pubDir, tt.marziCallAssetPath(st, pose))))
+      throw new Error("registered pose file missing on disk: " + tt.marziCallAssetPath(st, pose));
+    if (!/<img/.test(tt.marziCallArt(st, pose))) throw new Error(`registered ${st}/${pose} did not render its file`);
+  }
+  // the fallback mechanism stays intact: unregistering restores inline SVG
+  tt.__registerCallAsset(5, "listening", false);
+  if (/<img/.test(tt.marziCallArt(5, "listening"))) throw new Error("unregistering did not restore the fallback");
+  if (!/<svg/.test(tt.marziCallArt(5, "listening"))) throw new Error("no fallback artwork after unregistering");
+  tt.__registerCallAsset(5, "listening", true);
+  if (!/<img[^>]*stage-5-listening\.svg/.test(tt.marziCallArt(5, "listening"))) throw new Error("re-registered asset not used");
+
+  // stages below 4 always use the approved SVG, even with the registry full
+  if (/<img/.test(tt.marziCallArt(3, "ready"))) throw new Error("stage 3 must not use a call asset");
+
+  // contact scenes + backdrops: registration matches the files on disk, and
+  // the deterministic resolvers honour the roster and fall back to ""
+  for (const cid of tt.CALL_ART.characters) for (const cst of tt.CALL_ART.characterStates) {
+    if (!tt.hasCallStageAsset(tt.contactAssetPath(cid, cst))) throw new Error(`contact scene not registered: ${cid}/${cst}`);
+    if (!fs.existsSync(path.join(pubDir, tt.contactAssetPath(cid, cst))))
+      throw new Error("registered contact file missing: " + tt.contactAssetPath(cid, cst));
+  }
+  for (const fam of tt.CALL_ART.backgrounds) {
+    if (!fs.existsSync(path.join(pubDir, tt.stageBackgroundPath(fam))))
+      throw new Error("registered backdrop missing: " + tt.stageBackgroundPath(fam));
+  }
+  if (tt.resolveContactPortrait({ contactId: "arzt", state: "listening" }) !== "/assets/call/characters/arzt/listening.svg")
+    throw new Error("contact resolver path shape");
+  if (tt.resolveContactPortrait({ contactId: "arzt", state: "nonsense" }) !== "/assets/call/characters/arzt/idle.svg")
+    throw new Error("unknown state must resolve to idle");
+  if (tt.resolveContactPortrait({ contactId: "arzt", state: "idle", speaker: 2 }) !== "")
+    throw new Error("the handover persona has no drawn art and must fall back");
+  if (tt.resolveContactPortrait({ contactId: "custom", state: "idle" }) !== "") throw new Error("unknown contact must fall back");
+  if (tt.resolveScenarioBackground({ scenarioId: "arzt" }) !== "/assets/call/backgrounds/clinic.svg")
+    throw new Error("background resolver family mapping");
+  if (tt.resolveScenarioBackground({ scenarioId: "custom" }) !== "") throw new Error("unknown scenario must fall back");
+  for (const o of tt.CALL_ART.outfits) {
+    if (!fs.existsSync(path.join(pubDir, tt.resolveMarziOutfitAsset(o)))) throw new Error("outfit variant missing: " + o);
+  }
+  if (tt.resolveMarziOutfitAsset("sporty") !== "") throw new Error("undrawn outfit must fall back");
+  // every call state maps into the portrait state vocabulary
+  for (const cs of ["ready", "listening", "processing", "speaking", "error", "disconnected"]) {
+    if (!tt.CALL_ART.characterStates.includes(tt.CONTACT_STATE_FOR_CALL[cs]))
+      throw new Error("call state " + cs + " has no portrait state");
+  }
+  if (!/\/assets\/marzi\/call\/helping\.svg/.test(tt.resolveMarziCallPose({ callState: "ready", helpState: 2 })))
+    throw new Error("Marzi pose resolver: help state");
+
+  // the companion renders through the resolver and keeps its earned stage
+  tt.S.lang = "es";
+  localStorage.setItem("marzi.stats.v1", JSON.stringify({ days: {}, xp: 1600, calls: 4, seconds: 300, coins: 0 }));
+  tt.renderCallCompanion();
+  const el = document.getElementById("vcMarzi");
+  if (el.dataset.stage !== String(tt.marziStageForXp(1600))) throw new Error("companion is not on the earned stage");
+  if (!/vc-marzi-art/.test(el.innerHTML) || !/<svg|<img/.test(el.innerHTML)) throw new Error("companion artwork missing");
+  if (!/marziCallArt\(stage, state\)/.test(src)) throw new Error("the companion must render through the resolver");
+});
+
+check("MARZI-018 Marzi presence and bubble anchoring", () => {
+  const styles = html.slice(html.indexOf("<style>"), html.indexOf("</style>"));
+  // M-02: the art scales with the viewport instead of a fixed 108px badge
+  // R2-APP-01: the ARTWORK carries the presence contract, at every stage
+  // MARZI-062: the same viewport scale, now also bounded by the row Marzi sits
+  // in, so a short viewport at 200% text shrinks him instead of letting him
+  // overrun the stage. The dvh term is still what drives his size.
+  const MARZI_SIZE = /height: clamp\(112px, 25\.5dvh, 208px\); max-height: 100%/;
+  const artRule = (styles.match(/\.call-marzi \.vc-marzi-art \{[^}]*\}/) || [""])[0];
+  if (!MARZI_SIZE.test(artRule)) throw new Error("Marzi artwork no longer scales with the dynamic viewport");
+  if (!/aspect-ratio: 1 \/ 1/.test(artRule)) throw new Error("Marzi artwork is no longer square");
+  const stage3 = (styles.match(/\.call-marzi\[data-stage="3"\][\s\S]*?\{[^}]*\}/) || [""])[0];
+  if (!MARZI_SIZE.test(stage3)) throw new Error("early stages must scale like 4-6 inside the call");
+  if (!/border: 0/.test(stage3)) throw new Error("early stages must not keep the badge treatment in the call");
+  if (/max-width: 128px/.test(styles)) throw new Error("the old 128px cap still clips Marzi");
+  if (!/max-width: min\(46vw, 220px\)/.test(styles)) throw new Error("Marzi container cap missing");
+  // M-03: the suggestion is anchored beside Marzi and carries a tail back to him
+  if (!/\.call-bubble\.marzi::after \{/.test(styles)) throw new Error("the Marzi bubble has no tail");
+  // MARZI-062: "beside Marzi" is now expressed as the second column of the same
+  // grid row rather than as an absolute inset. Both cells must exist and share
+  // the row, or the suggestion is no longer anchored to him.
+  if (!/"marzi  hint"/.test(styles)) throw new Error("the suggestion is not anchored beside Marzi");
+  if (!/\.call-bubble\.marzi \{[^}]*grid-area: hint/.test(styles))
+    throw new Error("the suggestion left the row it shares with Marzi");
+  if (!/\.call-marzi \{[^}]*grid-area: marzi/.test(styles))
+    throw new Error("Marzi left the row he shares with the suggestion");
+  // M-10: the lower third is seated, not empty
+  if (!/\.call-mid::after \{/.test(styles)) throw new Error("no floor gradient under the companion");
+  // constraint 5: UI.callStage was NOT introduced
+  if (typeof tt.UI.callStage !== "undefined") throw new Error("UI.callStage was introduced without justification");
+});
+
+
+check("MARZI-018 no-internet state stays distinct from the daily limit", () => {
+  const L = tt.T.en;
+  tt.S.lang = "en";
+  const realNav = globalThis.navigator;
+  const setOnline = (v) => { try { Object.defineProperty(globalThis, "navigator", { value: { ...realNav, onLine: v }, configurable: true }); } catch (e) {} };
+
+  setOnline(false);
+  tt.showOffline();
+  if (!tt.offlineScreenOpen()) throw new Error("offline state did not open");
+  const off = document.getElementById("offlineScreen").innerHTML;
+  // names connectivity as the cause, never the allowance
+  if (!off.includes(L.offlineTitle) || !off.includes(L.offlineMsg)) throw new Error("offline copy missing");
+  if (off.includes(L.limitTitle)) throw new Error("the offline state must not claim minutes are exhausted");
+  if (!off.includes(L.offRetry)) throw new Error("no retry action");
+  if (off.includes(L.resetsIn)) throw new Error("a reset time belongs to the limit state, not offline");
+  // recovery rows plus a safe exit
+  if (!off.includes(L.planBuyNet) || !off.includes(L.premGet)) throw new Error("recovery rows missing");
+  if (!off.includes(L.premLater)) throw new Error("no safe exit");
+  // and it is a real, separate surface from the limit sheet
+  if (tt.limitOpen()) throw new Error("offline must not open the limit sheet");
+  tt.closeOffline();
+  if (tt.offlineScreenOpen()) throw new Error("offline state not dismissible");
+
+  // goCall routes the two refusals to two different screens
+  const gc = String(src.match(/function goCall\(\)[\s\S]*?\n\}/)[0]);
+  if (!/isOffline\(\)\) \{ renderNetBanner\(\); showOffline\(\); return; \}/.test(gc))
+    throw new Error("an offline call must open the offline state");
+  if (!/planUsedToday\(\) >= planLimitToday\(\)\) \{ showLimit\(\); return; \}/.test(gc))
+    throw new Error("an exhausted allowance must still open the limit sheet");
+  if (gc.indexOf("isOffline") > gc.indexOf("planUsedToday")) throw new Error("connectivity must be checked before the allowance");
+  // the retry uses its own string, not the drill's "Again"
+  if (L.offRetry === L.retry) throw new Error("connection retry must not reuse the drill string");
+  setOnline(true);
+  try { Object.defineProperty(globalThis, "navigator", { value: realNav, configurable: true }); } catch (e) {}
+});
+
+
+check("MARZI-018-R1: nothing may shadow the native History API", () => {
+  // A top-level `function history()` became window.history and silently broke
+  // back/pushState/replaceState, because every call site is try/catch-wrapped.
+  // Verified in a clean top-level browser; this guards the whole class.
+  const scriptSrc = src;
+  // no global declaration may take a name the platform already owns on window
+  const RESERVED = ["history", "location", "navigator", "document", "screen", "origin", "name", "length", "top", "parent", "self", "status"];
+  // R2-TEST-02: only forms that actually OVERWRITE a window property.
+  // `function`/`var`/`class` at column 0 create window properties; `let`/`const`
+  // create script-scope bindings that do NOT overwrite window, so they are not
+  // flagged (the old rule produced false positives for them).
+  for (const word of RESERVED) {
+    const decl = new RegExp("^(function|var|class)\\s+" + word + "\\b", "m");
+    if (decl.test(scriptSrc)) throw new Error(`a top-level global named "${word}" overwrites a native window property`);
+    const assign = new RegExp("(^|[^\\w.])(window|globalThis|self)\\." + word + "\\s*=[^=]", "m");
+    if (assign.test(scriptSrc)) throw new Error(`a direct assignment overwrites window.${word}`);
+    const define = new RegExp("defineProperty\\(\\s*(window|globalThis|self)\\s*,\\s*[\"']" + word + "[\"']", "m");
+    if (define.test(scriptSrc)) throw new Error(`defineProperty collides with window.${word}`);
+  }
+  // the renamed helper still exists and still returns the legacy shape
+  if (!/function legacyPromptHistory\(\)/.test(scriptSrc)) throw new Error("the legacy prompt-history helper was lost, not renamed");
+  if (typeof tt.legacyPromptHistory !== "function") throw new Error("legacyPromptHistory is not callable");
+  tt.S.turns = [{ me: true, text: "hallo" }, { me: false, text: "guten tag" }];
+  const h = tt.legacyPromptHistory();
+  if (!Array.isArray(h) || h[0].role !== "user" || h[0].content !== tt.TARGET.seed) throw new Error("legacy helper shape changed");
+  if (h[1].role !== "user" || h[2].role !== "assistant") throw new Error("legacy helper role mapping changed");
+  tt.S.turns = [];
+
+  // every History API call site stays window-qualified, so a future global
+  // cannot silently capture them again (the onboarding back-walk remains the
+  // one pushState user now that the transcript sheet is gone)
+  const calls = scriptSrc.match(/(?<![\w.])history\.(back|pushState|replaceState)/g) || [];
+  if (calls.length) throw new Error("unqualified History API call(s): " + calls.join(","));
+  if (!scriptSrc.includes("window.history.pushState(null")) throw new Error("onboarding back-walk call site changed");
+});
+
+check("MARZI-062 staging preview: build identity, reserved regions, containment", () => {
+  const styles = html.slice(html.indexOf("<style>"), html.indexOf("</style>"));
+  // 1. the build identity is checked in, exact, uniquely marked and named
+  const LABEL = "MARZI STAGING PREVIEW \u00b7 MARZI-062 \u00b7 BUILD MARZI-062-PREVIEW-1";
+  if (!html.includes(LABEL)) throw new Error("the exact staging build label is missing");
+  const markers = html.match(/data-marzi-build=/g) || [];
+  if (markers.length !== 1) throw new Error("expected exactly one build marker, found " + markers.length);
+  const bar = (html.match(/<div class="staging-bar"[^>]*>/) || [""])[0];
+  if (!/aria-label="[^"]*MARZI-062-PREVIEW-1/.test(bar)) throw new Error("the staging marker has no accessible name");
+  // 2. it can never intercept a control or truncate its own text
+  const barRule = (styles.match(/\.staging-bar \{[^}]*\}/) || [""])[0];
+  if (!/pointer-events: none/.test(barRule)) throw new Error("the staging marker can intercept controls");
+  if (/text-overflow: ellipsis|white-space: nowrap/.test(barRule)) throw new Error("the staging marker truncates instead of wrapping");
+  // 3. the marker's height comes out of the shell budget, so the page itself
+  //    gains no scroll and the call layer never covers the marker
+  for (const rule of ["min-height: calc(100dvh - var(--staging-bar, 0px))",
+                      "height: calc(100dvh - 64px - var(--staging-bar, 0px))",
+                      "inset: var(--staging-bar, 0px) 0 0 0"]) {
+    if (!styles.includes(rule)) throw new Error("the staging marker is not in the layout budget: " + rule);
+  }
+  // 4. critical call elements occupy reserved regions that cannot overlap
+  const mid = (styles.match(/\.call-mid \{[^}]*\}/) || [""])[0];
+  if (!/display: grid/.test(mid)) throw new Error(".call-mid no longer reserves layout regions");
+  for (const area of ["status", "alert", "char", "marzi", "hint"]) {
+    if (!new RegExp("grid-area: " + area + "\\b").test(styles)) throw new Error("no reserved region for " + area);
+  }
+  // 5. a long compound noun is contained rather than clipped, and the
+  //    character's line keeps a real reading budget at any text scale
+  const bubble = (styles.match(/\.call-bubble \{[^}]*\}/) || [""])[0];
+  if (!/overflow-wrap: break-word/.test(bubble)) throw new Error("bubbles no longer break long compound nouns");
+  if (/\.call-bubble \{[^}]*overflow-wrap: anywhere/.test(styles))
+    throw new Error("`anywhere` shrinks the bubble's intrinsic width and collapses the suggestion");
+  const dlg = (styles.match(/\.call-lines \.call-dialogue \{[^}]*\}/) || [""])[0];
+  if (!/min-height: max\(var\(--touch-min\), 3lh\)/.test(dlg))
+    throw new Error("the character line lost its three-line reading budget");
+  // 6. the preview is presentation only: no telemetry, no new storage key
+  if (/sendBeacon|dataLayer\s*\.\s*push|gtag\s*\(/.test(src)) throw new Error("the preview added telemetry");
+  const keys = new Set((src.match(/"marzi\.[a-z.]+v\d"/g) || []));
+  if (!keys.has('"marzi.settings.v1"') || !keys.has('"marzi.stats.v1"')) throw new Error("a canonical storage key disappeared");
+  // 7. the observer is bounded and detaches with the page
+  if (!/new ResizeObserver\(publish\)/.test(src)) throw new Error("the staging marker height is not observed");
+  if (!/ro\.disconnect\(\)/.test(src)) throw new Error("the staging observer is never disconnected");
 });
 
 check("progress chart renders points, CEFR bands and a projection", () => {

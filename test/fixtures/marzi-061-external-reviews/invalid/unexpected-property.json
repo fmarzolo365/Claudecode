@@ -1,0 +1,297 @@
+{
+ "contract": "marzi.review.accessibility-plan.v1",
+ "schemaVersion": 1,
+ "packageId": "MARZI-061",
+ "packageVersion": "v1",
+ "complianceClaim": false,
+ "statement": "These are review conditions, not a compliance result. Nothing here asserts WCAG, accessibility, or legal conformance.",
+ "conditions": {
+  "viewports": [
+   "320x568",
+   "390x844"
+  ],
+  "textScales": [
+   "100%",
+   "200%"
+  ],
+  "orientations": [
+   "portrait",
+   "landscape"
+  ],
+  "locales": [
+   "es",
+   "en",
+   "it",
+   "tr",
+   "ar",
+   "uk"
+  ],
+  "directions": [
+   "ltr",
+   "rtl"
+  ],
+  "assistiveTechnologies": [
+   "TalkBack",
+   "external_keyboard",
+   "switch_access",
+   "system_font_scaling",
+   "reduced_motion_setting"
+  ]
+ },
+ "checks": [
+  {
+   "checkId": "marzi-061:a11y:001",
+   "category": "semantic",
+   "name": "semantic_structure",
+   "journeyReference": "MARZI-021 learner-facing objective, completion and mastery copy",
+   "expectedEvidence": "Headings, landmarks, lists and tables carry real structure, not visual approximation.",
+   "reviewStatus": "NOT_REVIEWED",
+   "observedBehavior": null,
+   "severity": null,
+   "evidenceReferences": []
+  },
+  {
+   "checkId": "marzi-061:a11y:002",
+   "category": "semantic",
+   "name": "state_communication",
+   "journeyReference": "MARZI-021 learner-facing objective, completion and mastery copy",
+   "expectedEvidence": "Every state change is conveyed in text and semantics, never by colour, position, sound, or motion alone.",
+   "reviewStatus": "NOT_REVIEWED",
+   "observedBehavior": null,
+   "severity": null,
+   "evidenceReferences": []
+  },
+  {
+   "checkId": "marzi-061:a11y:003",
+   "category": "semantic",
+   "name": "error_identification",
+   "journeyReference": "MARZI-021 learner-facing objective, completion and mastery copy",
+   "expectedEvidence": "Errors are identified in text, associated with their control, and describe the correction.",
+   "reviewStatus": "NOT_REVIEWED",
+   "observedBehavior": null,
+   "severity": null,
+   "evidenceReferences": []
+  },
+  {
+   "checkId": "marzi-061:a11y:004",
+   "category": "input",
+   "name": "focus_order",
+   "journeyReference": "MARZI-021 learner-facing objective, completion and mastery copy",
+   "expectedEvidence": "Focus order follows the reading order of the surface and never traps the learner.",
+   "reviewStatus": "NOT_REVIEWED",
+   "observedBehavior": null,
+   "severity": null,
+   "evidenceReferences": []
+  },
+  {
+   "checkId": "marzi-061:a11y:005",
+   "category": "input",
+   "name": "keyboard_operation",
+   "journeyReference": "MARZI-021 learner-facing objective, completion and mastery copy",
+   "expectedEvidence": "Every interactive element is reachable and operable without a pointer.",
+   "reviewStatus": "NOT_REVIEWED",
+   "observedBehavior": null,
+   "severity": null,
+   "evidenceReferences": []
+  },
+  {
+   "checkId": "marzi-061:a11y:006",
+   "category": "input",
+   "name": "touch_target_size",
+   "journeyReference": "MARZI-021 learner-facing objective, completion and mastery copy",
+   "expectedEvidence": "Interactive targets are at least 48 by 48 CSS pixels where a touch target applies.",
+   "reviewStatus": "NOT_REVIEWED",
+   "observedBehavior": null,
+   "severity": null,
+   "evidenceReferences": []
+  },
+  {
+   "checkId": "marzi-061:a11y:007",
+   "category": "input",
+   "name": "visible_focus",
+   "journeyReference": "MARZI-021 learner-facing objective, completion and mastery copy",
+   "expectedEvidence": "A visible focus indicator is present on every focusable element.",
+   "reviewStatus": "NOT_REVIEWED",
+   "observedBehavior": null,
+   "severity": null,
+   "evidenceReferences": []
+  },
+  {
+   "checkId": "marzi-061:a11y:008",
+   "category": "visual",
+   "name": "contrast",
+   "journeyReference": "MARZI-021 learner-facing objective, completion and mastery copy",
+   "expectedEvidence": "Text and meaningful non-text contrast is examined against the intended background.",
+   "reviewStatus": "NOT_REVIEWED",
+   "observedBehavior": null,
+   "severity": null,
+   "evidenceReferences": []
+  },
+  {
+   "checkId": "marzi-061:a11y:009",
+   "category": "visual",
+   "name": "text_scaling_200",
+   "journeyReference": "MARZI-021 learner-facing objective, completion and mastery copy",
+   "expectedEvidence": "Content remains usable and unclipped at 200 percent text scaling.",
+   "reviewStatus": "NOT_REVIEWED",
+   "observedBehavior": null,
+   "severity": null,
+   "evidenceReferences": []
+  },
+  {
+   "checkId": "marzi-061:a11y:010",
+   "category": "visual",
+   "name": "zoom",
+   "journeyReference": "MARZI-021 learner-facing objective, completion and mastery copy",
+   "expectedEvidence": "Page zoom does not cause loss of content or function.",
+   "reviewStatus": "NOT_REVIEWED",
+   "observedBehavior": null,
+   "severity": null,
+   "evidenceReferences": []
+  },
+  {
+   "checkId": "marzi-061:a11y:011",
+   "category": "motion",
+   "name": "reduced_motion",
+   "journeyReference": "MARZI-021 learner-facing objective, completion and mastery copy",
+   "expectedEvidence": "A reduced-motion preference is honoured and no essential meaning is motion-only.",
+   "reviewStatus": "NOT_REVIEWED",
+   "observedBehavior": null,
+   "severity": null,
+   "evidenceReferences": []
+  },
+  {
+   "checkId": "marzi-061:a11y:012",
+   "category": "audio",
+   "name": "audio_alternative",
+   "journeyReference": "MARZI-021 learner-facing objective, completion and mastery copy",
+   "expectedEvidence": "Audio and synthetic speech have an equitable non-audio route.",
+   "reviewStatus": "NOT_REVIEWED",
+   "observedBehavior": null,
+   "severity": null,
+   "evidenceReferences": []
+  },
+  {
+   "checkId": "marzi-061:a11y:013",
+   "category": "audio",
+   "name": "speech_alternative",
+   "journeyReference": "MARZI-021 learner-facing objective, completion and mastery copy",
+   "expectedEvidence": "Where speech is not the construct being assessed, a typed or deterministic route exists.",
+   "reviewStatus": "NOT_REVIEWED",
+   "observedBehavior": null,
+   "severity": null,
+   "evidenceReferences": []
+  },
+  {
+   "checkId": "marzi-061:a11y:014",
+   "category": "audio",
+   "name": "transcript_or_caption",
+   "journeyReference": "MARZI-021 learner-facing objective, completion and mastery copy",
+   "expectedEvidence": "Transcripts or captions are examined where recorded or synthetic audio carries meaning.",
+   "reviewStatus": "NOT_REVIEWED",
+   "observedBehavior": null,
+   "severity": null,
+   "evidenceReferences": []
+  },
+  {
+   "checkId": "marzi-061:a11y:015",
+   "category": "cognitive",
+   "name": "plain_language",
+   "journeyReference": "MARZI-021 learner-facing objective, completion and mastery copy",
+   "expectedEvidence": "Learner-facing copy is plain, non-punitive, and understandable at the stated level.",
+   "reviewStatus": "NOT_REVIEWED",
+   "observedBehavior": null,
+   "severity": null,
+   "evidenceReferences": []
+  },
+  {
+   "checkId": "marzi-061:a11y:016",
+   "category": "cognitive",
+   "name": "cognitive_load",
+   "journeyReference": "MARZI-021 learner-facing objective, completion and mastery copy",
+   "expectedEvidence": "The number of simultaneous demands on the learner is examined.",
+   "reviewStatus": "NOT_REVIEWED",
+   "observedBehavior": null,
+   "severity": null,
+   "evidenceReferences": []
+  },
+  {
+   "checkId": "marzi-061:a11y:017",
+   "category": "cognitive",
+   "name": "time_limits",
+   "journeyReference": "MARZI-021 learner-facing objective, completion and mastery copy",
+   "expectedEvidence": "No essential task depends on a time limit the learner cannot extend.",
+   "reviewStatus": "NOT_REVIEWED",
+   "observedBehavior": null,
+   "severity": null,
+   "evidenceReferences": []
+  },
+  {
+   "checkId": "marzi-061:a11y:018",
+   "category": "localization",
+   "name": "rtl_layout",
+   "journeyReference": "MARZI-021 learner-facing objective, completion and mastery copy",
+   "expectedEvidence": "Arabic renders in logical order with correctly isolated mixed-direction content.",
+   "reviewStatus": "NOT_REVIEWED",
+   "observedBehavior": null,
+   "severity": null,
+   "evidenceReferences": []
+  },
+  {
+   "checkId": "marzi-061:a11y:019",
+   "category": "localization",
+   "name": "expansion",
+   "journeyReference": "MARZI-021 learner-facing objective, completion and mastery copy",
+   "expectedEvidence": "Longer translations do not clip, truncate, or change meaning.",
+   "reviewStatus": "NOT_REVIEWED",
+   "observedBehavior": null,
+   "severity": null,
+   "evidenceReferences": []
+  },
+  {
+   "checkId": "marzi-061:a11y:020",
+   "category": "responsive",
+   "name": "viewport_320x568",
+   "journeyReference": "MARZI-021 learner-facing objective, completion and mastery copy",
+   "expectedEvidence": "The narrowest supported viewport is examined.",
+   "reviewStatus": "NOT_REVIEWED",
+   "observedBehavior": null,
+   "severity": null,
+   "evidenceReferences": []
+  },
+  {
+   "checkId": "marzi-061:a11y:021",
+   "category": "responsive",
+   "name": "viewport_390x844",
+   "journeyReference": "MARZI-021 learner-facing objective, completion and mastery copy",
+   "expectedEvidence": "The reference viewport is examined.",
+   "reviewStatus": "NOT_REVIEWED",
+   "observedBehavior": null,
+   "severity": null,
+   "evidenceReferences": []
+  },
+  {
+   "checkId": "marzi-061:a11y:022",
+   "category": "responsive",
+   "name": "orientation",
+   "journeyReference": "MARZI-021 learner-facing objective, completion and mastery copy",
+   "expectedEvidence": "Portrait and landscape are both examined; neither is locked without justification.",
+   "reviewStatus": "NOT_REVIEWED",
+   "observedBehavior": null,
+   "severity": null,
+   "evidenceReferences": []
+  }
+ ],
+ "knownIssues": [
+  {
+   "issueId": "MARZI-A11Y-KNOWN-001",
+   "summary": "Arabic at 320x568 with 200% text can overflow.",
+   "category": "localization_responsive",
+   "status": "OPEN",
+   "fixedByThisPackage": false,
+   "deferredTo": "presentation and runtime-integration package",
+   "complianceClaim": false
+  }
+ ],
+ "approvalShortcut": true
+}

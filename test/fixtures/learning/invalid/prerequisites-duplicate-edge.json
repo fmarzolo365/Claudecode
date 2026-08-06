@@ -1,0 +1,20 @@
+{
+ "contract": "marzi.learning.prerequisites.v1",
+ "schemaVersion": 1,
+ "curriculumVersion": "v1-draft",
+ "reviewStatus": "pending_specialist_review",
+ "hardLock": false,
+ "note": "Negative fixture: duplicate recommended edges are rejected.",
+ "edges": [
+  {
+   "from": "INT.OPEN_CLOSE",
+   "to": "INT.STATE_PURPOSE",
+   "kind": "recommended"
+  },
+  {
+   "from": "INT.OPEN_CLOSE",
+   "to": "INT.STATE_PURPOSE",
+   "kind": "recommended"
+  }
+ ]
+}

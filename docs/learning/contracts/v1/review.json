@@ -1,0 +1,59 @@
+{
+ "contract": "marzi.learning.review.v1",
+ "schemaVersion": 1,
+ "curriculumVersion": "v1-draft",
+ "reviewStatus": "pending_specialist_review",
+ "candidateRules": [
+  {
+   "id": "recent_weak_evidence",
+   "trigger": "The most recent valid observations are not_demonstrated or partially_demonstrated."
+  },
+  {
+   "id": "single_context",
+   "trigger": "All evidence for the competency comes from one scenario or one group."
+  },
+  {
+   "id": "support_dependent",
+   "trigger": "The evidence is dominated by FULL assistance responses."
+  },
+  {
+   "id": "prerequisite_weakness",
+   "trigger": "A recommended prerequisite competency is weaker than a competency that depends on it."
+  },
+  {
+   "id": "recency_lapsed",
+   "trigger": "Previously secure evidence falls outside the approved recency window."
+  },
+  {
+   "id": "learner_requested",
+   "trigger": "The learner explicitly asked to review the competency or objective."
+  }
+ ],
+ "prioritization": {
+  "explainable": true,
+  "preferTransferContext": true,
+  "rule": "When more than one scenario can test the same competency, prefer a scenario the learner has not already used for it."
+ },
+ "neverCreatesNegativeObservation": [
+  "connectivity_failure",
+  "provider_failure",
+  "missing_microphone_permission",
+  "accessibility_alternative_use",
+  "cancelled_call",
+  "app_backgrounded"
+ ],
+ "neverRemoves": [
+  "xp",
+  "coins",
+  "streak",
+  "rank",
+  "marzi_stage",
+  "owned_outfits"
+ ],
+ "recencyPolicy": {
+  "status": "OPEN_GATE",
+  "gate": "MARZI-021-REVIEW-RECENCY",
+  "windowDays": null,
+  "note": "The recency window is a numeric policy value that is deliberately absent until Product Owner and specialist approval."
+ }
+}
