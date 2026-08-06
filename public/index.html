@@ -117,7 +117,7 @@
     /* Fine type ramp: the exact sizes shipping today. Consolidating these
        into the semantic scale changes pixels and needs board sign-off. */
     --text-f8: 8px; --text-f8-5: 8.5px; --text-f9: 9px; --text-f10: 10px;
-    --text-f10-5: 10.5px; --text-f11-5: 11.5px; --text-f12: 12px; --text-f12-5: 12.5px;
+    --text-f10-5: 10.5px; --text-f11: 11px; --text-f11-5: 11.5px; --text-f12: 12px; --text-f12-5: 12.5px;
     --text-f13-5: 13.5px; --text-f14: 14px; --text-f16: 16px; --text-f17: 17px;
     --text-f18: 18px; --text-f20: 20px; --text-f24: 24px; --text-f27: 27px;
     --text-f7-5: 7.5px; --text-f14-5: 14.5px; --text-f15-5: 15.5px; --text-f21: 21px;
@@ -157,7 +157,6 @@
      44/34 injected the reservation became 104px top / 84px bottom and the
      composition collided. One owner per edge, no exceptions. */
   body.in-call #call { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
-  body.in-call #call .log { flex: 1 1 auto; min-height: 104px; max-height: none; }
   /* ---------- MARZI-062: visible staging preview identity ----------
      A checked-in build marker so the family can tell this preview apart from
      an older installed PWA. It is in normal flow and sticky, so it never
@@ -451,50 +450,56 @@
   .call-status[data-state="disconnected"] { background: var(--surface-strong); color: var(--muted); }
   .vc-stage .hang { position: absolute; top: 8px; right: 8px; z-index: 2; }
   .hang:hover { filter: brightness(1.1); }
-  .log {
-    background: var(--card); border: 1px solid var(--line); border-top: none;
-    border-radius: 0 0 var(--radius) var(--radius); box-shadow: var(--shadow);
-    min-height: 90px; max-height: min(30dvh, 30vh); overflow-y: auto;
-    overscroll-behavior: contain; padding-bottom: 8px;
-  }
-  /* adaptive: a growing transcript earns more guaranteed room (review §7) */
-  .log:has(.turn:nth-child(3)) { min-height: 148px; }
-  /* MARZI-005: chat bubbles - character left, learner right. The inner DOM
-     (word-tap spans, translation/replay buttons) is unchanged. */
-  .turn { padding: 8px 12px; display: flex; gap: 8px; }
+  /* ART DIRECTION: chat bubbles — character start-aligned on a white card,
+     learner end-aligned on the product's soft green. Logical properties keep
+     ownership sides correct in RTL. The inner DOM (word-tap buttons,
+     translation/replay controls) is the learning surface and is unchanged. */
+  .turn { padding: 2px 0; display: flex; gap: 8px; }
   .turn.me { justify-content: flex-end; }
   .bub {
-    max-width: 84%; min-width: 0; padding: 9px 13px 7px;
-    border-radius: 18px; background: var(--surface-soft);
-    border: 1px solid var(--line); border-bottom-left-radius: 6px;
+    max-width: 86%; min-width: 0; padding: 8px 13px 7px;
+    border-radius: var(--radius); border-start-start-radius: 6px;
+    background: var(--card); border: 1.5px solid var(--stage-line);
+    box-shadow: var(--shadow-sm);
   }
   .turn.me .bub {
-    background: var(--primary-soft); border-color: rgba(85,122,50,.28);
-    border-bottom-left-radius: 18px; border-bottom-right-radius: 6px;
+    background: var(--primary-soft); border-color: var(--tint-leaf-35);
+    border-start-start-radius: var(--radius); border-start-end-radius: 6px;
   }
   .tag {
-    display: block; font-family: 'JetBrains Mono', monospace; font-size: var(--text-f9);
-    letter-spacing: .12em; color: var(--muted); margin-bottom: 3px;
+    display: block; font: 700 var(--text-f9) var(--font-sans);
+    letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 2px;
   }
   .tag.me { color: var(--marzi-dark); }
-  .said { font-size: var(--text-f15-5); line-height: 1.5; }
-  /* Tappable transcript words are native buttons - focusable and Enter/Space
-     activated (R2-APP-05). The 48x48 target is the BUTTON'S OWN BOX: an
-     earlier ::after expansion overlapped neighbouring words, so a tap near a
-     boundary ran the wrong word's action (R4). Own-box sizing cannot overlap a
-     sibling. The trade-off is real and accepted: each word now reserves at
-     least 48px, so transcript lines wrap sooner than they did. */
+  /* target-language lines stay LTR inside an RTL UI; the translation beneath
+     follows the interface direction */
+  .said {
+    font: 600 var(--text-f14) var(--font-sans); line-height: 1.45;
+    direction: ltr; unicode-bidi: isolate; text-align: start;
+  }
+  /* Tappable dialogue words are native buttons - focusable and Enter/Space
+     activated (R2-APP-05). ART DIRECTION: the dialogue now renders inline as
+     real speech bubbles, and a 48px own-box per word produced exactly the
+     exaggerated word spacing the call art direction rejects. Words are
+     targets INSIDE a sentence, which is the inline exception in WCAG 2.5.8
+     target-size: they keep natural typography and their sentence flow, and
+     own-box sizing still cannot overlap a sibling (R4). Every standalone
+     control on the screen keeps the full 48px floor. */
   .w {
-    display: inline-block; cursor: pointer; border-radius: 4px;
-    background: none; border: none; margin: 0 1px;
-    padding: 0 var(--space-2);
-    min-width: var(--touch-min); min-height: var(--touch-min);
-    font: inherit; color: inherit; line-height: var(--touch-min);
-    text-align: center; vertical-align: middle;
+    display: inline; cursor: pointer; border-radius: 4px;
+    background: none; border: none; margin: 0;
+    padding: 2px 1px;
+    font: inherit; color: inherit; line-height: inherit;
+    text-align: start;
   }
   .w:active { background: var(--tint-primary-35); }
   .wsave { margin-top: 6px; font: 600 var(--text-f12-5) var(--font-sans); color: var(--green); }
-  .sub { font-size: var(--text-sm); color: var(--muted); margin-top: 4px; }
+  /* inline translation: connected to its line and visibly subordinate */
+  .sub {
+    font-size: var(--text-f12-5); color: var(--muted); margin-top: 6px;
+    padding-inline-start: 10px; border-inline-start: 3px solid var(--tint-leaf-35);
+    line-height: 1.4;
+  }
   .fix { font-size: var(--text-f12-5); color: var(--red); margin-top: 4px; }
   /* MARZI-005: inline transcript actions still meet the 48px target */
   /* MARZI-018-R3 (R2-APP-05): min-height alone left the replay control at
@@ -1298,9 +1303,13 @@
     /* REDESIGN: five bands instead of four. The stage card is now a band of
        its own, so the character occupies a bounded region rather than being
        the backdrop everything else floats on. Reading order top to bottom is
-       who you are talking to, how the call is doing, what they just said,
+       who you are talking to, how the call is doing, the dialogue,
        Marzi and her suggestion — then the controls in the fixed stack below. */
-    grid-template-rows: auto auto auto auto minmax(min(236px, 30dvh), 1fr);
+    /* ART DIRECTION: the dialogue row is the FLEXIBLE one (1fr) and scrolls
+       internally, while Marzi's row keeps a hard floor — a growing
+       conversation can never push the companion below the fold, which is the
+       failure the earlier fixed-cap feed produced at 390x844. */
+    grid-template-rows: auto auto auto minmax(max(var(--touch-min), 3lh), 1fr) minmax(min(192px, 24dvh), auto);
     grid-template-areas:
       "stage  stage"
       "status status"
@@ -1322,9 +1331,12 @@
      speech bubble ever covering the character's face. */
   .call-stage-card {
     grid-area: stage; position: relative; overflow: hidden;
-    height: clamp(132px, 20dvh, 196px);
+    height: clamp(132px, 18dvh, 184px);
     border-radius: var(--radius-lg);
     background: linear-gradient(160deg, var(--stage-from), var(--stage-to));
+    /* a registered final scenario background (inline background-image from
+       the asset slot) paints the card edge to edge */
+    background-size: cover; background-position: center;
     border: 1.5px solid var(--stage-line);
     box-shadow: var(--shadow);
     display: grid; place-items: center;
@@ -1421,51 +1433,46 @@
     padding: var(--space-2) var(--space-3); box-shadow: var(--shadow-sm);
     font: 600 var(--text-f14) var(--font-sans); line-height: 1.45;
   }
-  /* MARZI-062: both bubbles are grid items now. Each owns a row (or a cell in
-     the Marzi row), so neither can grow into the other, into the identity, or
-     into the controls when the text scales. */
-  /* W2: the conversation band — the character's line and the learner's own
-     line stacked in the pinned "char" band, so live text costs no extra row */
-  /* NO min-height:0 here: the bubbles' explicit minimums must reach the grid
-     as this row's floor, or the band collapses and the text paints over the
-     controls at 200% text. The bubbles scroll internally past their budget. */
-  .call-lines { grid-area: char; display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
-  .call-bubble.char {
-    width: auto;
-    /* MARZI-062: a scrollable box has an automatic minimum size of zero, so
-       the grid was free to squeeze the character's line down to its 48px
-       floor at 200% text. Three of its own lines is the reading budget the
-       row must honour at any text scale; anything longer scrolls inside the
-       bubble, with the full turn always available in the transcript. */
-    min-height: max(var(--touch-min), 3lh); max-height: 30dvh;
-    border-start-start-radius: 6px;
+  /* ART DIRECTION: the conversation band now carries the WHOLE dialogue as
+     true speech bubbles — the transcript sheet is gone. The band keeps a
+     reading floor so the grid can never crush it, and scrolls its own
+     overflow so it can never push Marzi or the controls off the screen. */
+  .call-lines {
+    grid-area: char; display: flex; flex-direction: column; gap: var(--space-1);
+    min-width: 0; min-height: 0; justify-content: flex-end;
   }
-  /* the tail points UP at the stage card, so the line reads as coming from the
-     person in it — the relationship the old floating card never showed */
-  .call-bubble.char::before {
-    content: ""; position: absolute; inset-inline-start: 22px; top: -7px;
-    width: 12px; height: 12px; transform: rotate(45deg);
-    background: var(--card);
-    border-inline-start: 1.5px solid var(--stage-line);
-    border-block-start: 1.5px solid var(--stage-line);
-    border-start-start-radius: 3px;
+  .call-lines .call-dialogue {
+    min-height: max(var(--touch-min), 3lh); flex: 0 1 auto;
+    overflow-y: auto; overscroll-behavior: contain;
+    /* offset parent for the reading-first scroll anchor in renderTranscript */
+    position: relative;
+    display: flex; flex-direction: column;
+    /* older turns fade out at the top instead of cutting mid-letter; the
+       padding keeps the fade zone off the first turn when nothing scrolls */
+    padding-top: 14px;
+    -webkit-mask-image: linear-gradient(180deg, transparent 0, var(--ink) 14px);
+    mask-image: linear-gradient(180deg, transparent 0, var(--ink) 14px);
   }
-  /* WORLD-CLASS W2: the learner's own line, right-aligned like a messenger's
-     "me" bubble, so the exchange reads as a dialogue at a glance. */
-  .call-bubble.you {
-    align-self: flex-end; width: auto; max-width: 88%;
-    max-height: 22dvh; font-weight: 600; flex: 0 1 auto;
-    background: var(--surface-soft); border-color: var(--line);
-    border-start-end-radius: 6px;
+  /* bottom-anchored like a messenger: margin-top:auto (not justify-content,
+     which breaks scroll-to-top in overflowing flex columns) */
+  .call-dialogue > :first-child { margin-top: auto; }
+  .call-lines .note { margin: 0; font-size: var(--text-f11); text-align: center; }
+  /* Text off = listening-only mode. VISUAL-DIRECTOR F5: instead of leaving a
+     dead cream band where the text was, the dialogue row collapses and Marzi
+     grows into the reclaimed space — listening practice gets a bigger
+     companion, not an empty screen. Marzi's hint bubble is help, not live
+     text — it stays. */
+  .callscreen.text-off #callLines { display: none; }
+  .callscreen.text-off .call-mid {
+    grid-template-rows: auto auto auto 0 minmax(min(192px, 24dvh), 1fr);
   }
-  /* Text off = listening-only mode: the live dialogue text leaves the scene
-     (visibility, so layout stays stable and nothing phantom-focuses).
-     Marzi's hint bubble is help, not live text — it stays. */
-  .callscreen.text-off #vcSay, .callscreen.text-off #vcYou { visibility: hidden; }
   .call-bubble.marzi {
     grid-area: hint; justify-self: stretch; width: 100%; align-self: end;
     max-height: 26dvh; cursor: pointer; border-end-start-radius: 6px;
     background: var(--primary-soft); border-color: var(--tint-leaf-35);
+    /* dashed = proposal, the same vocabulary as the help panel's VORSCHLAG
+       box — a learner's own (solid) turn can never be mistaken for it (R4) */
+    border-style: dashed;
     color: var(--marzi-dark); box-shadow: var(--shadow-sm);
   }
   /* the tail points back at Marzi, so bubble and companion read as one unit */
@@ -1523,6 +1530,11 @@
     border: 0; border-radius: 0; padding: 0; background: none; box-shadow: none;
     filter: drop-shadow(0 0 10px rgba(255,255,255,.34)) drop-shadow(0 6px 14px rgba(16,12,8,.55));
   }
+  /* VISUAL-DIRECTOR F5: in listening-only mode Marzi grows into the space
+     the dialogue gave back (rule sits below the base art rules it overrides) */
+  .callscreen.text-off .call-marzi .vc-marzi-art {
+    height: clamp(140px, 34dvh, 300px);
+  }
   /* REDESIGN: a monospace pill reading "Marzi · Studious frog · 5/6" looked
      like a debug label stuck to the artwork. It is now a quiet caption in the
      product's own typeface, with no chrome competing with Marzi herself. */
@@ -1549,18 +1561,19 @@
      text-scaled screen; the row then scrolls sideways instead of wrapping
      into a tower that starves the conversation above it. The auto margins
      centre the row while it fits and start-align it once it overflows. */
+  /* VISUAL-DIRECTOR F1: four equal columns instead of a hidden horizontal
+     scroller — every localized label fits at 390 (and 320) by wrapping inside
+     its own cell, so no control is ever clipped off-screen. */
   .call-tools {
-    display: flex; gap: var(--space-2); flex-wrap: nowrap;
-    max-width: 100%; overflow-x: auto; overscroll-behavior-x: contain;
-    scrollbar-width: none;
+    display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-2); width: 100%;
   }
-  .call-tools::-webkit-scrollbar { display: none; }
-  .call-tools .call-pill { flex: 0 0 auto; }
-  .call-tools .call-pill:first-child { margin-inline-start: auto; }
-  .call-tools .call-pill:last-child { margin-inline-end: auto; }
   /* WORLD-CLASS W2: the inline help panel sits in the fixed stack, above the
      tool pills. It is bounded and scrolls its own overflow so it can never
      push the controls or the timer off the screen. */
+  /* while help is open the scene above steps back, so the panel reads as
+     the focused layer instead of content crushed behind it (R3) */
+  .callscreen.help-open .call-mid { opacity: .35; }
   .call-help {
     width: 100%; box-sizing: border-box;
     max-height: min(46dvh, 340px); overflow-y: auto; overscroll-behavior: contain;
@@ -1572,7 +1585,7 @@
   /* Target-language content stays LTR inside an RTL UI, or its punctuation
      jumps to the wrong side ("?Wie bitte"). Isolation keeps the surrounding
      layout direction untouched. */
-  #hintText, #sosRow button, #draft, #vcSay, #vcYou {
+  #hintText, #sosRow button, #draft, #vcBubble {
     direction: ltr; unicode-bidi: isolate;
   }
   .call-help .help-head b { font: 800 var(--text-f14) var(--font-sans); color: var(--ink); }
@@ -1581,11 +1594,14 @@
   .call-help .hint { margin: 0; }
   .call-pill {
     min-height: var(--touch-min); min-width: var(--touch-min); justify-content: center;
-    display: inline-flex; align-items: center; gap: 5px;
-    padding: 0 var(--space-3); border-radius: 999px; cursor: pointer; white-space: nowrap;
+    display: inline-flex; align-items: center; gap: 4px;
+    /* labels wrap inside the cell rather than clipping (F1) */
+    padding: 2px var(--space-1); border-radius: var(--radius); cursor: pointer;
+    white-space: normal; text-align: center; line-height: 1.15; overflow-wrap: break-word;
     background: var(--surface-soft); color: var(--ink); border: 1px solid var(--line);
-    font: 700 var(--text-f11-5) var(--font-sans);
+    font: 700 var(--text-f10-5) var(--font-sans);
   }
+  .call-pill svg { flex: 0 0 auto; }
   /* an engaged toggle is tinted, not solid: solid MARZI green belongs to the
      primary action alone, or the row competes with it for attention */
   .call-pill[aria-pressed="true"] {
@@ -1594,7 +1610,11 @@
   .call-pill[disabled] { opacity: .45; cursor: not-allowed; }
   .call-controls { display: flex; align-items: center; justify-content: center; gap: var(--space-5); }
   .call-ctrl {
-    width: 66px; height: 66px; border-radius: 50%; border: 1px solid var(--line); cursor: pointer;
+    /* VISUAL-DIRECTOR F4: circles grow with the text tokens so labels stay
+       whole at 200% text instead of clipping against a fixed diameter */
+    width: clamp(66px, calc(var(--text-f11) * 6), 104px);
+    height: clamp(66px, calc(var(--text-f11) * 6), 104px);
+    border-radius: 50%; border: 1px solid var(--line); cursor: pointer;
     padding: 0 5px; box-sizing: border-box;
     display: grid; place-items: center; gap: 2px; color: var(--ink);
     background: var(--surface-soft); transition: background var(--dur-fast) var(--ease);
@@ -1610,14 +1630,20 @@
      screen. Previously it was the same size as replay and smaller than the red
      hang-up, so the destructive action was the most prominent one. */
   #micBtn.call-ctrl {
-    width: 92px; height: 92px; gap: 3px;
+    width: clamp(92px, calc(var(--text-f11) * 8.4), 140px);
+    height: clamp(92px, calc(var(--text-f11) * 8.4), 140px);
+    gap: 3px;
     background: var(--primary); color: var(--on-primary); border-color: var(--primary-active);
     box-shadow: 0 8px 20px rgba(84, 124, 44, .28);
   }
   #micBtn.call-ctrl .call-ctrl-lb { font-size: var(--text-f11); max-width: 100%; }
   #micBtn.call-ctrl[disabled] { box-shadow: none; }
   /* hang-up stays red and stays reachable, but stops out-shouting the mic */
-  .call-ctrl.danger { width: 66px; height: 66px; background: var(--red); color: var(--white); border-color: var(--red); }
+  .call-ctrl.danger {
+    width: clamp(66px, calc(var(--text-f11) * 6), 104px);
+    height: clamp(66px, calc(var(--text-f11) * 6), 104px);
+    background: var(--red); color: var(--white); border-color: var(--red);
+  }
   .call-ctrl.danger:hover { filter: brightness(1.08); }
   .call-ctrl[disabled] { opacity: .45; cursor: not-allowed; }
   #micBtn.call-ctrl[data-status="listening"] { background: var(--primary-active); animation: listeningPulse var(--loop-pulse) var(--ease) infinite; }
@@ -1643,31 +1669,51 @@
   @media (max-height: 680px) {
     .call-stage-card { height: clamp(88px, 15dvh, 140px); }
     .call-mid {
-      grid-template-rows: auto auto auto auto minmax(min(92px, 17dvh), 1fr);
+      grid-template-rows: auto auto auto minmax(max(var(--touch-min), 2lh), 1fr) minmax(min(120px, 20dvh), auto);
       padding-inline: var(--space-3); gap: var(--space-1);
     }
-    .call-bubble.char { min-height: max(var(--touch-min), 2lh); }
+    .call-lines .call-dialogue { min-height: max(var(--touch-min), 2lh); }
     .call-stack { padding: var(--space-2) var(--space-3) 0; gap: var(--space-1); }
     .call-controls { gap: var(--space-4); }
-    #micBtn.call-ctrl { width: 80px; height: 80px; }
-    .call-ctrl, .call-ctrl.danger { width: 58px; height: 58px; }
+    #micBtn.call-ctrl {
+      width: clamp(80px, calc(var(--text-f11) * 7.3), 124px);
+      height: clamp(80px, calc(var(--text-f11) * 7.3), 124px);
+    }
+    .call-ctrl, .call-ctrl.danger {
+      width: clamp(58px, calc(var(--text-f11) * 5.3), 96px);
+      height: clamp(58px, calc(var(--text-f11) * 5.3), 96px);
+    }
     .call-marzi .vc-marzi-cap { display: none; }
+    /* on a short phone Marzi yields some height so the newest line stays
+       readable at rest — she remains a real character (~18% of the screen),
+       never a badge */
+    .call-marzi .vc-marzi-art,
+    .call-marzi[data-stage="1"] .vc-marzi-art,
+    .call-marzi[data-stage="2"] .vc-marzi-art,
+    .call-marzi[data-stage="3"] .vc-marzi-art { height: clamp(96px, 18dvh, 145px); }
   }
 
   /* status + alerts stay visible until resolved */
+  /* ART DIRECTION: the chip rides the stage card's bottom edge — status reads
+     as part of the character scene (integrated state, band 7 of the target
+     composition) and its row returns ~40px to the dialogue, which needed it.
+     The negative margin shrinks the chip's margin box, so the grid row
+     collapses while the chip overlaps the card above it. */
   .call-status-chip {
     grid-area: status; position: relative; justify-self: center; z-index: 5;
+    margin-top: calc(-1 * (var(--space-2) + 30px));
     max-width: 100%; overflow-wrap: break-word;
     display: inline-flex; align-items: center; gap: 6px; white-space: normal;
     background: var(--card); border: 1.5px solid var(--stage-line);
     color: var(--marzi-dark); border-radius: 999px; padding: 6px var(--space-3);
     font: 700 var(--text-f11-5) var(--font-sans); box-shadow: var(--shadow-sm);
   }
-  /* in `ready` the chip would repeat the primary button's own label, so it
-     recedes; every other state carries information the button does not */
-  .call-status-chip[data-state="ready"] {
-    background: transparent; border-color: var(--line); color: var(--muted); box-shadow: none;
-  }
+  /* VISUAL-DIRECTOR F2: in `ready` the chip repeated the primary button's own
+     icon and label in the most button-like styling on screen — a decoy mic.
+     It is hidden entirely while ready (the chip overlays the card, so nothing
+     reflows; the sr-only live region still announces state) and returns only
+     when it carries information the mic button does not. */
+  .call-status-chip[data-state="ready"] { visibility: hidden; }
   .call-status-chip[data-state="listening"] { background: var(--primary); border-color: var(--primary); color: var(--on-primary); }
   .call-status-chip[data-state="speaking"] { background: var(--info-soft); border-color: var(--tint-info-28); color: var(--info-ink); }
   .call-status-chip[data-state="processing"] { background: var(--surface-strong); border-color: var(--line); color: var(--ink); }
@@ -1688,26 +1734,6 @@
     display: flex; align-items: center; gap: var(--space-2); box-shadow: var(--shadow);
   }
   .call-alert button { margin-left: auto; min-height: var(--touch-min); }
-  /* transcript + tools sheet */
-  .sheet-back { position: fixed; inset: 0; z-index: 80; background: rgba(16,12,8,.5); }
-  .call-sheet {
-    position: fixed; left: 0; right: 0; bottom: 0; z-index: 81;
-    max-height: 74dvh; display: flex; flex-direction: column;
-    background: var(--card); color: var(--ink);
-    border-radius: var(--radius-lg) var(--radius-lg) 0 0; box-shadow: var(--shadow-lg);
-    padding: var(--space-2) var(--space-3) calc(env(safe-area-inset-bottom, 0px) + var(--space-3));
-    animation: sheetUp var(--dur) var(--ease);
-  }
-  @keyframes sheetUp { from { transform: translateY(14px); opacity: 0; } to { transform: none; opacity: 1; } }
-  .sheet-grab { width: 40px; height: 4px; border-radius: 999px; background: var(--line); margin: 0 auto var(--space-2); }
-  .sheet-head { display: flex; align-items: center; gap: var(--space-2); }
-  .sheet-head b { font: 800 var(--text-md) var(--font-sans); }
-  .sheet-head .btn { margin-inline-start: auto; }
-  .sheet-body { min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
-  .call-sheet .log {
-    background: transparent; border: 0; box-shadow: none; border-radius: 0;
-    min-height: 80px; max-height: none; overflow: visible;
-  }
   /* MARZI-010: compact chrome keeps its board size but gains a full 48px
      hit area, so the touch floor is met without changing the visuals.
      The box is centred on the control (physical left/translate, so it is
@@ -2023,9 +2049,10 @@
 
   <!-- CALL -->
   <!-- CALL: the person you are speaking to sits in a bounded stage card rather
-       than filling the screen as a backdrop. Everything else — what they said,
+       than filling the screen as a backdrop. Everything else — the dialogue,
        Marzi, the controls — gets its own band underneath, so nothing is ever
-       laid over the character's face. Transcript and tools live in a sheet. -->
+       laid over the character's face. The dialogue is fully inline: speech
+       bubbles with word tap, replay and inline translation, no sheet. -->
   <section id="call" class="hidden">
     <div class="callscreen" id="vcAv">
       <header class="call-top">
@@ -2035,20 +2062,21 @@
       </header>
 
       <div class="call-mid">
-        <div class="call-stage-card">
+        <div class="call-stage-card" id="callStage">
           <img id="vcImg" class="call-portrait" alt="" />
           <span class="call-emoji" id="vcEmoji" aria-hidden="true">🎧</span>
           <div class="call-scrim" aria-hidden="true"></div>
         </div>
         <div class="call-status-chip" id="callStatus" data-state="ready" role="status"></div>
         <div id="alert" class="call-alert hidden" role="alert"></div>
-        <!-- WORLD-CLASS W2: both live lines — theirs and the learner's own —
-             share the conversation band, so live text is a first-class part
-             of the call, not a modal. The Text pill hides both bubbles for
-             listening-only mode. One wrapper keeps the five-band grid. -->
+        <!-- ART DIRECTION: the WHOLE dialogue lives inline in the call — true
+             speech bubbles with word tap, per-line replay and inline
+             translation. There is no transcript sheet any more (binding
+             Product Owner decision 1); the Text pill hides this band for
+             listening-only practice. -->
         <div class="call-lines" id="callLines">
-          <button class="call-bubble char hidden" id="vcSay" type="button"></button>
-          <div class="call-bubble you hidden" id="vcYou"></div>
+          <div class="call-dialogue" id="log"></div>
+          <p class="note hidden" id="tapHint"></p>
         </div>
         <div class="call-marzi vc-marzi" id="vcMarzi"></div>
         <button class="call-bubble marzi hidden" id="vcBubble" type="button"></button>
@@ -2079,29 +2107,20 @@
           </div>
           <button class="ghost help-more" id="helpMoreBtn" type="button"></button>
         </div>
+        <!-- Exactly the approved control set: Need help, Text, Slow, Replay.
+             Auto is gone from the UI (decision 4) — hands-free stays the
+             internal default. The transcript pill is gone with the sheet. -->
         <div class="call-tools">
           <button class="call-pill" id="helpBtn" type="button"></button>
           <button class="call-pill" id="textBtn" type="button"></button>
-          <button class="call-pill" id="sheetBtn" type="button"></button>
           <button class="call-pill" id="repeatBtn" type="button"></button>
-          <button class="call-pill" id="freeBtn" type="button"></button>
+          <button class="call-pill" id="playBtn" type="button"></button>
         </div>
         <div class="call-controls" id="callControls"></div>
         <div class="call-meta"><span id="timer">00:00</span><span id="vcLeft" class="call-meta-ctx"></span></div>
       </div>
     </div>
 
-    <div class="sheet-back hidden" id="sheetBack"></div>
-    <aside class="call-sheet hidden" id="callSheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
-      <div class="sheet-grab" aria-hidden="true"></div>
-      <div class="sheet-head"><b id="sheetTitle"></b><button class="btn" id="sheetClose" type="button"></button></div>
-      <div class="sheet-body">
-        <!-- WORLD-CLASS W2: the sheet is now the full-transcript review only.
-             Hints, SOS phrases and typing moved inline into #helpPanel. -->
-        <div class="log" id="log"></div>
-        <p class="note hidden" id="tapHint"></p>
-      </div>
-    </aside>
   </section>
 
   <!-- DONE -->
@@ -2439,14 +2458,14 @@ const T = {
     storeOutfits:"Tienda de outfits", collectAll:"¡Colecciona todos los outfits de Marzi!", comingLater:"Muy pronto",
     equipBtn:"Poner", unequipBtn:"Quitar", equippedLbl:"Puesto", ownedLbl:"Comprado",
     needStage:"Disponible en la etapa", buyBtn:"Comprar", cancelBtn:"Cancelar", saveFailed:"No se pudo guardar. Inténtalo de nuevo.",
-    talkingWith:"Hablando con", transcript:"Transcripción",
+    talkingWith:"Hablando con",
     stageWord:"Nivel", stageNames:["Huevos de rana","Renacuajo","Renacuajo con patas","Ranita joven","Rana estudiosa","Rana experta"],
     stageDescs:["Todo comienza con pequeñas bolitas llenas de posibilidades.","Empiezas a descubrir nuevas palabras y sonidos.","Entiendes más y formas tus primeras frases.","Ya puedes tener conversaciones básicas.","Aprendes cada día y tu alemán mejora mucho.","Dominas el alemán y puedes enseñar a otros."],
     stProcessing:"Pensando…", stSpeaking:"Hablando", stEnded:"Desconectado", stError:"Problema", playLast:"Escuchar de nuevo", contact:"Tu contacto", prepHint:"Preparación recomendada", timeLeft:"restantes",
-    hangUp:"COLGAR", speak:"Pulsa y habla", listening:"Escuchando…", repeat:"Repetir despacio", slowLabel:"Despacio", autoLabel:"Auto",
+    hangUp:"COLGAR", speak:"Pulsa y habla", listening:"Escuchando…", repeat:"Repetir despacio", slowLabel:"Despacio", replayLabel:"Repetir",
     hint:"¿Qué puedo decir?", type:"Escribir en vez de hablar", send:"Enviar", show:"Traducción",
     ended:"LLAMADA TERMINADA", review:"Tus correcciones", again:"OTRA LLAMADA", you:"TÚ",
-    handsFree:"Manos libres", err:"No hay respuesta del servidor. ¿Está corriendo node server.js?",
+    err:"No hay respuesta del servidor. ¿Está corriendo node server.js?",
     noMic:"Este navegador no reconoce voz. Usa Chrome.", micBlocked:"Micrófono bloqueado. Permite el acceso en el candado de la barra de direcciones.",
     noSpeech:"No se oyó nada. Habla más cerca del micrófono.", noDevice:"No se encuentra ningún micrófono.", micErr:"Error de micrófono",
     mistakes:"Mis errores", mistakesTitle:"MIS ERRORES", noMistakes:"Todavía no hay correcciones guardadas. ¡Haz una llamada!",
@@ -2537,14 +2556,14 @@ const T = {
     storeOutfits:"Outfit store", collectAll:"Collect all of Marzi's outfits!", comingLater:"Coming later",
     equipBtn:"Wear", unequipBtn:"Take off", equippedLbl:"Worn", ownedLbl:"Owned",
     needStage:"Available at stage", buyBtn:"Buy", cancelBtn:"Cancel", saveFailed:"Could not save. Please try again.",
-    talkingWith:"Talking with", transcript:"Transcript",
+    talkingWith:"Talking with",
     stageWord:"Level", stageNames:["Frog eggs","Tadpole","Tadpole with legs","Young frog","Studious frog","Expert frog"],
     stageDescs:["It all starts with tiny eggs full of possibilities.","You begin to discover new words and sounds.","You understand more and form your first sentences.","You can already have basic conversations.","You learn every day and your German improves a lot.","You have mastered German and can teach others."],
     stProcessing:"Thinking…", stSpeaking:"Speaking", stEnded:"Disconnected", stError:"Problem", playLast:"Play again", contact:"Your contact", prepHint:"Preparation recommended", timeLeft:"left",
-    hangUp:"HANG UP", speak:"Tap and speak", listening:"Listening…", repeat:"Repeat slowly", slowLabel:"Slow", autoLabel:"Auto",
+    hangUp:"HANG UP", speak:"Tap and speak", listening:"Listening…", repeat:"Repeat slowly", slowLabel:"Slow", replayLabel:"Replay",
     hint:"What can I say?", type:"Type instead of speaking", send:"Send", show:"Translation",
     ended:"CALL ENDED", review:"Your corrections", again:"ANOTHER CALL", you:"YOU",
-    handsFree:"Hands free", err:"No answer from the server. Is node server.js running?",
+    err:"No answer from the server. Is node server.js running?",
     noMic:"This browser does not do speech recognition. Use Chrome.", micBlocked:"Microphone blocked. Allow access via the padlock in the address bar.",
     noSpeech:"Nothing was heard. Speak closer to the microphone.", noDevice:"No microphone found.", micErr:"Microphone error",
     mistakes:"My mistakes", mistakesTitle:"MY MISTAKES", noMistakes:"No saved corrections yet. Make a call!",
@@ -2638,14 +2657,14 @@ T.tr = { tagline:"Gerçek Almanca aramalar ve konuşmalar pratiği yap. Sen konu
   storeOutfits:"Kıyafet mağazası", collectAll:"Marzi'nin tüm kıyafetlerini topla!", comingLater:"Yakında",
   equipBtn:"Giydir", unequipBtn:"Çıkar", equippedLbl:"Giyili", ownedLbl:"Alındı",
   needStage:"Şu aşamada açılır", buyBtn:"Satın al", cancelBtn:"Vazgeç", saveFailed:"Kaydedilemedi. Tekrar dene.",
-  talkingWith:"Konuşulan kişi", transcript:"Konuşma metni",
+  talkingWith:"Konuşulan kişi",
   stageWord:"Seviye", stageNames:["Kurbağa yumurtaları","İribaş","Bacaklı iribaş","Genç kurbağa","Çalışkan kurbağa","Uzman kurbağa"],
   stageDescs:["Her şey olasılıklarla dolu minik yumurtalarla başlar.","Yeni kelimeler ve sesler keşfetmeye başlıyorsun.","Daha çok anlıyor ve ilk cümlelerini kuruyorsun.","Artık temel sohbetler yapabiliyorsun.","Her gün öğreniyorsun ve Almancan çok gelişiyor.","Almancaya hâkimsin ve başkalarına öğretebilirsin."],
   stProcessing:"Düşünüyor…", stSpeaking:"Konuşuyor", stEnded:"Bağlantı kesildi", stError:"Sorun", playLast:"Tekrar dinle", contact:"Görüşeceğin kişi", prepHint:"Hazırlık önerilir", timeLeft:"kaldı",
-  hangUp:"KAPAT", speak:"Bas ve konuş", listening:"Dinliyor…", repeat:"Yavaş tekrarla", slowLabel:"Yavaş", autoLabel:"Oto",
+  hangUp:"KAPAT", speak:"Bas ve konuş", listening:"Dinliyor…", repeat:"Yavaş tekrarla", slowLabel:"Yavaş", replayLabel:"Tekrar",
   hint:"Ne diyebilirim?", type:"Konuşmak yerine yaz", send:"Gönder", show:"Çeviri",
   ended:"GÖRÜŞME BİTTİ", review:"Düzeltmelerin", again:"YENİ ARAMA", you:"SEN",
-  handsFree:"Eller serbest", err:"Sunucudan yanıt yok. node server.js çalışıyor mu?",
+  err:"Sunucudan yanıt yok. node server.js çalışıyor mu?",
   noMic:"Bu tarayıcı sesi tanımıyor. Chrome kullan.", micBlocked:"Mikrofon engelli. Adres çubuğundaki kilitten izin ver.",
   noSpeech:"Ses duyulmadı. Mikrofona daha yakın konuş.", noDevice:"Mikrofon bulunamadı.", micErr:"Mikrofon hatası",
   mistakes:"Hatalarım", mistakesTitle:"HATALARIM", noMistakes:"Henüz kayıtlı düzeltme yok. Bir arama yap!",
@@ -2738,14 +2757,14 @@ T.ar = { tagline:"تدرّب على مكالمات ومحادثات حقيقية
   storeOutfits:"متجر الأزياء", collectAll:"اجمع كل أزياء مارزي!", comingLater:"قريبًا",
   equipBtn:"ارتداء", unequipBtn:"خلع", equippedLbl:"مُرتدى", ownedLbl:"مملوك",
   needStage:"يتوفر في المرحلة", buyBtn:"شراء", cancelBtn:"إلغاء", saveFailed:"تعذّر الحفظ. حاول مرة أخرى.",
-  talkingWith:"تتحدث مع", transcript:"النص",
+  talkingWith:"تتحدث مع",
   stageWord:"المستوى", stageNames:["بيض الضفدع","شرغوف","شرغوف بأرجل","ضفدع صغير","ضفدع مجتهد","ضفدع خبير"],
   stageDescs:["كل شيء يبدأ ببويضات صغيرة مليئة بالإمكانات.","تبدأ باكتشاف كلمات وأصوات جديدة.","تفهم أكثر وتكوّن جملك الأولى.","يمكنك إجراء محادثات أساسية.","تتعلم كل يوم وتتحسن لغتك الألمانية كثيرًا.","أتقنت الألمانية ويمكنك تعليمها للآخرين."],
   stProcessing:"يفكّر…", stSpeaking:"يتحدث", stEnded:"انقطع الاتصال", stError:"مشكلة", playLast:"استمع مرة أخرى", contact:"من ستتحدث معه", prepHint:"يُنصح بالتحضير", timeLeft:"متبقّية",
-  hangUp:"إنهاء", speak:"اضغط وتكلّم", listening:"يستمع…", repeat:"إعادة ببطء", slowLabel:"ببطء", autoLabel:"تلقائي",
+  hangUp:"إنهاء", speak:"اضغط وتكلّم", listening:"يستمع…", repeat:"إعادة ببطء", slowLabel:"ببطء", replayLabel:"إعادة",
   hint:"ماذا يمكنني أن أقول؟", type:"اكتب بدلاً من الكلام", send:"إرسال", show:"الترجمة",
   ended:"انتهت المكالمة", review:"تصحيحاتك", again:"مكالمة أخرى", you:"أنت",
-  handsFree:"دون استخدام اليدين", err:"لا يوجد رد من الخادم. هل node server.js يعمل؟",
+  err:"لا يوجد رد من الخادم. هل node server.js يعمل؟",
   noMic:"هذا المتصفح لا يدعم التعرف على الصوت. استخدم Chrome.", micBlocked:"الميكروفون محظور. اسمح بالوصول من رمز القفل في شريط العنوان.",
   noSpeech:"لم يُسمع شيء. تكلّم أقرب إلى الميكروفون.", noDevice:"لم يتم العثور على ميكروفون.", micErr:"خطأ في الميكروفون",
   mistakes:"أخطائي", mistakesTitle:"أخطائي", noMistakes:"لا توجد تصحيحات محفوظة بعد. قم بمكالمة!",
@@ -2836,14 +2855,14 @@ T.uk = { tagline:"Тренуй реальні дзвінки й розмови �
   storeOutfits:"Крамниця вбрання", collectAll:"Збери все вбрання Marzi!", comingLater:"Незабаром",
   equipBtn:"Вдягнути", unequipBtn:"Зняти", equippedLbl:"Вдягнено", ownedLbl:"Придбано",
   needStage:"Доступно на етапі", buyBtn:"Купити", cancelBtn:"Скасувати", saveFailed:"Не вдалося зберегти. Спробуй ще раз.",
-  talkingWith:"Розмова з", transcript:"Транскрипт",
+  talkingWith:"Розмова з",
   stageWord:"Рівень", stageNames:["Жаб'яча ікра","Пуголовок","Пуголовок з лапками","Молода жабка","Жабка-книголюб","Жабка-експерт"],
   stageDescs:["Усе починається з крихітних ікринок, повних можливостей.","Ти починаєш відкривати нові слова та звуки.","Ти розумієш більше й складаєш перші речення.","Ти вже можеш вести прості розмови.","Ти вчишся щодня, і твоя німецька значно кращає.","Ти опанував німецьку й можеш навчати інших."],
   stProcessing:"Думає…", stSpeaking:"Говорить", stEnded:"Роз'єднано", stError:"Проблема", playLast:"Прослухати ще раз", contact:"Твій співрозмовник", prepHint:"Радимо підготуватися", timeLeft:"залишилось",
-  hangUp:"ПОКЛАСТИ", speak:"Натисни і говори", listening:"Слухаю…", repeat:"Повторити повільно", slowLabel:"Повільно", autoLabel:"Авто",
+  hangUp:"ПОКЛАСТИ", speak:"Натисни і говори", listening:"Слухаю…", repeat:"Повторити повільно", slowLabel:"Повільно", replayLabel:"Повтор",
   hint:"Що можна сказати?", type:"Писати замість говорити", send:"Надіслати", show:"Переклад",
   ended:"ДЗВІНОК ЗАВЕРШЕНО", review:"Твої виправлення", again:"ЩЕ ДЗВІНОК", you:"ТИ",
-  handsFree:"Вільні руки", err:"Немає відповіді від сервера. Чи запущено node server.js?",
+  err:"Немає відповіді від сервера. Чи запущено node server.js?",
   noMic:"Цей браузер не розпізнає мовлення. Використовуй Chrome.", micBlocked:"Мікрофон заблоковано. Дозволь доступ через замок у рядку адреси.",
   noSpeech:"Нічого не чутно. Говори ближче до мікрофона.", noDevice:"Мікрофон не знайдено.", micErr:"Помилка мікрофона",
   mistakes:"Мої помилки", mistakesTitle:"МОЇ ПОМИЛКИ", noMistakes:"Ще немає збережених виправлень. Зроби дзвінок!",
@@ -2935,14 +2954,14 @@ T.it = { tagline:"Allenati con telefonate e conversazioni reali in tedesco. Tu p
   storeOutfits:"Negozio di outfit", collectAll:"Colleziona tutti gli outfit di Marzi!", comingLater:"Presto",
   equipBtn:"Indossa", unequipBtn:"Togli", equippedLbl:"Indossato", ownedLbl:"Acquistato",
   needStage:"Disponibile alla tappa", buyBtn:"Compra", cancelBtn:"Annulla", saveFailed:"Salvataggio non riuscito. Riprova.",
-  talkingWith:"Stai parlando con", transcript:"Trascrizione",
+  talkingWith:"Stai parlando con",
   stageWord:"Livello", stageNames:["Uova di rana","Girino","Girino con zampe","Ranocchia giovane","Rana studiosa","Rana esperta"],
   stageDescs:["Tutto inizia con piccole uova piene di possibilità.","Inizi a scoprire nuove parole e suoni.","Capisci di più e formi le tue prime frasi.","Puoi già fare conversazioni di base.","Impari ogni giorno e il tuo tedesco migliora molto.","Padroneggi il tedesco e puoi insegnarlo agli altri."],
   stProcessing:"Sta pensando…", stSpeaking:"Sta parlando", stEnded:"Disconnesso", stError:"Problema", playLast:"Ascolta di nuovo", contact:"Il tuo interlocutore", prepHint:"Preparazione consigliata", timeLeft:"rimasti",
-  hangUp:"RIAGGANCIA", speak:"Premi e parla", listening:"In ascolto…", repeat:"Ripeti lentamente", slowLabel:"Lento", autoLabel:"Auto",
+  hangUp:"RIAGGANCIA", speak:"Premi e parla", listening:"In ascolto…", repeat:"Ripeti lentamente", slowLabel:"Lento", replayLabel:"Ripeti",
   hint:"Cosa posso dire?", type:"Scrivi invece di parlare", send:"Invia", show:"Traduzione",
   ended:"CHIAMATA TERMINATA", review:"Le tue correzioni", again:"UN'ALTRA CHIAMATA", you:"TU",
-  handsFree:"Vivavoce", err:"Nessuna risposta dal server. node server.js è in esecuzione?",
+  err:"Nessuna risposta dal server. node server.js è in esecuzione?",
   noMic:"Questo browser non riconosce la voce. Usa Chrome.", micBlocked:"Microfono bloccato. Consenti l'accesso dal lucchetto nella barra degli indirizzi.",
   noSpeech:"Non si è sentito nulla. Parla più vicino al microfono.", noDevice:"Nessun microfono trovato.", micErr:"Errore del microfono",
   mistakes:"I miei errori", mistakesTitle:"I MIEI ERRORI", noMistakes:"Ancora nessuna correzione salvata. Fai una chiamata!",
@@ -4078,13 +4097,6 @@ const UI = {
       `<span class="call-id-name">${esc(name)}</span>` +
       (place ? `<span class="call-id-place">${esc(place)}</span>` : "");
   },
-  /* --- 23. Call sheet: transcript + tools over the call layer --- */
-  callSheet({ title = "", closeLabel = "", body = "" } = {}) {
-    return `<div class="sheet-grab" aria-hidden="true"></div>` +
-      `<div class="sheet-head"><b id="sheetTitle">${esc(title)}</b>` +
-      `<button class="btn" id="sheetClose" type="button">${esc(closeLabel)}</button></div>` +
-      `<div class="sheet-body">${body}</div>`;
-  },
   /* --- 19. Error state: what broke, and how to recover --- */
   errorState({ title = "", body = "", action = "" } = {}) {
     return `<div class="ui-error" role="alert"><div class="ui-ico" aria-hidden="true">${IC.warn(ICON.hero)}</div>` +
@@ -4234,6 +4246,22 @@ function marziCallArt(stage, state) {
 function __registerCallAsset(stage, state, on) {
   MARZI_CALL_ASSETS[marziCallAssetPath(stage, state)] = on === true;
 }
+/* ---------- production contact/background slots (MARZI_CALL_ASSET_SPEC §5-6,9) ----------
+   Final owned character art and scenario backgrounds drop into
+   public/assets/call/ under the spec's canonical names. Until a file is
+   registered the strongest TEMPORARY asset — the generated /api/avatar
+   portrait over the scenario gradient — renders instead. Registering a path
+   is the single switch that promotes a slot to final art; nothing here
+   relabels a temporary asset as production. */
+const CALL_STAGE_ASSETS = Object.create(null);
+function contactAssetPath(id, speaker) {
+  return `/assets/call/characters/${id}/${id}${speaker === 2 ? "2" : ""}--listening--default@720.webp`;
+}
+function stageBackgroundPath(id) {
+  return `/assets/call/backgrounds/${id}--default@720.webp`;
+}
+function hasCallStageAsset(path) { return CALL_STAGE_ASSETS[path] === true; }
+function __registerCallStageAsset(path, on) { CALL_STAGE_ASSETS[path] = on === true; }
 const BRAND_MARK_ASSET = "/assets/marzi/stage-6/header-neutral.svg";
 const BRAND_MARK_REGISTERED = Object.create(null);
 function hasBrandMarkAsset() { return BRAND_MARK_REGISTERED[BRAND_MARK_ASSET] === true; }
@@ -6586,7 +6614,8 @@ function callSecondsLeft() {
   return Math.max(0, planLimitToday() - planUsedToday() - (S.seconds || 0));
 }
 /* MARZI-018-R3 (R2-APP-02): the one approved replay path for the character's
-   last line. #playBtn and #vcSay both call it; neither owns its own speech. */
+   last line. The Replay pill and per-line replays share the voice provider;
+   nothing owns its own speech implementation. */
 function replayLastCharacterLine() {
   for (let i = S.turns.length - 1; i >= 0; i--) {
     if (!S.turns[i].me) {
@@ -6614,9 +6643,17 @@ function renderCall() {
     else { e.removeAttribute("aria-hidden"); e.setAttribute("role", "img"); e.setAttribute("aria-label", A.who || ""); }
   };
   markEmoji(img.classList.has ? img.classList.has("ok") : img.classList.contains("ok"));
-  const src = A.id && A.id !== "custom" && A.id !== "random"
+  // final registered art wins the slot; the generated portrait is the
+  // strongest TEMPORARY stand-in until then (asset spec §6)
+  const finalArt = A.id && hasCallStageAsset(contactAssetPath(A.id, S.speaker))
+    ? contactAssetPath(A.id, S.speaker) : "";
+  const src = finalArt || (A.id && A.id !== "custom" && A.id !== "random"
     ? `/api/avatar/${A.id}${S.speaker === 2 ? "2" : ""}?v=3&pin=${encodeURIComponent(localStorage.getItem(PIN_KEY) || "")}`
-    : "";
+    : "");
+  // scenario background slot: registered final art paints the stage card
+  const stageEl = $("callStage");
+  const bg = A.id && hasCallStageAsset(stageBackgroundPath(A.id)) ? stageBackgroundPath(A.id) : "";
+  if (stageEl && stageEl.style) stageEl.style.backgroundImage = bg ? `url("${bg}")` : "";
   if (img.dataset.src !== src) {
     img.dataset.src = src;
     img.dataset.retried = "";
@@ -6638,34 +6675,32 @@ function renderCall() {
 
   $("timer").textContent = timerText();
   const left = callSecondsLeft();
-  $("vcLeft").innerHTML = `· <span class="${left <= 300 ? "low" : ""}">${Math.ceil(left / 60)} min ${esc(L.timeLeft)}</span>`;
+  // no literal separator: at 200% the meta line wraps and a leading dot
+  // would orphan onto the second fragment (visual-director R2)
+  $("vcLeft").innerHTML = `<span class="${left <= 300 ? "low" : ""}">${Math.ceil(left / 60)} min ${esc(L.timeLeft)}</span>`;
   $("callConn").innerHTML = IC.wave(ICON.sm) + `<span class="sr-only">${esc(callStateLabel(callStateFor(S)))}</span>`;
-  $("callMinBtn").innerHTML = IC.list(ICON.lg);
-  $("callMinBtn").setAttribute("aria-label", L.transcript);
+  // the X leaves the call the same graceful way the red control does — one
+  // end-of-call implementation, two reachable affordances (board 02)
+  $("callMinBtn").innerHTML = IC.x(ICON.lg);
+  $("callMinBtn").setAttribute("aria-label", A.kind === "face" ? L.endTalk : L.hangUp);
 
-  // circular controls, built from the canonical component
+  // circular controls: ONE primary action (speak) and one clear exit. Replay
+  // moved to the labelled tool row — a speaker-shaped circle beside the
+  // microphone read as a duplicated control.
   $("callControls").innerHTML =
     UI.callControl({ id: "micBtn", icon: IC.mic(ICON.xl), label: S.listening ? L.listening : L.speak, variant: "secondary", attrs: `data-status="${micStatusFor(S)}"` }) +
-    UI.callControl({ id: "hangBtn", icon: IC.phone(ICON.xl), label: A.kind === "face" ? L.endTalk : L.hangUp, variant: "danger" }) +
-    UI.callControl({ id: "playBtn", icon: IC.speaker(ICON.xl), label: L.playLast, variant: "secondary" });
+    UI.callControl({ id: "hangBtn", icon: IC.phone(ICON.xl), label: A.kind === "face" ? L.endTalk : L.hangUp, variant: "danger" });
   wireCallControls();
 
-  // the transcript opener stays labelled (discoverability); the other two are
-  // icon-only with explicit labels so the row fits one line on a 360px phone
-  $("sheetBtn").innerHTML = IC.list(ICON.sm) + `<span>${esc(L.transcript)}</span>`;
-  $("sheetBtn").setAttribute("aria-label", L.transcript);
-  /* REDESIGN: these were bare icons - a speaker beside the speaker-shaped
-     "Play again" control, and a microphone beside the microphone-shaped
-     primary action - so the row read as duplicated controls. Naming them is
-     what separates slow repeat from normal replay, and hands-free from speak,
-     without removing anything. */
-  $("repeatBtn").innerHTML = IC.speaker(ICON.sm) + `<span>${esc(L.slowLabel)}</span>`;
+  /* the approved tool set, each with a distinct labelled value:
+     Need help · Text · Slow · Replay. Auto is no longer a visible control —
+     hands-free listening stays the internal default behavior. */
+  $("repeatBtn").innerHTML = IC.clock(ICON.sm) + `<span>${esc(L.slowLabel)}</span>`;
   $("repeatBtn").setAttribute("aria-label", L.repeat);
   $("repeatBtn").title = L.repeat;
-  $("freeBtn").innerHTML = IC.mic(ICON.sm) + `<span>${esc(L.autoLabel)}</span>`;
-  $("freeBtn").setAttribute("aria-label", L.handsFree);
-  $("freeBtn").title = L.handsFree;
-  $("freeBtn").setAttribute("aria-pressed", String(!!S.handsFree));
+  $("playBtn").innerHTML = IC.speaker(ICON.sm) + `<span>${esc(L.replayLabel)}</span>`;
+  $("playBtn").setAttribute("aria-label", L.playLast);
+  $("playBtn").title = L.playLast;
   $("repeatBtn").disabled = !S.turns.some((x) => !x.me);
   $("playBtn").disabled = !S.turns.some((x) => !x.me);
   // W2: inline help + live-text pills
@@ -6681,19 +6716,6 @@ function renderCall() {
   $("vcAv").classList.toggle("text-off", !textOn);
   $("sendBtn").textContent = L.send;
   $("typeBtn").textContent = L.type;
-
-  // character line in a bubble (board 02), tap to hear it again
-  const lastChar = [...S.turns].reverse().find((x) => !x.me);
-  $("vcSay").textContent = lastChar ? lastChar.text : "";
-  $("vcSay").classList.toggle("hidden", !lastChar);
-  // the bubble is a control: name the ACTION, and expose the line as content
-  $("vcSay").setAttribute("aria-label", `${L.sayIt} — ${A.who}: ${lastChar ? lastChar.text : ""}`);
-  $("vcSay").setAttribute("aria-disabled", lastChar ? "false" : "true");
-
-  // W2: the learner's own last line, inline — the other half of the dialogue
-  const lastMe = [...S.turns].reverse().find((x) => x.me);
-  $("vcYou").textContent = lastMe ? lastMe.text : "";
-  $("vcYou").classList.toggle("hidden", !lastMe);
 
   // Marzi's bubble carries the suggestion and is attached to Marzi
   $("vcBubble").textContent = S.hint || L.hint;
@@ -6719,6 +6741,7 @@ function renderHelpPanel() {
   const L = t();
   const hs = S.helpStage || 0;
   $("helpPanel").classList.toggle("hidden", !hs);
+  $("vcAv").classList.toggle("help-open", !!hs);
   if (!hs) return;
   $("helpTitle").textContent = L.helpTitle;
   $("helpTip").textContent = L.helpTip;
@@ -6752,21 +6775,22 @@ function showTypeRow() {
   $("typeRow").classList.remove("hidden");
 }
 
-/* transcript lives in the sheet; S.turns stays render-only state */
+/* The dialogue renders INLINE in the call (binding decision 1: no transcript
+   sheet). Every turn is a true speech bubble with word tap, per-line replay
+   and inline translation beneath the line it belongs to. S.turns stays
+   render-only state; the session transcript is the canonical record. */
 function renderTranscript() {
   const L = t();
   const A = S.active || S.scenario;
-  $("sheetTitle").textContent = L.transcript;
-  $("sheetClose").textContent = L.ok;
   $("log").innerHTML = S.turns.map((x, i) => UI.bubble({
     side: x.me ? "me" : "char",
     tag: x.me ? L.you : A.tag,
     body: x.me ? esc(x.text) : tappable(x.text, i),
     extra:
       (!x.me && x.wsave ? `<div class="wsave">${x.wsave.pending ? "…" : `★ ${esc(x.wsave.de)} — ${esc(x.wsave.tr)}`}</div>` : "") +
-      (x.me ? "" : `<div style="margin-top:5px">
-            <button class="mini" data-play="${i}">&#9834;</button>
-            <button class="mini" data-tr="${i}">${L.show}</button></div>`) +
+      (x.me ? "" : `<div style="margin-top:2px">
+            <button class="mini" data-play="${i}" aria-label="${esc(L.repeat)}">&#9834;</button>
+            <button class="mini" data-tr="${i}" aria-expanded="${!!x.open}">${L.show}</button></div>`) +
       (!x.me && x.open ? `<div class="sub">${esc(x.tr)}</div>` : "") +
       (x.me && x.fix ? `<div class="fix">${esc(x.fix)}</div>${x.corrected ? `<div style="margin-top:4px"><button class="mini" data-say="${i}">&#9654; ${L.sayIt}</button></div>` : ""}` : ""),
   })).join("") + (S.busy ? '<div class="turn" style="opacity:.5">· · ·</div>' : "");
@@ -6783,7 +6807,18 @@ function renderTranscript() {
     b.onclick = () => speak(S.turns[+b.dataset.say].corrected, true));
   $("log").querySelectorAll("[data-tr]").forEach((b) =>
     b.onclick = () => { const x = S.turns[+b.dataset.tr]; x.open = !x.open; renderTranscript(); });
-  $("log").scrollTop = $("log").scrollHeight;
+  /* VISUAL-DIRECTOR F3: reading-first scroll anchor. When the newest turn is
+     taller than the band, align its TOP so the line reads from its beginning;
+     otherwise stick to the bottom like a messenger. */
+  const log = $("log");
+  const turns = log.querySelectorAll ? log.querySelectorAll(".turn") : [];
+  const lastTurn = turns.length ? turns[turns.length - 1] : null;
+  if (lastTurn && typeof lastTurn.offsetTop === "number" && typeof log.clientHeight === "number"
+      && lastTurn.offsetHeight >= log.clientHeight) {
+    log.scrollTop = Math.max(0, lastTurn.offsetTop - 14);
+  } else {
+    log.scrollTop = log.scrollHeight;
+  }
 }
 
 /* which bottom-nav tab each screen belongs to (sub-screens highlight their home tab) */
@@ -7820,7 +7855,6 @@ function goCall() {
 }
 $("callBtn").onclick = goCall;
 function endCall() {
-  if (sheetOpen()) closeCallSheet();
   S.helpStage = 0; // the in-call help panel must not outlive the call
   S.handsFree = false;
   if (S.session) S.session.end(); // any pending AI reply is dropped by the engine
@@ -7923,34 +7957,10 @@ $("ankiBtn").onclick = () => exportAnki();
 $("clearBtn").onclick = () => {
   if (confirm(t().clearConfirm)) { localStorage.removeItem(FIX_KEY); renderMistakes(); }
 };
-/* ---------- MARZI-006: transcript & tools sheet ----------
-   Dismissible four ways: close button, swipe down, Escape, Android back.
-   Back is handled with a pushState entry so it never navigates the tab. */
-let SHEET_HISTORY = false;
-let SHEET_SHOWN = false;
-function sheetOpen() { return SHEET_SHOWN; }
-function openCallSheet() {
-  renderTranscript();
-  SHEET_SHOWN = true;
-  $("callSheet").classList.remove("hidden");
-  $("sheetBack").classList.remove("hidden");
-  overlayOpened("callSheet", "sheetTitle");
-  try { $("sheetClose").focus(); } catch (e) {}
-  if (!SHEET_HISTORY) {
-    try { window.history.pushState({ marziSheet: true }, ""); SHEET_HISTORY = true; } catch (e) {}
-  }
-}
-function closeCallSheet(fromPop) {
-  if (SHEET_SHOWN) overlayClosed();
-  SHEET_SHOWN = false;
-  $("callSheet").classList.add("hidden");
-  $("sheetBack").classList.add("hidden");
-  if (SHEET_HISTORY && !fromPop) { SHEET_HISTORY = false; try { window.history.back(); } catch (e) {} }
-  else SHEET_HISTORY = false;
-  try { $("sheetBtn").focus(); } catch (e) {}
-}
+/* ---------- The live call has NO transcript sheet (binding decision 1) ----------
+   The dialogue is inline in the call screen; the X in the call header is a
+   second affordance for the one graceful end-of-call path. */
 window.addEventListener("popstate", () => {
-  if (sheetOpen()) { closeCallSheet(true); return; }
   // MARZI-017: Android Back walks back through the onboarding steps before it
   // is allowed to leave the flow.
   if (OB && OB.step > 0) { obBack(); try { window.history.pushState(null, "", location.href); } catch (e) {} }
@@ -7958,10 +7968,9 @@ window.addEventListener("popstate", () => {
 document.addEventListener("keydown", (e) => {
   if (overlayTrapKeydown(e)) return;
   if (e.key !== "Escape") return;
-  if (sheetOpen()) closeCallSheet();
   // the help panel only claims Escape while the call screen is actually up —
   // a stale stage must never eat an Escape meant for an overlay
-  else if (S.helpStage && !$("call").classList.contains("hidden")) openHelp(0);
+  if (S.helpStage && !$("call").classList.contains("hidden")) openHelp(0);
   else if (offlineScreenOpen()) closeOffline();
   else if (premiumScreenOpen()) closePremiumScreen();
   else if (planScreenOpen()) closePlanScreen();
@@ -7969,40 +7978,13 @@ document.addEventListener("keydown", (e) => {
   else if (evolutionCelebrationOpen()) closeEvolutionCelebration();
   else if (STORE_PREVIEW) closeOutfitPreview();
 });
-$("sheetBtn").onclick = () => openCallSheet();
-$("callMinBtn").onclick = () => openCallSheet();
-$("sheetClose").onclick = () => closeCallSheet();
-$("sheetBack").onclick = () => closeCallSheet();
-/* swipe down to dismiss */
-(() => {
-  let y0 = null;
-  const sheet = $("callSheet");
-  if (!sheet.addEventListener) return;
-  sheet.addEventListener("touchstart", (e) => { y0 = e.touches && e.touches[0] ? e.touches[0].clientY : null; }, { passive: true });
-  sheet.addEventListener("touchend", (e) => {
-    const y1 = e.changedTouches && e.changedTouches[0] ? e.changedTouches[0].clientY : null;
-    if (y0 != null && y1 != null && y1 - y0 > 60) closeCallSheet();
-    y0 = null;
-  }, { passive: true });
-})();
+$("callMinBtn").onclick = () => endCall();
 
 /* the circular controls are rebuilt on every render, so their handlers are
    re-attached here - no provider is ever called directly from a handler */
 function wireCallControls() {
   $("micBtn").onclick = () => listen(true);
   $("hangBtn").onclick = () => endCall();
-  // MARZI-018-R3 (R2-APP-02): the character bubble is a control that promises
-  // replay. It now runs the SAME approved path as #playBtn - one voice
-  // implementation, and a single activation produces a single playback.
-  $("vcSay").onclick = () => replayLastCharacterLine();
-  $("playBtn").onclick = () => {
-    for (let i = S.turns.length - 1; i >= 0; i--) {
-      if (!S.turns[i].me) {
-        ENGINE.get("voice").speak({ text: S.turns[i].text, slow: false, speaker: S.turns[i].sp || 1 });
-        return;
-      }
-    }
-  };
 }
 // SOS phrases are German in the static markup; other targets swap them in
 if (TARGET.code !== "de") {
@@ -8012,7 +7994,9 @@ if (TARGET.code !== "de") {
 }
 document.querySelectorAll("[data-sos]").forEach((b) =>
   b.onclick = () => { if (!S.busy) send(b.dataset.sos); });
-$("freeBtn").onclick = () => { S.handsFree = !S.handsFree; renderCall(); };
+/* MARZI-018-R3 (R2-APP-02): one approved replay path. The Replay pill is the
+   normal-pace playback; Slow is the same last line at learning pace. */
+$("playBtn").onclick = () => replayLastCharacterLine();
 $("repeatBtn").onclick = () => {
   for (let i = S.turns.length - 1; i >= 0; i--) if (!S.turns[i].me) { speak(S.turns[i].text, true, null, S.turns[i].sp); break; }
 };

@@ -275,7 +275,7 @@ const MEASURE_FN = String(function measure() {
   };
   const over = (a, b) => { if (!a || !b) return 0; const w = Math.min(a.right, b.right) - Math.max(a.x, b.x), h = Math.min(a.bottom, b.bottom) - Math.max(a.y, b.y); return w > 0 && h > 0 ? Math.round(w * h) : 0; };
   const SEL = { portrait: ".call-portrait.ok", marzi: ".call-marzi .vc-marzi-art", identity: "#callId",
-    state: "#callStatus", charLine: "#vcSay", hint: "#vcBubble", controls: "#callControls",
+    state: "#callStatus", charLine: "#callLines", hint: "#vcBubble", controls: "#callControls",
     tools: ".call-tools", meta: ".call-meta", close: "#callMinBtn" };
   const boxes = {}; for (const [k, s] of Object.entries(SEL)) boxes[k] = box(s);
   /* the shell places the portrait's face fallback at top:30%, so that is the
@@ -290,6 +290,8 @@ const MEASURE_FN = String(function measure() {
   }
   const targets = [...document.querySelectorAll('button,[role="button"],a[href],input')].filter((e) => {
     const cs = getComputedStyle(e); if (cs.display === "none" || cs.visibility === "hidden") return false;
+    /* dialogue words are inline-sentence targets: WCAG 2.5.8 inline exception */
+    if (e.classList.contains("w")) return false;
     const r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0 && r.bottom > 0 && r.top < vh;
   }).map((e) => { const r = e.getBoundingClientRect(), a = getComputedStyle(e, "::after");
     return { id: e.id || String(e.className).slice(0, 30),
@@ -297,7 +299,7 @@ const MEASURE_FN = String(function measure() {
       h: +Math.max(r.height, parseFloat(a.height) || 0).toFixed(1) }; });
   const small = targets.filter((t) => t.w < 47.5 || t.h < 47.5);
   const textIssues = [];
-  for (const s of ["#callId", "#callId .call-id-name", "#callId .call-id-place", "#vcSay"]) {
+  for (const s of ["#callId", "#callId .call-id-name", "#callId .call-id-place", "#log .turn.char .said"]) {
     const e = q(s); if (!e) continue;
     const overX = e.scrollWidth > e.clientWidth + 1, overY = e.scrollHeight > e.clientHeight + 1;
     const cs = getComputedStyle(e);
@@ -461,7 +463,7 @@ async function browserEvidence(chromium, exePath) {
         return { state: c.dataset.state, text: c.textContent.trim(), icon: Boolean(c.querySelector("svg")),
           live: document.getElementById("callStatusLive").textContent,
           background: getComputedStyle(c).backgroundColor,
-          controls: { mic: ctrl("micBtn"), hangUp: ctrl("hangBtn"), replay: ctrl("playBtn"), transcript: ctrl("sheetBtn") },
+          controls: { mic: ctrl("micBtn"), hangUp: ctrl("hangBtn"), replay: ctrl("playBtn"), text: ctrl("textBtn") },
           alertVisible: !document.getElementById("alert").classList.contains("hidden"),
           alertText: document.getElementById("alert").textContent.trim().slice(0, 60) };
       });
@@ -520,10 +522,11 @@ async function browserEvidence(chromium, exePath) {
       window.speak = (text, slow) => { out.slowCalls.push({ slow: Boolean(slow), text: String(text).slice(0, 40) }); };
       document.getElementById("repeatBtn").click();
       window.speak = origSpeak;
-      document.getElementById("sheetBtn").click();
+      /* the dialogue is inline in the call now — no sheet to open */
       await new Promise((z) => setTimeout(z, 400));
       const turns = [...document.querySelectorAll("#log .turn")];
-      out.dialogOpen = !document.getElementById("callSheet").classList.contains("hidden");
+      out.sheetAbsent = !document.getElementById("callSheet");
+      out.inlineDialogueVisible = getComputedStyle(document.getElementById("callLines")).visibility !== "hidden";
       out.turnCount = turns.length;
       out.characterTurnFirst = turns.length > 0 && !turns[0].classList.contains("me");
       out.turnOwnership = turns.map((t) => ({ side: t.classList.contains("me") ? "learner" : "character",
@@ -536,12 +539,10 @@ async function browserEvidence(chromium, exePath) {
       return out;
     });
     const transcriptShot = await shot(page, "interactions", `transcript-${profile}`);
-    /* focus containment inside the transcript dialog, then restoration */
+    /* the live call must contain no dialog overlay at all */
     const focusTrap = await page.evaluate(async () => {
-      const sheet = document.getElementById("callSheet");
-      const inside = () => sheet.contains(document.activeElement);
-      document.getElementById("sheetClose").focus();
-      return { focusInsideDialog: inside(), dialogRole: sheet.getAttribute("role"), modal: sheet.getAttribute("aria-modal") };
+      const dialogs = document.querySelectorAll('#call [role="dialog"]');
+      return { dialogCountInCall: dialogs.length };
     });
     const t0 = r.timerText;
     await page.waitForTimeout(2200);
@@ -557,6 +558,9 @@ async function browserEvidence(chromium, exePath) {
     if (r.slowCalls.length !== 1 || r.slowCalls[0].slow !== true) fails.push("slow repeat did not use the slow speech path");
     if (!r.characterTurnFirst || r.turnCount < 1) fails.push("transcript ownership/order wrong");
     if (!r.transcriptTextRendered) fails.push("transcript is not text-rendered");
+    if (!r.sheetAbsent) fails.push("a transcript sheet still exists in the live call");
+    if (!r.inlineDialogueVisible) fails.push("the inline dialogue is not visible");
+    if (focusTrap.dialogCountInCall !== 0) fails.push("the live call contains a dialog overlay");
     if (!translated) fails.push("word tap did not open translation");
     if (t0 === t1) fails.push("timer did not progress (" + t0 + " -> " + t1 + ")");
     if (!/\d/.test(r.planText)) fails.push("plan allowance not shown");

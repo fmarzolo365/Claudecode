@@ -112,7 +112,7 @@ src += `\n;globalThis.__t = { T, TARGET, TARGETS, LEVELS, LEVEL_ORDER, SCENARIOS
   TAB_HASH, tabFromHash, showTab, updateTopbar,
   ENGINE_CONTRACTS, validateProvider, createProviderRegistry, ScenarioRegistry, CharacterRegistry,
   createTranscript, PromptBuilder, createConversationSession, ENGINE, send, ask,
-  renderLearn, renderCall, renderTranscript, openCallSheet, closeCallSheet, sheetOpen, endCall, callStateFor, callStateLabel, callStateIcon, callSecondsLeft, renderScenarioCards, renderCharacterCard, scenarioSubtitle,
+  renderLearn, renderCall, renderTranscript, endCall, callStateFor, callStateLabel, callStateIcon, callSecondsLeft, renderScenarioCards, renderCharacterCard, scenarioSubtitle,
   UI, IC, ICON, evolutionHTML, renderCallStatus,
   MARZI_STATES, marziStateForCall, marziStateForReward, isMarziState, marziArt,
   marziAssetPath, hasMarziAsset, MARZI_ASSETS, marziSVG,
@@ -651,7 +651,7 @@ check("design system: canonical components, tokens and documentation", () => {
     "evolutionCard", "characterCard", "scenarioCard", "bubble", "storeItem", "outfitCard",
     "buttonPrimary", "buttonSecondary", "statusBadge", "progressCard", "rewardPopup",
     "modal", "emptyState", "errorState",
-    "callControl", "speechBubble", "callIdentity", "callSheet", "categoryTabs", "rewardSummary",
+    "callControl", "speechBubble", "callIdentity", "categoryTabs", "rewardSummary",
     "brandLockup", "statCard", "activitySummary"];
   for (const c of COMPONENTS) if (typeof tt.UI[c] !== "function") throw new Error("missing component: " + c);
   if (Object.keys(tt.UI).length !== COMPONENTS.length) {
@@ -776,7 +776,7 @@ check("home hero + XP bar follow the concept boards", () => {
   if (/url\(/.test(hero)) throw new Error("sparkles must not use image assets");
 });
 
-checkAsync("MARZI-006 call layer: states, sheet, guards, targets", async () => {
+checkAsync("MARZI-006 call layer: states, inline dialogue, guards, targets", async () => {
   const sc = tt.ScenarioRegistry.get(tt.ScenarioRegistry.ids()[0]);
   tt.S.lang = "en"; tt.S.active = sc; tt.S.turns = []; tt.S.busy = false;
   tt.S.listening = false; tt.S.speaking = false; tt.S.callError = false; tt.S.handsFree = false;
@@ -785,14 +785,21 @@ checkAsync("MARZI-006 call layer: states, sheet, guards, targets", async () => {
   tt.ENGINE.register("ai", { complete: async () => ({ text: "Praxis, guten Tag!", raw: { reply: "Praxis, guten Tag!", suggestion: "Ich möchte einen Termin.", speaker: "main" } }) });
   tt.S.session = tt.createConversationSession({ scenario: sc, level: "A1", lang: "en", goal: sc.goals[0], providers: tt.ENGINE }).start();
 
-  // identity, controls and the labelled sheet opener all render
+  // identity and the approved control set render: mic + hang-up circles,
+  // and the four labelled pills (Need help, Text, Slow, Replay)
   tt.renderCall();
   const idHTML = document.getElementById("callId").innerHTML;
   if (!idHTML.includes(sc.who) || !idHTML.includes("Talking with")) throw new Error("identity block");
   const ctrls = document.getElementById("callControls").innerHTML;
-  for (const id of ["micBtn", "hangBtn", "playBtn"]) if (!ctrls.includes(`id="${id}"`)) throw new Error("missing control " + id);
+  for (const id of ["micBtn", "hangBtn"]) if (!ctrls.includes(`id="${id}"`)) throw new Error("missing control " + id);
+  if (ctrls.includes('id="playBtn"')) throw new Error("replay must live in the labelled tool row, not as a third circle");
   if (!/class="call-ctrl danger"/.test(ctrls)) throw new Error("hang-up must be the danger control");
-  if (!document.getElementById("sheetBtn").innerHTML.includes("Transcript")) throw new Error("sheet opener must be labelled, not icon-only");
+  if (!document.getElementById("playBtn").innerHTML.includes("Replay")) throw new Error("the Replay pill must be labelled");
+  if (!document.getElementById("repeatBtn").innerHTML.includes("Slow")) throw new Error("the Slow pill must be labelled");
+  // binding PO decision 4: no visible Auto control (hands-free stays internal)
+  for (const gone of ['id="freeBtn"', 'id="sheetBtn"', 'id="callSheet"', 'id="sheetBack"'])
+    if (html.includes(gone)) throw new Error(gone + " must not exist in the live call");
+  if (typeof tt.S.handsFree === "undefined") throw new Error("hands-free default behavior must survive internally");
 
   // every call state renders icon + text, and the mic follows
   for (const [set, want] of [
@@ -813,16 +820,15 @@ checkAsync("MARZI-006 call layer: states, sheet, guards, targets", async () => {
   tt.S.session.end(); tt.renderCallStatus();
   if (document.getElementById("callStatus").dataset.state !== "disconnected") throw new Error("disconnected state");
 
-  // sheet: open/close, Escape and Android back all dismiss it
+  // the dialogue is INLINE in the call: the log lives in the conversation
+  // band of the call grid, never in a dialog/sheet
   tt.S.session = tt.createConversationSession({ scenario: sc, level: "A1", lang: "en", goal: sc.goals[0], providers: tt.ENGINE }).start();
-  tt.openCallSheet();
-  if (!tt.sheetOpen()) throw new Error("sheet did not open");
-  tt.closeCallSheet();
-  if (tt.sheetOpen()) throw new Error("sheet did not close");
-  tt.openCallSheet(); tt.closeCallSheet(true); // popstate path (Android back)
-  if (tt.sheetOpen()) throw new Error("back did not close the sheet");
+  const callHtml = html.slice(html.indexOf('<section id="call"'), html.indexOf('<section id="done"'));
+  const band = callHtml.slice(callHtml.indexOf('id="callLines"'), callHtml.indexOf('id="vcMarzi"'));
+  if (!band.includes('id="log"')) throw new Error("the conversation band must own the inline dialogue");
+  if (callHtml.includes('role="dialog"')) throw new Error("nothing in the live call may be a dialog overlay");
 
-  // full turn: transcript bubbles, no duplicates, speaker replay
+  // full turn: dialogue bubbles, no duplicates, speaker replay
   tt.send("Guten Morgen, ich hätte gern einen Termin.");
   tt.send("Guten Morgen, ich hätte gern einen Termin."); // immediate re-submit: must be ignored
   await new Promise((r) => setTimeout(r, 0));
@@ -858,8 +864,10 @@ checkAsync("MARZI-006 call layer: states, sheet, guards, targets", async () => {
      numbers used to invert: the microphone is the primary action and must be
      LARGER than the destructive hang-up. */
   const px = (block, sel) => {
+    // circles may size via clamp(min, text-token scale, max); the MINIMUM is
+    // the enforced floor, so it is what the contract checks
     const rule = block.slice(block.indexOf(sel));
-    const m = rule.slice(0, rule.indexOf("}")).match(/width:\s*(\d+)px/);
+    const m = rule.slice(0, rule.indexOf("}")).match(/width:\s*(?:clamp\()?\s*(\d+)px/);
     return m ? Number(m[1]) : 0;
   };
   const base = px(html, "  .call-ctrl {");
@@ -1564,15 +1572,14 @@ check("world-class W2: honest voice profiles, inline help, live text, retry loop
   if (!/SPEED_ORDER\.map\(/.test(src) || !html.includes('id="speedNote"')) throw new Error("profile picker not canonical");
 
   // in-call help panel: inline in the call stack, owns SOS + hint + typing;
-  // the sheet is the full transcript only
+  // the dialogue is inline too — there is NO transcript sheet in the live call
   const call = html.slice(html.indexOf('<section id="call"'), html.indexOf('<section id="done"'));
   const help = call.slice(call.indexOf('id="helpPanel"'), call.indexOf('class="call-tools"'));
   for (const id of ["sosRow", "hintBox", "typeRow", "helpMoreBtn", "helpCloseBtn"])
     if (!help.includes(`id="${id}"`)) throw new Error("help panel must own " + id);
-  const sheet = call.slice(call.indexOf('id="callSheet"'));
-  for (const id of ["sosRow", "hintBox", "typeRow", "hintBtn"])
-    if (sheet.includes(`id="${id}"`)) throw new Error(id + " must not live in the transcript sheet");
-  if (!sheet.includes('id="log"')) throw new Error("the sheet keeps the transcript");
+  if (call.includes('id="callSheet"') || /openCallSheet|closeCallSheet/.test(src))
+    throw new Error("the live call must not have a transcript sheet (binding decision 1)");
+  if (!call.includes('id="log"')) throw new Error("the call keeps the full dialogue inline");
   if (!/\$\("hintLabel"\)\.textContent = TARGET\.hintLabel/.test(src)) throw new Error("hint label must come from TARGET, not hardcoded German");
   if (!tt.TARGETS.de.hintLabel || !tt.TARGETS.en.hintLabel) throw new Error("TARGETS must carry hintLabel");
 
@@ -1597,18 +1604,22 @@ check("world-class W2: honest voice profiles, inline help, live text, retry loop
   if (/typeRow"\)\.classList\.remove\("hidden"\)/.test(String(src.match(/function listen\(\)[\s\S]*?\n\}/) || "")) )
     throw new Error("listen() must use showTypeRow, not reach into the panel");
 
-  // live text: both sides of the dialogue inline; hide persists as a setting
-  const lastMeSrc = String(src.match(/const lastMe = [^\n]*/)[0]);
-  if (!/\[\.\.\.S\.turns\]\.reverse\(\)\.find\(\(x\) => x\.me\)/.test(lastMeSrc)) throw new Error("learner line not derived from the turn list");
+  // live text: BOTH sides of the dialogue render inline as bubbles with
+  // ownership tags; hide persists as a setting
   tt.renderCall();
-  if (el("vcYou").textContent !== "Guten Tag.") throw new Error("learner's own line not rendered inline");
+  const feed = el("log").innerHTML;
+  if (!feed.includes("Guten Tag.") || !feed.includes('class="turn me"'))
+    throw new Error("learner's own line not rendered inline");
+  // character words render as tappable buttons, so match a word, not the line
+  if (!feed.includes("Praxis") || !feed.includes('class="turn char"'))
+    throw new Error("character line not rendered inline");
   const styles = html.slice(html.indexOf("<style>"), html.indexOf("</style>"));
-  if (!/\.callscreen\.text-off #vcSay, \.callscreen\.text-off #vcYou \{ visibility: hidden; \}/.test(styles))
+  if (!/\.callscreen\.text-off #callLines \{ display: none; \}/.test(styles))
     throw new Error("text-off must hide the live dialogue text (and only it)");
-  // both live lines share the pinned conversation band — no extra grid row
+  // the dialogue and its tap hint share the pinned conversation band
   const lines = call.slice(call.indexOf('id="callLines"'), call.indexOf('id="vcMarzi"'));
-  if (!lines.includes('id="vcSay"') || !lines.includes('id="vcYou"'))
-    throw new Error("the conversation band must own both live lines");
+  if (!lines.includes('id="log"') || !lines.includes('id="tapHint"'))
+    throw new Error("the conversation band must own the dialogue and the tap hint");
   if (tt.toggleLiveText(false) !== false) throw new Error("toggle must report the new state");
   if (!el("vcAv").classList.has("text-off")) throw new Error("text-off state not applied to the call screen");
   if (tt.settingsPayload().liveText !== false) throw new Error("live-text choice must persist");
@@ -2019,28 +2030,26 @@ check("MARZI-018 call render: last character line survives processing", () => {
     { me: false, text: "Guten Tag! Praxis Dr. Wagner." },
     { me: true, text: "Ich hätte gern einen Termin." },
   ];
-  // idle: the line and the suggestion are both up
+  // idle: the dialogue and the suggestion are both up
   tt.S.busy = false;
   tt.renderCall();
-  const say = document.getElementById("vcSay");
   const bub = document.getElementById("vcBubble");
-  if (say.textContent !== "Guten Tag! Praxis Dr. Wagner.") throw new Error("character line not rendered");
-  if (say.classList.has("hidden")) throw new Error("character line hidden while idle");
+  // character words render as tappable buttons, so match a word, not the line
+  if (!document.getElementById("log").innerHTML.includes("Wagner"))
+    throw new Error("character line not rendered");
   if (bub.classList.has("hidden")) throw new Error("suggestion hidden while idle");
 
   // processing: the character line MUST remain; the suggestion steps aside
   tt.S.busy = true;
   tt.renderCall();
-  if (say.textContent !== "Guten Tag! Praxis Dr. Wagner.") throw new Error("character line lost during processing");
-  if (say.classList.has("hidden")) throw new Error("character line hidden during processing");
+  const busyFeed = document.getElementById("log").innerHTML;
+  if (!busyFeed.includes("Wagner")) throw new Error("character line lost during processing");
+  if (!busyFeed.includes("· · ·")) throw new Error("processing must show a thinking indicator in the dialogue");
   if (!bub.classList.has("hidden")) throw new Error("the suggestion must not survive into processing");
 
-  // the line is derived from the render model, never from the busy flag
-  const rc = String(src.match(/const lastChar = [^\n]*/)[0]);
-  if (!/\[\.\.\.S\.turns\]\.reverse\(\)\.find\(\(x\) => !x\.me\)/.test(rc))
-    throw new Error("last character line is no longer derived from the turn list");
-  if (/S\.busy/.test(String(src.match(/\$\("vcSay"\)\.classList\.toggle[^\n]*/)[0])))
-    throw new Error("the character bubble must not depend on the busy flag");
+  // the dialogue is derived from the render model: every turn renders
+  if (!/S\.turns\.map\(\(x, i\) => UI\.bubble\(/.test(src))
+    throw new Error("the dialogue is no longer derived from the turn list");
   tt.S.busy = false; tt.S.turns = []; tt.S.hint = null;
 });
 
@@ -2094,9 +2103,10 @@ check("MARZI-018 call chrome: emoji fallback, one danger control, targets, safe 
   if (!/\.call-meta #timer \{ font-size: var\(--text-md\)/.test(styles)) throw new Error("timer is not the primary reading");
   if (!html.includes('id="vcLeft" class="call-meta-ctx"')) throw new Error("remaining allowance is not marked as context");
 
-  // three primary controls, one of them hang-up, all built by the same component
-  const ctrls = String(src.match(/UI\.callControl\(\{ id: "micBtn"[\s\S]*?UI\.callControl\(\{ id: "playBtn"[^\n]*/)[0]);
-  if ((ctrls.match(/UI\.callControl\(\{/g) || []).length !== 3) throw new Error("there must be exactly three primary controls");
+  // two primary circles — speak and hang-up — built by the same component;
+  // replay lives in the labelled tool row, so no circle duplicates the mic
+  const ctrls = String(src.match(/UI\.callControl\(\{ id: "micBtn"[\s\S]*?UI\.callControl\(\{ id: "hangBtn"[^\n]*/)[0]);
+  if ((ctrls.match(/UI\.callControl\(\{/g) || []).length !== 2) throw new Error("there must be exactly two primary controls");
   if ((ctrls.match(/variant: "danger"/g) || []).length !== 1) throw new Error("exactly one primary control may be danger");
 
   // identity: the name line is present and place is optional context
@@ -2262,15 +2272,11 @@ check("MARZI-018-R1: nothing may shadow the native History API", () => {
   tt.S.turns = [];
 
   // every History API call site stays window-qualified, so a future global
-  // cannot silently capture them again
+  // cannot silently capture them again (the onboarding back-walk remains the
+  // one pushState user now that the transcript sheet is gone)
   const calls = scriptSrc.match(/(?<![\w.])history\.(back|pushState|replaceState)/g) || [];
   if (calls.length) throw new Error("unqualified History API call(s): " + calls.join(","));
-  for (const need of ["window.history.pushState({ marziSheet: true }", "window.history.back()"]) {
-    if (!scriptSrc.includes(need)) throw new Error("navigation call site changed: " + need);
-  }
-  // the sheet flag must only be set when the push actually happened
-  const open = String(scriptSrc.match(/window\.history\.pushState\(\{ marziSheet: true \}[^\n]*/)[0]);
-  if (!/SHEET_HISTORY = true/.test(open)) throw new Error("sheet history flag no longer set at push time");
+  if (!scriptSrc.includes("window.history.pushState(null")) throw new Error("onboarding back-walk call site changed");
 });
 
 check("MARZI-062 staging preview: build identity, reserved regions, containment", () => {
@@ -2305,8 +2311,8 @@ check("MARZI-062 staging preview: build identity, reserved regions, containment"
   if (!/overflow-wrap: break-word/.test(bubble)) throw new Error("bubbles no longer break long compound nouns");
   if (/\.call-bubble \{[^}]*overflow-wrap: anywhere/.test(styles))
     throw new Error("`anywhere` shrinks the bubble's intrinsic width and collapses the suggestion");
-  const charBubble = (styles.match(/\.call-bubble\.char \{[^}]*\}/) || [""])[0];
-  if (!/min-height: max\(var\(--touch-min\), 3lh\)/.test(charBubble))
+  const dlg = (styles.match(/\.call-lines \.call-dialogue \{[^}]*\}/) || [""])[0];
+  if (!/min-height: max\(var\(--touch-min\), 3lh\)/.test(dlg))
     throw new Error("the character line lost its three-line reading budget");
   // 6. the preview is presentation only: no telemetry, no new storage key
   if (/sendBeacon|dataLayer\s*\.\s*push|gtag\s*\(/.test(src)) throw new Error("the preview added telemetry");

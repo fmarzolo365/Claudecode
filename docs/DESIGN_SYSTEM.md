@@ -161,15 +161,20 @@ card is always present in the rail.
 **Usage** `UI.scenarioCard({ scenario: s, selected: s.id === S.scenario.id, subtitle })`
 
 ### 9. Conversation bubble — `UI.bubble({side, tag, body, extra})`
-**Purpose** One turn of a conversation transcript.
-**Visual rules** Character left with `--surface-soft`, learner right with
-`--primary-soft`; the tail corner marks the speaker independently of colour.
+**Purpose** One turn of the live dialogue, rendered INLINE in the call
+(there is no transcript sheet).
+**Visual rules** Character start-aligned on `--card` with a `--stage-line`
+border, learner end-aligned on `--primary-soft`; the flattened start corner
+marks the speaker independently of colour. Translation expands inline
+beneath its line as a subordinate `.sub` block.
 **States** `side: "char" | "me"`; `extra` carries translation, saved-word,
 correction and replay affordances.
 **Accessibility** Each bubble is prefixed by a speaker tag as real text.
-Actions inside meet the 48px floor.
-**Responsive** Max 84% width; the transcript scrolls internally so the screen
-never grows.
+Standalone actions inside meet the 48px floor; tappable words are
+inline-sentence targets (WCAG 2.5.8 inline exception) and keep natural
+typography.
+**Responsive** Max 86% width; the dialogue band scrolls internally so the
+screen never grows.
 **Usage** `UI.bubble({ side: "me", tag: L.you, body: esc(text) })`
 **Note** `body` accepts pre-built HTML (word-tap markup) — escape before
 passing.
@@ -309,19 +314,18 @@ portrait.
 **Responsive** Centred between the close button and the connection indicator.
 **Usage** `UI.callIdentity({ kicker: L.talkingWith, name: A.who, place: A[S.lang] })`
 
-### 23. Call sheet — `UI.callSheet({title, closeLabel, body})`
-**Purpose** Transcript and tools over the call, without breaking the board
-composition.
-**Visual rules** Bottom sheet on a dimmed backdrop, grab handle, title row
-with a labelled close button, scrolling body capped at 74dvh.
-**States** Hidden / shown. Dismissible four ways: close button, swipe down,
-Escape, Android back (a `pushState` entry is consumed by `popstate`, so back
-never leaves the call).
-**Accessibility** `role="dialog"`, `aria-modal="true"`, `aria-labelledby` on
-the title; focus moves to close on open and back to the opener on close. The
-opening control is **labelled, never icon-only**.
-**Responsive** Full width, safe-area padded at the bottom.
-**Usage** `UI.callSheet({ title: L.transcript, closeLabel: L.ok, body })`
+### 23. Inline call dialogue — `#callLines` (`#log` + `#tapHint`)
+**Purpose** The whole conversation, inline in the call's conversation band.
+Replaces the former transcript sheet (binding Product Owner decision: no
+live-call transcript modal, sheet or drawer).
+**Visual rules** Bottom-anchored scrolling feed of `UI.bubble` turns; the
+`Text` pill hides the band for listening-only practice; word tap, per-line
+replay, inline translation and corrections all live here.
+**States** Visible / hidden via `.callscreen.text-off`.
+**Accessibility** No dialog semantics — it is normal page content inside the
+call; ownership tags are real text.
+**Responsive** `min-height: max(48px, 3lh)`, `max-height: 34dvh` (26dvh on
+short screens), scrolls its own overflow.
 
 ### 24. Category tabs — `UI.categoryTabs({tabs, active, label})`
 **Purpose** One row of filters over a catalog (the store's five categories).

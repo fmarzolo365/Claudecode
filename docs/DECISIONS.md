@@ -2,6 +2,19 @@
 
 Short log of the decisions that shape this codebase. New entries go on top.
 
+## ADR-12 · The live call has no transcript sheet (2026-08-06)
+Binding Product Owner decisions for the premium call experience: the whole
+dialogue renders **inline** in the call as speech bubbles (word tap, per-line
+replay, inline translation, corrections — nothing lost from the sheet);
+`Text` shows/hides that band for listening-only practice; the visible `Auto`
+toggle is gone while hands-free stays the internal per-call default; visible
+controls are exactly mic (primary), hang-up, Need help, Text, Slow, Replay.
+Dialogue words are inline-sentence targets (WCAG 2.5.8 inline exception) and
+keep natural typography; every standalone control keeps the 48px floor.
+Production art drops in via registered slots (`/assets/call/characters/…`,
+`/assets/call/backgrounds/…`, spec in docs/design/MARZI_CALL_ASSET_SPEC.md);
+the generated portrait stays the labelled TEMPORARY stand-in until then.
+
 ## ADR-11 · Marzi product redesign grafted natively (2026-07-31)
 The "Marzi master product spec" (React/TS target) was implemented **natively
 in the single-file app** per ADR-9: design tokens (§6/§17 palette, Nunito
