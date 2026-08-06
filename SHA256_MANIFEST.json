@@ -1,0 +1,46 @@
+{
+  "ASSET_PREVIEW.png": {
+    "bytes": 615702,
+    "sha256": "6f27e6a433a3ba4ebc258a52832a90e56a89dd7013a792dd2d5ea3b8a48e8b7c"
+  },
+  "CLAUDE_INTEGRATION_PROMPT.md": {
+    "bytes": 2133,
+    "sha256": "65bcf5ade82265598b6f7f92c04b940f9c41547ad99dc8d13ff9598ee2557106"
+  },
+  "README_FIRST.txt": {
+    "bytes": 340,
+    "sha256": "7998cc8a995fe40676bbcfb7efb132411ac4f4240e06c1dbc1c54ffbcf9d9352"
+  },
+  "asset-manifest.json": {
+    "bytes": 2500,
+    "sha256": "cccd5eb86934d26d543fa38d12eef69f3dbadad270ba4c755b936ce379668166"
+  },
+  "public/assets/call/backgrounds/clinic.webp": {
+    "bytes": 99598,
+    "sha256": "d428d4bf0b9aa3edd8e1130a38dab40ea5ce7c5725179e53719266808aec4005"
+  },
+  "public/assets/call/characters/arzt/listening.webp": {
+    "bytes": 712888,
+    "sha256": "216d108624bdc317ec916ce0e64341079cf7792b31c6cebe2b8526a33fcdd4f4"
+  },
+  "public/assets/marzi/call/stage-1/helping.webp": {
+    "bytes": 237888,
+    "sha256": "54f72f464e0e6745eeb36f9a1460cf774cd38832fe92390343b7865add978fde"
+  },
+  "reference/MARZI_CALL_SCREEN_GOLD_REFERENCE.png": {
+    "bytes": 1858247,
+    "sha256": "55a25e694515affbe992d22af45d089c2d31481038bdd0ea72df2f3e971d075e"
+  },
+  "source-masters/arzt-listening-master.png": {
+    "bytes": 1147417,
+    "sha256": "58b5553d6fcab9152aa7e14890a2dcdfbf245369c66c11ffcf191e834d9413e7"
+  },
+  "source-masters/clinic-master.png": {
+    "bytes": 917350,
+    "sha256": "4062dd25700c2d1a2ad44a9280fd1871ad60df4792cab61d1fee22e2e87a9800"
+  },
+  "source-masters/marzi-stage1-helping-master.png": {
+    "bytes": 401157,
+    "sha256": "b914b30684429596b8b555a8d9ea3d3f332bb408b0276d1f9a99bcd8ee0306e7"
+  }
+}

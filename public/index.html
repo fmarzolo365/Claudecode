@@ -1105,37 +1105,21 @@
     border-radius: var(--radius); background: linear-gradient(150deg, var(--stage-from), var(--stage-to)); color: var(--marzi-dark); }
   .store-modal-art svg { width: 58%; height: 58%; opacity: .6; }
   .store-note { text-align: center; font: 700 var(--text-f11-5) var(--font-sans); color: var(--marzi-dark); margin-top: var(--space-3); }
-  /* ---------- MARZI-006: immersive call layer (board 02_call.png) ----------
-     Fixed, dynamic-viewport sized, safe-area aware. The portrait is the
-     dominant visual; every overlay is absolutely positioned so nothing can
-     collide, and the page can never scroll. */
+  /* ---------- MARZI-006 + DOCTOR GOLD PILOT: call layer ----------
+     Gold Reference composition (reference/MARZI_CALL_SCREEN_GOLD_REFERENCE.png):
+     compact identity header, bounded illustrated stage (production background
+     + transparent character from asset-manifest.json), inline dialogue with
+     inline translation, Marzi beside the suggestion, compact pills, primary
+     mic + hang-up, product-style connection footer. Generated portraits and
+     SVG Marzi remain the fallback chain. */
   .callscreen {
     position: fixed; inset: 0; z-index: 70; overflow: hidden;
-    background: var(--call-bg); color: var(--white);
+    background: var(--bg); color: var(--ink);
     height: 100dvh; min-height: 100vh;
     display: flex; flex-direction: column;
     padding: calc(env(safe-area-inset-top, 0px) + var(--space-2)) 0
              calc(env(safe-area-inset-bottom, 0px) + var(--space-2));
   }
-  /* the middle band owns every overlay; the bottom stack is a flex sibling,
-     so controls can never collide with Marzi or the bubbles */
-  .call-mid { position: relative; flex: 1 1 auto; min-height: 0; }
-  .call-portrait {
-    position: absolute; inset: 0; width: 100%; height: 100%;
-    object-fit: cover; object-position: 50% 22%; display: none;
-  }
-  .call-portrait.ok { display: block; }
-  .call-emoji {
-    position: absolute; left: 50%; top: 30%; transform: translate(-50%, -50%);
-    font-size: var(--text-f64); opacity: .9;
-  }
-  /* scrim keeps text legible over any portrait */
-  .call-scrim {
-    position: absolute; inset: 0;
-    background:
-      linear-gradient(180deg, rgba(16,12,8,.78) 0%, rgba(16,12,8,.28) 26%, rgba(16,12,8,.20) 46%, rgba(16,12,8,.86) 78%, rgba(16,12,8,.96) 100%);
-  }
-  .callscreen.speaking .call-scrim { box-shadow: inset 0 0 0 3px var(--tint-primary-35); }
   .call-top {
     position: relative; z-index: 4; flex: 0 0 auto;
     display: grid; grid-template-columns: var(--touch-min) minmax(0, 1fr) var(--touch-min);
@@ -1143,54 +1127,119 @@
   }
   .call-x {
     width: var(--touch-min); height: var(--touch-min); border-radius: 50%;
-    border: 0; background: rgba(255,255,255,.16); color: var(--white); cursor: pointer;
-    display: grid; place-items: center;
+    border: 1px solid var(--line); background: var(--card); color: var(--ink);
+    cursor: pointer; display: grid; place-items: center; box-shadow: var(--shadow-sm);
   }
   .call-id { min-width: 0; text-align: center; display: grid; }
-  .call-id-kicker { font: 600 var(--text-f11-5) var(--font-sans); opacity: .82; }
+  .call-id-kicker {
+    font: 600 var(--text-f11-5) var(--font-sans); color: var(--muted);
+    text-transform: uppercase; letter-spacing: .08em;
+  }
   .call-id-name { font: 800 var(--text-f18) var(--font-sans); line-height: 1.2; }
-  .call-id-place { font: 600 var(--text-f12) var(--font-sans); opacity: .78; line-height: 1.3; }
+  .call-id-place { font: 600 var(--text-f12) var(--font-sans); color: var(--muted); line-height: 1.3; }
   .call-conn {
     justify-self: end; display: inline-flex; align-items: center; gap: 4px; min-height: var(--touch-min);
-    font: 700 var(--text-f10) 'JetBrains Mono', monospace; color: var(--white); opacity: .85;
+    font: 700 var(--text-f10) 'JetBrains Mono', monospace; color: var(--primary);
   }
-  /* dialogue bubbles */
+  /* the illustrated stage: gold geometry - the shallow stage is rejected */
+  .call-stage {
+    position: relative; flex: 0 0 auto; overflow: hidden;
+    height: clamp(210px, 28dvh, 252px);
+    margin: var(--space-2) var(--space-3) 0; border-radius: 20px;
+    border: 1.5px solid var(--stage-line); box-shadow: var(--shadow);
+    background: var(--paper-3) center / cover no-repeat;
+  }
+  .callscreen.speaking .call-stage { box-shadow: inset 0 0 0 3px var(--tint-primary-35), var(--shadow); }
+  .call-portrait {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    object-fit: cover; object-position: 50% 22%; display: none;
+  }
+  .call-portrait.ok { display: block; }
+  /* manifest: transparent character foreground, contained, on the stage floor */
+  .call-stage.prod .call-portrait { object-fit: contain; object-position: 50% 100%; }
+  /* the emoji is the last fallback: never over a loaded (transparent) portrait */
+  .call-portrait.ok ~ .call-emoji { display: none; }
+  .call-emoji {
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    font-size: var(--text-f64); opacity: .9;
+  }
+  .call-scrim { display: none; }
+  /* status chip sits on the stage floor (gold "Thinking…" pill) */
+  .call-status-chip {
+    position: absolute; left: 50%; transform: translateX(-50%); z-index: 5; bottom: 10px;
+    display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+    background: var(--card); border: 1px solid var(--line);
+    color: var(--ink); border-radius: 999px; padding: 6px var(--space-3);
+    font: 700 var(--text-f11-5) var(--font-sans); box-shadow: var(--shadow-sm);
+  }
+  .call-status-chip[data-state="error"], .call-status-chip[data-state="disconnected"] {
+    background: var(--danger-soft); color: var(--danger-ink); border-color: var(--tint-danger-35);
+  }
+  /* conversation column: inline dialogue + inline translation + coach row */
+  .call-mid { position: relative; flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+  .call-convo {
+    flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+    display: flex; flex-direction: column; gap: var(--space-2);
+    padding: var(--space-2) var(--space-3) var(--space-1);
+  }
+  .call-turns { display: flex; flex-direction: column; gap: var(--space-2); }
   .call-bubble {
-    position: absolute; z-index: 3; max-width: 62%; text-align: start;
+    max-width: 86%; text-align: start;
     background: var(--paper-3); color: var(--ink);
     border: 1.5px solid var(--stage-line); border-radius: 18px;
-    padding: var(--space-2) var(--space-3); box-shadow: var(--shadow);
+    padding: var(--space-2) var(--space-3); box-shadow: var(--shadow-sm);
     font: 600 var(--text-f13-5) var(--font-sans); line-height: 1.35;
   }
-  /* explicit widths: a right-anchored shrink-to-fit box collapses to
-     min-content and clips its text */
-  .call-bubble.char { inset-inline-start: var(--space-3); top: 12%; width: 62%; border-end-start-radius: 6px; }
-  .call-bubble.marzi {
-    inset-inline-end: var(--space-3); bottom: var(--space-2); width: 52%;
-    cursor: pointer; border-end-end-radius: 6px;
-    background: var(--paper); border-color: var(--tint-leaf-35);
+  .call-bubble.char {
+    align-self: flex-start; border-end-start-radius: 6px; cursor: pointer;
+    display: flex; gap: var(--space-2); align-items: flex-start;
   }
-  /* Marzi in-scene, lower-left, board position */
+  .call-say-av {
+    flex: 0 0 auto; width: 28px; height: 28px; border-radius: 50%;
+    border: 1px solid var(--line); background: var(--paper);
+    object-fit: cover; object-position: 50% 12%;
+    display: inline-grid; place-items: center; font-size: var(--text-f18);
+  }
+  .call-say-body { min-width: 0; }
+  .call-say-tr {
+    display: block; margin-top: 6px; padding: 5px 8px; border-radius: 8px;
+    background: var(--tint-primary-04); color: var(--muted); font-weight: 600;
+  }
+  .call-bubble.me {
+    align-self: flex-end; border-end-end-radius: 6px;
+    background: var(--tint-primary-04); border-color: var(--tint-primary-35);
+  }
+  /* Marzi beside the coaching/suggestion bubble (gold), never a lone center */
+  .call-coach { display: flex; align-items: flex-end; gap: var(--space-1); margin-top: auto; }
   .call-marzi {
-    position: absolute; inset-inline-start: var(--space-2); bottom: 0;
-    z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 1px;
-    pointer-events: none; max-width: 128px;
+    flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; gap: 1px;
+    pointer-events: none;
   }
-  .call-marzi .vc-marzi-art { width: 108px; height: 108px; filter: drop-shadow(0 6px 14px rgba(16,12,8,.55)); }
+  .call-marzi .vc-marzi-art { width: 92px; height: 92px; display: block; }
   .call-marzi .vc-marzi-art svg { width: 100%; height: 100%; }
+  .call-marzi .vc-marzi-art .marzi-art-img {
+    width: 100%; height: 100%; object-fit: contain; object-position: 50% 100%;
+  }
+  /* generated stages 1-3 keep the badge treatment (FALLBACK_ONLY)… */
   .call-marzi[data-stage="1"] .vc-marzi-art,
   .call-marzi[data-stage="2"] .vc-marzi-art,
   .call-marzi[data-stage="3"] .vc-marzi-art {
-    width: 84px; height: 84px; padding: 6px; box-sizing: border-box;
-    border: 2px solid rgba(255,255,255,.92); border-radius: 50%;
-    background: var(--paper); filter: none;
+    width: 76px; height: 76px; padding: 6px; box-sizing: border-box;
+    border: 2px solid var(--card); border-radius: 50%;
+    background: var(--paper);
   }
-  .call-marzi .vc-marzi-cap {
-    font: 700 var(--text-f8) 'JetBrains Mono', monospace; letter-spacing: .03em;
-    color: var(--marzi-dark); background: var(--paper); border: 1px solid var(--tint-leaf-35);
-    border-radius: 999px; padding: 2px 7px; max-width: 126px; text-align: center; line-height: 1.2;
+  /* …but approved production art renders as the full supplied pose */
+  .call-marzi .vc-marzi-art:has(> .marzi-art-img) {
+    width: 92px; height: 92px; padding: 0; border: 0; border-radius: 0;
+    background: transparent; box-shadow: none;
+    filter: drop-shadow(0 4px 10px rgba(16,12,8,.18));
   }
-  /* bottom stack: tools row, controls, meta */
+  .call-marzi .vc-marzi-cap { display: none; }
+  .call-bubble.marzi {
+    flex: 1 1 auto; max-width: none; cursor: pointer; border-end-start-radius: 6px;
+    background: var(--paper); border: 1.5px dashed var(--tint-leaf-35);
+  }
+  /* bottom stack: pills, primary controls, product footer */
   .call-stack {
     position: relative; z-index: 4; flex: 0 0 auto;
     display: grid; justify-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-3) 0;
@@ -1198,44 +1247,38 @@
   .call-tools { display: flex; gap: var(--space-2); flex-wrap: wrap; justify-content: center; }
   .call-pill {
     min-height: var(--touch-min); display: inline-flex; align-items: center; gap: 5px;
-    padding: 0 var(--space-2); border-radius: 999px; cursor: pointer; white-space: nowrap;
-    background: rgba(255,255,255,.16); color: var(--white); border: 1px solid rgba(255,255,255,.28);
-    font: 700 var(--text-f10-5) var(--font-sans);
+    padding: 0 var(--space-3); border-radius: 999px; cursor: pointer; white-space: nowrap;
+    background: var(--card); color: var(--ink); border: 1px solid var(--line);
+    font: 700 var(--text-f11-5) var(--font-sans); box-shadow: var(--shadow-sm);
   }
-  .call-pill[aria-pressed="true"] { background: var(--primary); border-color: var(--primary); }
+  .call-pill[aria-pressed="true"] { background: var(--primary); border-color: var(--primary); color: var(--white); }
   .call-pill[disabled] { opacity: .45; cursor: not-allowed; }
   .call-controls { display: flex; align-items: center; gap: var(--space-4); }
   .call-ctrl {
-    width: 64px; height: 64px; border-radius: 50%; border: 0; cursor: pointer;
+    width: 72px; height: 72px; border-radius: 50%; border: 0; cursor: pointer;
     display: grid; place-items: center; gap: 1px; color: var(--white);
-    background: rgba(255,255,255,.18); transition: background var(--dur-fast) var(--ease);
+    background: var(--primary); box-shadow: var(--shadow);
+    transition: background var(--dur-fast) var(--ease);
   }
   .call-ctrl .call-ctrl-lb {
     font: 700 var(--text-f8) var(--font-sans); letter-spacing: .02em;
-    max-width: 62px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    max-width: 68px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
-  .call-ctrl.danger { width: 72px; height: 72px; background: var(--red); }
+  .call-ctrl.danger { background: var(--red); }
   .call-ctrl.danger:hover { filter: brightness(1.08); }
   .call-ctrl[disabled] { opacity: .45; cursor: not-allowed; }
   .call-ctrl[data-status="listening"] { background: var(--primary); animation: listeningPulse var(--loop-pulse) var(--ease) infinite; }
   .call-ctrl[data-status="processing"] { background: var(--disabled-fill); color: var(--ink); }
   .call-ctrl[data-status="failed"] { background: var(--red); }
+  /* product-style connection/time footer */
   .call-meta {
     display: flex; align-items: center; gap: var(--space-2); min-height: 20px;
-    font: 700 var(--text-f11-5) 'JetBrains Mono', monospace; color: var(--white); opacity: .9;
+    background: var(--card); border: 1px solid var(--line); border-radius: 999px;
+    padding: 7px var(--space-4); box-shadow: var(--shadow-sm);
+    font: 700 var(--text-f11-5) 'JetBrains Mono', monospace; color: var(--ink);
   }
+  .call-meta::before { content: ""; flex: 0 0 auto; width: 8px; height: 8px; border-radius: 50%; background: var(--primary); }
   .call-meta .low { color: var(--coin); }
-  /* status + alerts stay visible until resolved */
-  .call-status-chip {
-    position: absolute; left: 50%; transform: translateX(-50%); z-index: 5; top: 0;
-    display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
-    background: rgba(16,12,8,.72); border: 1px solid rgba(255,255,255,.24);
-    color: var(--white); border-radius: 999px; padding: 6px var(--space-3);
-    font: 700 var(--text-f11-5) var(--font-sans);
-  }
-  .call-status-chip[data-state="error"], .call-status-chip[data-state="disconnected"] {
-    background: var(--danger-soft); color: var(--danger-ink); border-color: var(--tint-danger-35);
-  }
   .call-alert {
     position: absolute; left: var(--space-3); right: var(--space-3); z-index: 6; top: 40px;
     background: var(--danger-soft); color: var(--danger-ink);
@@ -1484,34 +1527,44 @@
   </section>
 
   <!-- CALL -->
-  <!-- CALL: immersive full-screen layer (board 02_call.png). Portrait is the
-       dominant visual; transcript and tools live in a dismissible sheet. -->
+  <!-- CALL: Gold Reference composition (DOCTOR GOLD PILOT). Bounded illustrated
+       stage (production background + transparent character), inline dialogue
+       with inline translation, Marzi beside the suggestion, compact pills,
+       primary mic + hang-up, product-style connection footer. -->
   <section id="call" class="hidden">
     <div class="callscreen" id="vcAv">
-      <img id="vcImg" class="call-portrait" alt="" />
-      <span class="call-emoji" id="vcEmoji" aria-hidden="true">🎧</span>
-      <div class="call-scrim" aria-hidden="true"></div>
-
       <header class="call-top">
         <button class="call-x" id="callMinBtn" type="button"></button>
         <div class="call-id" id="callId"></div>
         <div class="call-conn" id="callConn"></div>
       </header>
 
-      <div class="call-mid">
+      <div class="call-stage" id="callStage">
+        <img id="vcImg" class="call-portrait" alt="" />
+        <span class="call-emoji" id="vcEmoji" aria-hidden="true">🎧</span>
+        <div class="call-scrim" aria-hidden="true"></div>
         <div class="call-status-chip" id="callStatus" data-state="ready" role="status"></div>
+      </div>
+
+      <div class="call-mid">
         <div id="alert" class="call-alert hidden" role="alert"></div>
-        <button class="call-bubble char hidden" id="vcSay" type="button"></button>
-        <div class="call-marzi vc-marzi" id="vcMarzi"></div>
-        <button class="call-bubble marzi hidden" id="vcBubble" type="button"></button>
+        <div class="call-convo" id="callConvo">
+          <div class="call-turns hidden" id="callTurns"></div>
+          <div class="call-coach">
+            <div class="call-marzi vc-marzi" id="vcMarzi"></div>
+            <button class="call-bubble marzi hidden" id="vcBubble" type="button"></button>
+          </div>
+        </div>
       </div>
       <div id="callStatusLive" class="sr-only" aria-live="polite"></div>
 
       <div class="call-stack">
         <div class="call-tools">
+          <button class="call-pill" id="hintBtn" type="button"></button>
           <button class="call-pill" id="sheetBtn" type="button"></button>
           <button class="call-pill" id="repeatBtn" type="button"></button>
-          <button class="call-pill" id="freeBtn" type="button"></button>
+          <button class="call-pill" id="playBtn" type="button"></button>
+          <button class="call-pill hidden" id="freeBtn" type="button"></button>
         </div>
         <div class="call-controls" id="callControls"></div>
         <div class="call-meta"><span id="timer">00:00</span><span id="vcLeft"></span></div>
@@ -1526,7 +1579,6 @@
         <div class="log" id="log"></div>
         <p class="note hidden" id="tapHint"></p>
         <div id="hintBox" class="hint hidden"><div class="label">VORSCHLAG</div><div id="hintText"></div></div>
-        <div class="row"><button class="ghost" id="hintBtn" type="button"></button></div>
         <div class="row sos" id="sosRow">
           <button class="ghost" data-sos="Wie bitte?">Wie bitte?</button>
           <button class="ghost" data-sos="Langsamer, bitte.">Langsamer, bitte</button>
@@ -1859,6 +1911,7 @@ const T = {
     hangUp:"COLGAR", speak:"Pulsa y habla", listening:"Escuchando…", repeat:"Repetir despacio",
     hint:"¿Qué puedo decir?", type:"Escribir en vez de hablar", send:"Enviar", show:"Traducción",
     ended:"LLAMADA TERMINADA", review:"Tus correcciones", again:"OTRA LLAMADA", you:"TÚ",
+    help:"Ayuda", textLbl:"Texto", slow:"Despacio", replay:"Repetir",
     handsFree:"Manos libres", err:"No hay respuesta del servidor. ¿Está corriendo node server.js?",
     noMic:"Este navegador no reconoce voz. Usa Chrome.", micBlocked:"Micrófono bloqueado. Permite el acceso en el candado de la barra de direcciones.",
     noSpeech:"No se oyó nada. Habla más cerca del micrófono.", noDevice:"No se encuentra ningún micrófono.", micErr:"Error de micrófono",
@@ -1931,6 +1984,7 @@ const T = {
     hangUp:"HANG UP", speak:"Tap and speak", listening:"Listening…", repeat:"Repeat slowly",
     hint:"What can I say?", type:"Type instead of speaking", send:"Send", show:"Translation",
     ended:"CALL ENDED", review:"Your corrections", again:"ANOTHER CALL", you:"YOU",
+    help:"Help", textLbl:"Text", slow:"Slow", replay:"Replay",
     handsFree:"Hands free", err:"No answer from the server. Is node server.js running?",
     noMic:"This browser does not do speech recognition. Use Chrome.", micBlocked:"Microphone blocked. Allow access via the padlock in the address bar.",
     noSpeech:"Nothing was heard. Speak closer to the microphone.", noDevice:"No microphone found.", micErr:"Microphone error",
@@ -2006,6 +2060,7 @@ T.tr = { tagline:"Gerçek Almanca aramalar ve konuşmalar pratiği yap. Sen konu
   hangUp:"KAPAT", speak:"Bas ve konuş", listening:"Dinliyor…", repeat:"Yavaş tekrarla",
   hint:"Ne diyebilirim?", type:"Konuşmak yerine yaz", send:"Gönder", show:"Çeviri",
   ended:"GÖRÜŞME BİTTİ", review:"Düzeltmelerin", again:"YENİ ARAMA", you:"SEN",
+  help:"Yardım", textLbl:"Metin", slow:"Yavaş", replay:"Tekrar",
   handsFree:"Eller serbest", err:"Sunucudan yanıt yok. node server.js çalışıyor mu?",
   noMic:"Bu tarayıcı sesi tanımıyor. Chrome kullan.", micBlocked:"Mikrofon engelli. Adres çubuğundaki kilitten izin ver.",
   noSpeech:"Ses duyulmadı. Mikrofona daha yakın konuş.", noDevice:"Mikrofon bulunamadı.", micErr:"Mikrofon hatası",
@@ -2078,6 +2133,7 @@ T.ar = { tagline:"تدرّب على مكالمات ومحادثات حقيقية
   hangUp:"إنهاء", speak:"اضغط وتكلّم", listening:"يستمع…", repeat:"إعادة ببطء",
   hint:"ماذا يمكنني أن أقول؟", type:"اكتب بدلاً من الكلام", send:"إرسال", show:"الترجمة",
   ended:"انتهت المكالمة", review:"تصحيحاتك", again:"مكالمة أخرى", you:"أنت",
+  help:"مساعدة", textLbl:"نص", slow:"ببطء", replay:"إعادة",
   handsFree:"دون استخدام اليدين", err:"لا يوجد رد من الخادم. هل node server.js يعمل؟",
   noMic:"هذا المتصفح لا يدعم التعرف على الصوت. استخدم Chrome.", micBlocked:"الميكروفون محظور. اسمح بالوصول من رمز القفل في شريط العنوان.",
   noSpeech:"لم يُسمع شيء. تكلّم أقرب إلى الميكروفون.", noDevice:"لم يتم العثور على ميكروفون.", micErr:"خطأ في الميكروفون",
@@ -2150,6 +2206,7 @@ T.uk = { tagline:"Тренуй реальні дзвінки й розмови �
   hangUp:"ПОКЛАСТИ", speak:"Натисни і говори", listening:"Слухаю…", repeat:"Повторити повільно",
   hint:"Що можна сказати?", type:"Писати замість говорити", send:"Надіслати", show:"Переклад",
   ended:"ДЗВІНОК ЗАВЕРШЕНО", review:"Твої виправлення", again:"ЩЕ ДЗВІНОК", you:"ТИ",
+  help:"Допомога", textLbl:"Текст", slow:"Повільно", replay:"Повтор",
   handsFree:"Вільні руки", err:"Немає відповіді від сервера. Чи запущено node server.js?",
   noMic:"Цей браузер не розпізнає мовлення. Використовуй Chrome.", micBlocked:"Мікрофон заблоковано. Дозволь доступ через замок у рядку адреси.",
   noSpeech:"Нічого не чутно. Говори ближче до мікрофона.", noDevice:"Мікрофон не знайдено.", micErr:"Помилка мікрофона",
@@ -2223,6 +2280,7 @@ T.it = { tagline:"Allenati con telefonate e conversazioni reali in tedesco. Tu p
   hangUp:"RIAGGANCIA", speak:"Premi e parla", listening:"In ascolto…", repeat:"Ripeti lentamente",
   hint:"Cosa posso dire?", type:"Scrivi invece di parlare", send:"Invia", show:"Traduzione",
   ended:"CHIAMATA TERMINATA", review:"Le tue correzioni", again:"UN'ALTRA CHIAMATA", you:"TU",
+  help:"Aiuto", textLbl:"Testo", slow:"Lento", replay:"Ripeti",
   handsFree:"Vivavoce", err:"Nessuna risposta dal server. node server.js è in esecuzione?",
   noMic:"Questo browser non riconosce la voce. Usa Chrome.", micBlocked:"Microfono bloccato. Consenti l'accesso dal lucchetto nella barra degli indirizzi.",
   noSpeech:"Non si è sentito nulla. Parla più vicino al microfono.", noDevice:"Nessun microfono trovato.", micErr:"Errore del microfono",
@@ -3255,7 +3313,11 @@ function renderCallCompanion() {
   el.dataset.state = state;
   el.setAttribute("role", "img");
   el.setAttribute("aria-label", `Marzi, ${marziNames()[stage - 1]}, ${stage}/${MARZI_STAGE_COUNT}`);
-  el.innerHTML = `<span class="vc-marzi-art" data-state="${state}">${marziArt(stage, state)}</span>` +
+  // production first: the supplied call pose serves every call state until
+  // per-state files ship; the generated SVG stays the fallback
+  const prodSrc = marziAssetSrc(stage, state) || marziAssetSrc(stage, "listening");
+  const art = prodSrc ? `<img class="marzi-art-img" src="${esc(prodSrc)}" alt="" />` : marziSVG(stage, state);
+  el.innerHTML = `<span class="vc-marzi-art" data-state="${state}">${art}</span>` +
     `<span class="vc-marzi-cap">Marzi · ${esc(marziNames()[stage - 1])} · ${stage}/${MARZI_STAGE_COUNT}</span>`;
 }
 /* ---------- MARZI-013: canonical presentation states ----------
@@ -3291,21 +3353,32 @@ const MARZI_STATE_POSE = {
   listening: "call", thinking: "call", speaking: "call",
   error: "error", celebrating: "reward",
 };
-const MARZI_ASSETS = Object.create(null); // filled only when approved files ship
+const MARZI_ASSETS = Object.create(null); // logical slot -> approved production file
 function marziAssetPath(stage, state) {
   const n = Math.min(6, Math.max(1, Number(stage) || 1));
   const st = isMarziState(state) ? state : "neutral";
   return `/assets/marzi/svg/marzi_${MARZI_STAGE_SLUGS[n - 1]}_${MARZI_STATE_POSE[st]}_${st}.svg`;
 }
-function hasMarziAsset(stage, state) { return Boolean(MARZI_ASSETS[marziAssetPath(stage, state)]); }
+/* an approved file may ship as .webp/.png under its own path: a string value
+   is that file, `true` keeps the historical meaning (file at the logical path) */
+function marziAssetSrc(stage, state) {
+  const key = marziAssetPath(stage, state);
+  const v = MARZI_ASSETS[key];
+  return typeof v === "string" ? v : v ? key : null;
+}
+function hasMarziAsset(stage, state) { return Boolean(marziAssetSrc(stage, state)); }
 /* the single entry point every screen uses */
 function marziArt(stage, state) {
   const st = isMarziState(state) ? state : "neutral";
-  if (hasMarziAsset(stage, st)) {
-    return `<img class="marzi-art-img" src="${esc(marziAssetPath(stage, st))}" alt="" />`;
-  }
+  const src = marziAssetSrc(stage, st);
+  if (src) return `<img class="marzi-art-img" src="${esc(src)}" alt="" />`;
   return marziSVG(stage, st); // fallback: shipped artwork
 }
+/* DOCTOR GOLD PILOT (asset-manifest.json): the supplied Marzi call pose fills
+   the call-pose slots only, so every other surface keeps the generated art */
+["listening", "thinking", "speaking"].forEach((st) => {
+  MARZI_ASSETS[marziAssetPath(1, st)] = "/assets/marzi/call/stage-1/helping.webp";
+});
 
 function marziSVG(stage, mood) {
   // the placeholder artwork carries two mouths; every state maps onto one of
@@ -5313,18 +5386,44 @@ function renderCallStatus() {
 function callSecondsLeft() {
   return Math.max(0, planLimitToday() - planUsedToday() - (S.seconds || 0));
 }
+/* ---------- DOCTOR GOLD PILOT: production call art (asset-manifest.json) ----------
+   Registered ahead of the generated /api/avatar portraits, which stay the
+   fallback chain (production -> generated portrait -> emoji). The pilot maps
+   every call state onto the approved listening art until per-state files ship. */
+const CALL_ART = {
+  arzt: {
+    background: "/assets/call/backgrounds/clinic.webp",
+    dir: "/assets/call/characters/arzt/",
+    states: { ready: "listening", listening: "listening", processing: "listening",
+              speaking: "listening", error: "listening", disconnected: "listening" },
+    ext: ".webp",
+  },
+};
+const CALL_ART_FAILED = new Set(); // a missing production file falls back once, silently
+function callArt(id, st) {
+  const a = CALL_ART[id];
+  if (!a) return null;
+  const src = a.dir + (a.states[st] || a.states.ready) + a.ext;
+  return CALL_ART_FAILED.has(src) ? null : { background: a.background, src };
+}
 function renderCall() {
   const L = t();
   const A = S.active || S.scenario;
+  const showText = S.showText !== false; // Text pill: inline dialogue on/off
   // identity: kicker + name + place, centred, never truncated (board 02)
   $("callId").innerHTML = UI.callIdentity({
     kicker: L.talkingWith, name: A.who, place: A[S.lang] || A.en || A.de || "",
   });
   $("vcEmoji").textContent = A.avatar || "🎧";
   const img = $("vcImg");
-  const src = A.id && A.id !== "custom" && A.id !== "random"
+  const prod = callArt(A.id, callStateFor(S)); // production assets resolve first
+  const stageEl = $("callStage");
+  stageEl.classList.toggle("prod", !!prod);
+  stageEl.style.backgroundImage = prod ? `url("${prod.background}")` : "";
+  const apiSrc = A.id && A.id !== "custom" && A.id !== "random"
     ? `/api/avatar/${A.id}${S.speaker === 2 ? "2" : ""}?v=3&pin=${encodeURIComponent(localStorage.getItem(PIN_KEY) || "")}`
     : "";
+  const src = prod ? prod.src : apiSrc;
   if (img.dataset.src !== src) {
     img.dataset.src = src;
     img.dataset.retried = "";
@@ -5333,6 +5432,8 @@ function renderCall() {
       img.onload = () => img.classList.add("ok");
       img.onerror = () => {
         img.classList.remove("ok");
+        // missing production file: drop to the generated-portrait fallback
+        if (prod && img.dataset.src === prod.src) { CALL_ART_FAILED.add(prod.src); renderCall(); return; }
         // one delayed retry: generation can take ~10s on the very first view
         if (!img.dataset.retried) {
           img.dataset.retried = "1";
@@ -5350,38 +5451,54 @@ function renderCall() {
   $("callMinBtn").innerHTML = IC.list(ICON.lg);
   $("callMinBtn").setAttribute("aria-label", L.transcript);
 
-  // circular controls, built from the canonical component
+  // primary controls (gold): mic + hang-up only
   $("callControls").innerHTML =
-    UI.callControl({ id: "micBtn", icon: IC.mic(ICON.xl), label: S.listening ? L.listening : L.speak, variant: "secondary", attrs: `data-status="${micStatusFor(S)}"` }) +
-    UI.callControl({ id: "hangBtn", icon: IC.phone(ICON.xl), label: A.kind === "face" ? L.endTalk : L.hangUp, variant: "danger" }) +
-    UI.callControl({ id: "playBtn", icon: IC.speaker(ICON.xl), label: L.playLast, variant: "secondary" });
+    UI.callControl({ id: "micBtn", icon: IC.mic(ICON.xl), label: S.listening ? L.listening : L.speak, variant: "primary", attrs: `data-status="${micStatusFor(S)}"` }) +
+    UI.callControl({ id: "hangBtn", icon: IC.phone(ICON.xl), label: A.kind === "face" ? L.endTalk : L.hangUp, variant: "danger" });
   wireCallControls();
 
-  // the transcript opener stays labelled (discoverability); the other two are
-  // icon-only with explicit labels so the row fits one line on a 360px phone
-  $("sheetBtn").innerHTML = IC.list(ICON.sm) + `<span>${esc(L.transcript)}</span>`;
-  $("sheetBtn").setAttribute("aria-label", L.transcript);
-  $("repeatBtn").innerHTML = IC.speaker(ICON.sm);
+  // secondary pills (gold): Help · Text · Slow · Replay. Hands-free stays on
+  // silently — product decision: no visible Auto control.
+  $("hintBtn").innerHTML = IC.help(ICON.sm) + `<span>${esc(L.help)}</span>`;
+  $("hintBtn").setAttribute("aria-label", L.hint);
+  $("hintBtn").title = L.hint;
+  $("hintBtn").disabled = !S.hint;
+  $("sheetBtn").innerHTML = IC.chat(ICON.sm) + `<span>${esc(L.textLbl)}</span>`;
+  $("sheetBtn").setAttribute("aria-label", L.textLbl);
+  $("sheetBtn").setAttribute("aria-pressed", String(showText));
+  $("repeatBtn").innerHTML = IC.clock(ICON.sm) + `<span>${esc(L.slow)}</span>`;
   $("repeatBtn").setAttribute("aria-label", L.repeat);
   $("repeatBtn").title = L.repeat;
-  $("freeBtn").innerHTML = IC.mic(ICON.sm);
-  $("freeBtn").setAttribute("aria-label", L.handsFree);
-  $("freeBtn").title = L.handsFree;
-  $("freeBtn").setAttribute("aria-pressed", String(!!S.handsFree));
+  $("playBtn").innerHTML = IC.speaker(ICON.sm) + `<span>${esc(L.replay)}</span>`;
+  $("playBtn").setAttribute("aria-label", L.playLast);
+  $("playBtn").title = L.playLast;
   $("repeatBtn").disabled = !S.turns.some((x) => !x.me);
   $("playBtn").disabled = !S.turns.some((x) => !x.me);
-  $("hintBtn").innerHTML = IC.help(ICON.sm) + " " + esc(L.hint);
-  $("hintBtn").disabled = !S.hint;
   $("sendBtn").textContent = L.send;
   $("typeBtn").textContent = L.type;
 
-  // character line in a bubble (board 02), tap to hear it again
-  const lastChar = [...S.turns].reverse().find((x) => !x.me);
-  $("vcSay").textContent = lastChar ? lastChar.text : "";
-  $("vcSay").classList.toggle("hidden", !lastChar);
-  $("vcSay").setAttribute("aria-label", `${A.who}: ${lastChar ? lastChar.text : ""}`);
+  // inline dialogue (gold): the recent exchange, chronological. Tapping a
+  // character bubble expands its translation inline below the message; the
+  // Text pill shows/hides the whole block.
+  const chip = prod
+    ? `<img class="call-say-av" src="${esc(prod.src)}" alt="" />`
+    : `<span class="call-say-av" aria-hidden="true">${esc(A.avatar || "🎧")}</span>`;
+  const first = Math.max(0, S.turns.length - 4);
+  $("callTurns").innerHTML = S.turns.slice(first).map((x, k) => x.me
+    ? `<div class="call-bubble me">${esc(x.text)}</div>`
+    : `<button class="call-bubble char" type="button" data-turn="${first + k}"` +
+      ` aria-label="${esc(A.who)}: ${esc(x.text)}">${chip}<span class="call-say-body">${esc(x.text)}` +
+      (x.tr && x.open ? `<span class="call-say-tr">${esc(x.tr)}</span>` : "") +
+      `</span></button>`).join("");
+  $("callTurns").classList.toggle("hidden", !showText);
+  $("callTurns").querySelectorAll("[data-turn]").forEach((b) => b.onclick = () => {
+    const x = S.turns[Number(b.dataset.turn)];
+    if (x && x.tr) { x.open = !x.open; renderCall(); }
+  });
+  const convo = $("callConvo");
+  convo.scrollTop = convo.scrollHeight;
 
-  // Marzi's bubble carries the suggestion and is attached to Marzi
+  // Marzi's bubble carries the suggestion and sits beside Marzi (gold)
   $("vcBubble").textContent = S.hint || L.hint;
   $("vcBubble").classList.toggle("hidden", !(S.hint && !S.busy));
   $("vcBubble").setAttribute("aria-label", `Marzi: ${S.hint || L.hint}`);
@@ -6151,6 +6268,7 @@ function startConversation() {
     S.active = S.scenario;
   }
   S.turns = []; S.hint = null; S.hintOpen = false; S.seconds = 0; S.handsFree = true; S.speaker = 1;
+  S.showText = true; // gold default: inline dialogue visible (Text ON)
   S.callId = newRewardId(); // each call claims its reward under a fresh id
   const g = S.active.goals;
   S.currentGoal = g[Math.floor(Math.random() * g.length)];
@@ -6426,7 +6544,9 @@ document.addEventListener("keydown", (e) => {
   else if (evolutionCelebrationOpen()) closeEvolutionCelebration();
   else if (STORE_PREVIEW) closeOutfitPreview();
 });
-$("sheetBtn").onclick = () => openCallSheet();
+// Text pill shows/hides the inline dialogue (product decision: no live
+// transcript sheet on the call; the top-left button keeps the tools sheet)
+$("sheetBtn").onclick = () => { S.showText = S.showText === false; renderCall(); };
 $("callMinBtn").onclick = () => openCallSheet();
 $("sheetClose").onclick = () => closeCallSheet();
 $("sheetBack").onclick = () => closeCallSheet();

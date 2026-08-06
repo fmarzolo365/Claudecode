@@ -1,0 +1,81 @@
+{
+  "version": "doctor-gold-pilot-v1",
+  "status": "GOLD_PILOT_EXTRACTED_FROM_APPROVED_REFERENCE",
+  "reference": "reference/MARZI_CALL_SCREEN_GOLD_REFERENCE.png",
+  "contactId": "arzt",
+  "scenarioFamily": "clinic",
+  "assets": {
+    "doctor": {
+      "path": "public/assets/call/characters/arzt/listening.webp",
+      "sourceMaster": "source-masters/arzt-listening-master.png",
+      "format": "webp",
+      "dimensions": [
+        1600,
+        1800
+      ],
+      "transparent": true,
+      "objectFit": "contain",
+      "objectPosition": "50% 100%",
+      "focalPoint": {
+        "x": 0.5,
+        "y": 0.34
+      },
+      "requiredVisibleCues": [
+        "white coat",
+        "green clinical top",
+        "stethoscope"
+      ]
+    },
+    "background": {
+      "path": "public/assets/call/backgrounds/clinic.webp",
+      "sourceMaster": "source-masters/clinic-master.png",
+      "format": "webp",
+      "dimensions": [
+        1800,
+        1000
+      ],
+      "transparent": false,
+      "backgroundSize": "cover",
+      "backgroundPosition": "center",
+      "requiredVisibleCues": [
+        "medical office",
+        "soft daylight",
+        "plant",
+        "desk",
+        "anatomy poster"
+      ]
+    },
+    "marzi": {
+      "path": "public/assets/marzi/call/stage-1/helping.webp",
+      "sourceMaster": "source-masters/marzi-stage1-helping-master.png",
+      "format": "webp",
+      "dimensions": [
+        768,
+        768
+      ],
+      "transparent": true,
+      "objectFit": "contain",
+      "objectPosition": "50% 100%"
+    }
+  },
+  "pilotStateMapping": {
+    "ready": "listening",
+    "listening": "listening",
+    "processing": "listening",
+    "speaking": "listening",
+    "error": "listening",
+    "disconnected": "listening"
+  },
+  "integrationRules": [
+    "Use supplied assets without regenerating, tracing, recoloring, or replacing them.",
+    "Register PNG/WebP assets ahead of generated SVG fallbacks.",
+    "Keep generated SVG art as FALLBACK_ONLY.",
+    "Increase the visible call stage to 210-252 CSS px at 390x844.",
+    "Render one focused 390x844 Doctor screenshot and stop before full validation.",
+    "Do not commit, push, deploy, or run the full browser matrix before Product Owner approval."
+  ],
+  "provenance": {
+    "source": "Extracted from the Product Owner-approved MARZI Call Screen Gold Reference board supplied in this conversation.",
+    "usage": "Gold integration pilot. Produce dedicated multi-state source artwork after composition approval."
+  }
+}
