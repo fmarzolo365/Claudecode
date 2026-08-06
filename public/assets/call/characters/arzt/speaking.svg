@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 218" role="img" aria-label="Doctor, Praxis Dr. Wagner — speaking"><defs><linearGradient id="bg_clinic" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#eef3e6"/><stop offset="1" stop-color="#e2ead6"/></linearGradient><linearGradient id="cl_doc" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#e9e4d8"/></linearGradient><linearGradient id="cl_doct" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6d9484"/><stop offset="1" stop-color="#5b8172"/></linearGradient><radialGradient id="sk_arzt" cx="0.5" cy="0.38" r="0.75"><stop offset="0" stop-color="#f3cfa8"/><stop offset="1" stop-color="#e5b98d"/></radialGradient></defs><g transform="scale(1 0.852)"><rect width="512" height="256" fill="url(#bg_clinic)"/><rect y="196" width="512" height="60" fill="#ddd2ba"/><rect y="192" width="512" height="6" fill="#e8ddcb"/><g><rect x="34" y="34" width="130" height="120" rx="10" fill="#ffffff" opacity="0.75"/>
+    <rect x="41" y="41" width="116" height="106" rx="6" fill="#dcebd2"/>
+    <path d="M50 130 q14 -18 30 -6 q16 -16 34 -2 l0 14 l-64 0 Z" fill="#b9d3a4" opacity="0.8"/>
+    <circle cx="138" cy="56" r="10" fill="#f2e9c9" opacity="0.9"/></g><g><rect x="356" y="40" width="92" height="116" rx="8" fill="#ffffff" opacity="0.8"/><path d="M402 58 q16 20 0 40 q-16 -20 0 -40 M402 98 q-12 26 0 44 q12 -18 0 -44" fill="#c7d8ef"/><circle cx="402" cy="66" r="9" fill="#c7d8ef"/></g><g transform="translate(210 176) scale(0.9)">
+    <path d="M0 0 q-16 -34 4 -52 q2 26 6 34 q4 -34 22 -42 q-4 30 -10 44 q14 -18 26 -16 q-10 22 -24 32 Z" fill="#a8c97a" opacity="0.85"/>
+    <path d="M-12 0 h48 l-7 34 q-1 5 -6 5 h-22 q-5 0 -6 -5 Z" fill="#d8c9a8"/></g><rect x="252" y="128" width="132" height="64" rx="8" fill="#e9e2cf" opacity="0.9"/><rect x="266" y="142" width="60" height="8" rx="4" fill="#e8ddcb"/><rect x="266" y="158" width="88" height="8" rx="4" fill="#e8ddcb"/></g><ellipse cx="256" cy="206" rx="130" ry="14" fill="#4a3427" opacity=".12"/><g transform="translate(103.4 -31.3) scale(0.596)"><path d="M96 512 q6 -120 82 -150 q38 -16 78 -16 q40 0 78 16 q76 30 82 150 Z" fill="url(#cl_doct)"/><path d="M256 352 l-34 -6 l-52 22 q-62 34 -66 144 l86 0 Z" fill="url(#cl_doc)" stroke="#4a3427" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M256 352 l34 -6 l52 22 q62 34 66 144 l-86 0 Z" fill="url(#cl_doc)" stroke="#4a3427" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M222 346 l34 44 l34 -44" fill="none" stroke="#4a3427" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M204 338 q-6 30 20 44 M308 338 q6 30 -20 44" fill="none" stroke="#3f4a52" stroke-width="13" stroke-linecap="round"/><path d="M224 382 q32 20 64 0" fill="none" stroke="#3f4a52" stroke-width="13" stroke-linecap="round"/><circle cx="292" cy="396" r="20" fill="#4a565f" stroke="#2f3840" stroke-width="3"/><circle cx="292" cy="396" r="9" fill="#8fa0ab"/><g>
+      <path d="M150 200 q-10 -56 22 -96 q34 -42 84 -42 q50 0 84 42 q32 40 22 96 q10 66 -10 118 q-10 26 -30 34 q-22 8 -20 -10 q22 -50 10 -122 l-112 0 q-12 72 10 122 q2 18 -20 10 q-20 -8 -30 -34 q-20 -52 -10 -118 Z" fill="#6d4c33"/>
+      <path d="M338 220 q12 62 -6 116 q-8 22 -20 24 q18 -66 8 -134 Z" fill="#8a6544" opacity=".45"/>
+      <path d="M236 296 h40 l0 40 h-40 Z" fill="#e5b98d"/>
+      <ellipse cx="162" cy="206" rx="14" ry="18" fill="#f3cfa8" stroke="#4a3427" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      <ellipse cx="350" cy="206" rx="14" ry="18" fill="#f3cfa8" stroke="#4a3427" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M166 186 q-4 -110 90 -110 q94 0 90 110 q2 88 -46 116 q-22 12 -44 12 q-22 0 -44 -12 q-48 -28 -46 -116 Z" fill="url(#sk_arzt)" stroke="#4a3427" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M336 140 q14 26 10 62" fill="none" stroke="#ffffff" stroke-width="7" stroke-linecap="round" opacity=".35"/>
+      
+      <ellipse cx="194" cy="222" rx="14" ry="8" fill="#eda286" opacity="0.32"/>
+    <ellipse cx="318" cy="222" rx="14" ry="8" fill="#eda286" opacity="0.32"/>
+      <path d="M195 158 q15 -9 30 0" fill="none" stroke="#54371f" stroke-width="6" stroke-linecap="round"/><path d="M287 158 q15 -9 30 0" fill="none" stroke="#54371f" stroke-width="6" stroke-linecap="round"/>
+      <g>
+    <ellipse cx="210" cy="186" rx="16" ry="18" fill="#fff" stroke="#4a3427" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="210" cy="187" r="10" fill="#5d4227"/>
+    <circle cx="210" cy="187" r="5.2" fill="#241a12"/>
+    <circle cx="213" cy="183.5" r="2.6" fill="#fff"/>
+    <circle cx="206.6" cy="190.4" r="1.3" fill="#fff" opacity=".85"/>
+    <ellipse cx="302" cy="186" rx="16" ry="18" fill="#fff" stroke="#4a3427" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="302" cy="187" r="10" fill="#5d4227"/>
+    <circle cx="302" cy="187" r="5.2" fill="#241a12"/>
+    <circle cx="305" cy="183.5" r="2.6" fill="#fff"/>
+    <circle cx="298.6" cy="190.4" r="1.3" fill="#fff" opacity=".85"/></g>
+      <path d="M252 212 q6 6 10 1" fill="none" stroke="#e5b98d" stroke-width="4" stroke-linecap="round"/>
+      <g><path d="M238 238 q18 4 36 0 q-3 24 -18 24 q-15 0 -18 -24 Z" fill="#7c4136" stroke="#4a3427" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M244 254 q12 8 24 0 q-5 8 -12 8 q-7 0 -12 -8 Z" fill="#d98a7c"/></g>
+      <path d="M162 190 q-8 -122 94 -122 q102 0 94 122 L 344 140 Q 310 124 280 130 Q 240 138 210 150 Q 188 158 170 164 L 162 190 Z" fill="#6d4c33"/><path d="M190 122 q30 -26 68 -22" fill="none" stroke="#8a6544" stroke-width="8" stroke-linecap="round" opacity=".65"/>
+      
+      
+      
+      <circle cx="162" cy="228" r="5" fill="#ffaa47"/><circle cx="350" cy="228" r="5" fill="#ffaa47"/>
+    </g></g></svg>

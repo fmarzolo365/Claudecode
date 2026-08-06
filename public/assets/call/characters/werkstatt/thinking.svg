@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 218" role="img" aria-label="Car mechanic, KFZ Reuter — thinking"><defs><linearGradient id="bg_workshop" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ece7dc"/><stop offset="1" stop-color="#ded7c6"/></linearGradient><linearGradient id="cl_ov" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5c6a75"/><stop offset="1" stop-color="#49545e"/></linearGradient><radialGradient id="sk_werkstatt" cx="0.5" cy="0.38" r="0.75"><stop offset="0" stop-color="#c98d5d"/><stop offset="1" stop-color="#b87a4c"/></radialGradient></defs><g transform="scale(1 0.852)"><rect width="512" height="256" fill="url(#bg_workshop)"/><rect y="196" width="512" height="60" fill="#c9bea6"/><rect y="192" width="512" height="6" fill="#e8ddcb"/><rect x="30" y="40" width="150" height="96" rx="10" fill="#d8d0bd"/><g fill="#a89c84"><rect x="46" y="56" width="10" height="52" rx="5"/><rect x="70" y="56" width="10" height="52" rx="5" transform="rotate(14 75 82)"/><circle cx="118" cy="70" r="16"/><circle cx="118" cy="70" r="7" fill="#d8d0bd"/><rect x="140" y="54" width="12" height="58" rx="6"/></g><g><circle cx="392" cy="88" r="52" fill="#8f8674"/><circle cx="392" cy="88" r="34" fill="#b3a992"/><circle cx="392" cy="88" r="14" fill="#8f8674"/></g><rect x="220" y="150" width="120" height="42" rx="8" fill="#c2452f" opacity="0.75"/><rect x="232" y="142" width="26" height="10" rx="4" fill="#a83a26" opacity="0.8"/></g><ellipse cx="256" cy="206" rx="130" ry="14" fill="#4a3427" opacity=".12"/><g transform="translate(103.4 -31.3) scale(0.596)"><path d="M96 512 q6 -120 82 -150 q38 -16 78 -16 q40 0 78 16 q76 30 82 150 Z" fill="url(#cl_ov)" stroke="#4a3427" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M196 380 l0 132 M316 380 l0 132" stroke="#3a434b" stroke-width="10"/><rect x="216" y="420" width="80" height="64" rx="10" fill="#6b7987" stroke="#4a3427" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><g transform="rotate(-14 256 452)"><rect x="248" y="424" width="12" height="44" rx="5" fill="#a89c84"/><path d="M244 424 a10 10 0 1 1 24 0 l-5 0 a7 7 0 1 0 -14 0 Z" fill="#a89c84"/></g><path d="M226 330 q30 22 60 0 l-8 26 q-22 14 -44 0 Z" fill="#b87a4c" opacity=".45"/><g>
+      <path d="M160 196 q-10 -114 96 -116 q106 2 96 116 l-14 10 q8 -50 -12 -74 l-140 0 q-20 24 -12 74 Z" fill="#38302b"/>
+      <path d="M236 296 h40 l0 40 h-40 Z" fill="#b87a4c"/>
+      <ellipse cx="162" cy="206" rx="14" ry="18" fill="#c98d5d" stroke="#4a3427" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      <ellipse cx="350" cy="206" rx="14" ry="18" fill="#c98d5d" stroke="#4a3427" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M166 186 q-4 -110 90 -110 q94 0 90 110 q2 88 -46 116 q-22 12 -44 12 q-22 0 -44 -12 q-48 -28 -46 -116 Z" fill="url(#sk_werkstatt)" stroke="#4a3427" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M336 140 q14 26 10 62" fill="none" stroke="#ffffff" stroke-width="7" stroke-linecap="round" opacity=".35"/>
+      
+      <ellipse cx="194" cy="222" rx="14" ry="8" fill="#c47c55" opacity="0.32"/>
+    <ellipse cx="318" cy="222" rx="14" ry="8" fill="#c47c55" opacity="0.32"/>
+      <path d="M195 151 q15 -12 30 -3" fill="none" stroke="#272220" stroke-width="6" stroke-linecap="round"/><path d="M287 159 q15 -7 30 2" fill="none" stroke="#272220" stroke-width="6" stroke-linecap="round"/>
+      <g>
+    <ellipse cx="210" cy="186" rx="16" ry="18" fill="#fff" stroke="#4a3427" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="207" cy="181" r="10" fill="#5d4227"/>
+    <circle cx="207" cy="181" r="5.2" fill="#241a12"/>
+    <circle cx="210" cy="177.5" r="2.6" fill="#fff"/>
+    <circle cx="203.6" cy="184.4" r="1.3" fill="#fff" opacity=".85"/>
+    <ellipse cx="302" cy="186" rx="16" ry="18" fill="#fff" stroke="#4a3427" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="299" cy="181" r="10" fill="#5d4227"/>
+    <circle cx="299" cy="181" r="5.2" fill="#241a12"/>
+    <circle cx="302" cy="177.5" r="2.6" fill="#fff"/>
+    <circle cx="295.6" cy="184.4" r="1.3" fill="#fff" opacity=".85"/></g>
+      <path d="M252 212 q6 6 10 1" fill="none" stroke="#b87a4c" stroke-width="4" stroke-linecap="round"/>
+      <path d="M246 244 q9 4 18 1" fill="none" stroke="#4a3427" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M162 190 q-8 -122 94 -122 q102 0 94 122 L 344 140 Q 310 124 280 130 Q 240 138 210 150 Q 188 158 170 164 L 162 190 Z" fill="#38302b"/><path d="M206 118 q22 -14 48 -12" fill="none" stroke="#4f453e" stroke-width="6" stroke-linecap="round" opacity=".6"/>
+      <g><path d="M170 152 q0 -72 86 -72 q86 0 86 72 l0 8 l-172 0 Z" fill="#5b7a52" stroke="#4a3427" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M162 158 q94 -18 188 0 l0 14 q-94 -16 -188 0 Z" fill="#4c6845" stroke="#4a3427" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></g>
+      
+      
+      
+    </g><g>
+      <path d="M352 512 q34 -60 6 -128 q-16 -40 -44 -66" fill="none" stroke="#49545e" stroke-width="46" stroke-linecap="round"/>
+      <g transform="rotate(-16 306 310)"><ellipse cx="306" cy="310" rx="26" ry="30" fill="#c98d5d" stroke="#4a3427" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M288 296 q8 -10 18 -6 M290 310 q8 -8 16 -5" fill="none" stroke="#b87a4c" stroke-width="5" stroke-linecap="round"/></g></g></g></svg>

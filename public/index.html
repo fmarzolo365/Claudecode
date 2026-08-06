@@ -4202,12 +4202,14 @@ const MARZI_ASSETS = Object.create(null); // filled only when approved files shi
    every lookup falls back to the approved marziSVG and no request is ever
    made for a file that does not exist. Shipping production art means dropping
    the files in and registering them - no call site changes. */
-const CALL_POSE_STATES = ["ready", "listening", "thinking", "speaking", "encouraging", "limit", "offline"];
-/* the seven call poses map onto the eight canonical MARZI_STATES shipped in
-   MARZI-013 - no new state vocabulary is introduced */
+const CALL_POSE_STATES = ["ready", "listening", "thinking", "speaking", "encouraging", "limit", "offline", "error"];
+/* the call poses map onto the eight canonical MARZI_STATES shipped in
+   MARZI-013 - no new state vocabulary is introduced. `error` gained its own
+   pose art with the call art system, so a technical problem no longer falls
+   through to the reading pose. */
 const CALL_POSE_TO_STATE = {
   ready: "neutral", listening: "listening", thinking: "thinking", speaking: "speaking",
-  encouraging: "happy", limit: "sad", offline: "sad",
+  encouraging: "happy", limit: "sad", offline: "sad", error: "error",
 };
 const MARZI_CALL_ASSETS = Object.create(null);
 function marziCallPose(state) {
@@ -4246,22 +4248,79 @@ function marziCallArt(stage, state) {
 function __registerCallAsset(stage, state, on) {
   MARZI_CALL_ASSETS[marziCallAssetPath(stage, state)] = on === true;
 }
-/* ---------- production contact/background slots (MARZI_CALL_ASSET_SPEC §5-6,9) ----------
-   Final owned character art and scenario backgrounds drop into
-   public/assets/call/ under the spec's canonical names. Until a file is
-   registered the strongest TEMPORARY asset — the generated /api/avatar
-   portrait over the scenario gradient — renders instead. Registering a path
-   is the single switch that promotes a slot to final art; nothing here
-   relabels a temporary asset as production. */
+/* ---------- CALL ART SYSTEM (docs/design/CALL_ART_SYSTEM.md) ----------
+   Deterministic asset resolution for the call experience. Production SVG
+   illustrations (tools/call-art generator) ship for the roster below; every
+   resolver returns "" when a slot has no registered art, and the caller
+   falls back to the previous stand-in (generated /api/avatar portrait,
+   scenario gradient, emoji). Registration is data — no render call-site
+   changes are ever needed to swap art. */
+const CALL_ART = {
+  // 10 contacts × 5 states, full illustrated scenes (character + backdrop)
+  characterStates: ["idle", "listening", "speaking", "thinking", "success"],
+  characters: ["arzt", "amt", "werkstatt", "friseur", "restaurant",
+    "apotheke", "paket", "vermieter", "bank", "kita"],
+  // scenario family per contact (backgrounds ship one file per family)
+  families: { arzt: "clinic", empfang: "clinic", apotheke: "pharmacy",
+    werkstatt: "workshop", amt: "public-office", bank: "office",
+    kita: "school", restaurant: "restaurant", friseur: "reception",
+    vermieter: "utility", paket: "retail" },
+  backgrounds: ["clinic", "workshop", "pharmacy", "office", "school",
+    "restaurant", "reception", "public-office", "utility", "retail"],
+  outfits: ["base", "university", "explorer", "graduate"],
+};
+/* live-call state → portrait state (success is reserved for the summary) */
+const CONTACT_STATE_FOR_CALL = { ready: "idle", listening: "listening",
+  processing: "thinking", speaking: "speaking", error: "idle", disconnected: "idle" };
+function contactAssetPath(id, state) {
+  return `/assets/call/characters/${id}/${state}.svg`;
+}
+function stageBackgroundPath(family) {
+  return `/assets/call/backgrounds/${family}.svg`;
+}
+/* getCharacterPortrait: production scene for this contact+state, or "".
+   The mid-call handover persona (speaker 2) has no drawn art yet and keeps
+   the generated portrait. */
+function resolveContactPortrait({ contactId, state, speaker } = {}) {
+  if (speaker === 2) return "";
+  if (!CALL_ART.characters.includes(contactId)) return "";
+  const st = CALL_ART.characterStates.includes(state) ? state : "idle";
+  return contactAssetPath(contactId, st);
+}
+/* getScenarioBackground: family backdrop for a scenario id, or "" */
+function resolveScenarioBackground({ scenarioId } = {}) {
+  const fam = CALL_ART.families[scenarioId];
+  return fam ? stageBackgroundPath(fam) : "";
+}
+/* getMarziOutfitAsset: full-body call variant for shipped outfits, or "" */
+function resolveMarziOutfitAsset(outfitId) {
+  return CALL_ART.outfits.includes(outfitId) ? `/assets/marzi/outfits/${outfitId}.svg` : "";
+}
+/* getMarziPose for the live call: the stage-aware registry below remains the
+   single render path (marziCallArt); this maps the richer brief vocabulary
+   onto it and returns the canonical pose file. */
+function resolveMarziCallPose({ callState = "ready", helpState = 0, suggestionVisible = false, outcome = "" } = {}) {
+  if (outcome === "success") return "/assets/marzi/call/celebrating.svg";
+  if (outcome === "retry") return "/assets/marzi/call/retry.svg";
+  if (callState === "error") return "/assets/marzi/call/error.svg";
+  if (callState === "disconnected") return "/assets/marzi/call/disconnected.svg";
+  if (helpState > 0) return "/assets/marzi/call/helping.svg";
+  if (suggestionVisible) return "/assets/marzi/call/suggesting.svg";
+  if (callState === "listening") return "/assets/marzi/call/listening.svg";
+  if (callState === "processing") return "/assets/marzi/call/thinking.svg";
+  return "/assets/marzi/call/idle.svg";
+}
+/* legacy hooks kept for tests/back-compat */
 const CALL_STAGE_ASSETS = Object.create(null);
-function contactAssetPath(id, speaker) {
-  return `/assets/call/characters/${id}/${id}${speaker === 2 ? "2" : ""}--listening--default@720.webp`;
-}
-function stageBackgroundPath(id) {
-  return `/assets/call/backgrounds/${id}--default@720.webp`;
-}
 function hasCallStageAsset(path) { return CALL_STAGE_ASSETS[path] === true; }
 function __registerCallStageAsset(path, on) { CALL_STAGE_ASSETS[path] = on === true; }
+/* register the SHIPPED production files (generated by tools/call-art) */
+for (const cid of CALL_ART.characters) {
+  for (const st of CALL_ART.characterStates) __registerCallStageAsset(contactAssetPath(cid, st), true);
+}
+for (const fam of CALL_ART.backgrounds) __registerCallStageAsset(stageBackgroundPath(fam), true);
+/* Marzi call poses: stages 4-6 × the full MARZI-018 pose vocabulary */
+for (const stg of [4, 5, 6]) for (const pz of CALL_POSE_STATES) __registerCallAsset(stg, pz, true);
 const BRAND_MARK_ASSET = "/assets/marzi/stage-6/header-neutral.svg";
 const BRAND_MARK_REGISTERED = Object.create(null);
 function hasBrandMarkAsset() { return BRAND_MARK_REGISTERED[BRAND_MARK_ASSET] === true; }
@@ -6602,6 +6661,17 @@ function renderCallStatus() {
   }
   const scr = $("vcAv");
   if (scr && scr.classList) scr.classList.toggle("speaking", st === "speaking");
+  // the illustrated contact reacts to the call state (idle/listening/
+  // thinking/speaking scenes) — a light src swap, only when production art
+  // exists for this contact
+  const A = S.active || S.scenario;
+  const img = $("vcImg");
+  const artState = CONTACT_STATE_FOR_CALL[st] || "idle";
+  const scene = A && resolveContactPortrait({ contactId: A.id, state: artState, speaker: S.speaker });
+  if (scene && img && img.dataset && img.dataset.src !== scene) {
+    img.dataset.src = scene;
+    img.src = scene;
+  }
   // Marzi's presentation state follows the same single source
   const comp = $("vcMarzi");
   if (comp && comp.dataset && comp.dataset.stage) {
@@ -6643,16 +6713,18 @@ function renderCall() {
     else { e.removeAttribute("aria-hidden"); e.setAttribute("role", "img"); e.setAttribute("aria-label", A.who || ""); }
   };
   markEmoji(img.classList.has ? img.classList.has("ok") : img.classList.contains("ok"));
-  // final registered art wins the slot; the generated portrait is the
-  // strongest TEMPORARY stand-in until then (asset spec §6)
-  const finalArt = A.id && hasCallStageAsset(contactAssetPath(A.id, S.speaker))
-    ? contactAssetPath(A.id, S.speaker) : "";
+  // production art wins the slot (state-aware illustrated scene); the
+  // generated portrait remains the stand-in for contacts without drawn art
+  // and for the mid-call handover persona
+  const portraitState = CONTACT_STATE_FOR_CALL[callStateFor(S)] || "idle";
+  const finalArt = resolveContactPortrait({ contactId: A.id, state: portraitState, speaker: S.speaker });
   const src = finalArt || (A.id && A.id !== "custom" && A.id !== "random"
     ? `/api/avatar/${A.id}${S.speaker === 2 ? "2" : ""}?v=3&pin=${encodeURIComponent(localStorage.getItem(PIN_KEY) || "")}`
     : "");
-  // scenario background slot: registered final art paints the stage card
+  // scenario backdrop paints the stage card (visible behind the emoji
+  // fallback and the handover persona's generated portrait)
   const stageEl = $("callStage");
-  const bg = A.id && hasCallStageAsset(stageBackgroundPath(A.id)) ? stageBackgroundPath(A.id) : "";
+  const bg = resolveScenarioBackground({ scenarioId: A.id });
   if (stageEl && stageEl.style) stageEl.style.backgroundImage = bg ? `url("${bg}")` : "";
   if (img.dataset.src !== src) {
     img.dataset.src = src;

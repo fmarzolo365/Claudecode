@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 218" role="img" aria-label="Hair stylist, Salon Bergmann — listening"><defs><linearGradient id="bg_reception" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f1e9e2"/><stop offset="1" stop-color="#e7dcd2"/></linearGradient><linearGradient id="cl_sty" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c78a9b"/><stop offset="1" stop-color="#b27487"/></linearGradient><radialGradient id="sk_friseur" cx="0.5" cy="0.38" r="0.75"><stop offset="0" stop-color="#f3cfa8"/><stop offset="1" stop-color="#e5b98d"/></radialGradient></defs><g transform="scale(1 0.852)"><rect width="512" height="256" fill="url(#bg_reception)"/><rect y="196" width="512" height="60" fill="#d8c6b4"/><rect y="192" width="512" height="6" fill="#e8ddcb"/><g><ellipse cx="120" cy="96" rx="58" ry="72" fill="#efe9e2"/><ellipse cx="120" cy="96" rx="50" ry="64" fill="#dcecec" opacity="0.8"/><ellipse cx="120" cy="96" rx="58" ry="72" fill="none" stroke="#c9b6a2" stroke-width="6"/></g><rect x="330" y="92" width="140" height="8" rx="4" fill="#d3c2a0"/><rect x="342" y="66" width="28.666666666666664" height="26" rx="5" fill="#cfe0bd"/><rect x="380.6666666666667" y="66" width="28.666666666666664" height="26" rx="5" fill="#e9dcc0"/><rect x="419.3333333333333" y="66" width="28.666666666666664" height="26" rx="5" fill="#d9e4d4"/><g fill="#c9b6a2"><rect x="352" y="120" width="9" height="44" rx="4" transform="rotate(18 356 142)"/><rect x="380" y="118" width="9" height="46" rx="4" transform="rotate(-12 384 141)"/></g><rect y="186" width="512" height="70" fill="#e3d5b8"/>
+    <rect y="186" width="512" height="10" rx="5" fill="#d3c2a0"/></g><ellipse cx="256" cy="206" rx="130" ry="14" fill="#4a3427" opacity=".12"/><g transform="translate(103.4 -31.3) scale(0.596)"><path d="M96 512 q6 -120 82 -150 q38 -16 78 -16 q40 0 78 16 q76 30 82 150 Z" fill="url(#cl_sty)" stroke="#4a3427" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M226 330 q30 22 60 0 l-8 26 q-22 14 -44 0 Z" fill="#e5b98d" opacity=".45"/><path d="M186 512 q-4 -80 24 -118" fill="none" stroke="#a56276" stroke-width="8" stroke-linecap="round" opacity=".8"/><g transform="rotate(-3 256 250)">
+      <path d="M154 196 q-10 -116 102 -118 q112 2 102 118 q8 60 -18 88 q-16 16 -44 18 q14 -50 6 -96 l-92 0 q-8 46 6 96 q-28 -2 -44 -18 q-26 -28 -18 -88 Z" fill="#8a4a30"/>
+      <path d="M332 214 q8 48 -8 82" fill="none" stroke="#a56344" stroke-width="9" stroke-linecap="round" opacity=".5"/>
+      <path d="M236 296 h40 l0 40 h-40 Z" fill="#e5b98d"/>
+      <ellipse cx="162" cy="206" rx="14" ry="18" fill="#f3cfa8" stroke="#4a3427" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      <ellipse cx="350" cy="206" rx="14" ry="18" fill="#f3cfa8" stroke="#4a3427" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M166 186 q-4 -110 90 -110 q94 0 90 110 q2 88 -46 116 q-22 12 -44 12 q-22 0 -44 -12 q-48 -28 -46 -116 Z" fill="url(#sk_friseur)" stroke="#4a3427" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M336 140 q14 26 10 62" fill="none" stroke="#ffffff" stroke-width="7" stroke-linecap="round" opacity=".35"/>
+      
+      <ellipse cx="194" cy="222" rx="14" ry="8" fill="#eda286" opacity="0.32"/>
+    <ellipse cx="318" cy="222" rx="14" ry="8" fill="#eda286" opacity="0.32"/>
+      <path d="M195 153 q15 -9 30 0" fill="none" stroke="#6d3722" stroke-width="6" stroke-linecap="round"/><path d="M287 153 q15 -9 30 0" fill="none" stroke="#6d3722" stroke-width="6" stroke-linecap="round"/>
+      <g>
+    <ellipse cx="210" cy="186" rx="17.28" ry="19.44" fill="#fff" stroke="#4a3427" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="210" cy="187" r="10" fill="#5d4227"/>
+    <circle cx="210" cy="187" r="5.2" fill="#241a12"/>
+    <circle cx="213" cy="183.5" r="2.6" fill="#fff"/>
+    <circle cx="206.6" cy="190.4" r="1.3" fill="#fff" opacity=".85"/>
+    <ellipse cx="302" cy="186" rx="17.28" ry="19.44" fill="#fff" stroke="#4a3427" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="302" cy="187" r="10" fill="#5d4227"/>
+    <circle cx="302" cy="187" r="5.2" fill="#241a12"/>
+    <circle cx="305" cy="183.5" r="2.6" fill="#fff"/>
+    <circle cx="298.6" cy="190.4" r="1.3" fill="#fff" opacity=".85"/></g>
+      <path d="M252 212 q6 6 10 1" fill="none" stroke="#e5b98d" stroke-width="4" stroke-linecap="round"/>
+      <path d="M238 240 q18 12 36 0" fill="none" stroke="#4a3427" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M162 190 q-8 -122 94 -122 q102 0 94 122 L 344 156 Q 320 146 296 152 Q 272 158 248 150 Q 224 142 200 150 Q 180 156 168 158 L 162 190 Z" fill="#8a4a30"/><path d="M196 122 q26 -20 56 -18" fill="none" stroke="#a56344" stroke-width="7" stroke-linecap="round" opacity=".65"/>
+      
+      
+      
+      <circle cx="162" cy="228" r="5" fill="#ffaa47"/><circle cx="350" cy="228" r="5" fill="#ffaa47"/>
+    </g></g></svg>

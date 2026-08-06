@@ -39,6 +39,9 @@ async function ctxFor(b, { w, h, lang = "es", portrait = "ok", delay = 700, redu
   await ctx.route("**/api/avatar/**", (r) => portrait === "ok"
     ? r.fulfill({ status: 200, contentType: "image/png", body: PNG })
     : r.fulfill({ status: 500, body: "" }));
+  /* production contact scenes now ship for every German contact; the
+     portrait-failure path is exercised by blocking them as well */
+  if (portrait !== "ok") await ctx.route("**/assets/call/characters/**", (r) => r.fulfill({ status: 500, body: "" }));
   await ctx.route("**/api/tts**", (r) => r.fulfill({ status: 404, body: "" }));
   await ctx.route("**/api/chat", async (r) => {
     if (delay) await new Promise((res) => setTimeout(res, delay));

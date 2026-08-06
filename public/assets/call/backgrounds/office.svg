@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 256" role="img" aria-label="office backdrop"><defs><linearGradient id="bg_office" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ebedec"/><stop offset="1" stop-color="#dee2df"/></linearGradient></defs><rect width="512" height="256" fill="url(#bg_office)"/><rect y="196" width="512" height="60" fill="#cfc6ae"/><rect y="192" width="512" height="6" fill="#e8ddcb"/><g><rect x="44" y="36" width="120" height="108" rx="10" fill="#ffffff" opacity="0.75"/>
+    <rect x="51" y="43" width="106" height="94" rx="6" fill="#dfe8ee"/>
+    <path d="M60 120 q14 -18 30 -6 q16 -16 34 -2 l0 14 l-64 0 Z" fill="#b9d3a4" opacity="0.8"/>
+    <circle cx="138" cy="58" r="10" fill="#f2e9c9" opacity="0.9"/></g><rect x="352" y="60" width="112" height="72" rx="10" fill="#d3d8d4"/><path d="M368 112 l20 -26 l18 14 l24 -30 l16 18" fill="none" stroke="#93a98f" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/><g transform="translate(238 182) scale(0.8)">
+    <path d="M0 0 q-16 -34 4 -52 q2 26 6 34 q4 -34 22 -42 q-4 30 -10 44 q14 -18 26 -16 q-10 22 -24 32 Z" fill="#a8c97a" opacity="0.85"/>
+    <path d="M-12 0 h48 l-7 34 q-1 5 -6 5 h-22 q-5 0 -6 -5 Z" fill="#d8c9a8"/></g><rect y="190" width="512" height="66" fill="#e3d5b8"/>
+    <rect y="190" width="512" height="10" rx="5" fill="#d3c2a0"/></svg>

@@ -128,6 +128,8 @@ src += `\n;globalThis.__t = { T, TARGET, TARGETS, LEVELS, LEVEL_ORDER, SCENARIOS
   showOffline, closeOffline, offlineScreenOpen,
   CALL_POSE_STATES, CALL_POSE_TO_STATE, MARZI_CALL_ASSETS, marziCallPose, marziCallAssetPath,
   hasMarziCallAsset, marziCallArt, __registerCallAsset, renderCallCompanion,
+  CALL_ART, CONTACT_STATE_FOR_CALL, contactAssetPath, stageBackgroundPath, hasCallStageAsset,
+  resolveContactPortrait, resolveScenarioBackground, resolveMarziCallPose, resolveMarziOutfitAsset,
   ONBOARD_KEY, LEARN_GOALS, DAILY_MINUTES, normalizeOnboarding, loadOnboarding, hasMeaningfulUserData,
   onboardingComplete, commitOnboarding, showOnboarding, renderOnboard, obPick, obNext, obBack, obStep,
   obCanAdvance, OB_STEPS, settingsPayload, fmtNum, plural, localeForLang, chipNum,
@@ -2116,15 +2118,15 @@ check("MARZI-018 call chrome: emoji fallback, one danger control, targets, safe 
 });
 
 
-check("MARZI-018 call poses: stable paths, empty registry, safe fallback", () => {
+check("MARZI-018 call poses: stable paths, shipped registry, safe fallback", () => {
   // 21 canonical paths: stages 4-6 x seven poses
-  if (tt.CALL_POSE_STATES.join() !== "ready,listening,thinking,speaking,encouraging,limit,offline")
+  if (tt.CALL_POSE_STATES.join() !== "ready,listening,thinking,speaking,encouraging,limit,offline,error")
     throw new Error("call pose vocabulary: " + tt.CALL_POSE_STATES.join());
   const paths = [];
   for (const st of [4, 5, 6]) for (const pose of tt.CALL_POSE_STATES) paths.push(tt.marziCallAssetPath(st, pose));
-  if (paths.length !== 21 || new Set(paths).size !== 21) throw new Error("expected 21 distinct paths");
+  if (paths.length !== 24 || new Set(paths).size !== 24) throw new Error("expected 24 distinct paths");
   if (paths[0] !== "/assets/marzi/call/stage-4-ready.svg") throw new Error("path shape: " + paths[0]);
-  if (paths[20] !== "/assets/marzi/call/stage-6-offline.svg") throw new Error("last path: " + paths[20]);
+  if (paths[23] !== "/assets/marzi/call/stage-6-error.svg") throw new Error("last path: " + paths[23]);
 
   // no new state vocabulary - every pose maps onto a shipped MARZI_STATE
   for (const pose of tt.CALL_POSE_STATES) {
@@ -2143,25 +2145,57 @@ check("MARZI-018 call poses: stable paths, empty registry, safe fallback", () =>
   // limit when online (the common case here), offline when the app is offline
   if (!["limit", "offline"].includes(tt.marziCallPose("sad"))) throw new Error("a canonical state must resolve to its pose");
 
-  // THE REGISTRY SHIPS EMPTY: no request is ever made for a missing file
-  if (Object.keys(tt.MARZI_CALL_ASSETS).length !== 0) throw new Error("the call asset registry must ship empty");
+  // THE REGISTRY SHIPS WITH THE PRODUCTION FILES REGISTERED — and every
+  // registered path must exist on disk, so no live request can ever 404
+  const pubDir = path.join(__dirname, "..", "public");
   for (const st of [4, 5, 6]) for (const pose of tt.CALL_POSE_STATES) {
-    if (tt.hasMarziCallAsset(st, pose)) throw new Error("an asset is registered before delivery");
-    const art = tt.marziCallArt(st, pose);
-    if (/<img/.test(art)) throw new Error(`unregistered ${st}/${pose} emitted an <img>`);
-    if (!/<svg/.test(art)) throw new Error(`no fallback artwork for ${st}/${pose}`);
+    if (!tt.hasMarziCallAsset(st, pose)) throw new Error(`shipped pose ${st}/${pose} is not registered`);
+    if (!fs.existsSync(path.join(pubDir, tt.marziCallAssetPath(st, pose))))
+      throw new Error("registered pose file missing on disk: " + tt.marziCallAssetPath(st, pose));
+    if (!/<img/.test(tt.marziCallArt(st, pose))) throw new Error(`registered ${st}/${pose} did not render its file`);
   }
-  // registering one swaps only that one, through the same entry point
-  tt.__registerCallAsset(5, "listening", true);
-  if (!/<img[^>]*stage-5-listening\.svg/.test(tt.marziCallArt(5, "listening"))) throw new Error("a registered asset is not used");
-  if (/<img/.test(tt.marziCallArt(5, "thinking"))) throw new Error("registering one asset affected another");
+  // the fallback mechanism stays intact: unregistering restores inline SVG
   tt.__registerCallAsset(5, "listening", false);
   if (/<img/.test(tt.marziCallArt(5, "listening"))) throw new Error("unregistering did not restore the fallback");
+  if (!/<svg/.test(tt.marziCallArt(5, "listening"))) throw new Error("no fallback artwork after unregistering");
+  tt.__registerCallAsset(5, "listening", true);
+  if (!/<img[^>]*stage-5-listening\.svg/.test(tt.marziCallArt(5, "listening"))) throw new Error("re-registered asset not used");
 
-  // stages below 4 always use the approved SVG, even if a path is registered
-  tt.__registerCallAsset(4, "ready", true);
+  // stages below 4 always use the approved SVG, even with the registry full
   if (/<img/.test(tt.marziCallArt(3, "ready"))) throw new Error("stage 3 must not use a call asset");
-  tt.__registerCallAsset(4, "ready", false);
+
+  // contact scenes + backdrops: registration matches the files on disk, and
+  // the deterministic resolvers honour the roster and fall back to ""
+  for (const cid of tt.CALL_ART.characters) for (const cst of tt.CALL_ART.characterStates) {
+    if (!tt.hasCallStageAsset(tt.contactAssetPath(cid, cst))) throw new Error(`contact scene not registered: ${cid}/${cst}`);
+    if (!fs.existsSync(path.join(pubDir, tt.contactAssetPath(cid, cst))))
+      throw new Error("registered contact file missing: " + tt.contactAssetPath(cid, cst));
+  }
+  for (const fam of tt.CALL_ART.backgrounds) {
+    if (!fs.existsSync(path.join(pubDir, tt.stageBackgroundPath(fam))))
+      throw new Error("registered backdrop missing: " + tt.stageBackgroundPath(fam));
+  }
+  if (tt.resolveContactPortrait({ contactId: "arzt", state: "listening" }) !== "/assets/call/characters/arzt/listening.svg")
+    throw new Error("contact resolver path shape");
+  if (tt.resolveContactPortrait({ contactId: "arzt", state: "nonsense" }) !== "/assets/call/characters/arzt/idle.svg")
+    throw new Error("unknown state must resolve to idle");
+  if (tt.resolveContactPortrait({ contactId: "arzt", state: "idle", speaker: 2 }) !== "")
+    throw new Error("the handover persona has no drawn art and must fall back");
+  if (tt.resolveContactPortrait({ contactId: "custom", state: "idle" }) !== "") throw new Error("unknown contact must fall back");
+  if (tt.resolveScenarioBackground({ scenarioId: "arzt" }) !== "/assets/call/backgrounds/clinic.svg")
+    throw new Error("background resolver family mapping");
+  if (tt.resolveScenarioBackground({ scenarioId: "custom" }) !== "") throw new Error("unknown scenario must fall back");
+  for (const o of tt.CALL_ART.outfits) {
+    if (!fs.existsSync(path.join(pubDir, tt.resolveMarziOutfitAsset(o)))) throw new Error("outfit variant missing: " + o);
+  }
+  if (tt.resolveMarziOutfitAsset("sporty") !== "") throw new Error("undrawn outfit must fall back");
+  // every call state maps into the portrait state vocabulary
+  for (const cs of ["ready", "listening", "processing", "speaking", "error", "disconnected"]) {
+    if (!tt.CALL_ART.characterStates.includes(tt.CONTACT_STATE_FOR_CALL[cs]))
+      throw new Error("call state " + cs + " has no portrait state");
+  }
+  if (!/\/assets\/marzi\/call\/helping\.svg/.test(tt.resolveMarziCallPose({ callState: "ready", helpState: 2 })))
+    throw new Error("Marzi pose resolver: help state");
 
   // the companion renders through the resolver and keeps its earned stage
   tt.S.lang = "es";
@@ -2169,7 +2203,7 @@ check("MARZI-018 call poses: stable paths, empty registry, safe fallback", () =>
   tt.renderCallCompanion();
   const el = document.getElementById("vcMarzi");
   if (el.dataset.stage !== String(tt.marziStageForXp(1600))) throw new Error("companion is not on the earned stage");
-  if (!/vc-marzi-art/.test(el.innerHTML) || !/<svg/.test(el.innerHTML)) throw new Error("companion artwork missing");
+  if (!/vc-marzi-art/.test(el.innerHTML) || !/<svg|<img/.test(el.innerHTML)) throw new Error("companion artwork missing");
   if (!/marziCallArt\(stage, state\)/.test(src)) throw new Error("the companion must render through the resolver");
 });
 
