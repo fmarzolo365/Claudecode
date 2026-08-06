@@ -1125,10 +1125,15 @@
     display: grid; grid-template-columns: var(--touch-min) minmax(0, 1fr) var(--touch-min);
     align-items: start; gap: var(--space-2); padding: 0 var(--space-2);
   }
+  /* visibly compact close control; the ::after box keeps the 48px touch floor */
   .call-x {
-    width: var(--touch-min); height: var(--touch-min); border-radius: 50%;
+    width: 40px; height: 40px; border-radius: 50%; position: relative;
     border: 1px solid var(--line); background: var(--card); color: var(--ink);
     cursor: pointer; display: grid; place-items: center; box-shadow: var(--shadow-sm);
+  }
+  .call-x::after {
+    content: ""; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    width: var(--touch-min); height: var(--touch-min);
   }
   .call-id { min-width: 0; text-align: center; display: grid; }
   .call-id-kicker {
@@ -1210,11 +1215,10 @@
     background: var(--card); color: var(--marzi-dark); border: 1px solid var(--tint-leaf-35);
     font: 700 var(--text-f11-5) var(--font-sans); box-shadow: var(--shadow-sm);
   }
-  /* Text OFF: the stage grows only slightly; the coach block centres in the
-     reclaimed space so there is no dead middle and no dramatic scale jump */
-  .callscreen.text-off .call-stage { height: clamp(250px, 34dvh, 300px); }
-  .callscreen.text-off .call-convo { justify-content: center; }
-  .callscreen.text-off .call-coach { margin-top: 0; }
+  /* Text OFF: identical stage geometry; the coach block moves up beneath the
+     stage so the hidden dialogue space is reclaimed, breathing room stays below */
+  .callscreen.text-off .call-convo { justify-content: flex-start; }
+  .callscreen.text-off .call-coach { margin-top: var(--space-2); }
   /* anchored Speed popover above the pills; never covers the conversation */
   .call-pop {
     position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%);
@@ -1629,7 +1633,6 @@
               </div>
               <div class="call-help-acts">
                 <button class="call-help-act" id="helpMore" type="button"></button>
-                <button class="call-help-act" id="helpHide" type="button"></button>
               </div>
             </div>
           </div>
@@ -1981,7 +1984,7 @@ const T = {
     hint:"¿Qué puedo decir?", type:"Escribir en vez de hablar", send:"Enviar", show:"Traducción",
     ended:"LLAMADA TERMINADA", review:"Tus correcciones", again:"OTRA LLAMADA", you:"TÚ",
     help:"Ayuda", textLbl:"Texto", slow:"Despacio", replay:"Repetir",
-    endCallQ:"¿Terminar esta llamada?", moreHelp:"Más ayuda", hideHelp:"Ocultar ayuda",
+    endCallQ:"¿Terminar esta llamada?", moreHelp:"Más ayuda", hideHelp:"Ocultar ayuda", hideTr:"Ocultar traducción",
     speedLbl:"Velocidad", speedFluent:"Fluida", connected:"CONECTADO", inTalk:"EN PERSONA",
     handsFree:"Manos libres", err:"No hay respuesta del servidor. ¿Está corriendo node server.js?",
     noMic:"Este navegador no reconoce voz. Usa Chrome.", micBlocked:"Micrófono bloqueado. Permite el acceso en el candado de la barra de direcciones.",
@@ -2056,7 +2059,7 @@ const T = {
     hint:"What can I say?", type:"Type instead of speaking", send:"Send", show:"Translation",
     ended:"CALL ENDED", review:"Your corrections", again:"ANOTHER CALL", you:"YOU",
     help:"Help", textLbl:"Text", slow:"Slow", replay:"Replay",
-    endCallQ:"End this call?", moreHelp:"More help", hideHelp:"Hide help",
+    endCallQ:"End this call?", moreHelp:"More help", hideHelp:"Hide help", hideTr:"Hide translation",
     speedLbl:"Speed", speedFluent:"Fluent", connected:"CONNECTED", inTalk:"IN PERSON",
     handsFree:"Hands free", err:"No answer from the server. Is node server.js running?",
     noMic:"This browser does not do speech recognition. Use Chrome.", micBlocked:"Microphone blocked. Allow access via the padlock in the address bar.",
@@ -2134,7 +2137,7 @@ T.tr = { tagline:"Gerçek Almanca aramalar ve konuşmalar pratiği yap. Sen konu
   hint:"Ne diyebilirim?", type:"Konuşmak yerine yaz", send:"Gönder", show:"Çeviri",
   ended:"GÖRÜŞME BİTTİ", review:"Düzeltmelerin", again:"YENİ ARAMA", you:"SEN",
   help:"Yardım", textLbl:"Metin", slow:"Yavaş", replay:"Tekrar",
-  endCallQ:"Bu görüşme bitirilsin mi?", moreHelp:"Daha fazla yardım", hideHelp:"Yardımı gizle",
+  endCallQ:"Bu görüşme bitirilsin mi?", moreHelp:"Daha fazla yardım", hideHelp:"Yardımı gizle", hideTr:"Çeviriyi gizle",
   speedLbl:"Hız", speedFluent:"Akıcı", connected:"BAĞLANDI", inTalk:"YÜZ YÜZE",
   handsFree:"Eller serbest", err:"Sunucudan yanıt yok. node server.js çalışıyor mu?",
   noMic:"Bu tarayıcı sesi tanımıyor. Chrome kullan.", micBlocked:"Mikrofon engelli. Adres çubuğundaki kilitten izin ver.",
@@ -2209,7 +2212,7 @@ T.ar = { tagline:"تدرّب على مكالمات ومحادثات حقيقية
   hint:"ماذا يمكنني أن أقول؟", type:"اكتب بدلاً من الكلام", send:"إرسال", show:"الترجمة",
   ended:"انتهت المكالمة", review:"تصحيحاتك", again:"مكالمة أخرى", you:"أنت",
   help:"مساعدة", textLbl:"نص", slow:"ببطء", replay:"إعادة",
-  endCallQ:"هل تريد إنهاء هذه المكالمة؟", moreHelp:"مزيد من المساعدة", hideHelp:"إخفاء المساعدة",
+  endCallQ:"هل تريد إنهاء هذه المكالمة؟", moreHelp:"مزيد من المساعدة", hideHelp:"إخفاء المساعدة", hideTr:"إخفاء الترجمة",
   speedLbl:"السرعة", speedFluent:"بطلاقة", connected:"متصل", inTalk:"وجهاً لوجه",
   handsFree:"دون استخدام اليدين", err:"لا يوجد رد من الخادم. هل node server.js يعمل؟",
   noMic:"هذا المتصفح لا يدعم التعرف على الصوت. استخدم Chrome.", micBlocked:"الميكروفون محظور. اسمح بالوصول من رمز القفل في شريط العنوان.",
@@ -2284,7 +2287,7 @@ T.uk = { tagline:"Тренуй реальні дзвінки й розмови �
   hint:"Що можна сказати?", type:"Писати замість говорити", send:"Надіслати", show:"Переклад",
   ended:"ДЗВІНОК ЗАВЕРШЕНО", review:"Твої виправлення", again:"ЩЕ ДЗВІНОК", you:"ТИ",
   help:"Допомога", textLbl:"Текст", slow:"Повільно", replay:"Повтор",
-  endCallQ:"Завершити цей дзвінок?", moreHelp:"Більше допомоги", hideHelp:"Сховати допомогу",
+  endCallQ:"Завершити цей дзвінок?", moreHelp:"Більше допомоги", hideHelp:"Сховати допомогу", hideTr:"Сховати переклад",
   speedLbl:"Швидкість", speedFluent:"Вільно", connected:"З'ЄДНАНО", inTalk:"ОСОБИСТО",
   handsFree:"Вільні руки", err:"Немає відповіді від сервера. Чи запущено node server.js?",
   noMic:"Цей браузер не розпізнає мовлення. Використовуй Chrome.", micBlocked:"Мікрофон заблоковано. Дозволь доступ через замок у рядку адреси.",
@@ -2360,7 +2363,7 @@ T.it = { tagline:"Allenati con telefonate e conversazioni reali in tedesco. Tu p
   hint:"Cosa posso dire?", type:"Scrivi invece di parlare", send:"Invia", show:"Traduzione",
   ended:"CHIAMATA TERMINATA", review:"Le tue correzioni", again:"UN'ALTRA CHIAMATA", you:"TU",
   help:"Aiuto", textLbl:"Testo", slow:"Lento", replay:"Ripeti",
-  endCallQ:"Terminare questa chiamata?", moreHelp:"Altro aiuto", hideHelp:"Nascondi aiuto",
+  endCallQ:"Terminare questa chiamata?", moreHelp:"Altro aiuto", hideHelp:"Nascondi aiuto", hideTr:"Nascondi traduzione",
   speedLbl:"Velocità", speedFluent:"Fluente", connected:"CONNESSO", inTalk:"DI PERSONA",
   handsFree:"Vivavoce", err:"Nessuna risposta dal server. node server.js è in esecuzione?",
   noMic:"Questo browser non riconosce la voce. Usa Chrome.", micBlocked:"Microfono bloccato. Consenti l'accesso dal lucchetto nella barra degli indirizzi.",
@@ -5579,7 +5582,7 @@ function renderCall() {
     ? `<img class="call-say-av" src="${esc(prod.src)}" alt="" />`
     : `<span class="call-say-av" aria-hidden="true">${esc(A.avatar || "🎧")}</span>`;
   const trBtn = (i, x) =>
-    `<button class="mini" data-ctr="${i}" aria-expanded="${String(!!x.open)}">${esc(L.show)}</button>`;
+    `<button class="mini" data-ctr="${i}" aria-expanded="${String(!!x.open)}">${esc(x.open ? L.hideTr : L.show)}</button>`;
   const first = Math.max(0, S.turns.length - 3);
   $("callTurns").innerHTML = S.turns.slice(first).map((x, k) => {
     const i = first + k;
@@ -5591,7 +5594,7 @@ function renderCall() {
     return `<div class="call-bubble char">${chip}<span class="call-say-body">` +
       `<bdi dir="ltr">${tappable(x.text, i)}</bdi>` +
       (x.tr && x.open ? `<span class="call-say-tr">${esc(x.tr)}</span>` : "") +
-      `<span class="call-acts"><button class="mini" data-cplay="${i}" aria-label="${esc(L.playLast)}">&#9834;</button>` +
+      `<span class="call-acts"><button class="mini" data-cplay="${i}" aria-label="${esc(L.playLast)}" title="${esc(L.playLast)}">${IC.speaker(ICON.xs)}</button>` +
       (x.tr ? trBtn(i, x) : "") + `</span></span></div>`;
   }).join("");
   $("callTurns").classList.toggle("hidden", !showText);
@@ -5631,7 +5634,6 @@ function renderCall() {
   $("typeRow").classList.toggle("hidden", step < 3);
   $("helpMore").textContent = L.moreHelp;
   $("helpMore").classList.toggle("hidden", step >= 3);
-  $("helpHide").textContent = L.hideHelp;
 
   renderCallStatus();
   renderTranscript();
@@ -6732,7 +6734,6 @@ $("sheetBtn").onclick = () => { S.showText = S.showText === false; renderCall();
 // click would reach the outside-press listener with a detached target
 $("speedBtn").onclick = (e) => { e.stopPropagation(); setSpeedOpen(!S.speedOpen); };
 $("helpMore").onclick = () => { if (S.helpStep) setHelp(Math.min(3, S.helpStep + 1)); };
-$("helpHide").onclick = () => setHelp(0);
 // the top-left X is the single visible end-call control; it uses the existing
 // graceful end path and confirms only while a call is actively in progress
 $("callMinBtn").onclick = () => {
