@@ -1,0 +1,6 @@
+.pm-practice .pm-practice-continue{
+  display:grid;gap:10px;
+  background:linear-gradient(135deg,var(--pm2-surface),#f2f8ed);
+}
+.pm-practice .pm-practice-continue .pm2-btn{justify-self:start}
+.pm-practice .pm2-section + .pm2-section{margin-block-start:22px}

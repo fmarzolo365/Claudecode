@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MARZI Practice Model V1",
+  "type": "object",
+  "required": [
+    "title",
+    "groups",
+    "labels"
+  ],
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "subtitle": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "continueItem": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "groups": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "label",
+          "items"
+        ],
+        "properties": {
+          "id": {
+            "enum": [
+              "prepare",
+              "improve",
+              "review",
+              "library"
+            ]
+          },
+          "label": {
+            "type": "string"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "title",
+                "actionId"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "labels": {
+      "type": "object"
+    }
+  }
+}

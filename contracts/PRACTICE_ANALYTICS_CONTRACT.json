@@ -1,0 +1,35 @@
+{
+  "privacy": "No transcript/speech/free text in events.",
+  "events": [
+    {
+      "name": "practice_home_viewed",
+      "fields": [
+        "locale",
+        "due_mistakes",
+        "due_review"
+      ]
+    },
+    {
+      "name": "practice_tool_opened",
+      "fields": [
+        "tool_id",
+        "source"
+      ]
+    },
+    {
+      "name": "practice_item_completed",
+      "fields": [
+        "tool_id",
+        "source",
+        "source_scenario_id_optional"
+      ]
+    },
+    {
+      "name": "practice_return_to_talk",
+      "fields": [
+        "source_scenario_id"
+      ]
+    }
+  ],
+  "vendor": "none in this phase"
+}

@@ -352,6 +352,19 @@
   /* legacy journey detail stays out of the initial Home viewport; the premium
      journey summary is its only gateway */
   .pm-home-jr-collapsed { display: none; }
+  /* ============== MARZI PRACTICE V1 (reference-code/css/practice-v1.css) ============== */
+  .pm-practice .pm-practice-continue {
+    display: grid; gap: 10px;
+    background: linear-gradient(135deg, var(--pm2-surface), var(--pm2-home-tint));
+  }
+  .pm-practice .pm-practice-continue .pm2-btn { justify-self: start; }
+  .pm-practice .pm2-section + .pm2-section { margin-block-start: 22px; }
+  .pm-practice .pm2-row-end.pm-count {
+    display: grid; place-items: center; min-inline-size: 26px; block-size: 26px;
+    padding: 0 6px; border-radius: var(--pm2-r-pill);
+    background: var(--pm2-soft-green); color: var(--pm2-green-deep);
+    font: 800 var(--pm2-fs-meta) / var(--pm2-lh-meta) var(--font-sans);
+  }
   @media (max-width: 370px) {
     .pm-home-hero { grid-template-columns: minmax(0, 1fr) 104px; }
     .pm-home-marzi img { max-inline-size: 104px; }
@@ -1996,11 +2009,9 @@
 
   <!-- PRACTICE (Wave 1B): premium training root. Reuses only EXISTING
        destinations; the deep ownership migration remains Wave 3. -->
-  <section id="practice" class="hidden">
-    <div class="pm-head"><h1 id="pracTitle"></h1><p class="pm-sub" id="pracSub"></p></div>
-    <div id="pracContinue"></div>
-    <div id="pracBody"></div>
-  </section>
+  <!-- PRACTICE V1 (MARZI_PRACTICE_PRODUCTION_PACK_V1): rendered entirely by
+       pmPracticeRender from the normalized PracticeModel. -->
+  <section id="practice" class="hidden pm-practice"></section>
 
   <!-- TALK root (Wave 1B): conversation-first first impression. The legacy
        setup screen stays fully functional one level deeper; Wave 2 owns the
@@ -2294,7 +2305,7 @@ const T = {
     routine:"Rutina de hoy", rCall:"Conversación", rVocab:"Vocabulario", rDrill:"Errores",
     prep:"Preparar la llamada", prepTitle:"PREPARACIÓN", howSay:"¿Cómo se dice en alemán?",
     dialog:"Diálogo guiado",
-    tabLearn:"Aprender", tabHome:"Inicio", tabPractice:"Practicar", recTitle:"Recomendado para ti", homeAsk:"¿Qué practicamos hoy?", rankTitles:["Novato","Llamador","Comunicador frecuente","Profesional del teléfono","Dragón de la oficina","Héroe de las llamadas","Leyenda del teléfono"], goContinue:"Continuar", talkPeople:"Personas y lugares", talkAllBtn:"Todas las situaciones", tabTalk:"Hablar", tabStore:"Tienda", tabProfile:"Perfil",
+    tabLearn:"Aprender", tabHome:"Inicio", tabPractice:"Practicar", recTitle:"Recomendado para ti", homeAsk:"¿Qué practicamos hoy?", pracPrepare:"Preparar", pracReview:"Repasar", rankTitles:["Novato","Llamador","Comunicador frecuente","Profesional del teléfono","Dragón de la oficina","Héroe de las llamadas","Leyenda del teléfono"], goContinue:"Continuar", talkPeople:"Personas y lugares", talkAllBtn:"Todas las situaciones", tabTalk:"Hablar", tabStore:"Tienda", tabProfile:"Perfil",
     hello:"¡Hola!", practiceNow:"PRACTICAR AHORA", mission:"Misión de hoy",
     coins:"Monedas", buyMinutes:"Comprar minutos", minLeft:"min restantes hoy",
     outfits:"Trajes de Marzi", notEnough:"No tienes suficientes monedas", bought:"¡Comprado! ✓",
@@ -2369,7 +2380,7 @@ const T = {
     routine:"Today's routine", rCall:"Conversation", rVocab:"Vocabulary", rDrill:"Mistakes",
     prep:"Prepare the call", prepTitle:"PREPARATION", howSay:"How do you say it in German?",
     dialog:"Guided dialogue",
-    tabLearn:"Learn", tabHome:"Home", tabPractice:"Practice", recTitle:"Recommended for you", homeAsk:"What shall we practise today?", rankTitles:["Newcomer","Caller","Frequent caller","Phone pro","Office dragon","Call hero","Phone legend"], goContinue:"Continue", talkPeople:"People & places", talkAllBtn:"All situations", tabTalk:"Talk", tabStore:"Store", tabProfile:"Profile",
+    tabLearn:"Learn", tabHome:"Home", tabPractice:"Practice", recTitle:"Recommended for you", homeAsk:"What shall we practise today?", pracPrepare:"Prepare", pracReview:"Review", rankTitles:["Newcomer","Caller","Frequent caller","Phone pro","Office dragon","Call hero","Phone legend"], goContinue:"Continue", talkPeople:"People & places", talkAllBtn:"All situations", tabTalk:"Talk", tabStore:"Store", tabProfile:"Profile",
     hello:"Hello!", practiceNow:"PRACTISE NOW", mission:"Today's mission",
     coins:"Coins", buyMinutes:"Buy minutes", minLeft:"min left today",
     outfits:"Marzi outfits", notEnough:"Not enough coins", bought:"Purchased! ✓",
@@ -2447,7 +2458,7 @@ T.tr = { tagline:"Gerçek Almanca aramalar ve konuşmalar pratiği yap. Sen konu
   routine:"Bugünkü rutin", rCall:"Konuşma", rVocab:"Kelimeler", rDrill:"Hatalar",
   prep:"Aramaya hazırlan", prepTitle:"HAZIRLIK", howSay:"Almancası nasıl söylenir?",
   dialog:"Rehberli diyalog",
-  tabLearn:"Öğren", tabHome:"Ana sayfa", tabPractice:"Alıştırma", recTitle:"Senin için önerilen", homeAsk:"Bugün ne çalışalım?", rankTitles:["Yeni başlayan","Arayan","Sık arayan","Telefon ustası","Ofis ejderi","Arama kahramanı","Telefon efsanesi"], goContinue:"Devam et", talkPeople:"Kişiler ve yerler", talkAllBtn:"Tüm durumlar", tabTalk:"Konuş", tabStore:"Mağaza", tabProfile:"Profil",
+  tabLearn:"Öğren", tabHome:"Ana sayfa", tabPractice:"Alıştırma", recTitle:"Senin için önerilen", homeAsk:"Bugün ne çalışalım?", pracPrepare:"Hazırlık", pracReview:"Tekrar", rankTitles:["Yeni başlayan","Arayan","Sık arayan","Telefon ustası","Ofis ejderi","Arama kahramanı","Telefon efsanesi"], goContinue:"Devam et", talkPeople:"Kişiler ve yerler", talkAllBtn:"Tüm durumlar", tabTalk:"Konuş", tabStore:"Mağaza", tabProfile:"Profil",
   hello:"Merhaba!", practiceNow:"ŞİMDİ PRATİK YAP", mission:"Bugünün görevi",
   coins:"Jetonlar", buyMinutes:"Dakika satın al", minLeft:"dk kaldı bugün",
   outfits:"Marzi kıyafetleri", notEnough:"Yeterli jeton yok", bought:"Satın alındı! ✓",
@@ -2522,7 +2533,7 @@ T.ar = { tagline:"تدرّب على مكالمات ومحادثات حقيقية
   routine:"روتين اليوم", rCall:"محادثة", rVocab:"مفردات", rDrill:"أخطاء",
   prep:"التحضير للمكالمة", prepTitle:"التحضير", howSay:"كيف تُقال بالألمانية؟",
   dialog:"حوار موجّه",
-  tabLearn:"تعلّم", tabHome:"الرئيسية", tabPractice:"تدرّب", recTitle:"موصى به لك", homeAsk:"ماذا نتدرّب اليوم؟", rankTitles:["مبتدئ","متّصل","متّصل دائم","محترف الهاتف","تنّين المكتب","بطل المكالمات","أسطورة الهاتف"], goContinue:"متابعة", talkPeople:"أشخاص وأماكن", talkAllBtn:"كل المواقف", tabTalk:"تحدث", tabStore:"المتجر", tabProfile:"الملف",
+  tabLearn:"تعلّم", tabHome:"الرئيسية", tabPractice:"تدرّب", recTitle:"موصى به لك", homeAsk:"ماذا نتدرّب اليوم؟", pracPrepare:"استعداد", pracReview:"مراجعة", rankTitles:["مبتدئ","متّصل","متّصل دائم","محترف الهاتف","تنّين المكتب","بطل المكالمات","أسطورة الهاتف"], goContinue:"متابعة", talkPeople:"أشخاص وأماكن", talkAllBtn:"كل المواقف", tabTalk:"تحدث", tabStore:"المتجر", tabProfile:"الملف",
   hello:"مرحبًا!", practiceNow:"تدرّب الآن", mission:"مهمة اليوم",
   coins:"عملات", buyMinutes:"شراء دقائق", minLeft:"دقيقة متبقية اليوم",
   outfits:"أزياء مارزي", notEnough:"لا تملك عملات كافية", bought:"تم الشراء! ✓",
@@ -2597,7 +2608,7 @@ T.uk = { tagline:"Тренуй реальні дзвінки й розмови �
   routine:"Рутина на сьогодні", rCall:"Розмова", rVocab:"Слова", rDrill:"Помилки",
   prep:"Підготуватися до дзвінка", prepTitle:"ПІДГОТОВКА", howSay:"Як це сказати німецькою?",
   dialog:"Керований діалог",
-  tabLearn:"Навчання", tabHome:"Головна", tabPractice:"Практика", recTitle:"Рекомендовано для тебе", homeAsk:"Що потренуємо сьогодні?", rankTitles:["Новачок","Абонент","Частий співрозмовник","Профі телефону","Офісний дракон","Герой дзвінків","Легенда телефону"], goContinue:"Продовжити", talkPeople:"Люди та місця", talkAllBtn:"Усі ситуації", tabTalk:"Розмова", tabStore:"Крамниця", tabProfile:"Профіль",
+  tabLearn:"Навчання", tabHome:"Головна", tabPractice:"Практика", recTitle:"Рекомендовано для тебе", homeAsk:"Що потренуємо сьогодні?", pracPrepare:"Підготовка", pracReview:"Повторення", rankTitles:["Новачок","Абонент","Частий співрозмовник","Профі телефону","Офісний дракон","Герой дзвінків","Легенда телефону"], goContinue:"Продовжити", talkPeople:"Люди та місця", talkAllBtn:"Усі ситуації", tabTalk:"Розмова", tabStore:"Крамниця", tabProfile:"Профіль",
   hello:"Привіт!", practiceNow:"ПРАКТИКУВАТИ ЗАРАЗ", mission:"Місія на сьогодні",
   coins:"Монети", buyMinutes:"Купити хвилини", minLeft:"хв залишилось сьогодні",
   outfits:"Вбрання Марзі", notEnough:"Недостатньо монет", bought:"Куплено! ✓",
@@ -2673,7 +2684,7 @@ T.it = { tagline:"Allenati con telefonate e conversazioni reali in tedesco. Tu p
   routine:"Routine di oggi", rCall:"Conversazione", rVocab:"Vocabolario", rDrill:"Errori",
   prep:"Prepara la chiamata", prepTitle:"PREPARAZIONE", howSay:"Come si dice in tedesco?",
   dialog:"Dialogo guidato",
-  tabLearn:"Impara", tabHome:"Home", tabPractice:"Pratica", recTitle:"Consigliato per te", homeAsk:"Cosa pratichiamo oggi?", rankTitles:["Novellino","Chiamante","Comunicatore frequente","Professionista del telefono","Drago dell\u2019ufficio","Eroe delle chiamate","Leggenda del telefono"], goContinue:"Continua", talkPeople:"Persone e luoghi", talkAllBtn:"Tutte le situazioni", tabTalk:"Parla", tabStore:"Negozio", tabProfile:"Profilo",
+  tabLearn:"Impara", tabHome:"Home", tabPractice:"Pratica", recTitle:"Consigliato per te", homeAsk:"Cosa pratichiamo oggi?", pracPrepare:"Preparazione", pracReview:"Ripasso", rankTitles:["Novellino","Chiamante","Comunicatore frequente","Professionista del telefono","Drago dell\u2019ufficio","Eroe delle chiamate","Leggenda del telefono"], goContinue:"Continua", talkPeople:"Persone e luoghi", talkAllBtn:"Tutte le situazioni", tabTalk:"Parla", tabStore:"Negozio", tabProfile:"Profilo",
   hello:"Ciao!", practiceNow:"PRATICA ORA", mission:"Missione di oggi",
   coins:"Monete", buyMinutes:"Compra minuti", minLeft:"min rimasti oggi",
   outfits:"Vestiti di Marzi", notEnough:"Monete insufficienti", bought:"Acquistato! ✓",
@@ -4882,50 +4893,123 @@ function hydrateAvatars(rootEl) {
   });
 }
 
-/* ---------- Wave 1B: Practice root ----------
-   Premium hierarchy over the EXISTING training destinations only: one
-   continue action, prepare rows, improve rows, library. The features stay
-   where they are until the approved Wave 3 ownership migration. */
-function renderPractice() {
+/* ==================== MARZI PRACTICE V1 (production Practice) ====================
+   MARZI_PRACTICE_PRODUCTION_PACK_V1: current state -> thin adapter ->
+   normalized PracticeModel (PRACTICE_MODEL.schema) -> renderer on shared PM2
+   components. Actions ONLY delegate to authoritative handlers.
+
+   Real-tool audit (contract: never invent tools):
+   - prepare_call/guided_dialogue/key_vocabulary -> startPrep/startDialog/startVocab
+   - mistake_drill -> startDrill; mistakes_history -> renderMistakes+show
+   - saved_words -> startVocab (the vocabulary surface owns "my words" +
+     telefontrainer.words) - a real handler, surfaced in Review per reference
+   - pronunciation: NO standalone route (it lives inside vocab/drill/test)
+     -> not rendered; slot reported as PRACTICE_PRONUNCIATION_TOOL_MISSING
+   - review_queue: no standalone surface; the mistake drill IS the review
+     mechanism -> no separate row (PRACTICE_REVIEW_QUEUE_STANDALONE_MISSING)
+
+   Learning-loop readiness: the drill action accepts an optional context
+   ({ sourceScenarioId }) which is currently unused - the future post-call
+   deep-link can pass it without touching ConversationSession.
+
+   Analytics (PRACTICE_ANALYTICS_CONTRACT): no analytics system exists; the
+   vendor-neutral hooks to emit later are practice_home_viewed,
+   practice_tool_opened, practice_item_completed, practice_return_to_talk -
+   never with transcript/speech/free text. No runtime analytics installed. */
+function practiceActions() {
+  return {
+    prep: () => startPrep(),
+    dialog: () => startDialog(),
+    vocab: () => startVocab(),
+    drill: (ctx) => startDrill(), // ctx?.sourceScenarioId reserved for the post-call loop
+    mistakes: () => { renderMistakes(); show("mistakes"); },
+    savedWords: () => startVocab(),
+  };
+}
+window.MARZI_PRACTICE_V1_ACTIONS = Object.freeze({ build: practiceActions });
+
+function practiceContext() {
   const L = t();
-  renderNav();
-  updateTopbar();
-  $("pracTitle").textContent = L.tabPractice;
-  $("pracSub").textContent = "";
   const fixes = loadFixes();
   const drillable = fixes.filter((f) => f.corrected).length;
-  const nWords = loadWords().length;
-  const row = (act, icon, title, sub) =>
-    `<button class="pm-row" data-pa="${act}"><span class="pm-row-ic">${icon}</span>` +
-    `<span class="pm-row-tx"><b>${esc(title)}</b>${sub ? `<small>${esc(sub)}</small>` : ""}</span>` +
-    `<span class="chev">&rsaquo;</span></button>`;
-  const cont = drillable
-    ? { act: "drill", icon: IC.target(ICON.lg), title: L.practice, sub: `${Math.min(8, drillable)} · ${L.mistakes}` }
-    : { act: "vocab", icon: IC.cards(ICON.lg), title: L.vocab, sub: S.scenario.de };
-  $("pracContinue").innerHTML =
-    `<div class="pm-sec">${esc(L.goContinue)}</div>` +
-    `<button class="pm-card" data-pa="${cont.act}" style="width:100%;cursor:pointer;text-align:start">` +
-    `<span class="pm-row-ic" style="width:52px;height:52px">${cont.icon}</span>` +
-    `<span class="pm-card-tx"><b>${esc(cont.title)}</b><span class="pm-note">${esc(cont.sub)}</span></span>` +
-    `<span class="pm-go">${esc(L.goContinue)}</span></button>`;
-  $("pracBody").innerHTML =
-    `<div class="pm-sec">${esc(L.train)}</div>` +
-    row("prep", IC.prep(ICON.lg), L.prep) +
-    row("dialog", IC.chat(ICON.lg), L.dialog) +
-    row("vocab", IC.cards(ICON.lg), L.vocab) +
-    `<div class="pm-sec">${esc(L.mistakes)}</div>` +
-    row("mistakes", IC.list(ICON.lg), L.mistakes, fixes.length ? String(fixes.length) : "") +
-    row("drill", IC.target(ICON.lg), L.practice, drillable ? String(Math.min(8, drillable)) : "") +
-    `<div class="pm-sec">${esc(L.myWords)}</div>` +
-    row("words", IC.star(ICON.lg), L.myWords, nWords ? `${nWords} · ${L.saved}` : L.tapWordHint);
-  $("practice").querySelectorAll("[data-pa]").forEach((b) => b.onclick = () => {
-    const a = b.dataset.pa;
-    if (a === "prep") startPrep();
-    else if (a === "dialog") startDialog();
-    else if (a === "vocab" || a === "words") startVocab();
-    else if (a === "drill") startDrill();
-    else if (a === "mistakes") { renderMistakes(); show("mistakes"); }
+  const words = loadWords().length;
+  return {
+    labels: {
+      title: L.tabPractice, continue: L.goContinue, continueCta: L.goContinue,
+      prep: L.prep, dialog: L.dialog, vocab: L.vocab,
+      practiceMistakes: L.practice, mistakes: L.mistakes,
+      savedWords: L.myWords, savedWordsSub: words ? "" : L.tapWordHint,
+    },
+    groupLabels: { prepare: L.pracPrepare, improve: "", review: L.pracReview, library: L.pracReview },
+    real: { pronunciation: false, reviewQueue: false, savedWords: true },
+    counts: { drill: drillable ? Math.min(8, drillable) : null, mistakes: fixes.length || null, saved: words || null },
+    continueItem: drillable
+      ? { id: "drill", actionId: "drill", title: L.practice, subtitle: `${Math.min(8, drillable)} \u00b7 ${L.mistakes}` }
+      : { id: "vocab", actionId: "vocab", title: L.vocab, subtitle: S.scenario ? (S.scenario[S.lang] || S.scenario.en || S.scenario.de || "") : "" },
+  };
+}
+function buildPracticeModel(ctx, actions) {
+  const items = [];
+  const put = (group, id, title, subtitle, count, icon) => {
+    if (typeof actions[id] !== "function" || !title) return;
+    items.push({ group, id, title, subtitle: subtitle || "", count: count == null ? null : count, actionId: id, icon });
+  };
+  put("prepare", "prep", ctx.labels.prep, "", null, IC.prep(ICON.lg));
+  put("prepare", "dialog", ctx.labels.dialog, "", null, IC.chat(ICON.lg));
+  put("prepare", "vocab", ctx.labels.vocab, "", null, IC.cards(ICON.lg));
+  if (ctx.real.pronunciation) put("improve", "pronunciation", ctx.labels.pronunciation, "", null, IC.mic(ICON.lg));
+  // the drill row stays out of Review while it already IS the Continue item
+  if (!(ctx.continueItem && ctx.continueItem.id === "drill"))
+    put("review", "drill", ctx.labels.practiceMistakes, "", ctx.counts.drill, IC.target(ICON.lg));
+  put("review", "mistakes", ctx.labels.mistakes, "", ctx.counts.mistakes, IC.list(ICON.lg));
+  if (ctx.real.reviewQueue) put("review", "reviewQueue", ctx.labels.reviewQueue, "", ctx.counts.review, IC.list(ICON.lg));
+  if (ctx.real.savedWords) put("review", "savedWords", ctx.labels.savedWords, ctx.labels.savedWordsSub, ctx.counts.saved, IC.star(ICON.lg));
+  const order = ["prepare", "improve", "review", "library"];
+  const groups = order.map((g) => ({ id: g, label: ctx.groupLabels[g], items: items.filter((x) => x.group === g) }))
+    .filter((g) => g.items.length);
+  return { title: ctx.labels.title, subtitle: "", continueItem: ctx.continueItem || null, groups, labels: ctx.labels };
+}
+window.MARZI_PRACTICE_V1 = Object.freeze({ buildModel: buildPracticeModel, context: practiceContext });
+
+function pmPracticeRender(model, actions) {
+  const root = $("practice");
+  if (!root) throw new Error("Practice root missing");
+  const row = (it) =>
+    `<button class="pm2-row" data-pa="${esc(it.id)}" type="button"
+       aria-label="${esc(it.count != null ? `${it.title} \u00b7 ${it.count}` : it.title)}">
+       <span class="pm2-row-icon" aria-hidden="true">${it.icon || ""}</span>
+       <span class="pm2-row-copy"><span class="pm2-row-title">${esc(it.title)}</span>
+         ${it.subtitle ? `<span class="pm2-row-meta">${esc(it.subtitle)}</span>` : ""}</span>
+       <span class="pm2-row-end${it.count != null ? " pm-count" : ""}" aria-hidden="true">${it.count != null ? esc(String(it.count)) : "\u203a"}</span>
+     </button>`;
+  root.innerHTML =
+    `<h1 class="pm2-page-title">${esc(model.title)}</h1>` +
+    (model.continueItem && typeof actions[model.continueItem.actionId] === "function"
+      ? `<section class="pm2-section"><h2 class="pm2-section-title">${esc(model.labels.continue || "")}</h2>
+           <article class="pm2-card pm2-card-pad pm-practice-continue">
+             <div class="pm2-card-title">${esc(model.continueItem.title)}</div>
+             ${model.continueItem.subtitle ? `<div class="pm2-card-meta">${esc(model.continueItem.subtitle)}</div>` : ""}
+             <button class="pm2-btn pm2-btn--primary" id="pracContinueCta" type="button">${esc(model.labels.continueCta || "")}</button>
+           </article></section>`
+      : "") +
+    (model.groups || []).map((g) =>
+      `<section class="pm2-section"><h2 class="pm2-section-title">${esc(g.label)}</h2>${g.items.map(row).join("")}</section>`).join("");
+  const cta = $("pracContinueCta");
+  if (cta && model.continueItem) cta.onclick = () => actions[model.continueItem.actionId]();
+  root.querySelectorAll("[data-pa]").forEach((b) => {
+    const act = actions[b.dataset.pa];
+    if (typeof act === "function") b.onclick = () => act();
   });
+}
+function renderPractice() {
+  renderNav();
+  updateTopbar();
+  const actions = practiceActions();
+  try {
+    pmPracticeRender(buildPracticeModel(practiceContext(), actions), actions);
+  } catch (e) {
+    $("practice").innerHTML = `<div class="pm2-empty">${esc(t().err)}</div>`; // recoverable: tabs stay usable
+  }
 }
 
 /* ---------- Wave 1B: Talk root ----------
@@ -7566,29 +7650,29 @@ $("replayBtn").onclick = () => {
 };
 $("mistakesBtn").onclick = () => { renderMistakes(); show("mistakes"); };
 $("drillBtn").onclick = () => startDrill();
-$("drillBack").onclick = () => { stopAudio(); speechSynthesis.cancel(); showTab("talk"); };
+$("drillBack").onclick = () => { stopAudio(); speechSynthesis.cancel(); showTab(CURRENT_TAB || "talk"); };
 $("vocabBtn").onclick = () => startVocab();
 $("dialogBtn").onclick = () => startDialog();
 $("dlgBack").onclick = () => {
   stopAudio(); speechSynthesis.cancel();
   S.active = null;
   if (DG && DG.stage !== "pick") startDialog(); // back to the dialogue picker first
-  else { showTab("talk"); }
+  else { showTab(CURRENT_TAB || "talk"); }
 };
 $("prepBtn").onclick = () => startPrep();
 $("progressBtn").onclick = () => startProgress();
-$("testBack").onclick = () => { stopAudio(); speechSynthesis.cancel(); showTab("talk"); };
+$("testBack").onclick = () => { stopAudio(); speechSynthesis.cancel(); showTab(CURRENT_TAB || "talk"); };
 $("prepBack").onclick = () => {
   stopAudio(); speechSynthesis.cancel();
   PREPPED.add(S.scenario.id); // leaving the warm-up counts as "seen it" - don't gate again
-  showTab("talk");
+  showTab(CURRENT_TAB || "talk");
 };
 $("vocabBack").onclick = () => {
   stopAudio(); speechSynthesis.cancel();
   if (V && V.stage === "deck") startVocab();     // back to the deck chooser first
-  else { showTab("talk"); }
+  else { showTab(CURRENT_TAB || "talk"); }
 };
-$("backBtn").onclick = () => { showTab("talk"); };
+$("backBtn").onclick = () => { showTab(CURRENT_TAB || "talk"); };
 $("ankiBtn").onclick = () => exportAnki();
 $("clearBtn").onclick = () => {
   if (confirm(t().clearConfirm)) { localStorage.removeItem(FIX_KEY); renderMistakes(); }

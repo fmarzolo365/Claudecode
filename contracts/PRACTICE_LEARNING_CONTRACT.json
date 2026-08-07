@@ -1,0 +1,32 @@
+{
+  "owner": "practice",
+  "principle": "Every drill must connect to a real learning need or conversation context.",
+  "groups": {
+    "prepare": [
+      "prepare_call",
+      "guided_dialogue",
+      "key_vocabulary"
+    ],
+    "improve": [
+      "pronunciation"
+    ],
+    "review": [
+      "mistake_drill",
+      "mistakes_history",
+      "review_queue"
+    ],
+    "library": [
+      "saved_words"
+    ]
+  },
+  "crossLinks": {
+    "fromTalkPostCall": "practise_mistakes_with_source_scenario",
+    "backToTalk": "return_to_source_scenario_when_context_exists"
+  },
+  "forbidden": [
+    "duplicate character roster",
+    "duplicate scenario picker",
+    "fake tools with no current handler",
+    "My Progress as a primary Practice tool"
+  ]
+}

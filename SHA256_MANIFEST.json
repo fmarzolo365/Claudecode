@@ -1,70 +1,58 @@
 {
   "README_FIRST.md": {
-    "bytes": 551,
-    "sha256": "d9c6184fd3cf9212c9fbfce28418a9b2dc806deb4e26db0fda7f3da2952d5d11"
+    "bytes": 155,
+    "sha256": "79d9f94d7ca20e3084999ad54b52f77d410a568c28d045ef6e1da5d3a148efa9"
   },
-  "contracts/HOME_ANALYTICS_CONTRACT.json": {
-    "bytes": 907,
-    "sha256": "b7e35b1bc76f904bca6f1a81c9353746cf27c2a56d9bf5140e170887c3b425aa"
+  "contracts/PRACTICE_ANALYTICS_CONTRACT.json": {
+    "bytes": 629,
+    "sha256": "295d3f727a907db8356ce2cc8ff7f958c63eaf00b186b8d66502e61554e2c5da"
   },
-  "contracts/HOME_MODEL.schema.json": {
-    "bytes": 2425,
-    "sha256": "bb117e2c8ed844a5bc89039486c02b25fbfe215c16f01112a6fc15a63c3ca06c"
+  "contracts/PRACTICE_LEARNING_CONTRACT.json": {
+    "bytes": 743,
+    "sha256": "307f3b9ad0bb896e55dd0f86721522fc09d0ee53d649067e5da1e63b95470540"
   },
-  "contracts/HOME_QUALITY_BUDGET.json": {
-    "bytes": 614,
-    "sha256": "e274d861d064a4514509d8213b890a490aff7ff98015c6c74d4d575709c6caff"
+  "contracts/PRACTICE_MODEL.schema.json": {
+    "bytes": 1157,
+    "sha256": "b55a290ead57ff7e4aabdea65f236d340f8fbb1032f1e49847a46fea6e284b12"
   },
-  "contracts/HOME_RECOMMENDATION_POLICY.json": {
-    "bytes": 1203,
-    "sha256": "647ced6bf1060fbe9749c850c3e9ca3fc774e1e213747c50241c151ad7007fe7"
+  "docs/PRACTICE_PRODUCT_SPEC.md": {
+    "bytes": 550,
+    "sha256": "88ba4593fc05f7248950fc0924570d583802fbbb6657f6f8780a04210f18c3b2"
   },
-  "docs/HOME_I18N_ACCESSIBILITY.md": {
-    "bytes": 730,
-    "sha256": "29bb892007921744cfacc5beb869bb23874dde889fbdea944c192e2e23c251c8"
+  "docs/PRACTICE_STATES_ACCESSIBILITY.md": {
+    "bytes": 404,
+    "sha256": "7a57bf153182a500e11ea3b013e8f168af5809a1ee89f5dfc5a60c3786d28059"
   },
-  "docs/HOME_PRODUCT_SPEC.md": {
-    "bytes": 1376,
-    "sha256": "8cf97262c49b416bb96bcf4ad09f7e8e11eeac6ac02e41517ffd2dfbf180334a"
+  "prompts/PRACTICE_IMPLEMENTATION_PROMPT.md": {
+    "bytes": 900,
+    "sha256": "6b765093671a7478e9675453cb2d2b22bfe016c18af7b72e7a155c4bd260076e"
   },
-  "docs/HOME_STATE_SPEC.md": {
-    "bytes": 902,
-    "sha256": "3e57547766fb64d0c8c13adee8518c84fe1ff646b2c7e4695ca99e51041c9488"
+  "reference/PRACTICE_REFERENCE_390x844.png": {
+    "bytes": 122809,
+    "sha256": "b55c699e864721230c6d74fcbf69b319493c899ad5d7f7e93db6a1750a0bd74c"
   },
-  "prompts/HOME_IMPLEMENTATION_PROMPT.md": {
-    "bytes": 5664,
-    "sha256": "2048bee70ed0b08116dcbf65b082cf7f4ab8509735ea1785c9f6b14081947499"
+  "reference-code/css/practice-v1.css": {
+    "bytes": 258,
+    "sha256": "6d672f611c595e896ec1f4aa92fadeb7b3a5aa72ec266862537bb49726517d09"
   },
-  "reference/HOME_ART_DIRECTION_BOARD.png": {
-    "bytes": 1817031,
-    "sha256": "a87df40c191ea0d57dd7dd52ef0fae88a78c50fe825f8876dc9cdf8c7e911e2e"
+  "reference-code/js/practice-actions.js": {
+    "bytes": 718,
+    "sha256": "a54c06d36dcd02acecb1044fa70e45feb21e675434800da60b995fcb13d0258f"
   },
-  "reference/HOME_REFERENCE_390x844.png": {
-    "bytes": 136961,
-    "sha256": "d9fd0efa8e27f20320b27e46ba3e936339ceb3bb59ec99d3f6f7d6fcf7514928"
+  "reference-code/js/practice-model-adapter.js": {
+    "bytes": 1553,
+    "sha256": "4e82ed7a31ede6757c857b0c97ecf42ed2ca4f8e5f6a4c1fc52f3d777918854b"
   },
-  "reference-code/css/home-v1.css": {
-    "bytes": 2017,
-    "sha256": "7ebd8c429a37d69e4605ffb4cbc3c8166f65c5722b6ede1967de4fb432818051"
+  "reference-code/js/practice-renderer.js": {
+    "bytes": 1648,
+    "sha256": "b6cc033d62ab43169c03c9fbc777c7c866dbe7bb97f7b6e9afbb3aa978a81810"
   },
-  "reference-code/js/home-model-adapter.js": {
-    "bytes": 2265,
-    "sha256": "abdb73aa07f578168863add98e06fa705b58de56ff0e1c736ea0600a694cda32"
+  "reference-code/tests/practice-contract-snippet.js": {
+    "bytes": 315,
+    "sha256": "cdbfba050c13e302357ce4e6de9debf921fc6c8cd8c40c2422d172682b194c8a"
   },
-  "reference-code/js/home-renderer.js": {
-    "bytes": 3713,
-    "sha256": "57a8aae6cc9ff879445ab2339f13573928aa2c54849ea46f02745972adbd56d1"
-  },
-  "reference-code/tests/home-contract-snippet.js": {
-    "bytes": 1043,
-    "sha256": "4b09af45fca020c869675b536f11541c61703e56ace26b91d5eb777901b7eb52"
-  },
-  "templates/HOME_REVIEW.md": {
-    "bytes": 585,
-    "sha256": "24576d4d0becce8ff89c4d3a94dfe84c7346d7166d196cda5e444ca896efe5b3"
-  },
-  "tools/validate_home_static.py": {
-    "bytes": 949,
-    "sha256": "4360e7652babdd31e0b0309563e10d969ff4dd35499f88ab8c274148d5a48d51"
+  "tools/validate_practice_static.py": {
+    "bytes": 421,
+    "sha256": "9382a860728f472d1783cef4a4bd0c8309b79294ca3cb4a35a558ab6327d92f9"
   }
 }
