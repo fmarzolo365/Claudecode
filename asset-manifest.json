@@ -1,21 +1,24 @@
 {
-  "pack": "marzi-apotheke-painterly-gold-pack-v2",
+  "pack": "marzi-werkstatt-painterly-gold-pack-v1",
   "status": "GOLD_PILOT_FOR_PRODUCT_OWNER_REVIEW",
-  "contactId": "apotheke",
-  "handoverPersona": "apotheke2",
+  "contactId": "werkstatt",
+  "handoverPersona": "werkstatt2",
   "handoverPersonaIncluded": false,
-  "backgroundFamily": "pharmacy",
-  "technicalBaseline": {
-    "branch": "claude/marzi-doctor-wagner-states-v1-i5o6eq",
-    "commit": "4ba3d15",
-    "requireExactBaselineVerification": true
+  "displayName": "KFZ-Werkstatt Reuter",
+  "role": "a service adviser at a car workshop",
+  "backgroundFamily": "workshop",
+  "voice": {
+    "primary": "onyx",
+    "handover": "ash"
   },
-  "reference": "reference/APOTHEKE_GOLD_ART_DIRECTION.png",
+  "technicalBaseline": {
+    "preferredBranch": "claude/marzi-apotheke-gold-v1-freeze",
+    "requiredAncestorCommit": "92875df",
+    "fallbackBaselineBranch": "claude/marzi-apotheke-painterly-gold-v2",
+    "requireVerificationBeforeIntegration": true
+  },
+  "reference": "reference/WERKSTATT_GOLD_ART_DIRECTION.png",
   "character": {
-    "displayName": "Adler-Apotheke",
-    "role": "pharmacist answering the phone",
-    "voicePrimary": "nova",
-    "voiceHandover": "onyx",
     "canvas": [
       1600,
       1800
@@ -29,18 +32,18 @@
     },
     "states": {
       "idle": {
-        "path": "public/assets/call/characters/apotheke/idle.webp",
-        "sourceMaster": "source-masters/apotheke-idle-master.png",
+        "path": "public/assets/call/characters/werkstatt/idle.webp",
+        "sourceMaster": "source-masters/werkstatt-idle-master.png",
         "geometry": {
           "canvas": [
             1600,
             1800
           ],
           "alphaBBox": [
-            251,
-            154,
-            1348,
-            1774
+            350,
+            102,
+            1250,
+            1798
           ],
           "objectFit": "contain",
           "objectPosition": "50% 100%",
@@ -51,18 +54,18 @@
         }
       },
       "listening": {
-        "path": "public/assets/call/characters/apotheke/listening.webp",
-        "sourceMaster": "source-masters/apotheke-listening-master.png",
+        "path": "public/assets/call/characters/werkstatt/listening.webp",
+        "sourceMaster": "source-masters/werkstatt-listening-master.png",
         "geometry": {
           "canvas": [
             1600,
             1800
           ],
           "alphaBBox": [
-            220,
-            154,
-            1360,
-            1774
+            364,
+            103,
+            1235,
+            1798
           ],
           "objectFit": "contain",
           "objectPosition": "50% 100%",
@@ -73,18 +76,18 @@
         }
       },
       "thinking": {
-        "path": "public/assets/call/characters/apotheke/thinking.webp",
-        "sourceMaster": "source-masters/apotheke-thinking-master.png",
+        "path": "public/assets/call/characters/werkstatt/thinking.webp",
+        "sourceMaster": "source-masters/werkstatt-thinking-master.png",
         "geometry": {
           "canvas": [
             1600,
             1800
           ],
           "alphaBBox": [
-            228,
-            177,
-            1351,
-            1774
+            528,
+            103,
+            1072,
+            1798
           ],
           "objectFit": "contain",
           "objectPosition": "50% 100%",
@@ -95,18 +98,18 @@
         }
       },
       "speaking": {
-        "path": "public/assets/call/characters/apotheke/speaking.webp",
-        "sourceMaster": "source-masters/apotheke-speaking-master.png",
+        "path": "public/assets/call/characters/werkstatt/speaking.webp",
+        "sourceMaster": "source-masters/werkstatt-speaking-master.png",
         "geometry": {
           "canvas": [
             1600,
             1800
           ],
           "alphaBBox": [
-            166,
-            149,
-            1427,
-            1774
+            339,
+            102,
+            1261,
+            1797
           ],
           "objectFit": "contain",
           "objectPosition": "50% 100%",
@@ -117,18 +120,18 @@
         }
       },
       "success": {
-        "path": "public/assets/call/characters/apotheke/success.webp",
-        "sourceMaster": "source-masters/apotheke-success-master.png",
+        "path": "public/assets/call/characters/werkstatt/success.webp",
+        "sourceMaster": "source-masters/werkstatt-success-master.png",
         "geometry": {
           "canvas": [
             1600,
             1800
           ],
           "alphaBBox": [
-            120,
-            149,
-            1416,
-            1774
+            260,
+            103,
+            1341,
+            1797
           ],
           "objectFit": "contain",
           "objectPosition": "50% 100%",
@@ -141,8 +144,8 @@
     }
   },
   "background": {
-    "path": "public/assets/call/backgrounds/pharmacy.webp",
-    "sourceMaster": "source-masters/pharmacy-master.png",
+    "path": "public/assets/call/backgrounds/workshop.webp",
+    "sourceMaster": "source-masters/workshop-master.png",
     "dimensions": [
       1800,
       1000
@@ -151,13 +154,14 @@
     "backgroundSize": "cover",
     "backgroundPosition": "center",
     "requiredCues": [
-      "German pharmacy interior",
-      "red Apotheke A",
-      "subtle Adler/eagle cue",
-      "medicine shelving and drawers",
-      "prescription and medicine boxes",
-      "stock terminal",
-      "green phone"
+      "German Kfz workshop/reception",
+      "car or car lift in background",
+      "tool wall and tool cabinets",
+      "tires/wheels",
+      "service counter with terminal and phone",
+      "battery and brake-part cues",
+      "subtle Reuter workshop sign",
+      "warm cream/green family with steel-grey workshop accents"
     ]
   },
   "stateMapping": {
@@ -182,14 +186,16 @@
     ],
     "decodeBeforeSwap": true,
     "crossfadeMs": 150,
+    "isolatedSettleTargetMs": 180,
     "reducedMotionMs": 0,
     "noScalePulseForProductionArt": true,
-    "noFallbackBetweenValidProductionStates": true
+    "noFallbackBetweenValidStates": true,
+    "fallbackOnlyOnRealFailure": true
   },
   "artImmutability": [
-    "Do not regenerate, redraw, trace, recolor or independently crop these assets.",
-    "Do not use the rejected flat-vector Apotheke pack as production art.",
-    "Do not alter the frozen Gold Call shell to accommodate these assets.",
-    "If a pose looks wrong in review, stop and return to the external art producer; do not compensate with CSS."
+    "Do not regenerate, redraw, trace, recolor, retouch, crop per-state, or replace these assets.",
+    "Do not compensate for an art issue with CSS geometry changes.",
+    "Do not modify the frozen Gold Call shell.",
+    "werkstatt2 remains out of scope."
   ]
 }

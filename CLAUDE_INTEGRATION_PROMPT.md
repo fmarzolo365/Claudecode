@@ -1,52 +1,81 @@
-# MARZI — APOTHEKE PAINTERLY GOLD V2 INTEGRATION
-# INTEGRATION ONLY — DO NOT DESIGN
+# MARZI — WERKSTATT PAINTERLY GOLD V1 INTEGRATION
+# DATA/REGISTRY INTEGRATION ONLY
 
-This pack replaces the rejected flat-vector Apotheke art with the externally supplied painterly Gold assets.
+This pack contains the approved Gold production pilot for:
+contactId: `werkstatt`
+display: `KFZ-Werkstatt Reuter`
+family: `workshop`
 
-MANDATORY BASELINE GATE
+DO NOT integrate `werkstatt2` yet.
+
+==================================================
+BASELINE GATE
+==================================================
 
 Before editing:
 
 git fetch origin
 
-Verify that:
-origin/claude/marzi-doctor-wagner-states-v1-i5o6eq
-contains commit:
-4ba3d15
+Preferred baseline:
+`origin/claude/marzi-apotheke-gold-v1-freeze`
 
-If that baseline cannot be verified, STOP.
+Verify that the selected baseline contains approved Apotheke runtime commit:
+`92875df`
 
-Create a NEW integration branch from that verified Wagner Gold state baseline:
+If the freeze branch does not exist, use only a verified Apotheke Gold branch that contains 92875df.
 
-claude/marzi-apotheke-painterly-gold-v2
+Do not start from:
+- main
+- the rejected flat Apotheke branch
+- a branch containing unrelated MARZI-006 changes
 
-Do not modify or rewrite the Wagner branch.
-Do not merge the old flat Apotheke branch.
-Do not cherry-pick commit 2a0161a.
-The old flat pack is reference-only and is NOT production art.
+If no clean verified Gold baseline exists, STOP and report.
 
-Extract this pack at the repository root and read:
-- asset-manifest.json
-- reference/APOTHEKE_GOLD_ART_DIRECTION.png
+Create a new dedicated branch:
 
-Verify checksums before integration.
+`claude/marzi-werkstatt-painterly-gold-v1`
 
-REQUIRED ASSETS
+Do not rewrite or force-push any existing Gold branch.
 
-- public/assets/call/characters/apotheke/idle.webp
-- public/assets/call/characters/apotheke/listening.webp
-- public/assets/call/characters/apotheke/thinking.webp
-- public/assets/call/characters/apotheke/speaking.webp
-- public/assets/call/characters/apotheke/success.webp
-- public/assets/call/backgrounds/pharmacy.webp
+==================================================
+PACK GATE
+==================================================
 
-If any are missing, STOP.
+Read:
+- `asset-manifest.json`
+- `SHA256_MANIFEST.json`
+- `reference/WERKSTATT_GOLD_ART_DIRECTION.png`
 
+Verify every checksum before integration.
+
+Required assets:
+
+- public/assets/call/characters/werkstatt/idle.webp
+- public/assets/call/characters/werkstatt/listening.webp
+- public/assets/call/characters/werkstatt/thinking.webp
+- public/assets/call/characters/werkstatt/speaking.webp
+- public/assets/call/characters/werkstatt/success.webp
+- public/assets/call/backgrounds/workshop.webp
+
+If any asset or checksum fails, STOP.
+
+==================================================
 IMPLEMENTATION
+==================================================
 
-Add only the minimal CALL_ART registry entry for `apotheke`, using the existing Wagner production-art architecture.
+Add only the minimal `werkstatt` CALL_ART registry entry.
 
-State mapping:
+Use:
+
+werkstatt: {
+  background: "/assets/call/backgrounds/workshop.webp",
+  dir: "/assets/call/characters/werkstatt/",
+  states: <same approved Gold states mapping>,
+  ext: ".webp"
+}
+
+Mapping exactly:
+
 ready        -> idle
 listening    -> listening
 processing   -> thinking
@@ -55,62 +84,77 @@ success      -> success
 error        -> idle
 disconnected -> idle
 
-Reuse unchanged:
-- production-first no-flash behavior
-- preload idle + listening before first reveal
-- warm thinking + speaking + success after start
-- decode-before-swap
-- 150ms wall-clock crossfade
-- 0ms reduced-motion swap
-- same Gold stage geometry
-- same focal/crop policy
-- real-failure-only fallback
-- no production-art scale pulse
+Reuse the approved Wagner/Apotheke Gold runtime unchanged:
 
-DO NOT:
-- modify supplied artwork
-- regenerate SVGs
-- change the Gold call shell
+- 1600×1800 transparent production character canvas
+- focal point 0.5 / 0.34
+- bottom aligned
+- 253.2px Gold stage at 390×844
+- production-first no-flash
+- preload idle + listening before reveal
+- warm thinking + speaking + success after start
+- resident/warm layers
+- decode before swap
+- 150ms wall-clock crossfade
+- <=180ms isolated settle target
+- 0ms reduced-motion visual transition
+- no production-art scale pulse
+- fallback only on real load failure
+
+Do NOT:
+- change shell HTML/CSS
+- change state machine
+- change server.js
 - change Text / Help / Translate / Speed / Replay / mic / footer
 - touch MARZI-006
-- integrate `apotheke2` yet
+- modify supplied artwork
+- generate SVG replacements
+- integrate werkstatt2
 - merge
 - deploy
 
+==================================================
 FOCUSED REVIEW GATE
+==================================================
 
-Run focused checks only:
-1. all six asset URLs return 200
-2. registry resolves every Apotheke state
-3. no emoji/generated/SVG flash at first reveal
-4. no fallback/blank/veil between valid production states
-5. stage height and crop remain identical
-6. state transition timing remains Gold-compatible
-7. reduced-motion swap remains immediate
+Run focused checks only.
 
-Capture exactly five 390x844 screenshots:
-- idle
-- listening
-- thinking
-- speaking
-- success
+Verify:
+1. all six production asset URLs return 200;
+2. every Werkstatt call state resolves to the required WebP;
+3. first reveal never shows emoji/generated/SVG mechanic;
+4. no fallback, blank or veil between valid production states;
+5. settled stage/portrait geometry is stable;
+6. isolated state transitions settle <=180ms after warm-up;
+7. reduced motion swaps immediately;
+8. existing Gold Help/Text/Translate interaction still overlays correctly.
 
-Also capture one Text ON + Help ON screenshot for the pharmacy scenario to confirm the existing Gold shell overlays the new art correctly.
+Capture exactly six 390×844 screenshots:
+
+1. idle
+2. listening
+3. thinking
+4. speaking
+5. success
+6. Text ON + Help ON for a Werkstatt scenario
 
 STOP for Product Owner review.
 
-Do not run the full suite before approval.
-If the stop hook requires preservation, commit and push only to the new dedicated integration branch.
+Do not run the full suite before visual approval.
+Do not merge or deploy.
+
+If the repository stop hook requires preservation:
+commit/push only to the dedicated Werkstatt branch.
 
 Final report:
-- baseline verification
-- exact files changed
+- baseline used and verification
 - checksum verification
+- exact files changed
 - registry entry
-- focused validation
+- focused results
 - screenshot paths
 - commit SHA if preservation required
 
 End exactly:
 
-READY FOR APOTHEKE PAINTERLY GOLD REVIEW
+READY FOR WERKSTATT PAINTERLY GOLD REVIEW

@@ -1,20 +1,21 @@
-# MARZI APOTHEKE PAINTERLY GOLD PACK V2
+# MARZI WERKSTATT PAINTERLY GOLD PACK V1
 
-Use this pack instead of the rejected flat-vector Apotheke delivery.
+This is a production-art integration pack for the existing `werkstatt` contact.
 
-## Give Claude Code
+## Claude Code
 
-Attach this ZIP as a real file in a clean Claude Code session.
+Attach the ZIP as a real file in a clean session.
 
-Then send:
+Send:
 
-Extract `MARZI_APOTHEKE_PAINTERLY_GOLD_PACK_V2.zip` at the repository root.
+Extract `MARZI_WERKSTATT_PAINTERLY_GOLD_PACK_V1.zip` at the repository root.
 
 Read and execute:
 `CLAUDE_INTEGRATION_PROMPT.md`
 
-The supplied artwork is immutable production input.
-Do not merge the old flat Apotheke branch.
-Do not redesign the Gold Call shell.
-Do not deploy.
+Use only a verified Gold baseline containing Apotheke runtime commit `92875df`.
+Do not touch the frozen Gold shell, MARZI-006, or `werkstatt2`.
+Do not modify artwork.
+Do not merge or deploy.
+
 Produce the six requested review screenshots and stop.
