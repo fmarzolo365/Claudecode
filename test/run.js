@@ -417,7 +417,8 @@ check("MARZI-001 corrections: ledger idempotency, per-call ids, hardened storage
 
 check("MARZI-002 shell: hash routing, top-bar resources, reusable primitives", () => {
   // the four canonical tabs each own a hash; junk hashes resolve to null
-  if (Object.keys(tt.TAB_HASH).join() !== "learn,talk,store,profile") throw new Error("tab set changed");
+  if (Object.keys(tt.TAB_HASH).join() !== "home,practice,talk,store,profile") throw new Error("tab set changed");
+  if (tt.tabFromHash("#learn") !== "home" || tt.tabFromHash("learn") !== "home") throw new Error("#learn must alias to home");
   if (tt.tabFromHash("#store") !== "store" || tt.tabFromHash("store") !== "store") throw new Error("hash not resolved");
   if (tt.tabFromHash("#nope") !== null || tt.tabFromHash("") !== null || tt.tabFromHash(null) !== null) throw new Error("junk hash not rejected");
   // navigating writes the hash (back-button support)
@@ -432,10 +433,10 @@ check("MARZI-002 shell: hash routing, top-bar resources, reusable primitives", (
   if (!document.getElementById("tbCoins").innerHTML.includes("77")) throw new Error("coins chip");
   if (!document.getElementById("tbMins").innerHTML.endsWith(" 24")) throw new Error("minutes chip: " + document.getElementById("tbMins").innerHTML);
   // shell primitives, tokens and chrome exist in the document
-  for (const needle of [".card {", ".btn {", "--space-3:", "--text-sm:", 'id="tbGear"', 'id="tbMins"', "hashchange"]) {
+  for (const needle of [".card {", ".btn {", "--space-3:", "--text-sm:", 'id="nbPractice"', 'id="tbMins"', "hashchange"]) {
     if (!html.includes(needle)) throw new Error("shell missing " + needle);
   }
-  tt.showTab("learn");
+  tt.showTab("home");
 });
 
 checkAsync("MARZI-003 engine: contracts, DI, registries, transcript, lifecycle", async () => {
@@ -1473,7 +1474,7 @@ check("MARZI-016 journey: existing scenarios, states, one next action, list view
   // the map lives inside Learn and the tab set is untouched
   const learn = html.slice(html.indexOf('<section id="learn"'), html.indexOf('<section id="setup"'));
   if (!learn.includes('id="jrBody"')) throw new Error("the journey must live inside Learn");
-  if (Object.keys(tt.TAB_HASH).join() !== "learn,talk,store,profile") throw new Error("navigation changed");
+  if (Object.keys(tt.TAB_HASH).join() !== "home,practice,talk,store,profile") throw new Error("navigation changed");
 
   // no new scenarios or characters were introduced
   if (tt.SCENARIOS.length !== new Set(tt.SCENARIOS.map((s) => s.id)).size) throw new Error("duplicate scenario ids");

@@ -60,6 +60,15 @@
     --call-bg: #100c08;
     --call-stack: 92px;
     --avatar-sm: 48px; --avatar-md: 56px; --avatar-lg: 92px; --avatar-xl: 112px;
+    /* Wave 1B premium shell palette (contracts/design-tokens.json). Raw
+       values live ONLY here; the shell remaps the legacy tokens to these
+       outside the call, so the frozen Gold Call keeps its exact pixels. */
+    --pm-bg: #fff7e8; --pm-surface: #fffdf8; --pm-soft: #e8f5e9;
+    --pm-primary: #2e7d32; --pm-deep: #1b5e20; --pm-gold: #f5b84c;
+    --pm-coral: #f28a65; --pm-ink: #20211f; --pm-muted: #6e6f68;
+    --pm-border: rgba(46, 125, 50, .14);
+    --shadow-nav: 0 -8px 28px rgba(57, 51, 39, .08);
+    --shadow-pm: 0 8px 24px rgba(57, 51, 39, .08);
 
     /* Extended palette (design-system reconciliation, findings 1-4).
        Every value below is the exact colour already shipping - these give
@@ -206,16 +215,102 @@
     padding-bottom: var(--safe-bottom);
   }
   .bottomnav-in {
-    width: 100%; max-width: 560px; height: 74px; margin: 0 auto;
-    display: grid; grid-template-columns: repeat(4, 1fr);
+    width: 100%; max-width: 560px; height: 78px; margin: 0 auto;
+    display: grid; grid-template-columns: repeat(5, 1fr); /* premium shell: five tabs, one row */
   }
   .bottomnav button {
     display: flex; flex-direction: column; align-items: center; justify-content: center;
-    gap: 3px; border: none; background: none; cursor: pointer;
+    gap: 2px; border: none; background: none; cursor: pointer; min-width: 0;
     color: var(--muted); font: 700 var(--text-f11-5) var(--font-sans);
+    min-height: var(--touch-min);
   }
   .bottomnav button .ic { vertical-align: 0; }
-  .bottomnav button.on { color: var(--primary); }
+  .bottomnav button.on { color: var(--primary-active); }
+  /* premium selected state: soft-green pill behind the icon - shape + weight,
+     never colour alone */
+  .nb-ic {
+    display: grid; place-items: center; width: 46px; height: 29px;
+    border-radius: var(--radius-xl); transition: background var(--dur) var(--ease);
+  }
+  .bottomnav button.on .nb-ic { background: var(--primary-soft); color: var(--primary); }
+  .nb-lbl { max-width: 100%; }
+  .bottomnav button.on .nb-lbl { font-weight: 800; }
+  /* Talk carries the product's heart: subtly emphasized, not a FAB */
+  .nb-talk .nb-ic { width: 50px; height: 32px; background: var(--primary-soft); color: var(--primary); }
+  .nb-talk.on .nb-ic { background: var(--primary); color: var(--on-primary); }
+  /* ===== Wave 1B premium shell: token remap outside the frozen call ===== */
+  body:not(.in-call) {
+    --bg: var(--pm-bg); --card: var(--pm-surface);
+    --primary: var(--pm-primary); --primary-hover: var(--pm-deep); --primary-active: var(--pm-deep);
+    --primary-soft: var(--pm-soft); --marzi-dark: var(--pm-deep);
+    --coin: var(--pm-gold); --ink: var(--pm-ink); --muted: var(--pm-muted);
+    --shadow: var(--shadow-pm);
+  }
+  body:not(.in-call) .bottomnav {
+    background: var(--card); border-top: 1px solid var(--pm-border);
+    box-shadow: var(--shadow-nav);
+  }
+  .brand { display: inline-flex; align-items: center; gap: 7px; min-width: 0; }
+  .brand-marzi { width: 30px; height: 30px; display: inline-flex; }
+  .brand-marzi svg { width: 100%; height: 100%; }
+  .wordmark { color: var(--primary); }
+  /* premium root-screen primitives */
+  .pm-head { margin: 6px 2px 12px; }
+  .pm-head h1 { margin: 0; font: 800 var(--text-xl) var(--font-sans); letter-spacing: -.01em; }
+  .pm-sub { margin: 3px 0 0; color: var(--muted); font: 600 var(--text-sm) var(--font-sans); }
+  .pm-sec {
+    margin: 18px 2px 8px; color: var(--muted);
+    font: 700 var(--text-xs) var(--font-sans); text-transform: uppercase; letter-spacing: .08em;
+  }
+  .pm-row {
+    display: flex; align-items: center; gap: 12px; width: 100%; text-align: start;
+    background: var(--card); border: 1px solid var(--pm-border); border-radius: var(--radius);
+    padding: 12px 14px; margin-top: 8px; cursor: pointer; min-height: var(--touch-min);
+    box-shadow: var(--shadow-sm); color: var(--ink); font: 600 var(--text-md) var(--font-sans);
+  }
+  .pm-row-ic {
+    flex: 0 0 auto; width: 40px; height: 40px; border-radius: var(--radius-sm);
+    background: var(--primary-soft); color: var(--primary);
+    display: grid; place-items: center;
+  }
+  .pm-row-tx { flex: 1 1 auto; min-width: 0; display: grid; }
+  .pm-row-tx b { font-weight: 700; }
+  .pm-row-tx small { color: var(--muted); font: 600 var(--text-sm) var(--font-sans); }
+  .pm-row .chev { color: var(--muted); }
+  .pm-card {
+    background: var(--card); border: 1px solid var(--pm-border); border-radius: var(--radius-lg);
+    box-shadow: var(--shadow); padding: 14px; margin-top: 10px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .pm-card .char-face { border-radius: var(--radius); overflow: hidden; }
+  .pm-card-tx { flex: 1 1 auto; min-width: 0; display: grid; gap: 2px; }
+  .pm-card-tx small { color: var(--muted); font: 700 var(--text-xs) var(--font-sans); text-transform: uppercase; letter-spacing: .06em; }
+  .pm-card-tx b { font: 800 var(--text-lg) var(--font-sans); }
+  .pm-card-tx .pm-note { color: var(--muted); font: 600 var(--text-sm) var(--font-sans); text-transform: none; letter-spacing: 0; }
+  .pm-go {
+    flex: 0 0 auto; border: none; cursor: pointer; min-height: var(--touch-min);
+    background: var(--primary); color: var(--on-primary); border-radius: var(--radius-xl);
+    padding: 10px 16px; font: 800 var(--text-sm) var(--font-sans);
+  }
+  .ppl-rail { display: flex; gap: 10px; overflow-x: auto; padding: 4px 2px 8px; scrollbar-width: none; }
+  .ppl-rail::-webkit-scrollbar { display: none; }
+  .ppl {
+    flex: 0 0 auto; display: grid; justify-items: center; gap: 5px; min-width: 72px;
+    background: none; border: none; cursor: pointer; padding: 8px 4px;
+    border-radius: var(--radius); color: var(--muted); font: 700 var(--text-xs) var(--font-sans);
+    min-height: var(--touch-min);
+  }
+  .ppl .char-face { border-radius: 50%; overflow: hidden; box-shadow: var(--shadow-sm); border: 2px solid var(--card); }
+  .ppl.on { background: var(--primary-soft); color: var(--primary-active); }
+  .ppl.on .char-face { border-color: var(--primary); }
+  .pm-hero-store {
+    background: linear-gradient(160deg, var(--primary-soft), var(--card));
+    border: 1px solid var(--pm-border); border-radius: var(--radius-lg); box-shadow: var(--shadow);
+    display: grid; justify-items: center; gap: 6px; padding: 18px 14px; margin: 10px 0 4px;
+    text-align: center;
+  }
+  .pm-hero-store b { font: 800 var(--text-lg) var(--font-sans); }
+  .pm-hero-store small { color: var(--muted); font: 600 var(--text-sm) var(--font-sans); }
   .brand-card {
     background: linear-gradient(150deg, var(--paper-2), var(--leaf-soft-6));
     border: 1.5px solid var(--leaf-line); border-radius: 22px;
@@ -1529,15 +1624,16 @@
 </style>
 </head>
 <body>
+<!-- Premium shell (Wave 1B): the topbar is brand + subordinate status only.
+     One global navigation system - no hamburger, no gear. Coins/streak are
+     read-only context; the minutes chip stays the plan-sheet meter. -->
 <header class="topbar" id="topbar">
   <div class="topbar-in">
-    <button class="menu-btn" id="menuBtn" aria-label="Menu"><span></span><span></span><span></span></button>
-    <span class="wordmark">Marzi</span>
+    <span class="brand"><span class="brand-marzi" id="tbBrand" aria-hidden="true"></span><span class="wordmark">Marzi</span></span>
     <span class="grow"></span>
-    <button class="chip-res" id="tbCoins" aria-label="Coins"></button>
+    <span class="chip-res" id="tbCoins" aria-label="Coins"></span>
     <span class="chip-res streak" id="tbStreak"></span>
     <button class="chip-res mins" id="tbMins" aria-label="Call minutes left today"></button>
-    <button class="chip-res gear" id="tbGear" aria-label="Settings"></button>
   </div>
 </header>
 <div id="netBanner" class="net-banner hidden" role="status"></div>
@@ -1555,6 +1651,7 @@
       <div class="hero-meta"><span id="heroLv"></span><span class="hero-sub" id="heroSub"></span></div>
     </div>
     <button class="big cta" id="practiceBtn" style="margin-top:10px"></button>
+    <div id="homeRec"></div>
     <div class="mission-card">
       <div class="hero-top">
         <div class="hero-streak" id="heroStreak"></div>
@@ -1563,7 +1660,6 @@
       <div class="label" id="missionLbl" style="margin:8px 0 0"></div>
       <div class="routine" id="routine"></div>
     </div>
-    <div class="grid3" id="learnActs"></div>
     <!-- MARZI-016: the learning journey lives inside Learn, below the existing
          hero and mission content so nothing above it moves. Tabs unchanged. -->
     <section class="jr" aria-labelledby="jrTitle">
@@ -1767,9 +1863,31 @@
     <button class="big" id="dlgBack"></button>
   </section>
 
+  <!-- PRACTICE (Wave 1B): premium training root. Reuses only EXISTING
+       destinations; the deep ownership migration remains Wave 3. -->
+  <section id="practice" class="hidden">
+    <div class="pm-head"><h1 id="pracTitle"></h1><p class="pm-sub" id="pracSub"></p></div>
+    <div id="pracContinue"></div>
+    <div id="pracBody"></div>
+  </section>
+
+  <!-- TALK root (Wave 1B): conversation-first first impression. The legacy
+       setup screen stays fully functional one level deeper; Wave 2 owns the
+       real hierarchy migration. -->
+  <section id="talkroot" class="hidden">
+    <div class="pm-head"><h1 id="talkTitle"></h1><p class="pm-sub" id="talkSub"></p></div>
+    <div id="talkContinue"></div>
+    <div class="pm-sec" id="talkPeopleLbl"></div>
+    <div class="ppl-rail" id="talkPeople" role="group"></div>
+    <div class="pm-sec" id="talkRecLbl"></div>
+    <div id="talkRec"></div>
+    <button class="big" id="talkAllBtn" style="margin-top:14px"></button>
+  </section>
+
   <!-- STORE: coins, minute packages, outfit catalog (data-only, ADR-10) -->
   <section id="store" class="hidden">
     <div class="plate"><span id="storeTitle"></span></div>
+    <div id="storeHero"></div>
     <div id="storeLive" class="sr-only" aria-live="polite"></div>
     <div id="storeBody" style="margin-top:10px"></div>
     <div class="ui-modal-back hidden" id="storeBack"></div>
@@ -1783,6 +1901,7 @@
     <div class="label" style="margin-top:18px" id="profSettingsLbl"></div>
     <div class="setting-list">
       <button class="setting-row" id="pairBtn" type="button"></button>
+      <button class="setting-row" id="planBtn" type="button"></button>
       <button class="setting-row" id="exportBtn" type="button"></button>
       <button class="setting-row" id="importBtn" type="button"></button>
     </div>
@@ -1831,8 +1950,9 @@
 
 <nav class="bottomnav" id="bottomnav" aria-label="Primary">
   <div class="bottomnav-in">
-    <button id="nbLearn" data-tab="learn"></button>
-    <button id="nbTalk" data-tab="talk"></button>
+    <button id="nbHome" data-tab="home"></button>
+    <button id="nbPractice" data-tab="practice"></button>
+    <button id="nbTalk" data-tab="talk" class="nb-talk"></button>
     <button id="nbStore" data-tab="store"></button>
     <button id="nbProfile" data-tab="profile"></button>
   </div>
@@ -2043,7 +2163,7 @@ const T = {
     routine:"Rutina de hoy", rCall:"Conversación", rVocab:"Vocabulario", rDrill:"Errores",
     prep:"Preparar la llamada", prepTitle:"PREPARACIÓN", howSay:"¿Cómo se dice en alemán?",
     dialog:"Diálogo guiado",
-    tabLearn:"Aprender", tabTalk:"Hablar", tabStore:"Tienda", tabProfile:"Perfil",
+    tabLearn:"Aprender", tabHome:"Inicio", tabPractice:"Practicar", recTitle:"Recomendado para ti", goContinue:"Continuar", talkPeople:"Personas y lugares", talkAllBtn:"Todas las situaciones", tabTalk:"Hablar", tabStore:"Tienda", tabProfile:"Perfil",
     hello:"¡Hola!", practiceNow:"PRACTICAR AHORA", mission:"Misión de hoy",
     coins:"Monedas", buyMinutes:"Comprar minutos", minLeft:"min restantes hoy",
     outfits:"Trajes de Marzi", notEnough:"No tienes suficientes monedas", bought:"¡Comprado! ✓",
@@ -2118,7 +2238,7 @@ const T = {
     routine:"Today's routine", rCall:"Conversation", rVocab:"Vocabulary", rDrill:"Mistakes",
     prep:"Prepare the call", prepTitle:"PREPARATION", howSay:"How do you say it in German?",
     dialog:"Guided dialogue",
-    tabLearn:"Learn", tabTalk:"Talk", tabStore:"Store", tabProfile:"Profile",
+    tabLearn:"Learn", tabHome:"Home", tabPractice:"Practice", recTitle:"Recommended for you", goContinue:"Continue", talkPeople:"People & places", talkAllBtn:"All situations", tabTalk:"Talk", tabStore:"Store", tabProfile:"Profile",
     hello:"Hello!", practiceNow:"PRACTISE NOW", mission:"Today's mission",
     coins:"Coins", buyMinutes:"Buy minutes", minLeft:"min left today",
     outfits:"Marzi outfits", notEnough:"Not enough coins", bought:"Purchased! ✓",
@@ -2196,7 +2316,7 @@ T.tr = { tagline:"Gerçek Almanca aramalar ve konuşmalar pratiği yap. Sen konu
   routine:"Bugünkü rutin", rCall:"Konuşma", rVocab:"Kelimeler", rDrill:"Hatalar",
   prep:"Aramaya hazırlan", prepTitle:"HAZIRLIK", howSay:"Almancası nasıl söylenir?",
   dialog:"Rehberli diyalog",
-  tabLearn:"Öğren", tabTalk:"Konuş", tabStore:"Mağaza", tabProfile:"Profil",
+  tabLearn:"Öğren", tabHome:"Ana sayfa", tabPractice:"Alıştırma", recTitle:"Senin için önerilen", goContinue:"Devam et", talkPeople:"Kişiler ve yerler", talkAllBtn:"Tüm durumlar", tabTalk:"Konuş", tabStore:"Mağaza", tabProfile:"Profil",
   hello:"Merhaba!", practiceNow:"ŞİMDİ PRATİK YAP", mission:"Bugünün görevi",
   coins:"Jetonlar", buyMinutes:"Dakika satın al", minLeft:"dk kaldı bugün",
   outfits:"Marzi kıyafetleri", notEnough:"Yeterli jeton yok", bought:"Satın alındı! ✓",
@@ -2271,7 +2391,7 @@ T.ar = { tagline:"تدرّب على مكالمات ومحادثات حقيقية
   routine:"روتين اليوم", rCall:"محادثة", rVocab:"مفردات", rDrill:"أخطاء",
   prep:"التحضير للمكالمة", prepTitle:"التحضير", howSay:"كيف تُقال بالألمانية؟",
   dialog:"حوار موجّه",
-  tabLearn:"تعلّم", tabTalk:"تحدث", tabStore:"المتجر", tabProfile:"الملف",
+  tabLearn:"تعلّم", tabHome:"الرئيسية", tabPractice:"تدرّب", recTitle:"موصى به لك", goContinue:"متابعة", talkPeople:"أشخاص وأماكن", talkAllBtn:"كل المواقف", tabTalk:"تحدث", tabStore:"المتجر", tabProfile:"الملف",
   hello:"مرحبًا!", practiceNow:"تدرّب الآن", mission:"مهمة اليوم",
   coins:"عملات", buyMinutes:"شراء دقائق", minLeft:"دقيقة متبقية اليوم",
   outfits:"أزياء مارزي", notEnough:"لا تملك عملات كافية", bought:"تم الشراء! ✓",
@@ -2346,7 +2466,7 @@ T.uk = { tagline:"Тренуй реальні дзвінки й розмови �
   routine:"Рутина на сьогодні", rCall:"Розмова", rVocab:"Слова", rDrill:"Помилки",
   prep:"Підготуватися до дзвінка", prepTitle:"ПІДГОТОВКА", howSay:"Як це сказати німецькою?",
   dialog:"Керований діалог",
-  tabLearn:"Навчання", tabTalk:"Розмова", tabStore:"Крамниця", tabProfile:"Профіль",
+  tabLearn:"Навчання", tabHome:"Головна", tabPractice:"Практика", recTitle:"Рекомендовано для тебе", goContinue:"Продовжити", talkPeople:"Люди та місця", talkAllBtn:"Усі ситуації", tabTalk:"Розмова", tabStore:"Крамниця", tabProfile:"Профіль",
   hello:"Привіт!", practiceNow:"ПРАКТИКУВАТИ ЗАРАЗ", mission:"Місія на сьогодні",
   coins:"Монети", buyMinutes:"Купити хвилини", minLeft:"хв залишилось сьогодні",
   outfits:"Вбрання Марзі", notEnough:"Недостатньо монет", bought:"Куплено! ✓",
@@ -2422,7 +2542,7 @@ T.it = { tagline:"Allenati con telefonate e conversazioni reali in tedesco. Tu p
   routine:"Routine di oggi", rCall:"Conversazione", rVocab:"Vocabolario", rDrill:"Errori",
   prep:"Prepara la chiamata", prepTitle:"PREPARAZIONE", howSay:"Come si dice in tedesco?",
   dialog:"Dialogo guidato",
-  tabLearn:"Impara", tabTalk:"Parla", tabStore:"Negozio", tabProfile:"Profilo",
+  tabLearn:"Impara", tabHome:"Home", tabPractice:"Pratica", recTitle:"Consigliato per te", goContinue:"Continua", talkPeople:"Persone e luoghi", talkAllBtn:"Tutte le situazioni", tabTalk:"Parla", tabStore:"Negozio", tabProfile:"Profilo",
   hello:"Ciao!", practiceNow:"PRATICA ORA", mission:"Missione di oggi",
   coins:"Monete", buyMinutes:"Compra minuti", minLeft:"min rimasti oggi",
   outfits:"Vestiti di Marzi", notEnough:"Monete insufficienti", bought:"Acquistato! ✓",
@@ -3162,6 +3282,7 @@ const IC = {
   cards: (s) => ic('<rect x="3" y="7" width="13" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/>', false, s),
   prep: (s) => ic('<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v2M9 13l2 2 4-4"/>', false, s),
   target: (s) => ic('<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.5"/>', false, s),
+  home: (s) => ic('<path d="M4 11l8-7 8 7M6 9.5V20h4.5v-5h3v5H18V9.5"/>', false, s),
   list: (s) => ic('<path d="M4 6h16M4 12h16M4 18h10"/>', false, s),
   trend: (s) => ic('<path d="M3 17l6-6 4 4 7-7M14 8h6v6"/>', false, s),
   share: (s) => ic('<path d="M12 3v11M8 6.5L12 3l4 3.5M5 12v7h14v-7"/>', false, s),
@@ -3211,12 +3332,10 @@ const UI = {
   },
   /* --- 3. Top bar: brand + resources + settings (the app shell chrome) --- */
   topBar({ coins = 0, streak = 0, minutes = 0 } = {}) {
-    return `<button class="menu-btn" id="menuBtn" aria-label="Menu"><span></span><span></span><span></span></button>` +
-      `<span class="wordmark">Marzi</span><span class="grow"></span>` +
-      UI.coinChip({ id: "tbCoins", value: coins, label: "Coins" }) +
+    return `<span class="brand"><span class="brand-marzi" id="tbBrand" aria-hidden="true"></span><span class="wordmark">Marzi</span></span><span class="grow"></span>` +
+      UI.coinChip({ id: "tbCoins", value: coins, label: "Coins", tag: "span" }) +
       UI.coinChip({ id: "tbStreak", value: streak, kind: "streak", icon: IC.flame(ICON.sm), label: "Streak", tag: "span" }) +
-      UI.coinChip({ id: "tbMins", value: minutes, kind: "mins", icon: IC.clock(ICON.sm), label: "Call minutes left today" }) +
-      `<button class="chip-res gear" id="tbGear" aria-label="Settings">${IC.gear(ICON.btn)}</button>`;
+      UI.coinChip({ id: "tbMins", value: minutes, kind: "mins", icon: IC.clock(ICON.sm), label: "Call minutes left today" });
   },
   /* --- 4. Coin chip: a compact resource readout (coins, streak, minutes) --- */
   coinChip({ value = 0, icon = null, kind = "", id = "", label = "", tag = "button" } = {}) {
@@ -4108,18 +4227,19 @@ function renderLearn() {
     else { renderMistakes(); show("mistakes"); }
   });
 
-  // one compact strip: guided dialogue · progress · mistakes (details open on tap;
-  // the evolution preview lives behind tap-on-Marzi to keep Learn on one screen)
-  const nFix = loadFixes().length;
-  $("learnActs").innerHTML =
-    `<button class="act col" data-la="dialog" ${dialogAvailable().length ? "" : "disabled"}>${IC.chat(ICON.lg)}<span>${esc(L.dialog)}</span></button>
-     <button class="act col" data-la="progress">${IC.trend(ICON.lg)}<span>${esc(L.progress)}</span></button>
-     <button class="act col" data-la="mistakes">${IC.list(ICON.lg)}<span>${esc(L.mistakes)}${nFix ? ` (${nFix})` : ""}</span></button>`;
-  $("learnActs").querySelectorAll("[data-la]").forEach((b) => b.onclick = () => {
-    if (b.dataset.la === "dialog") startDialog();
-    else if (b.dataset.la === "progress") startProgress();
-    else { renderMistakes(); show("mistakes"); }
-  });
+  // Wave 1B: the recommendation card answers "what should I do now?" and
+  // deep-links to Talk (the owner) with the contact visible - the tool strip
+  // moved to the Practice tab
+  const rc = S.scenario && S.scenario.goals ? S.scenario : SCENARIOS.find((x) => x.goals);
+  $("homeRec").innerHTML =
+    `<div class="pm-sec">${esc(L.recTitle)}</div>` +
+    `<button class="pm-card" id="homeRecGo" style="width:100%;cursor:pointer;text-align:start">` +
+    `${UI.characterAvatar({ scenario: rc, size: "var(--avatar-lg)" })}` +
+    `<span class="pm-card-tx"><small>${esc(L.talkingWith)}</small><b>${esc(rc.who)}</b>` +
+    `<span class="pm-note">${esc(rc[S.lang] || rc.en || rc.de || "")}</span></span>` +
+    `<span class="pm-go">${esc(L.goContinue)}</span></button>`;
+  $("homeRecGo").onclick = () => showTab("talk");
+  hydrateAvatars($("homeRec"));
   updateTopbar();
 }
 
@@ -4135,6 +4255,11 @@ function renderStore() {
   const st = loadStats();
   const coins = st.coins || 0;
   $("storeTitle").textContent = L.storeOutfits.toUpperCase();
+  // Wave 1B: customization-led root - Marzi preview before the catalog
+  const stStage = currentMarziStage();
+  $("storeHero").innerHTML =
+    `<div class="pm-hero-store">${UI.marziAvatar({ stage: stStage, mood: "happy", size: "var(--avatar-xl)" })}` +
+    `<b>${esc(marziNames()[stStage - 1])}</b><small>${esc(L.collectAll)}</small></div>`;
   const items = OUTFITS.filter((o) => o.cat === STORE_CAT);
   const tabs = STORE_CATS.map((c, i) => ({
     id: c, label: (L.catNames || T.en.catNames)[i], icon: IC[CAT_ICON[c]](ICON.md),
@@ -4182,7 +4307,7 @@ function renderStore() {
     b.onclick = () => { STORE_CAT = b.dataset.cat; renderStore(); });
   $("storeBody").querySelectorAll("[data-outfit]").forEach((b) =>
     b.onclick = () => openOutfitPreview(b.dataset.outfit));
-  $("storeClose").onclick = () => showTab("learn");
+  $("storeClose").onclick = () => showTab("home");
   if (STORE_MSG) announceStore(STORE_MSG);
   updateTopbar();
 }
@@ -4511,6 +4636,8 @@ function renderProfile() {
   const helpName = (LANG_CHIPS.find((x) => x[0] === S.lang) || ["", S.lang])[1];
   $("pairBtn").textContent = "🌐 " + helpName + " → " + TARGET.nativeName;
   $("pairBtn").onclick = () => showOnboarding();
+  $("planBtn").textContent = "⏱ " + L.planTitle;
+  $("planBtn").onclick = () => openPlanScreen();
   $("exportBtn").textContent = `↓ ${L.dataExport}`;
   $("importBtn").textContent = `↑ ${L.dataImport}`;
   updateTopbar();
@@ -4554,16 +4681,23 @@ function updateTopbar() {
 }
 function renderNav() {
   const L = t();
-  [["nbLearn", IC.book(ICON.xl), L.tabLearn], ["nbTalk", IC.chat(ICON.xl), L.tabTalk],
-   ["nbStore", IC.bag(ICON.xl), L.tabStore], ["nbProfile", IC.person(ICON.xl), L.tabProfile]]
-    .forEach(([id, icon, label]) => { $(id).innerHTML = icon + `<span>${esc(label)}</span>`; });
+  [["nbHome", IC.home(ICON.xl), L.tabHome], ["nbPractice", IC.target(ICON.xl), L.tabPractice],
+   ["nbTalk", IC.chat(ICON.xl), L.tabTalk], ["nbStore", IC.bag(ICON.xl), L.tabStore],
+   ["nbProfile", IC.person(ICON.xl), L.tabProfile]]
+    .forEach(([id, icon, label]) => {
+      $(id).innerHTML = `<span class="nb-ic" aria-hidden="true">${icon}</span><span class="nb-lbl">${esc(label)}</span>`;
+    });
 }
 /* MARZI-002 shell routing: each tab owns a hash, so the Android back button
    moves between tabs (and out of a call) instead of closing the app, and
    every tab is deep-linkable. */
-const TAB_HASH = { learn:"#learn", talk:"#talk", store:"#store", profile:"#profile" };
+const TAB_HASH = { home:"#home", practice:"#practice", talk:"#talk", store:"#store", profile:"#profile" };
+/* permanent compatibility: installed PWAs, bookmarks and old links use
+   #learn - it must always resolve to the Home tab */
+const TAB_HASH_ALIAS = { learn:"home" };
 function tabFromHash(h) {
   const tab = String(h || "").replace(/^#/, "");
+  if (TAB_HASH_ALIAS[tab]) return TAB_HASH_ALIAS[tab];
   return TAB_HASH[tab] ? tab : null;
 }
 let CURRENT_TAB = null, HASH_SYNCED = false;
@@ -4585,10 +4719,109 @@ function showTab(tab, fromHash) {
   STORE_MSG = null;
   CURRENT_TAB = tab;
   if (!fromHash) syncTabHash(tab);
-  if (tab === "talk") { renderSetup(); show("setup"); }
+  if (tab === "talk") { renderTalkRoot(); show("talkroot"); }
+  else if (tab === "practice") { renderPractice(); show("practice"); }
   else if (tab === "store") { renderStore(); show("store"); }
   else if (tab === "profile") { renderProfile(); show("profile"); }
-  else { renderLearn(); show("learn"); }
+  else { renderLearn(); show("learn"); } // home (and any fallthrough)
+  // every tab opens at its top: the hash write above can anchor-scroll to
+  // the section whose id matches the tab, so reset on the next frame
+  const toTop = () => { try { window.scrollTo(0, 0); } catch (e) {} };
+  toTop();
+  if (typeof requestAnimationFrame === "function") requestAnimationFrame(toTop);
+}
+
+/* hydrate lazily-loaded character portraits emitted by UI.characterAvatar */
+function hydrateAvatars(rootEl) {
+  (rootEl.querySelectorAll("img[data-src]") || []).forEach((img) => {
+    if (img.src) return;
+    img.onload = () => img.classList.add("ok");
+    img.onerror = () => img.classList.remove("ok");
+    img.src = img.dataset.src;
+  });
+}
+
+/* ---------- Wave 1B: Practice root ----------
+   Premium hierarchy over the EXISTING training destinations only: one
+   continue action, prepare rows, improve rows, library. The features stay
+   where they are until the approved Wave 3 ownership migration. */
+function renderPractice() {
+  const L = t();
+  renderNav();
+  updateTopbar();
+  $("pracTitle").textContent = L.tabPractice;
+  $("pracSub").textContent = "";
+  const fixes = loadFixes();
+  const drillable = fixes.filter((f) => f.corrected).length;
+  const nWords = loadWords().length;
+  const row = (act, icon, title, sub) =>
+    `<button class="pm-row" data-pa="${act}"><span class="pm-row-ic">${icon}</span>` +
+    `<span class="pm-row-tx"><b>${esc(title)}</b>${sub ? `<small>${esc(sub)}</small>` : ""}</span>` +
+    `<span class="chev">&rsaquo;</span></button>`;
+  const cont = drillable
+    ? { act: "drill", icon: IC.target(ICON.lg), title: L.practice, sub: `${Math.min(8, drillable)} · ${L.mistakes}` }
+    : { act: "vocab", icon: IC.cards(ICON.lg), title: L.vocab, sub: S.scenario.de };
+  $("pracContinue").innerHTML =
+    `<div class="pm-sec">${esc(L.goContinue)}</div>` +
+    `<button class="pm-card" data-pa="${cont.act}" style="width:100%;cursor:pointer;text-align:start">` +
+    `<span class="pm-row-ic" style="width:52px;height:52px">${cont.icon}</span>` +
+    `<span class="pm-card-tx"><b>${esc(cont.title)}</b><span class="pm-note">${esc(cont.sub)}</span></span>` +
+    `<span class="pm-go">${esc(L.goContinue)}</span></button>`;
+  $("pracBody").innerHTML =
+    `<div class="pm-sec">${esc(L.train)}</div>` +
+    row("prep", IC.prep(ICON.lg), L.prep) +
+    row("dialog", IC.chat(ICON.lg), L.dialog) +
+    row("vocab", IC.cards(ICON.lg), L.vocab) +
+    `<div class="pm-sec">${esc(L.mistakes)}</div>` +
+    row("mistakes", IC.list(ICON.lg), L.mistakes, fixes.length ? String(fixes.length) : "") +
+    row("drill", IC.target(ICON.lg), L.practice, drillable ? String(Math.min(8, drillable)) : "") +
+    `<div class="pm-sec">${esc(L.myWords)}</div>` +
+    row("words", IC.star(ICON.lg), L.myWords, nWords ? `${nWords} · ${L.saved}` : L.tapWordHint);
+  $("practice").querySelectorAll("[data-pa]").forEach((b) => b.onclick = () => {
+    const a = b.dataset.pa;
+    if (a === "prep") startPrep();
+    else if (a === "dialog") startDialog();
+    else if (a === "vocab" || a === "words") startVocab();
+    else if (a === "drill") startDrill();
+    else if (a === "mistakes") { renderMistakes(); show("mistakes"); }
+  });
+}
+
+/* ---------- Wave 1B: Talk root ----------
+   Conversation-first first impression from current reachable data. The
+   legacy setup screen stays fully functional one level deeper (All
+   situations); the deep Talk hierarchy migration is Wave 2. */
+function renderTalkRoot() {
+  const L = t();
+  renderNav();
+  updateTopbar();
+  $("talkTitle").textContent = L.tabTalk;
+  $("talkSub").textContent = L.pick;
+  const sc = S.scenario && S.scenario.goals ? S.scenario : SCENARIOS.find((x) => x.goals);
+  $("talkContinue").innerHTML =
+    `<div class="pm-card">${UI.characterAvatar({ scenario: sc, size: "var(--avatar-lg)" })}` +
+    `<span class="pm-card-tx"><small>${esc(L.talkingWith)}</small><b>${esc(sc.who)}</b>` +
+    `<span class="pm-note">${esc(sc[S.lang] || sc.en || sc.de || "")}</span></span>` +
+    `<button class="pm-go" id="talkGo">${esc(sc.kind === "face" ? L.talk : L.call)}</button></div>`;
+  $("talkGo").onclick = () => goCall();
+  $("talkPeopleLbl").textContent = L.talkPeople;
+  const ppl = SCENARIOS.filter((x) => x.goals).slice(0, 10);
+  $("talkPeople").innerHTML = ppl.map((x) =>
+    `<button class="ppl ${x.id === sc.id ? "on" : ""}" data-tp="${x.id}" aria-pressed="${x.id === sc.id}">` +
+    `${UI.characterAvatar({ scenario: x, size: "var(--avatar-md)" })}<span>${esc(x.tag)}</span></button>`).join("");
+  $("talkPeople").querySelectorAll("[data-tp]").forEach((b) =>
+    b.onclick = () => { selectScenario(b.dataset.tp); renderTalkRoot(); });
+  $("talkRecLbl").textContent = L.recTitle;
+  const rec = SCENARIOS.filter((x) => x.goals && x.id !== sc.id).slice(0, 3);
+  $("talkRec").innerHTML = rec.map((x) =>
+    `<button class="pm-row" data-tr2="${x.id}"><span class="pm-row-ic">${IC.phone(ICON.lg)}</span>` +
+    `<span class="pm-row-tx"><b>${esc(x.de)}</b><small>${esc(scenarioSubtitle(x))}</small></span>` +
+    `<span class="chev">&rsaquo;</span></button>`).join("");
+  $("talkRec").querySelectorAll("[data-tr2]").forEach((b) =>
+    b.onclick = () => { selectScenario(b.dataset.tr2); renderTalkRoot(); });
+  $("talkAllBtn").textContent = L.talkAllBtn;
+  $("talkAllBtn").onclick = () => { renderSetup(); show("setup"); };
+  hydrateAvatars($("talkroot"));
 }
 
 /* ---------- mistakes history screen ---------- */
@@ -5899,18 +6132,19 @@ function renderTranscript() {
 }
 
 /* which bottom-nav tab each screen belongs to (sub-screens highlight their home tab) */
-const TAB_OF = { learn:"learn", dialog:"learn", mistakes:"learn", drill:"learn", test:"learn",
-  setup:"talk", call:"talk", done:"talk", prep:"talk", vocab:"talk",
+const TAB_OF = { learn:"home", test:"home",
+  practice:"practice", dialog:"practice", mistakes:"practice", drill:"practice", vocab:"practice", prep:"practice",
+  talkroot:"talk", setup:"talk", call:"talk", done:"talk",
   store:"store", profile:"profile" };
 function show(which) {
-  ["learn","setup","onboard","call","done","mistakes","drill","vocab","prep","test","dialog","store","profile"]
+  ["learn","practice","talkroot","setup","onboard","call","done","mistakes","drill","vocab","prep","test","dialog","store","profile"]
     .forEach((id) => $(id).classList.toggle("hidden", id !== which));
   // the call is immersive; onboarding is chromeless
   $("bottomnav").classList.toggle("hidden", which === "call" || which === "onboard");
   if (document.body.classList) document.body.classList.toggle("in-call", which === "call");
   $("topbar").classList.toggle("hidden", which === "onboard" || which === "call");
   const active = TAB_OF[which] || "";
-  [["nbLearn","learn"],["nbTalk","talk"],["nbStore","store"],["nbProfile","profile"]]
+  [["nbHome","home"],["nbPractice","practice"],["nbTalk","talk"],["nbStore","store"],["nbProfile","profile"]]
     .forEach(([id, tb]) => $(id).classList.toggle("on", tb === active));
 }
 
@@ -6876,7 +7110,7 @@ function endCall() {
 $("againBtn").onclick = () => { stopAudio(); speechSynthesis.cancel(); showTab("talk"); };
 function openDrawer() { $("drawer").classList.add("open"); $("drawerBack").classList.remove("hidden"); }
 function closeDrawer() { $("drawer").classList.remove("open"); $("drawerBack").classList.add("hidden"); }
-$("menuBtn").onclick = openDrawer;
+/* premium shell: the drawer is Talk-scoped situation discovery only */
 $("pickedCard").onclick = openDrawer;
 $("drawerBack").onclick = closeDrawer;
 $("drawerClose").onclick = closeDrawer;
@@ -7134,15 +7368,13 @@ $("obStartBtn").onclick = () => {
   S.targetLang = OB.target;
   saveSettings();
   if (changed) { location.reload(); return; }
-  showTab("learn");
+  showTab("home");
 };
 
 /* bottom navigation + top-bar resources */
 $("bottomnav").querySelectorAll("[data-tab]").forEach((b) => b.onclick = () => showTab(b.dataset.tab));
-$("tbCoins").onclick = () => showTab("store");
 $("tbMins").onclick = () => openPlanScreen();
-$("tbGear").innerHTML = IC.gear(ICON.btn);
-$("tbGear").onclick = () => showTab("profile");
+$("tbBrand").innerHTML = marziArt(currentMarziStage(), "happy");
 window.addEventListener("hashchange", () => {
   const tab = tabFromHash(location.hash);
   if (tab && tab !== CURRENT_TAB) showTab(tab, true);
@@ -7155,7 +7387,7 @@ window.addEventListener("online", renderNetBanner);
 window.addEventListener("offline", renderNetBanner);
 renderSetup();
 if (S.firstRun) showOnboarding();
-else showTab(tabFromHash(location.hash) || "learn");
+else showTab(tabFromHash(location.hash) || "home");
 
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js").catch(() => {});
 </script>

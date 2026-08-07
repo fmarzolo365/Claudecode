@@ -1,0 +1,83 @@
+{
+  "home": {
+    "question": "What should I do now?",
+    "sections": [
+      "Contextual greeting",
+      "Recommended for you",
+      "Your journey",
+      "Today's focus",
+      "Continue recent activity"
+    ],
+    "mustNot": [
+      "generic stats toolbar dominating header",
+      "six equal tool buttons",
+      "duplicate Talk selection UI"
+    ]
+  },
+  "practice": {
+    "question": "What should I train?",
+    "sections": [
+      "Continue",
+      "Prepare",
+      "Speaking",
+      "Improve",
+      "Library"
+    ],
+    "realTools": [
+      "Prepare the call",
+      "Guided dialogue",
+      "Key vocabulary",
+      "Pronunciation",
+      "Practise my mistakes",
+      "Review queue",
+      "Saved words"
+    ],
+    "mustNot": [
+      "My progress as primary Practice ownership",
+      "six indistinguishable cards",
+      "character roster"
+    ]
+  },
+  "talk": {
+    "question": "Who do I need to talk to and in what situation?",
+    "sections": [
+      "Continue conversation",
+      "People & places",
+      "Recommended situations",
+      "All situations"
+    ],
+    "mustNot": [
+      "duplicate scenario selector",
+      "training tools grid",
+      "permanent CEFR/speed setup dominating root"
+    ]
+  },
+  "store": {
+    "question": "How do I personalize Marzi?",
+    "sections": [
+      "Marzi today",
+      "Featured collection",
+      "Browse",
+      "Owned"
+    ],
+    "mustNot": [
+      "placeholder warehouse",
+      "minutes as Store identity"
+    ]
+  },
+  "profile": {
+    "question": "How is MARZI configured for me?",
+    "sections": [
+      "Learner summary",
+      "Learning",
+      "Speech & Voice",
+      "Sound & Motion",
+      "Account & Plan",
+      "Privacy & Support"
+    ],
+    "mustNot": [
+      "wardrobe catalog duplication",
+      "global navigation shortcuts"
+    ]
+  }
+}

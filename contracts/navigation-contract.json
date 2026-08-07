@@ -1,0 +1,43 @@
+{
+  "tabs": [
+    {
+      "id": "home",
+      "label": "Home",
+      "order": 1
+    },
+    {
+      "id": "practice",
+      "label": "Practice",
+      "order": 2
+    },
+    {
+      "id": "talk",
+      "label": "Talk",
+      "order": 3,
+      "emphasis": "subtle"
+    },
+    {
+      "id": "store",
+      "label": "Store",
+      "order": 4
+    },
+    {
+      "id": "profile",
+      "label": "Profile",
+      "order": 5
+    }
+  ],
+  "rules": {
+    "singleGlobalNavigation": true,
+    "hamburger": false,
+    "globalGear": false,
+    "duplicateHome": false,
+    "goldCallImmersive": true,
+    "callBottomNavHidden": true,
+    "selectedStateNotColorOnly": true,
+    "safeAreaAware": true,
+    "hashAlias": {
+      "learn": "home"
+    }
+  }
+}

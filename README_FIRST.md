@@ -1,17 +1,19 @@
-# MARZI WERKSTATT GOLD ART V2 FINAL
+# MARZI PREMIUM APP SHELL — WAVE 1B V1
 
-This is not a new integration.
-It replaces only the five character WebPs on top of the approved Werkstatt runtime commit 953e659.
+Wave 1 commit `495b69b` is a technical-reference milestone only:
+- routing/state mechanics: reusable
+- visual/product shell: rejected
 
-## Claude Code message
+This package defines the Premium MARZI shell replacement.
 
-Attach this ZIP as a real file, then send:
+Canonical visual references:
+- `reference/MARZI_PREMIUM_SHELL_MASTER_BOARD.png`
+- `reference/MARZI_PREMIUM_SHELL_COMPONENT_SYSTEM.png`
 
-Extract `MARZI_WERKSTATT_GOLD_ART_V2_FINAL.zip` at the repository root.
+Execute only:
+`prompts/WAVE_1B_IMPLEMENTATION.md`
 
-Read and execute:
-`CLAUDE_INTEGRATION_PROMPT.md`
+Do not start Wave 2.
 
-Do not touch workshop.webp, CALL_ART, shell, state machine or MARZI-006.
-Do not compensate with CSS.
-Produce six screenshots and stop.
+Expected stop:
+`READY FOR MARZI PREMIUM SHELL REVIEW`
