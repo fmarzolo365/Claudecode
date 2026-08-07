@@ -349,6 +349,9 @@
   .pm-home-journey[role="button"] { cursor: pointer; }
   .pm-home-journey[role="button"]:focus-visible { outline: 3px solid var(--pm2-green); outline-offset: 3px; }
   .pm-home-error { margin-block-start: 10px; }
+  /* legacy journey detail stays out of the initial Home viewport; the premium
+     journey summary is its only gateway */
+  .pm-home-jr-collapsed { display: none; }
   @media (max-width: 370px) {
     .pm-home-hero { grid-template-columns: minmax(0, 1fr) 104px; }
     .pm-home-marzi img { max-inline-size: 104px; }
@@ -1790,7 +1793,7 @@
     </div><!-- /learnLegacy -->
     <!-- MARZI-016: the learning journey lives inside Learn, below the existing
          hero and mission content so nothing above it moves. Tabs unchanged. -->
-    <section class="jr" aria-labelledby="jrTitle">
+    <section class="jr pm-home-jr-collapsed" id="jrDetail" aria-labelledby="jrTitle">
       <div class="label prof-achv-lbl" style="margin-top:18px"><span id="jrTitle"></span><span class="prof-achv-n" id="jrCount"></span></div>
       <div class="seg" id="jrSeg" role="group"></div>
       <div id="jrBody" style="margin-top:10px"></div>
@@ -2291,7 +2294,7 @@ const T = {
     routine:"Rutina de hoy", rCall:"Conversación", rVocab:"Vocabulario", rDrill:"Errores",
     prep:"Preparar la llamada", prepTitle:"PREPARACIÓN", howSay:"¿Cómo se dice en alemán?",
     dialog:"Diálogo guiado",
-    tabLearn:"Aprender", tabHome:"Inicio", tabPractice:"Practicar", recTitle:"Recomendado para ti", homeAsk:"¿Qué practicamos hoy?", goContinue:"Continuar", talkPeople:"Personas y lugares", talkAllBtn:"Todas las situaciones", tabTalk:"Hablar", tabStore:"Tienda", tabProfile:"Perfil",
+    tabLearn:"Aprender", tabHome:"Inicio", tabPractice:"Practicar", recTitle:"Recomendado para ti", homeAsk:"¿Qué practicamos hoy?", rankTitles:["Novato","Llamador","Comunicador frecuente","Profesional del teléfono","Dragón de la oficina","Héroe de las llamadas","Leyenda del teléfono"], goContinue:"Continuar", talkPeople:"Personas y lugares", talkAllBtn:"Todas las situaciones", tabTalk:"Hablar", tabStore:"Tienda", tabProfile:"Perfil",
     hello:"¡Hola!", practiceNow:"PRACTICAR AHORA", mission:"Misión de hoy",
     coins:"Monedas", buyMinutes:"Comprar minutos", minLeft:"min restantes hoy",
     outfits:"Trajes de Marzi", notEnough:"No tienes suficientes monedas", bought:"¡Comprado! ✓",
@@ -2366,7 +2369,7 @@ const T = {
     routine:"Today's routine", rCall:"Conversation", rVocab:"Vocabulary", rDrill:"Mistakes",
     prep:"Prepare the call", prepTitle:"PREPARATION", howSay:"How do you say it in German?",
     dialog:"Guided dialogue",
-    tabLearn:"Learn", tabHome:"Home", tabPractice:"Practice", recTitle:"Recommended for you", homeAsk:"What shall we practise today?", goContinue:"Continue", talkPeople:"People & places", talkAllBtn:"All situations", tabTalk:"Talk", tabStore:"Store", tabProfile:"Profile",
+    tabLearn:"Learn", tabHome:"Home", tabPractice:"Practice", recTitle:"Recommended for you", homeAsk:"What shall we practise today?", rankTitles:["Newcomer","Caller","Frequent caller","Phone pro","Office dragon","Call hero","Phone legend"], goContinue:"Continue", talkPeople:"People & places", talkAllBtn:"All situations", tabTalk:"Talk", tabStore:"Store", tabProfile:"Profile",
     hello:"Hello!", practiceNow:"PRACTISE NOW", mission:"Today's mission",
     coins:"Coins", buyMinutes:"Buy minutes", minLeft:"min left today",
     outfits:"Marzi outfits", notEnough:"Not enough coins", bought:"Purchased! ✓",
@@ -2444,7 +2447,7 @@ T.tr = { tagline:"Gerçek Almanca aramalar ve konuşmalar pratiği yap. Sen konu
   routine:"Bugünkü rutin", rCall:"Konuşma", rVocab:"Kelimeler", rDrill:"Hatalar",
   prep:"Aramaya hazırlan", prepTitle:"HAZIRLIK", howSay:"Almancası nasıl söylenir?",
   dialog:"Rehberli diyalog",
-  tabLearn:"Öğren", tabHome:"Ana sayfa", tabPractice:"Alıştırma", recTitle:"Senin için önerilen", homeAsk:"Bugün ne çalışalım?", goContinue:"Devam et", talkPeople:"Kişiler ve yerler", talkAllBtn:"Tüm durumlar", tabTalk:"Konuş", tabStore:"Mağaza", tabProfile:"Profil",
+  tabLearn:"Öğren", tabHome:"Ana sayfa", tabPractice:"Alıştırma", recTitle:"Senin için önerilen", homeAsk:"Bugün ne çalışalım?", rankTitles:["Yeni başlayan","Arayan","Sık arayan","Telefon ustası","Ofis ejderi","Arama kahramanı","Telefon efsanesi"], goContinue:"Devam et", talkPeople:"Kişiler ve yerler", talkAllBtn:"Tüm durumlar", tabTalk:"Konuş", tabStore:"Mağaza", tabProfile:"Profil",
   hello:"Merhaba!", practiceNow:"ŞİMDİ PRATİK YAP", mission:"Bugünün görevi",
   coins:"Jetonlar", buyMinutes:"Dakika satın al", minLeft:"dk kaldı bugün",
   outfits:"Marzi kıyafetleri", notEnough:"Yeterli jeton yok", bought:"Satın alındı! ✓",
@@ -2519,7 +2522,7 @@ T.ar = { tagline:"تدرّب على مكالمات ومحادثات حقيقية
   routine:"روتين اليوم", rCall:"محادثة", rVocab:"مفردات", rDrill:"أخطاء",
   prep:"التحضير للمكالمة", prepTitle:"التحضير", howSay:"كيف تُقال بالألمانية؟",
   dialog:"حوار موجّه",
-  tabLearn:"تعلّم", tabHome:"الرئيسية", tabPractice:"تدرّب", recTitle:"موصى به لك", homeAsk:"ماذا نتدرّب اليوم؟", goContinue:"متابعة", talkPeople:"أشخاص وأماكن", talkAllBtn:"كل المواقف", tabTalk:"تحدث", tabStore:"المتجر", tabProfile:"الملف",
+  tabLearn:"تعلّم", tabHome:"الرئيسية", tabPractice:"تدرّب", recTitle:"موصى به لك", homeAsk:"ماذا نتدرّب اليوم؟", rankTitles:["مبتدئ","متّصل","متّصل دائم","محترف الهاتف","تنّين المكتب","بطل المكالمات","أسطورة الهاتف"], goContinue:"متابعة", talkPeople:"أشخاص وأماكن", talkAllBtn:"كل المواقف", tabTalk:"تحدث", tabStore:"المتجر", tabProfile:"الملف",
   hello:"مرحبًا!", practiceNow:"تدرّب الآن", mission:"مهمة اليوم",
   coins:"عملات", buyMinutes:"شراء دقائق", minLeft:"دقيقة متبقية اليوم",
   outfits:"أزياء مارزي", notEnough:"لا تملك عملات كافية", bought:"تم الشراء! ✓",
@@ -2594,7 +2597,7 @@ T.uk = { tagline:"Тренуй реальні дзвінки й розмови �
   routine:"Рутина на сьогодні", rCall:"Розмова", rVocab:"Слова", rDrill:"Помилки",
   prep:"Підготуватися до дзвінка", prepTitle:"ПІДГОТОВКА", howSay:"Як це сказати німецькою?",
   dialog:"Керований діалог",
-  tabLearn:"Навчання", tabHome:"Головна", tabPractice:"Практика", recTitle:"Рекомендовано для тебе", homeAsk:"Що потренуємо сьогодні?", goContinue:"Продовжити", talkPeople:"Люди та місця", talkAllBtn:"Усі ситуації", tabTalk:"Розмова", tabStore:"Крамниця", tabProfile:"Профіль",
+  tabLearn:"Навчання", tabHome:"Головна", tabPractice:"Практика", recTitle:"Рекомендовано для тебе", homeAsk:"Що потренуємо сьогодні?", rankTitles:["Новачок","Абонент","Частий співрозмовник","Профі телефону","Офісний дракон","Герой дзвінків","Легенда телефону"], goContinue:"Продовжити", talkPeople:"Люди та місця", talkAllBtn:"Усі ситуації", tabTalk:"Розмова", tabStore:"Крамниця", tabProfile:"Профіль",
   hello:"Привіт!", practiceNow:"ПРАКТИКУВАТИ ЗАРАЗ", mission:"Місія на сьогодні",
   coins:"Монети", buyMinutes:"Купити хвилини", minLeft:"хв залишилось сьогодні",
   outfits:"Вбрання Марзі", notEnough:"Недостатньо монет", bought:"Куплено! ✓",
@@ -2670,7 +2673,7 @@ T.it = { tagline:"Allenati con telefonate e conversazioni reali in tedesco. Tu p
   routine:"Routine di oggi", rCall:"Conversazione", rVocab:"Vocabolario", rDrill:"Errori",
   prep:"Prepara la chiamata", prepTitle:"PREPARAZIONE", howSay:"Come si dice in tedesco?",
   dialog:"Dialogo guidato",
-  tabLearn:"Impara", tabHome:"Home", tabPractice:"Pratica", recTitle:"Consigliato per te", homeAsk:"Cosa pratichiamo oggi?", goContinue:"Continua", talkPeople:"Persone e luoghi", talkAllBtn:"Tutte le situazioni", tabTalk:"Parla", tabStore:"Negozio", tabProfile:"Profilo",
+  tabLearn:"Impara", tabHome:"Home", tabPractice:"Pratica", recTitle:"Consigliato per te", homeAsk:"Cosa pratichiamo oggi?", rankTitles:["Novellino","Chiamante","Comunicatore frequente","Professionista del telefono","Drago dell\u2019ufficio","Eroe delle chiamate","Leggenda del telefono"], goContinue:"Continua", talkPeople:"Persone e luoghi", talkAllBtn:"Tutte le situazioni", tabTalk:"Parla", tabStore:"Negozio", tabProfile:"Profilo",
   hello:"Ciao!", practiceNow:"PRATICA ORA", mission:"Missione di oggi",
   coins:"Monete", buyMinutes:"Compra minuti", minLeft:"min rimasti oggi",
   outfits:"Vestiti di Marzi", notEnough:"Monete insufficienti", bought:"Acquistato! ✓",
@@ -3375,6 +3378,13 @@ function markDay(kind) { // "vocabDays" | "drillDays" - calls already live in st
 }
 /* caller ranks by lifetime XP; titles stay German on purpose */
 const RANKS = [[0,"Neuling"],[80,"Anrufer"],[200,"Vieltelefonierer"],[400,"Telefonprofi"],[700,"Bürodrache"],[1100,"Anrufheld"],[1700,"Telefonlegende"]];
+/* stable rank ids (1:1 with RANKS) - internal identity never localized;
+   display labels come from t().rankTitles keyed by this order */
+const RANK_IDS = ["newcomer","caller","frequent_caller","phone_pro","office_dragon","call_hero","phone_legend"];
+function rankTitleFor(r) {
+  const L = t();
+  return (L.rankTitles && L.rankTitles[r.n - 1]) || r.title;
+}
 function rankFor(xp) {
   let i = RANKS.length - 1;
   while (i > 0 && xp < RANKS[i][0]) i--;
@@ -4369,6 +4379,8 @@ function renderLearn() {
   $("homeRecGo").onclick = () => showTab("talk");
   hydrateAvatars($("homeRec"));
   updateTopbar();
+  const jrd = $("jrDetail");
+  if (jrd) jrd.classList.add("pm-home-jr-collapsed"); // Home root shows one journey surface
   pmHomeMount(); // MARZI HOME V1: production Home over the same live data
 }
 
@@ -6412,7 +6424,7 @@ function pmHomeContext() {
   const xp = st.xp || 0, r = rankFor(xp);
   const inLevel = Math.max(0, xp - r.base);
   const needed = r.next ? r.next - r.base : 0;
-  const jrEl = () => document.querySelector("#learn .jr");
+  const jrDetail = () => $("jrDetail");
   // today's focus: first undone step of the existing daily mission
   const steps = [
     ["vocab", L.rVocab, (st.vocabDays || {})[today], () => { showTab("practice"); startVocab(); }],
@@ -6424,16 +6436,25 @@ function pmHomeContext() {
   return {
     greeting: L.hello,
     greetingSub: L.homeAsk,
-    /* canonical production Marzi raster (Doctor Gold pilot pack) - the only
-       approved non-vector Marzi asset in the repository */
+    /* HOME_MARZI_ROOT_ART_STATUS = TEMPORARY_ACCEPTED
+       Canonical production Marzi raster (Doctor Gold pilot pack) - the only
+       approved non-vector Marzi asset in the repository. The Product Owner
+       will supply a dedicated premium Marzi root-art pack; marziArtUrl stays
+       the replaceable slot and must not be regenerated or filtered here. */
     marziArtUrl: "/assets/marzi/call/stage-1/helping.webp",
     recommendation: rec,
     journey: {
-      label: `${S.level} · ${r.title}`,
+      levelToken: S.level, rankLabel: rankTitleFor(r),
+      label: `${S.level} · ${rankTitleFor(r)}`,
       stageLabel: marziNames()[marziStageForXp(xp) - 1],
       xpCurrent: needed ? inLevel : xp, xpNext: needed || Math.max(1, xp),
       streak: currentStreak(st),
-      open: () => { const el = jrEl(); if (el && el.scrollIntoView) el.scrollIntoView(prefersReducedMotion() ? {} : { behavior: "smooth", block: "start" }); },
+      open: () => {
+        const el = jrDetail();
+        if (!el) return;
+        el.classList.remove("pm-home-jr-collapsed"); // reveal the existing authoritative journey detail
+        if (el.scrollIntoView) el.scrollIntoView(prefersReducedMotion() ? {} : { behavior: "smooth", block: "start" });
+      },
     },
     focus: open
       ? { title: open[1], subtitle: null, type: open[0], open: open[3] }
@@ -6459,7 +6480,8 @@ function pmHomeBuildModel(ctx) {
       artUrl: cid ? pmHomeGoldArt(cid) : (ctx.recommendation.artUrl || ""),
       actionId: "recommendation",
     },
-    journey: { label: ctx.journey.label, stageLabel: ctx.journey.stageLabel || null,
+    journey: { label: ctx.journey.label, levelToken: ctx.journey.levelToken || null,
+      rankLabel: ctx.journey.rankLabel || null, stageLabel: ctx.journey.stageLabel || null,
       xpCurrent: ctx.journey.xpCurrent, xpNext: ctx.journey.xpNext, streak: ctx.journey.streak },
     focus: { title: ctx.focus.title, subtitle: ctx.focus.subtitle || "", actionId: ctx.focus.open ? "focus" : null },
     recent: ctx.recent || null,
@@ -6487,7 +6509,7 @@ function pmHomeRender(model) {
        <article class="pm2-card pm-home-rec">
          <div class="pm-home-rec-copy">
            ${m.recommendation.owner === "talk" ? `<div class="pm-home-rec-kicker">${esc(lb.talkingWith || "")}</div>` : ""}
-           <div class="pm2-card-title">${esc(m.recommendation.title)}</div>
+           <div class="pm2-card-title"><bdi>${esc(m.recommendation.title)}</bdi></div>
            ${m.recommendation.subtitle ? `<div class="pm2-card-meta">${esc(m.recommendation.subtitle)}</div>` : ""}
            ${m.recommendation.reason ? `<div class="pm-home-rec-reason">${esc(m.recommendation.reason)}</div>` : ""}
            <button class="pm2-btn pm2-btn--primary" id="homeRecCta" type="button">${esc(lb.continue || "")}</button>
@@ -6500,8 +6522,10 @@ function pmHomeRender(model) {
        <article class="pm2-card pm2-card-pad pm-home-journey" id="homeJourney" role="button" tabindex="0"
          aria-label="${esc(`${lb.journey || ""} · ${m.journey.label}`)}">
          <div class="pm-home-journey-top">
-           <div class="pm2-card-title">${esc(m.journey.label)}</div>
-           <div class="pm2-card-meta">${esc(`${m.journey.xpCurrent} / ${m.journey.xpNext} XP`)}</div>
+           <div class="pm2-card-title">${m.journey.levelToken
+             ? `<bdi dir="ltr">${esc(m.journey.levelToken)}</bdi> \u00b7 <bdi>${esc(m.journey.rankLabel || "")}</bdi>`
+             : `<bdi>${esc(m.journey.label)}</bdi>`}</div>
+           <div class="pm2-card-meta"><bdi dir="ltr">${esc(`${m.journey.xpCurrent} / ${m.journey.xpNext} XP`)}</bdi></div>
          </div>
          <div class="pm2-progress" role="progressbar" aria-valuemin="0" aria-valuemax="${esc(String(m.journey.xpNext))}"
            aria-valuenow="${esc(String(m.journey.xpCurrent))}" aria-label="${esc(m.journey.label)}"><span style="--pm2-progress:${pct}%"></span></div>
