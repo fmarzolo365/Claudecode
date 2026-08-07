@@ -1,0 +1,43 @@
+{
+  "privacy": "No transcript, speech text, free-text user content, names/email or sensitive scenario content.",
+  "events": [
+    {
+      "name": "home_viewed",
+      "fields": [
+        "locale",
+        "cefr_band",
+        "has_recommendation"
+      ]
+    },
+    {
+      "name": "home_recommendation_impression",
+      "fields": [
+        "recommendation_type",
+        "owner",
+        "scenario_id_optional"
+      ]
+    },
+    {
+      "name": "home_recommendation_opened",
+      "fields": [
+        "recommendation_type",
+        "owner",
+        "scenario_id_optional"
+      ]
+    },
+    {
+      "name": "home_journey_opened",
+      "fields": [
+        "cefr_band",
+        "stage_id_optional"
+      ]
+    },
+    {
+      "name": "home_focus_opened",
+      "fields": [
+        "focus_type"
+      ]
+    }
+  ],
+  "implementation": "Define hooks only. Do not install an analytics vendor in Home Phase."
+}

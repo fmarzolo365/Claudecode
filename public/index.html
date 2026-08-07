@@ -93,6 +93,7 @@
     --pm2-fs-brand: 21px; --pm2-fs-tab: 11px; --pm2-lh-tab: 14px;
     --pm2-fs-tab-sm: 10px; --pm2-fs-tab-ic: 19px;
     --pm2-topbar-h: 58px; --pm2-nav-h: 72px;
+    --pm2-home-tint: #f2f8ec;
 
     /* Extended palette (design-system reconciliation, findings 1-4).
        Every value below is the exact colour already shipping - these give
@@ -315,6 +316,49 @@
   [dir="rtl"] .pm2-row-end { transform: scaleX(-1); }
   [dir="rtl"] .pm2-people { direction: rtl; }
   body.in-call .pm2-bottomnav { display: none; }
+  /* ============== MARZI HOME V1 (reference-code/css/home-v1.css) ============== */
+  .pm-home-legacy { display: none; }
+  .pm-home { padding-block-start: 4px; }
+  .pm-home-hero {
+    display: grid; grid-template-columns: minmax(0, 1fr) 124px;
+    min-block-size: 148px; align-items: end; padding: 16px 14px 0 16px;
+    background:
+      radial-gradient(circle at 82% 22%, rgba(245, 184, 76, .16), transparent 80px),
+      linear-gradient(135deg, var(--pm2-surface), var(--pm2-home-tint));
+  }
+  .pm-home-hero-copy { align-self: center; padding-block-end: 18px; min-inline-size: 0; }
+  .pm-home-marzi { align-self: end; display: grid; place-items: end center; min-block-size: 132px; }
+  .pm-home-marzi img { display: block; max-inline-size: 122px; max-block-size: 140px; object-fit: contain; }
+  .pm-home-rec {
+    display: grid; grid-template-columns: minmax(0, 1fr) 96px; gap: 12px;
+    align-items: center; overflow: hidden; padding: 16px 12px 16px 16px;
+  }
+  .pm-home-rec-copy { min-inline-size: 0; }
+  .pm-home-rec-kicker {
+    color: var(--pm2-muted); text-transform: uppercase; letter-spacing: .07em;
+    font: 800 var(--pm2-fs-tab) / var(--pm2-lh-tab) var(--font-sans);
+  }
+  .pm-home-rec-copy .pm2-btn { margin-block-start: 12px; min-inline-size: 112px; }
+  .pm-home-rec-reason { margin-block-start: 6px; color: var(--pm2-green-deep); font: 800 var(--pm2-fs-meta) / var(--pm2-lh-meta) var(--font-sans); }
+  .pm-home-rec-art {
+    inline-size: 96px; block-size: 108px; object-fit: cover; object-position: 50% 24%;
+    border-radius: 16px; background: var(--pm2-surface-alt);
+  }
+  .pm-home-rec-art.is-hidden { display: none; }
+  .pm-home-journey-top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-block-end: 10px; }
+  .pm-home-journey[role="button"] { cursor: pointer; }
+  .pm-home-journey[role="button"]:focus-visible { outline: 3px solid var(--pm2-green); outline-offset: 3px; }
+  .pm-home-error { margin-block-start: 10px; }
+  @media (max-width: 370px) {
+    .pm-home-hero { grid-template-columns: minmax(0, 1fr) 104px; }
+    .pm-home-marzi img { max-inline-size: 104px; }
+    .pm-home-rec { grid-template-columns: minmax(0, 1fr) 82px; }
+    .pm-home-rec-art { inline-size: 82px; block-size: 94px; }
+  }
+  @media (min-width: 520px) {
+    .pm-home-hero { grid-template-columns: minmax(0, 1fr) 170px; }
+    .pm-home-marzi img { max-inline-size: 160px; max-block-size: 155px; }
+  }
   /* ===== Wave 1B premium shell: token remap outside the frozen call ===== */
   body:not(.in-call) {
     --bg: var(--pm-bg); --card: var(--pm-surface);
@@ -1717,6 +1761,12 @@
 <main>
   <!-- LEARN home: Marzi companion hero, mission, quick cards (spec §23, review §4) -->
   <section id="learn">
+    <!-- MARZI HOME V1 (reference-driven): the production Home renders here.
+         The legacy hero/mission blocks stay in the DOM (hidden) because the
+         evolution/celebration logic and the suite's hero contract live on
+         them; the journey map below remains the visible journey detail. -->
+    <div id="homeV1" class="pm-home"></div>
+    <div id="learnLegacy" class="pm-home-legacy">
     <div class="learn-hero">
       <div class="hero-greet" id="learnHi"></div>
       <button class="learn-marzi" id="marziBtn" type="button">
@@ -1737,6 +1787,7 @@
       <div class="label" id="missionLbl" style="margin:8px 0 0"></div>
       <div class="routine" id="routine"></div>
     </div>
+    </div><!-- /learnLegacy -->
     <!-- MARZI-016: the learning journey lives inside Learn, below the existing
          hero and mission content so nothing above it moves. Tabs unchanged. -->
     <section class="jr" aria-labelledby="jrTitle">
@@ -2240,7 +2291,7 @@ const T = {
     routine:"Rutina de hoy", rCall:"Conversación", rVocab:"Vocabulario", rDrill:"Errores",
     prep:"Preparar la llamada", prepTitle:"PREPARACIÓN", howSay:"¿Cómo se dice en alemán?",
     dialog:"Diálogo guiado",
-    tabLearn:"Aprender", tabHome:"Inicio", tabPractice:"Practicar", recTitle:"Recomendado para ti", goContinue:"Continuar", talkPeople:"Personas y lugares", talkAllBtn:"Todas las situaciones", tabTalk:"Hablar", tabStore:"Tienda", tabProfile:"Perfil",
+    tabLearn:"Aprender", tabHome:"Inicio", tabPractice:"Practicar", recTitle:"Recomendado para ti", homeAsk:"¿Qué practicamos hoy?", goContinue:"Continuar", talkPeople:"Personas y lugares", talkAllBtn:"Todas las situaciones", tabTalk:"Hablar", tabStore:"Tienda", tabProfile:"Perfil",
     hello:"¡Hola!", practiceNow:"PRACTICAR AHORA", mission:"Misión de hoy",
     coins:"Monedas", buyMinutes:"Comprar minutos", minLeft:"min restantes hoy",
     outfits:"Trajes de Marzi", notEnough:"No tienes suficientes monedas", bought:"¡Comprado! ✓",
@@ -2315,7 +2366,7 @@ const T = {
     routine:"Today's routine", rCall:"Conversation", rVocab:"Vocabulary", rDrill:"Mistakes",
     prep:"Prepare the call", prepTitle:"PREPARATION", howSay:"How do you say it in German?",
     dialog:"Guided dialogue",
-    tabLearn:"Learn", tabHome:"Home", tabPractice:"Practice", recTitle:"Recommended for you", goContinue:"Continue", talkPeople:"People & places", talkAllBtn:"All situations", tabTalk:"Talk", tabStore:"Store", tabProfile:"Profile",
+    tabLearn:"Learn", tabHome:"Home", tabPractice:"Practice", recTitle:"Recommended for you", homeAsk:"What shall we practise today?", goContinue:"Continue", talkPeople:"People & places", talkAllBtn:"All situations", tabTalk:"Talk", tabStore:"Store", tabProfile:"Profile",
     hello:"Hello!", practiceNow:"PRACTISE NOW", mission:"Today's mission",
     coins:"Coins", buyMinutes:"Buy minutes", minLeft:"min left today",
     outfits:"Marzi outfits", notEnough:"Not enough coins", bought:"Purchased! ✓",
@@ -2393,7 +2444,7 @@ T.tr = { tagline:"Gerçek Almanca aramalar ve konuşmalar pratiği yap. Sen konu
   routine:"Bugünkü rutin", rCall:"Konuşma", rVocab:"Kelimeler", rDrill:"Hatalar",
   prep:"Aramaya hazırlan", prepTitle:"HAZIRLIK", howSay:"Almancası nasıl söylenir?",
   dialog:"Rehberli diyalog",
-  tabLearn:"Öğren", tabHome:"Ana sayfa", tabPractice:"Alıştırma", recTitle:"Senin için önerilen", goContinue:"Devam et", talkPeople:"Kişiler ve yerler", talkAllBtn:"Tüm durumlar", tabTalk:"Konuş", tabStore:"Mağaza", tabProfile:"Profil",
+  tabLearn:"Öğren", tabHome:"Ana sayfa", tabPractice:"Alıştırma", recTitle:"Senin için önerilen", homeAsk:"Bugün ne çalışalım?", goContinue:"Devam et", talkPeople:"Kişiler ve yerler", talkAllBtn:"Tüm durumlar", tabTalk:"Konuş", tabStore:"Mağaza", tabProfile:"Profil",
   hello:"Merhaba!", practiceNow:"ŞİMDİ PRATİK YAP", mission:"Bugünün görevi",
   coins:"Jetonlar", buyMinutes:"Dakika satın al", minLeft:"dk kaldı bugün",
   outfits:"Marzi kıyafetleri", notEnough:"Yeterli jeton yok", bought:"Satın alındı! ✓",
@@ -2468,7 +2519,7 @@ T.ar = { tagline:"تدرّب على مكالمات ومحادثات حقيقية
   routine:"روتين اليوم", rCall:"محادثة", rVocab:"مفردات", rDrill:"أخطاء",
   prep:"التحضير للمكالمة", prepTitle:"التحضير", howSay:"كيف تُقال بالألمانية؟",
   dialog:"حوار موجّه",
-  tabLearn:"تعلّم", tabHome:"الرئيسية", tabPractice:"تدرّب", recTitle:"موصى به لك", goContinue:"متابعة", talkPeople:"أشخاص وأماكن", talkAllBtn:"كل المواقف", tabTalk:"تحدث", tabStore:"المتجر", tabProfile:"الملف",
+  tabLearn:"تعلّم", tabHome:"الرئيسية", tabPractice:"تدرّب", recTitle:"موصى به لك", homeAsk:"ماذا نتدرّب اليوم؟", goContinue:"متابعة", talkPeople:"أشخاص وأماكن", talkAllBtn:"كل المواقف", tabTalk:"تحدث", tabStore:"المتجر", tabProfile:"الملف",
   hello:"مرحبًا!", practiceNow:"تدرّب الآن", mission:"مهمة اليوم",
   coins:"عملات", buyMinutes:"شراء دقائق", minLeft:"دقيقة متبقية اليوم",
   outfits:"أزياء مارزي", notEnough:"لا تملك عملات كافية", bought:"تم الشراء! ✓",
@@ -2543,7 +2594,7 @@ T.uk = { tagline:"Тренуй реальні дзвінки й розмови �
   routine:"Рутина на сьогодні", rCall:"Розмова", rVocab:"Слова", rDrill:"Помилки",
   prep:"Підготуватися до дзвінка", prepTitle:"ПІДГОТОВКА", howSay:"Як це сказати німецькою?",
   dialog:"Керований діалог",
-  tabLearn:"Навчання", tabHome:"Головна", tabPractice:"Практика", recTitle:"Рекомендовано для тебе", goContinue:"Продовжити", talkPeople:"Люди та місця", talkAllBtn:"Усі ситуації", tabTalk:"Розмова", tabStore:"Крамниця", tabProfile:"Профіль",
+  tabLearn:"Навчання", tabHome:"Головна", tabPractice:"Практика", recTitle:"Рекомендовано для тебе", homeAsk:"Що потренуємо сьогодні?", goContinue:"Продовжити", talkPeople:"Люди та місця", talkAllBtn:"Усі ситуації", tabTalk:"Розмова", tabStore:"Крамниця", tabProfile:"Профіль",
   hello:"Привіт!", practiceNow:"ПРАКТИКУВАТИ ЗАРАЗ", mission:"Місія на сьогодні",
   coins:"Монети", buyMinutes:"Купити хвилини", minLeft:"хв залишилось сьогодні",
   outfits:"Вбрання Марзі", notEnough:"Недостатньо монет", bought:"Куплено! ✓",
@@ -2619,7 +2670,7 @@ T.it = { tagline:"Allenati con telefonate e conversazioni reali in tedesco. Tu p
   routine:"Routine di oggi", rCall:"Conversazione", rVocab:"Vocabolario", rDrill:"Errori",
   prep:"Prepara la chiamata", prepTitle:"PREPARAZIONE", howSay:"Come si dice in tedesco?",
   dialog:"Dialogo guidato",
-  tabLearn:"Impara", tabHome:"Home", tabPractice:"Pratica", recTitle:"Consigliato per te", goContinue:"Continua", talkPeople:"Persone e luoghi", talkAllBtn:"Tutte le situazioni", tabTalk:"Parla", tabStore:"Negozio", tabProfile:"Profilo",
+  tabLearn:"Impara", tabHome:"Home", tabPractice:"Pratica", recTitle:"Consigliato per te", homeAsk:"Cosa pratichiamo oggi?", goContinue:"Continua", talkPeople:"Persone e luoghi", talkAllBtn:"Tutte le situazioni", tabTalk:"Parla", tabStore:"Negozio", tabProfile:"Profilo",
   hello:"Ciao!", practiceNow:"PRATICA ORA", mission:"Missione di oggi",
   coins:"Monete", buyMinutes:"Compra minuti", minLeft:"min rimasti oggi",
   outfits:"Vestiti di Marzi", notEnough:"Monete insufficienti", bought:"Acquistato! ✓",
@@ -4318,6 +4369,7 @@ function renderLearn() {
   $("homeRecGo").onclick = () => showTab("talk");
   hydrateAvatars($("homeRec"));
   updateTopbar();
+  pmHomeMount(); // MARZI HOME V1: production Home over the same live data
 }
 
 /* ---------- STORE: coin balance, minute packages, outfit catalog ---------- */
@@ -6309,6 +6361,190 @@ function pm2ContactArt(contactId, state) {
 }
 function pm2IsGoldContact(id) { return ["arzt", "apotheke", "werkstatt"].includes(id); }
 window.MARZI_PM2_ART = Object.freeze({ contact: pm2ContactArt, isGold: pm2IsGoldContact });
+
+/* ==================== MARZI HOME V1 (production Home) ====================
+   Reference-driven implementation of MARZI_HOME_PRODUCTION_PACK_V1:
+   current app data -> thin context -> pmHomeBuildModel (HOME_MODEL schema)
+   -> pmHomeRender -> shared PM2 components/tokens. The renderer never reads
+   storage, never picks scenarios, never touches stats or the session.
+
+   Analytics (HOME_ANALYTICS_CONTRACT.json): no analytics system exists in
+   this repository, so per contract NO runtime analytics is installed. The
+   vendor-neutral hooks a future system should emit from here are:
+   home_viewed{locale,cefr_band,has_recommendation},
+   home_recommendation_impression/opened{recommendation_type,owner,scenario_id_optional},
+   home_journey_opened{cefr_band}, home_focus_opened{focus_type}.
+   Never include transcripts, speech, free text, names or e-mail. */
+function pmHomeGoldArt(contactId) {
+  if (!contactId) return "";
+  return pm2ContactArt(contactId, "idle");
+}
+/* thin integration: assembles ctx from the EXISTING product state only.
+   Recommendation candidates come from existing logic (due mistake drills,
+   the selected scenario, journeyState().here - the app's own "next"); the
+   pack's policy only orders these existing candidates. */
+function pmHomeContext() {
+  const L = t();
+  const st = loadStats();
+  const today = new Date().toISOString().slice(0, 10);
+  const fixes = loadFixes();
+  const drillable = fixes.filter((f) => f.corrected).length;
+  const drilledToday = !!(st.drillDays || {})[today];
+  const js = journeyState(st);
+  const done = st.scenariosDone || {};
+  const playable = SCENARIOS.filter((x) => x.goals);
+  // policy order: mistake_drill -> continue_selected -> recommended (journey "here") -> first playable
+  let rec;
+  if (drillable > 0 && !drilledToday) {
+    rec = { type: "mistake_drill", owner: "practice", characterId: null, scenarioId: null,
+      title: L.practice, subtitle: `${Math.min(8, drillable)} · ${L.mistakes}`, reason: L.mission,
+      open: () => { showTab("practice"); startDrill(); } };
+  } else {
+    const selected = S.scenario && S.scenario.goals && !(done[S.scenario.id] > 0) ? S.scenario : null;
+    const sc = selected || (js.here && js.here.scenario) || playable[0];
+    rec = { type: selected ? "continue_selected_scenario" : "recommended_real_world_scenario",
+      owner: "talk", characterId: sc.id, scenarioId: sc.id,
+      title: sc.who, subtitle: sc[S.lang] || sc.en || sc.de || "", reason: "",
+      open: () => goToScenario(sc.id) };
+  }
+  // journey: CEFR + rank identity with the learner-level XP window (the same
+  // numbers the legacy hero shows - no new math)
+  const xp = st.xp || 0, r = rankFor(xp);
+  const inLevel = Math.max(0, xp - r.base);
+  const needed = r.next ? r.next - r.base : 0;
+  const jrEl = () => document.querySelector("#learn .jr");
+  // today's focus: first undone step of the existing daily mission
+  const steps = [
+    ["vocab", L.rVocab, (st.vocabDays || {})[today], () => { showTab("practice"); startVocab(); }],
+    ["conversation", L.rCall, (st.callDays || {})[today], () => goToScenario(rec.scenarioId || (playable[0] && playable[0].id))],
+    ["errors", L.rDrill, drilledToday, () => { showTab("practice"); if (drillable) startDrill(); else { renderMistakes(); show("mistakes"); } }],
+  ];
+  const open = steps.find((x) => !x[2]);
+  const focusDoneLine = `\u2713 ${L.rVocab} \u00b7 ${L.rCall} \u00b7 ${L.rDrill}`;
+  return {
+    greeting: L.hello,
+    greetingSub: L.homeAsk,
+    /* canonical production Marzi raster (Doctor Gold pilot pack) - the only
+       approved non-vector Marzi asset in the repository */
+    marziArtUrl: "/assets/marzi/call/stage-1/helping.webp",
+    recommendation: rec,
+    journey: {
+      label: `${S.level} · ${r.title}`,
+      stageLabel: marziNames()[marziStageForXp(xp) - 1],
+      xpCurrent: needed ? inLevel : xp, xpNext: needed || Math.max(1, xp),
+      streak: currentStreak(st),
+      open: () => { const el = jrEl(); if (el && el.scrollIntoView) el.scrollIntoView(prefersReducedMotion() ? {} : { behavior: "smooth", block: "start" }); },
+    },
+    focus: open
+      ? { title: open[1], subtitle: null, type: open[0], open: open[3] }
+      : { title: focusDoneLine, subtitle: null, type: "done", open: null },
+    recent: null,
+    labels: { recommended: L.recTitle, continue: L.goContinue, journey: L.jrTitle, focus: L.mission, talkingWith: L.talkingWith },
+  };
+}
+/* adapter: existing ctx -> normalized HomeModel (HOME_MODEL.schema.json) */
+function pmHomeBuildModel(ctx) {
+  if (!ctx || !ctx.recommendation || !ctx.recommendation.title) throw new Error("Home adapter: recommendation missing");
+  if (!(ctx.journey && ctx.journey.xpNext > 0)) throw new Error("Home adapter: invalid journey target");
+  const cid = ctx.recommendation.characterId || null;
+  return {
+    greeting: String(ctx.greeting || ""),
+    greetingSub: ctx.greetingSub || "",
+    marziArtUrl: ctx.marziArtUrl || "",
+    recommendation: {
+      type: ctx.recommendation.type, owner: ctx.recommendation.owner,
+      characterId: cid, scenarioId: ctx.recommendation.scenarioId || null,
+      title: String(ctx.recommendation.title), subtitle: ctx.recommendation.subtitle || "",
+      reason: ctx.recommendation.reason || "",
+      artUrl: cid ? pmHomeGoldArt(cid) : (ctx.recommendation.artUrl || ""),
+      actionId: "recommendation",
+    },
+    journey: { label: ctx.journey.label, stageLabel: ctx.journey.stageLabel || null,
+      xpCurrent: ctx.journey.xpCurrent, xpNext: ctx.journey.xpNext, streak: ctx.journey.streak },
+    focus: { title: ctx.focus.title, subtitle: ctx.focus.subtitle || "", actionId: ctx.focus.open ? "focus" : null },
+    recent: ctx.recent || null,
+    labels: ctx.labels || {},
+    __actions: { recommendation: ctx.recommendation.open, journey: ctx.journey.open, focus: ctx.focus.open || null },
+  };
+}
+/* renderer: consumes ONLY the model + its action map. String-composed like
+   every other screen in this codebase, on shared PM2 classes/tokens. */
+function pmHomeRender(model) {
+  const root = $("homeV1");
+  if (!root) throw new Error("Home renderer: #homeV1 root missing");
+  const m = model, lb = m.labels || {};
+  const pct = Math.max(0, Math.min(100, Math.round(100 * m.journey.xpCurrent / m.journey.xpNext)));
+  root.innerHTML =
+    `<section class="pm2-card pm2-card--hero pm-home-hero">
+       <div class="pm-home-hero-copy">
+         <h1 class="pm2-page-title">${esc(m.greeting)}</h1>
+         ${m.greetingSub ? `<p class="pm2-page-sub">${esc(m.greetingSub)}</p>` : ""}
+       </div>
+       <div class="pm-home-marzi">${m.marziArtUrl ? `<img src="${esc(m.marziArtUrl)}" alt="" decoding="async" />` : ""}</div>
+     </section>
+     <section class="pm2-section">
+       <h2 class="pm2-section-title">${esc(lb.recommended || "")}</h2>
+       <article class="pm2-card pm-home-rec">
+         <div class="pm-home-rec-copy">
+           ${m.recommendation.owner === "talk" ? `<div class="pm-home-rec-kicker">${esc(lb.talkingWith || "")}</div>` : ""}
+           <div class="pm2-card-title">${esc(m.recommendation.title)}</div>
+           ${m.recommendation.subtitle ? `<div class="pm2-card-meta">${esc(m.recommendation.subtitle)}</div>` : ""}
+           ${m.recommendation.reason ? `<div class="pm-home-rec-reason">${esc(m.recommendation.reason)}</div>` : ""}
+           <button class="pm2-btn pm2-btn--primary" id="homeRecCta" type="button">${esc(lb.continue || "")}</button>
+         </div>
+         ${m.recommendation.artUrl ? `<img class="pm-home-rec-art" id="homeRecArt" src="${esc(m.recommendation.artUrl)}" alt="" decoding="async" loading="lazy" />` : ""}
+       </article>
+     </section>
+     <section class="pm2-section">
+       <h2 class="pm2-section-title">${esc(lb.journey || "")}</h2>
+       <article class="pm2-card pm2-card-pad pm-home-journey" id="homeJourney" role="button" tabindex="0"
+         aria-label="${esc(`${lb.journey || ""} · ${m.journey.label}`)}">
+         <div class="pm-home-journey-top">
+           <div class="pm2-card-title">${esc(m.journey.label)}</div>
+           <div class="pm2-card-meta">${esc(`${m.journey.xpCurrent} / ${m.journey.xpNext} XP`)}</div>
+         </div>
+         <div class="pm2-progress" role="progressbar" aria-valuemin="0" aria-valuemax="${esc(String(m.journey.xpNext))}"
+           aria-valuenow="${esc(String(m.journey.xpCurrent))}" aria-label="${esc(m.journey.label)}"><span style="--pm2-progress:${pct}%"></span></div>
+         ${m.journey.stageLabel ? `<div class="pm2-card-meta">${esc(m.journey.stageLabel)}</div>` : ""}
+       </article>
+     </section>
+     <section class="pm2-section">
+       <h2 class="pm2-section-title">${esc(lb.focus || "")}</h2>
+       <button class="pm2-row" id="homeFocus" type="button" ${m.focus.actionId ? "" : "disabled"}>
+         <span class="pm2-row-icon" aria-hidden="true">${IC.target(ICON.lg)}</span>
+         <span class="pm2-row-copy"><span class="pm2-row-title">${esc(m.focus.title)}</span>
+           ${m.focus.subtitle ? `<span class="pm2-row-meta">${esc(m.focus.subtitle)}</span>` : ""}</span>
+         <span class="pm2-row-end" aria-hidden="true">${m.focus.actionId ? "\u203a" : ""}</span>
+       </button>
+     </section>`;
+  const cta = $("homeRecCta");
+  if (cta) cta.onclick = m.__actions.recommendation;
+  const art = $("homeRecArt");
+  if (art) art.onerror = () => art.classList.add("is-hidden"); // offline/failed art degrades cleanly
+  const j = $("homeJourney");
+  if (j && typeof m.__actions.journey === "function") {
+    j.onclick = m.__actions.journey;
+    j.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); m.__actions.journey(); } };
+  }
+  const f = $("homeFocus");
+  if (f && typeof m.__actions.focus === "function") f.onclick = m.__actions.focus;
+  return m;
+}
+/* mount: recoverable-error contract - a failed model never blanks Home; the
+   journey map below and global navigation stay usable */
+let PM_HOME_LAST_MODEL = null;
+function pmHomeMount() {
+  const root = $("homeV1");
+  if (!root) return null;
+  try {
+    PM_HOME_LAST_MODEL = pmHomeRender(pmHomeBuildModel(pmHomeContext()));
+  } catch (e) {
+    PM_HOME_LAST_MODEL = null;
+    root.innerHTML = `<div class="pm2-empty pm-home-error">${esc(t().err)}</div>`;
+  }
+  return PM_HOME_LAST_MODEL;
+}
+window.MARZI_HOME_V1 = Object.freeze({ buildModel: pmHomeBuildModel, goldArt: pmHomeGoldArt, context: pmHomeContext, render: pmHomeRender, mount: pmHomeMount });
 
 /* which bottom-nav tab each screen belongs to (sub-screens highlight their home tab) */
 const TAB_OF = { learn:"home", test:"home",

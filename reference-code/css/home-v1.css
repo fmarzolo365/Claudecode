@@ -1,0 +1,80 @@
+/* HOME V1 — only root-specific layout; shared visual values come from PM2 tokens. */
+.pm-home{padding-block-start:14px}
+.pm-home-hero{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 124px;
+  min-block-size:148px;
+  align-items:end;
+  padding:16px 14px 0 16px;
+  background:
+    radial-gradient(circle at 82% 22%,rgba(245,184,76,.16),transparent 80px),
+    linear-gradient(135deg,var(--pm2-surface),#f2f8ec);
+}
+.pm-home-hero-copy{
+  align-self:center;
+  padding-block-end:18px;
+  min-inline-size:0;
+}
+.pm-home-marzi{
+  align-self:end;
+  display:grid;
+  place-items:end center;
+  min-block-size:132px;
+}
+.pm-home-marzi img{
+  display:block;
+  max-inline-size:122px;
+  max-block-size:140px;
+  object-fit:contain;
+}
+
+.pm-home-rec{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 96px;
+  gap:12px;
+  align-items:center;
+  overflow:hidden;
+  padding:16px 12px 16px 16px;
+}
+.pm-home-rec-copy{min-inline-size:0}
+.pm-home-rec-copy .pm2-btn{margin-block-start:12px;min-inline-size:112px}
+.pm-home-rec-reason{
+  margin-block-start:6px;
+  color:var(--pm2-green-deep);
+  font-size:12px;
+  line-height:17px;
+  font-weight:800;
+}
+.pm-home-rec-art{
+  inline-size:96px;
+  block-size:108px;
+  object-fit:cover;
+  object-position:50% 24%;
+  border-radius:16px;
+  background:var(--pm2-surface-alt);
+}
+
+.pm-home-journey-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:baseline;
+  gap:12px;
+  margin-block-end:10px;
+}
+.pm-home-journey[role="button"]{cursor:pointer}
+.pm-home-journey[role="button"]:focus-visible{
+  outline:3px solid color-mix(in srgb,var(--pm2-green) 45%,transparent);
+  outline-offset:3px;
+}
+
+@media(max-width:370px){
+  .pm-home-hero{grid-template-columns:minmax(0,1fr) 104px}
+  .pm-home-marzi img{max-inline-size:104px}
+  .pm-home-rec{grid-template-columns:minmax(0,1fr) 82px}
+  .pm-home-rec-art{inline-size:82px;block-size:94px}
+}
+
+@media(min-width:520px){
+  .pm-home-hero{grid-template-columns:minmax(0,1fr) 170px}
+  .pm-home-marzi img{max-inline-size:160px;max-block-size:155px}
+}

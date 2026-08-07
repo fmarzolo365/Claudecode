@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "goal": "Choose one next-best useful learning action for Home without duplicating destination UIs.",
+  "priority": [
+    {
+      "type": "mistake_drill",
+      "condition": "user has due/recent mistakes and targeted drill is actionable",
+      "owner": "practice"
+    },
+    {
+      "type": "retry_weak_scenario",
+      "condition": "recent completed call has meaningful corrections or weak result",
+      "owner": "talk"
+    },
+    {
+      "type": "continue_selected_scenario",
+      "condition": "selected scenario exists and is not completed/abandoned",
+      "owner": "talk"
+    },
+    {
+      "type": "recommended_real_world_scenario",
+      "condition": "valid scenario recommendation exists",
+      "owner": "talk"
+    },
+    {
+      "type": "review_saved_words",
+      "condition": "review due and no higher-priority item",
+      "owner": "practice"
+    }
+  ],
+  "constraints": [
+    "One primary recommendation only",
+    "Use existing product recommendation/session/stat data; do not add a second algorithm in renderer",
+    "Never use raw transcript text in Home",
+    "A recommendation must deep-link to its owner",
+    "Do not recommend locked/unavailable actions"
+  ]
+}

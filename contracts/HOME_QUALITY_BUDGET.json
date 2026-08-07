@@ -1,0 +1,16 @@
+{
+  "home": {
+    "newThirdPartyDependencies": 0,
+    "newNetworkRequestsOnRender": "0 except existing art/resources already part of app behavior",
+    "eagerHeroArtBytesTarget": "<=250KB compressed where asset control exists; otherwise report current asset cost",
+    "layoutShift": "No late insertion above recommendation after first meaningful paint",
+    "interaction": "Home primary CTA must respond immediately; no synchronous expensive recomputation",
+    "accessibility": [
+      "48px primary targets",
+      "200% text",
+      "RTL",
+      "screen-reader names",
+      "not color-only states"
+    ]
+  }
+}

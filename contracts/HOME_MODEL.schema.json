@@ -1,0 +1,141 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MARZI Home UI Model V1",
+  "type": "object",
+  "required": [
+    "greeting",
+    "recommendation",
+    "journey",
+    "focus",
+    "labels"
+  ],
+  "properties": {
+    "greeting": {
+      "type": "string",
+      "minLength": 1
+    },
+    "greetingSub": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "marziArtUrl": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "recommendation": {
+      "type": "object",
+      "required": [
+        "title",
+        "actionId"
+      ],
+      "properties": {
+        "characterId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "scenarioId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "title": {
+          "type": "string"
+        },
+        "subtitle": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "artUrl": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "actionId": {
+          "type": "string"
+        }
+      }
+    },
+    "journey": {
+      "type": "object",
+      "required": [
+        "label",
+        "xpCurrent",
+        "xpNext"
+      ],
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "stageLabel": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "xpCurrent": {
+          "type": "number",
+          "minimum": 0
+        },
+        "xpNext": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "streak": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        }
+      }
+    },
+    "focus": {
+      "type": "object",
+      "required": [
+        "title"
+      ],
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "subtitle": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "actionId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "recent": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "labels": {
+      "type": "object"
+    }
+  }
+}
