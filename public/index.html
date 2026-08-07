@@ -5596,40 +5596,74 @@ function warmArtSrc(src) {
    stays on the current approved frame - never a blank or a fallback. */
 const CALL_XFADE_MS = 150;
 let CALL_XFADE_RAF = 0;
+let CALL_XFADE_TIMER = 0;
 function crossfadeStageArt(img, src) {
   warmArtSrc(src).then(() => {
     if (img.dataset.src !== src) return; // state moved on while decoding
     const ov = $("vcImgX");
+    const stage = $("callStage");
+    // preferred fade layer: the resident warm copy of the incoming state.
+    // It has been mounted (at 0.1% opacity), decoded and rastered since call
+    // start, so raising its opacity shows real pixels from the first frame -
+    // no fetch, no decode, no raster on the transition's critical path.
+    let lay = stage ? stage.querySelector(`.call-art-warm[src="${src}"]`) : null;
+    if (lay && !(lay.complete && lay.naturalWidth > 0)) lay = null;
+    const resetWarm = () => {
+      if (stage) stage.querySelectorAll(".call-art-warm").forEach((w) => { w.style.opacity = ".001"; });
+    };
     // commit: move the settled frame onto the base layer, and only drop the
-    // (fully opaque) overlay once the base has it too - no back-flash
+    // (fully opaque) fade layer once the base has it too - no back-flash
     const apply = () => {
       if (img.dataset.src !== src) return;
       const done = () => {
-        if (ov && img.dataset.src === src) { ov.classList.remove("show"); ov.style.opacity = ""; ov.removeAttribute("src"); }
+        if (img.dataset.src !== src) return;
+        resetWarm();
+        if (ov) { ov.classList.remove("show"); ov.style.opacity = ""; ov.removeAttribute("src"); }
       };
       img.addEventListener("load", done, { once: true });
       img.src = src;
+      // decode() resolves as soon as the warm frame is ready on the base
+      // layer - the load event and the timeout stay as safety nets
+      if (img.decode) img.decode().then(done, () => {});
       if (img.complete && img.naturalWidth > 0) done();
       setTimeout(done, CALL_XFADE_MS); // safety net only
     };
-    if (prefersReducedMotion() || !ov) { apply(); return; }
-    ov.style.transform = img.style.transform || ""; // layer parity: identical geometry
-    ov.src = src;
-    ov.style.opacity = "0";
-    ov.classList.add("show");
+    if (prefersReducedMotion() || (!lay && !ov)) { apply(); return; }
+    const fadeEl = lay || ov;
+    if (!lay) {
+      // fallback (residency not ready yet): the classic overlay crossfade
+      ov.style.transform = img.style.transform || ""; // layer parity: identical geometry
+      ov.src = src;
+      ov.style.opacity = "0";
+      ov.classList.add("show");
+    } else if (stage) {
+      // a superseded half-done fade must not linger above the new one
+      stage.querySelectorAll(".call-art-warm").forEach((w) => { if (w !== lay) w.style.opacity = ".001"; });
+    }
     // wall-clock fade: opacity tracks elapsed time, so the transition always
     // completes 150ms after the state request even when the compositor drops
     // frames - a CSS transition can start tens of ms late under load
     cancelAnimationFrame(CALL_XFADE_RAF);
+    clearTimeout(CALL_XFADE_TIMER);
     const start = performance.now();
+    let applied = false;
+    const finish = () => {
+      if (applied || img.dataset.src !== src) return;
+      applied = true;
+      fadeEl.style.opacity = "1";
+      apply();
+    };
     const tick = () => {
-      if (img.dataset.src !== src) return; // superseded by a newer state
+      if (applied || img.dataset.src !== src) return; // superseded by a newer state
       const p = Math.min(1, (performance.now() - start) / CALL_XFADE_MS);
-      ov.style.opacity = String(p * (2 - p)); // ease-out
-      if (p >= 1) { apply(); return; }
+      fadeEl.style.opacity = String(Math.max(0.001, p * (2 - p))); // ease-out
+      if (p >= 1) { finish(); return; }
       CALL_XFADE_RAF = requestAnimationFrame(tick);
     };
     CALL_XFADE_RAF = requestAnimationFrame(tick);
+    // wall-clock guarantee: rAF only paints the ramp - even when frames
+    // stall under load the transition still commits on the 150ms clock
+    CALL_XFADE_TIMER = setTimeout(finish, CALL_XFADE_MS + 10);
   }).catch(() => {}); // keep the current approved frame
 }
 /* light per-state art update (called from renderCallStatus): only swaps
