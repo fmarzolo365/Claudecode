@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Store Model V1",
+  "type": "object",
+  "required": [
+    "coins",
+    "categories",
+    "items",
+    "labels"
+  ],
+  "properties": {
+    "marziArtUrl": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "coins": {
+      "type": "number",
+      "minimum": 0
+    },
+    "featured": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "categories": {
+      "type": "array"
+    },
+    "items": {
+      "type": "array"
+    },
+    "labels": {
+      "type": "object"
+    }
+  }
+}

@@ -393,6 +393,44 @@
     .pm-home-hero { grid-template-columns: minmax(0, 1fr) 170px; }
     .pm-home-marzi img { max-inline-size: 160px; max-block-size: 155px; }
   }
+  /* ============== MARZI STORE V1 (reference-code/css/store-v1.css) ============== */
+  .pm-store .pm2-page-title { margin-block-end: 12px; }
+  .pm-store-hero {
+    display: grid; grid-template-columns: minmax(0, 1fr) minmax(116px, 38%);
+    align-items: end; min-block-size: 168px; padding: 16px 10px 0 16px;
+    background:
+      radial-gradient(circle at 80% 20%, rgba(245, 184, 76, .14), transparent 90px),
+      linear-gradient(135deg, var(--pm2-surface), var(--pm2-home-tint));
+  }
+  .pm-store-hero-copy { align-self: center; padding-block-end: 16px; min-inline-size: 0; }
+  .pm-store-hero img { display: block; justify-self: center; max-inline-size: 126px; max-block-size: 148px; object-fit: contain; }
+  .pm-store-coins {
+    display: inline-flex; align-items: center; gap: 6px; margin-block-start: 10px;
+    padding: 5px 13px; border: 1px solid var(--pm2-line); border-radius: var(--pm2-r-pill);
+    background: var(--pm2-surface); color: var(--pm2-ink);
+    font: 900 var(--pm2-fs-card) / var(--pm2-lh-card) var(--font-sans);
+  }
+  .pm-store .cat-tabs { margin-block: 16px 2px; }
+  .pm-store .outfit-card {
+    border: 1px solid var(--pm2-line); border-radius: var(--pm2-r-md);
+    background: var(--pm2-surface); box-shadow: var(--pm2-shadow-card);
+    padding-block-end: 10px; min-block-size: var(--touch-min);
+  }
+  /* deliberate missing-art state: a state badge on a neutral slot - it must
+     read as "artwork pending", never as final outfit art */
+  .pm-store-artless {
+    display: grid; place-items: center; block-size: 72px; margin: 8px 8px 0;
+    border: 1px dashed var(--pm2-line); border-radius: var(--pm2-r-sm);
+    background: var(--pm2-surface-alt); color: var(--pm2-muted);
+  }
+  .pm-store .outfit-card[data-state="owned"] .pm-store-artless,
+  .pm-store .outfit-card[data-state="equipped"] .pm-store-artless {
+    border-style: solid; background: var(--pm2-soft-green); color: var(--pm2-green-deep);
+  }
+  .pm-store .outfit-card[data-state="equipped"] { border: 2px solid var(--pm2-green); }
+  .pm-store .store-note { color: var(--pm2-muted); font: 600 var(--pm2-fs-meta) / var(--pm2-lh-meta) var(--font-sans); margin: 10px 2px 0; }
+  .pm-store .store-item { min-block-size: var(--touch-min); }
+  .pm-store .buy-btn { min-block-size: var(--touch-min); }
   /* ===== Wave 1B premium shell: token remap outside the frozen call ===== */
   body:not(.in-call) {
     --bg: var(--pm-bg); --card: var(--pm-surface);
@@ -458,14 +496,6 @@
   .ppl .char-face { border-radius: 50%; overflow: hidden; box-shadow: var(--shadow-sm); border: 2px solid var(--card); }
   .ppl.on { background: var(--primary-soft); color: var(--primary-active); }
   .ppl.on .char-face { border-color: var(--primary); }
-  .pm-hero-store {
-    background: linear-gradient(160deg, var(--primary-soft), var(--card));
-    border: 1px solid var(--pm-border); border-radius: var(--radius-lg); box-shadow: var(--shadow);
-    display: grid; justify-items: center; gap: 6px; padding: 18px 14px; margin: 10px 0 4px;
-    text-align: center;
-  }
-  .pm-hero-store b { font: 800 var(--text-lg) var(--font-sans); }
-  .pm-hero-store small { color: var(--muted); font: 600 var(--text-sm) var(--font-sans); }
   .brand-card {
     background: linear-gradient(150deg, var(--paper-2), var(--leaf-soft-6));
     border: 1.5px solid var(--leaf-line); border-radius: 22px;
@@ -1305,13 +1335,6 @@
   .evo-cel-name { font: 800 var(--text-lg) var(--font-sans); color: var(--marzi-dark); }
   .evo-cel-desc { font: 600 var(--text-f12-5) var(--font-sans); color: var(--muted); margin-top: 4px; line-height: 1.4; }
   /* ---------- MARZI-007: canonical store (board 04_progress panel) ---------- */
-  .store-head {
-    display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-2);
-  }
-  .store-head .store-coins { font: 800 var(--text-f18) var(--font-sans); display: inline-flex; align-items: center; gap: 6px; }
-  .store-head .store-coins .ic { color: var(--coin); }
-  .store-head .store-x { margin-inline-start: auto; width: var(--touch-min); height: var(--touch-min); border-radius: 50%;
-    border: 1px solid var(--line); background: var(--card); color: var(--ink); cursor: pointer; display: grid; place-items: center; }
   .cat-tabs {
     display: flex; gap: var(--space-1); padding: 4px; margin-bottom: var(--space-3);
     background: var(--surface-soft); border: 1px solid var(--line); border-radius: 999px; overflow-x: auto; scrollbar-width: none;
@@ -1658,8 +1681,8 @@
      symmetric in both directions): anchoring it to the inline start made it
      grow outwards only, and the last top-bar chip then pushed its hit area
      past the viewport and gave the page a few pixels of horizontal scroll. */
-  .chip-res, .menu-btn, .drawer-close, .store-head .store-x { position: relative; }
-  .chip-res::after, .menu-btn::after, .drawer-close::after, .store-head .store-x::after {
+  .chip-res, .menu-btn, .drawer-close { position: relative; }
+  .chip-res::after, .menu-btn::after, .drawer-close::after {
     content: ""; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
     width: 100%; height: var(--touch-min); min-width: var(--touch-min);
   }
@@ -2039,12 +2062,14 @@
        setup screen stays authoritative one level deeper until Wave 2. -->
   <section id="talkroot" class="hidden pm-talk-root"></section>
 
-  <!-- STORE: coins, minute packages, outfit catalog (data-only, ADR-10) -->
-  <section id="store" class="hidden">
-    <div class="plate"><span id="storeTitle"></span></div>
+  <!-- STORE V1 (MARZI_STORE_PRODUCTION_PACK_V1): customization-first root
+       rendered by pmStoreRender from the normalized StoreModel; the economy
+       (purchase / equip / minute packs) keeps its existing authoritative
+       handlers and modal below. -->
+  <section id="store" class="hidden pm-store">
     <div id="storeHero"></div>
     <div id="storeLive" class="sr-only" aria-live="polite"></div>
-    <div id="storeBody" style="margin-top:10px"></div>
+    <div id="storeBody"></div>
     <div class="ui-modal-back hidden" id="storeBack"></div>
     <div id="storeModal" class="hidden"></div>
   </section>
@@ -3461,6 +3486,7 @@ const IC = {
   speaker: (s) => ic('<path d="M4 9.5h3.2L12 5.5v13l-4.8-4H4z"/><path d="M15.8 9.2a4 4 0 0 1 0 5.6M18.4 6.6a7.6 7.6 0 0 1 0 10.8"/>', false, s),
   warn: (s) => ic('<path d="M12 4.6L2.9 19.4h18.2z"/><path d="M12 10v4M12 16.8h.01"/>', false, s),
   check: (s) => ic('<path d="M4.5 12.6l4.7 4.6L19.5 6.8"/>', false, s),
+  lock: (s) => ic('<rect x="5.5" y="10.5" width="13" height="9.5" rx="2.5"/><path d="M8.5 10.5V7.5a3.5 3.5 0 0 1 7 0v3M12 14.5v2"/>', false, s),
   shirt: (s) => ic('<path d="M8.5 3.5L12 6l3.5-2.5L20 6l-1.5 4-2 .6V20H7.5v-9.4l-2-.6L4 6z"/>', false, s),
   hat: (s) => ic('<path d="M8 12V7a4 4 0 0 1 8 0v5"/><path d="M3.5 13.5c0 1.7 3.8 3 8.5 3s8.5-1.3 8.5-3"/>', false, s),
   glasses: (s) => ic('<circle cx="6.5" cy="14" r="3.4"/><circle cx="17.5" cy="14" r="3.4"/><path d="M9.9 14c.7-1 3.5-1 4.2 0M3.1 11.5L5 8h3M20.9 11.5L19 8h-3"/>', false, s),
@@ -4415,66 +4441,157 @@ let STORE_PREVIEW = null;
 const CAT_ICON = { outfits: "shirt", hats: "hat", glasses: "glasses", backpacks: "bag", pants: "pants" };
 const OUTFIT_ART = (id) => IC.shirt(ICON.jumbo); // neutral silhouette until approved art lands
 
-function renderStore() {
+/* ==================== MARZI STORE V1 (production Store root) ====================
+   MARZI_STORE_PRODUCTION_PACK_V1: customization-first Store. Current economy
+   state -> thin adapter (storeContext) -> normalized StoreModel
+   (STORE_MODEL.schema) -> pmStoreRender on shared PM2 components. The
+   renderer reads the model only: it never touches localStorage and never
+   changes coins, ownership, equipment or unlock rules. Purchases and
+   equipping keep their single authoritative path (openOutfitPreview ->
+   purchaseOutfit / equipOutfit / unequipOutfit) and minute packs keep
+   buyPack. Minutes stay secondary, after the customization catalog.
+
+   STORE_MARZI_TRYON_ART_STATUS = TEMPORARY_ACCEPTED - the hero reuses the
+   only approved production Marzi raster (same replaceable slot policy as
+   Home); true per-outfit try-on states need a dedicated art pack.
+   STORE_OUTFIT_ART_MISSING - none of the 9 catalog outfits has production
+   artwork; cards render a deliberate missing-art state (state badge on a
+   neutral slot) and never a surrogate illustration. */
+function storeContext() {
   const L = t();
   const st = loadStats();
-  const coins = st.coins || 0;
-  $("storeTitle").textContent = L.storeOutfits.toUpperCase();
-  // Wave 1B: customization-led root - Marzi preview before the catalog
-  const stStage = currentMarziStage();
-  $("storeHero").innerHTML =
-    `<div class="pm-hero-store">${UI.marziAvatar({ stage: stStage, mood: "happy", size: "var(--avatar-xl)" })}` +
-    `<b>${esc(marziNames()[stStage - 1])}</b><small>${esc(L.collectAll)}</small></div>`;
-  const items = OUTFITS.filter((o) => o.cat === STORE_CAT);
-  const tabs = STORE_CATS.map((c, i) => ({
-    id: c, label: (L.catNames || T.en.catNames)[i], icon: IC[CAT_ICON[c]](ICON.md),
-    empty: !OUTFITS.some((o) => o.cat === c),
+  const stage = currentMarziStage();
+  const equippedId = (st.equippedItemIds || [])[0] || null;
+  const items = OUTFITS.filter((o) => o.cat === STORE_CAT).map((o) => ({
+    id: o.id, name: outfitName(o.id), price: o.price, stage: o.stage,
+    state: outfitState(o.id, st), actionId: "item_" + o.id,
+    open: () => openOutfitPreview(o.id), // existing authoritative preview + purchase/equip modal
   }));
+  const categories = STORE_CATS.map((c, i) => ({
+    id: c, label: (L.catNames || T.en.catNames)[i], icon: CAT_ICON[c],
+    active: c === STORE_CAT, empty: !OUTFITS.some((o) => o.cat === c),
+    actionId: "cat_" + c,
+    open: () => { STORE_CAT = c; renderStore(); }, // presentation state only
+  }));
+  const packs = COIN_PACKS.map((p) => ({
+    id: p.id, minutes: p.minutes, price: p.price,
+    affordable: (st.coins || 0) >= p.price, actionId: "pack_" + p.id,
+    open: () => buyPack(p.id), // existing authoritative minute purchase
+  }));
+  return {
+    marziArtUrl: "/assets/marzi/call/stage-1/helping.webp",
+    coins: st.coins || 0,
+    /* featured = the real Marzi identity banner (current stage name + the
+       collection line, plus what is worn today). No invented collections,
+       offers, discounts or release dates. */
+    featured: { title: marziNames()[stage - 1],
+      subtitle: equippedId ? `${L.equippedLbl} · ${outfitName(equippedId)}` : L.collectAll },
+    categories, items, packs,
+    labels: { title: L.storeOutfits, catalog: L.outfits, note: L.collectAll,
+      minutes: L.buyMinutes, minutesSub: L.today, comingLater: L.comingLater,
+      coins: L.coins, needStage: L.needStage, ownedLbl: L.ownedLbl,
+      equippedLbl: L.equippedLbl, notEnough: L.notEnough },
+  };
+}
+function buildStoreModel(ctx) {
+  return {
+    marziArtUrl: ctx.marziArtUrl || null,
+    coins: Number(ctx.coins || 0),
+    featured: ctx.featured || null,
+    categories: ctx.categories || [],
+    items: ctx.items || [],
+    packs: ctx.packs || [],
+    labels: ctx.labels || {},
+  };
+}
+window.MARZI_STORE_V1 = Object.freeze({ buildModel: buildStoreModel, context: storeContext });
 
+function storeActions(ctx) {
+  const a = {};
+  for (const list of [ctx.categories, ctx.items, ctx.packs])
+    for (const it of list || []) if (typeof it.open === "function") a[it.actionId] = it.open;
+  return a;
+}
+window.MARZI_STORE_V1_ACTIONS = Object.freeze({ build: storeActions });
+
+/* deliberate missing-art slot (STORE_ASSET_POLICY): the tile states what the
+   item IS right now - locked, priced, owned or worn - it never pretends to
+   be outfit artwork */
+function storeArtSlot(state) {
+  const icon = { locked: IC.lock, owned: IC.check, equipped: IC.check }[state] || IC.coin;
+  return `<span class="pm-store-artless" data-art="missing">${icon(ICON.hero)}</span>`;
+}
+function pmStoreRender(model, actions) {
+  const L = model.labels;
+  const active = (model.categories.find((c) => c.active) || {}).id;
+  $("storeHero").innerHTML =
+    `<h1 class="pm2-page-title">${esc(L.title)}</h1>
+     <section class="pm2-card pm2-card--hero pm-store-hero">
+       <div class="pm-store-hero-copy">
+         ${model.featured ? `<div class="pm2-card-title"><bdi>${esc(model.featured.title)}</bdi></div>
+         <div class="pm2-card-meta">${esc(model.featured.subtitle || "")}</div>` : ""}
+         <span class="pm-store-coins"><span style="color:var(--coin);display:inline-flex" aria-hidden="true">${IC.coin(ICON.lg)}</span> <bdi dir="ltr">${esc(String(model.coins))}</bdi> <span class="sr-only">${esc(L.coins)}</span></span>
+       </div>
+       ${model.marziArtUrl ? `<img src="${esc(model.marziArtUrl)}" alt="" decoding="async" />` : ""}
+     </section>`;
   $("storeBody").innerHTML =
-    `<div class="store-head">
-       <span class="store-coins">${IC.coin(ICON.hero)} ${coins}</span>
-       <button class="store-x" id="storeClose" type="button" aria-label="${esc(L.back)}">${IC.list(ICON.lg)}</button>
-     </div>` +
-    UI.categoryTabs({ tabs, active: STORE_CAT, label: L.storeOutfits }) +
-    (items.length
-      ? `<div class="outfit-grid-3">` + items.map((o) => {
-          const state = outfitState(o.id, st);
-          return UI.outfitCard({
-            id: o.id, name: outfitName(o.id), price: o.price, state,
-            stageLabel: `${L.needStage} ${o.stage}`,
-            stateLabel: state === "equipped" ? L.equippedLbl : state === "owned" ? L.ownedLbl : "",
-            art: OUTFIT_ART(o.id),
-          });
-        }).join("") + `</div>
-         <p class="store-note">${esc(L.collectAll)}</p>`
-      : UI.emptyState({ icon: IC[CAT_ICON[STORE_CAT]](ICON.hero), title: L.comingLater, body: "" })) +
-    `<div class="label" style="margin-top:18px">${esc(L.buyMinutes)}</div>
-     <div class="list">` +
-    COIN_PACKS.map((p) => UI.storeItem({
-      icon: `<span style="display:inline-flex;color:var(--primary)">${IC.clock(ICON.hero)}</span>`,
-      name: `+${p.minutes} min`, sub: L.today,
+    UI.categoryTabs({
+      tabs: model.categories.map((c) => ({ id: c.id, label: c.label, icon: IC[c.icon] ? IC[c.icon](ICON.md) : "", empty: c.empty })),
+      active, label: L.title,
+    }) +
+    (model.items.length
+      ? `<section class="pm2-section"><h2 class="pm2-section-title">${esc(L.catalog)}</h2>
+         <div class="outfit-grid-3">` +
+        model.items.map((o) => UI.outfitCard({
+          id: o.id, name: o.name, price: o.price, state: o.state,
+          stageLabel: `${L.needStage} ${o.stage}`,
+          stateLabel: o.state === "equipped" ? L.equippedLbl
+            : o.state === "owned" ? L.ownedLbl
+            : o.state === "insufficient" ? `${o.price} · ${L.notEnough}`
+            : o.state === "available" ? `${o.price} · ${L.coins}` : "",
+          art: storeArtSlot(o.state),
+        })).join("") +
+        `</div><p class="store-note">${esc(L.note)}</p></section>`
+      : `<section class="pm2-section">${UI.emptyState({ icon: IC.bag(ICON.hero), title: L.comingLater, body: "" })}</section>`) +
+    `<section class="pm2-section"><h2 class="pm2-section-title">${esc(L.minutes)}</h2>
+     <div class="list pm2-settings-group">` +
+    model.packs.map((p) => UI.storeItem({
+      icon: `<span style="display:inline-flex;color:var(--primary)" aria-hidden="true">${IC.clock(ICON.hero)}</span>`,
+      name: `+${p.minutes} min`, sub: L.minutesSub,
     })).join("") +
-    `</div>`;
-
-  // minute packs keep their own buy button and their existing behaviour
+    `</div></section>`;
+  // wire delegated actions only - the renderer owns no transaction logic
   $("storeBody").querySelectorAll(".store-item").forEach((row, i) => {
-    const pack = COIN_PACKS[i];
-    if (!pack) return;
+    const p = model.packs[i];
+    if (!p) return;
     const b = document.createElement("button");
     b.className = "buy-btn";
-    b.disabled = coins < pack.price;
-    b.innerHTML = `${IC.coin(ICON.sm)} ${pack.price}`;
-    b.onclick = () => buyPack(pack.id);
+    b.type = "button";
+    b.disabled = !p.affordable;
+    b.innerHTML = `${IC.coin(ICON.sm)} <bdi dir="ltr">${p.price}</bdi>`;
+    b.onclick = () => actions[p.actionId]();
     row.appendChild(b);
   });
-  $("storeBody").querySelectorAll("[data-cat]").forEach((b) =>
-    b.onclick = () => { STORE_CAT = b.dataset.cat; renderStore(); });
-  $("storeBody").querySelectorAll("[data-outfit]").forEach((b) =>
-    b.onclick = () => openOutfitPreview(b.dataset.outfit));
-  $("storeClose").onclick = () => showTab("home");
-  if (STORE_MSG) announceStore(STORE_MSG);
+  $("storeBody").querySelectorAll("[data-cat]").forEach((b) => {
+    const f = actions["cat_" + b.dataset.cat];
+    if (f) b.onclick = () => f();
+  });
+  $("storeBody").querySelectorAll("[data-outfit]").forEach((b) => {
+    const f = actions["item_" + b.dataset.outfit];
+    if (f) b.onclick = () => f();
+  });
+}
+window.MARZI_STORE_V1_RENDER = Object.freeze({ render: pmStoreRender });
+
+function renderStore() {
   updateTopbar();
+  try {
+    const ctx = storeContext();
+    pmStoreRender(buildStoreModel(ctx), storeActions(ctx));
+  } catch (e) {
+    $("storeBody").innerHTML = `<div class="pm2-empty">${esc(t().err)}</div>`; // recoverable
+  }
+  if (STORE_MSG) announceStore(STORE_MSG);
 }
 
 /* ---------- MARZI-014: plan / internet + Premium (board 02_call.png) ----------

@@ -1,0 +1,10 @@
+{
+  "hero": "Use best existing Marzi/outfit preview art. Never invent SVG/emoji hero.",
+  "missingItems": "Use designed locked/missing-art state, not generic repeated shirt illustration as premium hero.",
+  "itemStates": [
+    "locked",
+    "purchasable",
+    "owned",
+    "equipped"
+  ]
+}

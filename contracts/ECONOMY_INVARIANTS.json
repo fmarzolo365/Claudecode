@@ -1,0 +1,11 @@
+{
+  "immutable": [
+    "coin balance calculation",
+    "purchase price",
+    "owned/equipped state",
+    "stage gating",
+    "purchase/equip persistence"
+  ],
+  "rendererRule": "UI model reflects economy; renderer never mutates coins directly.",
+  "commercial": "Minutes/plan secondary and separate from customization."
+}
