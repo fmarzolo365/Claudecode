@@ -1,50 +1,50 @@
 {
   "README_FIRST.md": {
-    "bytes": 85,
-    "sha256": "aaec9d4fc2add25085d72e6e4396ab28a2278715113c85e04cc9001a4b566e0c"
+    "bytes": 110,
+    "sha256": "6e5b3254dfeaca920bbe511af4fb2461ce34ebcd46a1ee48ab9ae266d571f1ce"
   },
-  "contracts/ECONOMY_INVARIANTS.json": {
-    "bytes": 321,
-    "sha256": "8c1ca4c52548c5b1fc41fc267f47e471edc4b7571a368af0571061290a98dafc"
+  "contracts/PROFILE_MODEL.schema.json": {
+    "bytes": 587,
+    "sha256": "16699ab4b8427b35771431a43326d1cbe3482f13d4aefd9b858d75809d2feaa3"
   },
-  "contracts/STORE_ASSET_POLICY.json": {
-    "bytes": 289,
-    "sha256": "97200f1f845cb60210b6be9dda08eb2238ced9cd0f7f906bef2f25a77f6e8595"
+  "contracts/PROFILE_SETTINGS_OWNERSHIP.json": {
+    "bytes": 438,
+    "sha256": "c88420f64a2ca97b77b62e62f62e736b485256c745314b31773189d3b59470fa"
   },
-  "contracts/STORE_MODEL.schema.json": {
-    "bytes": 583,
-    "sha256": "e00fff3238e29dd2ad0a24305c1e5592a0c6553095128ec49d9d76b018e3a628"
+  "contracts/PROFILE_STORAGE_INVARIANTS.json": {
+    "bytes": 284,
+    "sha256": "0189dc1195c92e0cb204bac034cd4f506886d8f5553f9ad636493532b7e7ae10"
   },
-  "docs/STORE_PRODUCT_SPEC.md": {
-    "bytes": 346,
-    "sha256": "53bf105d22b7a42e87f0a495bd634a606bcf5e82af15c45b71092fa2de83ccbd"
+  "docs/PROFILE_PRODUCT_SPEC.md": {
+    "bytes": 323,
+    "sha256": "b7ed120c6bd1865a11ef2a5de9410b51e757c6c5eb4d6b8ff32429b6e18aabff"
   },
-  "prompts/STORE_IMPLEMENTATION_PROMPT.md": {
-    "bytes": 708,
-    "sha256": "be85d82cbc139fea7cbc0d2eee3328877f2b1bf7081a2a02c57edcb8997a0a44"
+  "prompts/PROFILE_IMPLEMENTATION_PROMPT.md": {
+    "bytes": 529,
+    "sha256": "dc91edb0d2c91492ebaf3ddb110be5a519eac699bb9446b9ed86590856689d0c"
   },
-  "reference/STORE_REFERENCE_390x844.png": {
-    "bytes": 169947,
-    "sha256": "7c7c304626f18b89c4718dbd095014c451df98fa0c4ca018f9e1619b5c317eb6"
+  "reference/PROFILE_REFERENCE_390x844.png": {
+    "bytes": 128063,
+    "sha256": "ec1869e17150910ebef74a7addb882e0648afc5268a7d617185c7c2d9afeb078"
   },
-  "reference-code/css/store-v1.css": {
-    "bytes": 793,
-    "sha256": "1d4124e4fdb12be45d4425f105bd3730294b3a3a3d5152462f4cd48d1a115d7d"
+  "reference-code/css/profile-v1.css": {
+    "bytes": 184,
+    "sha256": "4d57a92fe6c78c96fc06859c0c49849b4e0db93e31f3ee43db90c31a4970b208"
   },
-  "reference-code/js/store-model-adapter.js": {
-    "bytes": 363,
-    "sha256": "ab4f0b7eab3b9856a4953ee6ca7fc85160c7244099e75257510f93463b998484"
+  "reference-code/js/profile-model-adapter.js": {
+    "bytes": 466,
+    "sha256": "f5438abdadd4316957d20e3af68cb69a02da282d7b9acf5cf179d3e67e198951"
   },
-  "reference-code/js/store-renderer.js": {
-    "bytes": 2206,
-    "sha256": "696efd09b91f495481b20597e1b087c1aeee325d1869531bd3cc6c149bc7da0a"
+  "reference-code/js/profile-renderer.js": {
+    "bytes": 1341,
+    "sha256": "3b8cdda07af19714a3e43aeaf07a66dca537e7ccac8a1d72a048eb8b44253078"
   },
-  "reference-code/tests/store-contract-snippet.js": {
-    "bytes": 206,
-    "sha256": "4ff9804f12df0e7f9ae8537d509a7c2e3c260225fcbda07d70e490455ac3e61d"
+  "reference-code/tests/profile-contract-snippet.js": {
+    "bytes": 221,
+    "sha256": "74cc0a5eb27b3e33aea98cee07a7bd18455f320f826fc955a72fc65658a2cc17"
   },
-  "tools/validate_store_static.py": {
-    "bytes": 368,
-    "sha256": "51edcdc3c6109fffa75f4eaacdaf292854e8ad183eaa0eaf76c5dc70e0034299"
+  "tools/validate_profile_static.py": {
+    "bytes": 381,
+    "sha256": "090e9cf15affc41774314655309e5c5a058b55759e6edff46b6fff7ed2e2b49f"
   }
 }

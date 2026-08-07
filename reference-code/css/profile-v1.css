@@ -1,0 +1,2 @@
+.pm-profile-summary{display:grid;gap:10px;background:linear-gradient(135deg,var(--pm2-surface),#f2f8ed)}
+.pm-profile .pm2-settings-group + .pm2-settings-group{margin-block-start:12px}

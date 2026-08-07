@@ -1,0 +1,10 @@
+{
+  "rule": "No storage key rename in Profile V1.",
+  "renderer": "reads normalized model only",
+  "actions": "delegate to existing settings handlers/sheets",
+  "forbidden": [
+    "direct localStorage mutation in renderer",
+    "duplicated wardrobe catalog",
+    "fake settings"
+  ]
+}

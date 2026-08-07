@@ -1,2 +1,2 @@
-# MARZI STORE PRODUCTION PACK V1
-Use after Talk root approval. Economy is immutable.
+# MARZI PROFILE PRODUCTION PACK V1
+Use after Store approval. Storage/settings business behavior is immutable.

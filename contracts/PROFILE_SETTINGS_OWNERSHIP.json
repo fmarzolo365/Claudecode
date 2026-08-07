@@ -1,0 +1,29 @@
+{
+  "Learning": [
+    "language_pair",
+    "cefr_level",
+    "learning_goals"
+  ],
+  "Conversation": [
+    "default_voice",
+    "default_speed"
+  ],
+  "Sound & Motion": [
+    "sound_effects",
+    "music",
+    "volume",
+    "reduced_motion",
+    "reduced_stimulation"
+  ],
+  "Account & Plan": [
+    "subscription",
+    "minutes",
+    "account"
+  ],
+  "Privacy & Support": [
+    "privacy",
+    "data_reset",
+    "support",
+    "legal"
+  ]
+}

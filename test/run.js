@@ -1381,16 +1381,21 @@ check("MARZI-015 profile: verified data only, wardrobe, achievements, a11y", () 
   if (zero.some((a) => a.earned)) throw new Error("an empty profile earned an achievement");
   if (tt.profileSnapshot().owned.length) throw new Error("empty wardrobe");
 
-  // rendering: identity, both localized stage strings, and the empty wardrobe state
+  // rendering (Profile V1): identity summary, structured stats, compact
+  // wardrobe link - the catalog lives in the Store, never here
+  const keysBefore = Object.keys(localStorage).sort().join("|");
   tt.renderProfile();
-  const body = document.getElementById("profBody").innerHTML;
+  if (Object.keys(localStorage).sort().join("|") !== keysBefore) throw new Error("rendering Profile created/renamed storage keys");
+  const body = document.getElementById("profileV1").innerHTML;
   const stage = tt.marziStageForXp(0);
   if (!body.includes(L.stageNames[stage - 1])) throw new Error("stage name missing");
-  if (!body.includes(L.stageDescs[stage - 1])) throw new Error("localized stage description missing");
   if (!body.includes("Lv. " + tt.rankFor(0).n)) throw new Error("learner rank not shown separately");
-  if (!body.includes(L.profNoOutfits)) throw new Error("empty wardrobe state missing");
+  if (body.includes('data-outfit="')) throw new Error("wardrobe catalog must live in the Store only");
+  if (!body.includes(L.profWardrobe)) throw new Error("compact wardrobe link missing");
   if (!body.includes(L.profAchv) || !body.includes("0/" + tt.ACHIEVEMENTS.length)) throw new Error("achievement summary");
   if (!body.includes(L.profReviewed)) throw new Error("mistakes reviewed missing");
+  for (const g of ["grpLearning", "grpConversation", "grpSound", "grpAccount", "grpPrivacy"])
+    if (!body.includes(L[g].replace(/&/g, "&amp;"))) throw new Error("settings group missing: " + g);
 
   // accessibility control: reduce motion is a real, persisted, additive setting
   const styles = html.slice(html.indexOf("<style>"), html.indexOf("</style>"));

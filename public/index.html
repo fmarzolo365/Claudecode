@@ -431,6 +431,23 @@
   .pm-store .store-note { color: var(--pm2-muted); font: 600 var(--pm2-fs-meta) / var(--pm2-lh-meta) var(--font-sans); margin: 10px 2px 0; }
   .pm-store .store-item { min-block-size: var(--touch-min); }
   .pm-store .buy-btn { min-block-size: var(--touch-min); }
+  /* ============== MARZI PROFILE V1 (reference-code/css/profile-v1.css) ============== */
+  .pm-profile .pm2-page-title { margin-block-end: 12px; }
+  .pm-profile-summary { display: grid; gap: 10px; background: linear-gradient(135deg, var(--pm2-surface), var(--pm2-home-tint)); }
+  .pm-profile-id { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 14px; align-items: center; }
+  .pm-profile-id-copy { display: grid; gap: 2px; min-inline-size: 0; }
+  .pm-profile-xp { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-block-start: 4px; }
+  .pm-profile-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px 8px; }
+  .pm-profile-stat { display: grid; justify-items: center; text-align: center; gap: 1px; }
+  .pm-profile-stat b { font: 900 var(--pm2-fs-card) / var(--pm2-lh-card) var(--font-sans); }
+  .pm-profile-stat span { color: var(--pm2-muted); font: 650 var(--pm2-fs-meta) / var(--pm2-lh-meta) var(--font-sans); }
+  .pm-profile .pm2-section .pm2-row { margin-block-start: 10px; }
+  .pm-profile .pm2-settings-group .pm2-row { margin-block-start: 0; }
+  .pm-profile-achv-lbl { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin: 16px 0 9px; }
+  .pm-profile-achv-lbl .pm2-section-title { margin: 0; }
+  .pm-profile .achv-grid { gap: 8px; }
+  .pm-profile .pm2-row-end svg { color: var(--pm2-green-deep); }
+  @media (max-width: 370px) { .pm-profile-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   /* ===== Wave 1B premium shell: token remap outside the frozen call ===== */
   body:not(.in-call) {
     --bg: var(--pm-bg); --card: var(--pm-surface);
@@ -2081,27 +2098,13 @@
   </section>
 
   <!-- PROFILE: identity + activity summary + grouped settings + premium + legal (review §6) -->
-  <section id="profile" class="hidden">
-    <div class="plate"><span id="profTitle"></span></div>
-    <div id="profBody" style="margin-top:10px"></div>
-    <div class="label" style="margin-top:18px" id="profSettingsLbl"></div>
-    <div class="setting-list">
-      <button class="setting-row" id="pairBtn" type="button"></button>
-      <button class="setting-row" id="planBtn" type="button"></button>
-      <button class="setting-row" id="exportBtn" type="button"></button>
-      <button class="setting-row" id="importBtn" type="button"></button>
-    </div>
-    <div class="label" style="margin-top:18px" id="profA11yLbl"></div>
-    <div class="setting-list">
-      <button class="setting-row" id="soundBtn" type="button"></button>
-      <button class="setting-row" id="motionBtn" type="button" aria-pressed="false"></button>
-    </div>
+  <!-- PROFILE V1 (MARZI_PROFILE_PRODUCTION_PACK_V1): configuration/account
+       root rendered by pmProfileRender from the normalized ProfileModel.
+       Only #importFile lives outside the re-rendered mount: its boot-time
+       change handler is the existing authoritative import path. -->
+  <section id="profile" class="hidden pm-profile">
+    <div id="profileV1"></div>
     <input type="file" id="importFile" accept="application/json" class="hidden" />
-    <div class="premium-card" id="premiumCard"></div>
-    <p class="note legal" style="text-align:center;margin-top:12px">
-      <a href="/impressum.html" style="color:inherit">Impressum</a> ·
-      <a href="/datenschutz.html" style="color:inherit">Datenschutz</a>
-    </p>
   </section>
 </main>
 
@@ -2303,7 +2306,7 @@ const T = {
     premSave:"Ahorra 33%", premContinue:"Continuar", premLater:"Más tarde", premNotYet:"Premium aún no está disponible. Te avisaremos cuando lo esté.",
     premFree:"Gratis",
     profStats:"Tus números", profWardrobe:"Tu armario", profNoOutfits:"Todavía no tienes ropa. Visita la tienda.",
-    profAchv:"Logros", profEarned:"Conseguido", profSettings:"Ajustes", profA11y:"Accesibilidad",
+    profAchv:"Logros", profEarned:"Conseguido", profSettings:"Ajustes", profA11y:"Accesibilidad", grpLearning:"Aprendizaje", grpConversation:"Conversaci\u00f3n", grpSound:"Sonido y movimiento", grpAccount:"Cuenta y plan", grpPrivacy:"Privacidad y ayuda", onLbl:"Activado", offLbl:"Desactivado",
     profMotion:"Reducir movimiento", profReviewed:"Errores repasados", profNext:"Próxima etapa", profMax:"Etapa máxima",
     achCall1:"Primera llamada", achCall10:"10 llamadas", achCall50:"50 llamadas", achMin60:"60 minutos hablando",
     achStreak7:"7 días seguidos", achStreak30:"30 días seguidos", achFix25:"25 errores repasados", achOutfit1:"Primera ropa",
@@ -2378,7 +2381,7 @@ const T = {
     premSave:"Save 33%", premContinue:"Continue", premLater:"Later", premNotYet:"Premium is not available yet. We will let you know when it is.",
     premFree:"Free",
     profStats:"Your numbers", profWardrobe:"Your wardrobe", profNoOutfits:"No clothes yet. Visit the store.",
-    profAchv:"Achievements", profEarned:"Earned", profSettings:"Settings", profA11y:"Accessibility",
+    profAchv:"Achievements", profEarned:"Earned", profSettings:"Settings", profA11y:"Accessibility", grpLearning:"Learning", grpConversation:"Conversation", grpSound:"Sound & motion", grpAccount:"Account & plan", grpPrivacy:"Privacy & support", onLbl:"On", offLbl:"Off",
     profMotion:"Reduce motion", profReviewed:"Mistakes reviewed", profNext:"Next stage", profMax:"Final stage",
     achCall1:"First call", achCall10:"10 calls", achCall50:"50 calls", achMin60:"60 minutes speaking",
     achStreak7:"7 days in a row", achStreak30:"30 days in a row", achFix25:"25 mistakes reviewed", achOutfit1:"First outfit",
@@ -2456,7 +2459,7 @@ T.tr = { tagline:"Gerçek Almanca aramalar ve konuşmalar pratiği yap. Sen konu
   premSave:"%33 tasarruf", premContinue:"Devam", premLater:"Sonra", premNotYet:"Premium henüz kullanılamıyor. Hazır olduğunda haber vereceğiz.",
   premFree:"Ücretsiz",
   profStats:"Rakamların", profWardrobe:"Gardırobun", profNoOutfits:"Henüz kıyafetin yok. Mağazaya uğra.",
-  profAchv:"Başarımlar", profEarned:"Kazanıldı", profSettings:"Ayarlar", profA11y:"Erişilebilirlik",
+  profAchv:"Başarımlar", profEarned:"Kazanıldı", profSettings:"Ayarlar", profA11y:"Erişilebilirlik", grpLearning:"\u00d6\u011frenme", grpConversation:"Konu\u015fma", grpSound:"Ses ve hareket", grpAccount:"Hesap ve plan", grpPrivacy:"Gizlilik ve destek", onLbl:"A\u00e7\u0131k", offLbl:"Kapal\u0131",
   profMotion:"Hareketi azalt", profReviewed:"Tekrar edilen hatalar", profNext:"Sonraki aşama", profMax:"Son aşama",
   achCall1:"İlk arama", achCall10:"10 arama", achCall50:"50 arama", achMin60:"60 dakika konuşma",
   achStreak7:"Üst üste 7 gün", achStreak30:"Üst üste 30 gün", achFix25:"25 hata tekrar edildi", achOutfit1:"İlk kıyafet",
@@ -2531,7 +2534,7 @@ T.ar = { tagline:"تدرّب على مكالمات ومحادثات حقيقية
   premSave:"وفّر 33%", premContinue:"متابعة", premLater:"لاحقًا", premNotYet:"بريميوم غير متاح بعد. سنخبرك عندما يصبح متاحًا.",
   premFree:"مجاني",
   profStats:"أرقامك", profWardrobe:"خزانتك", profNoOutfits:"لا توجد ملابس بعد. زر المتجر.",
-  profAchv:"الإنجازات", profEarned:"تم", profSettings:"الإعدادات", profA11y:"إمكانية الوصول",
+  profAchv:"الإنجازات", profEarned:"تم", profSettings:"الإعدادات", profA11y:"إمكانية الوصول", grpLearning:"\u0627\u0644\u062a\u0639\u0644\u0651\u0645", grpConversation:"\u0627\u0644\u0645\u062d\u0627\u062f\u062b\u0629", grpSound:"\u0627\u0644\u0635\u0648\u062a \u0648\u0627\u0644\u062d\u0631\u0643\u0629", grpAccount:"\u0627\u0644\u062d\u0633\u0627\u0628 \u0648\u0627\u0644\u062e\u0637\u0629", grpPrivacy:"\u0627\u0644\u062e\u0635\u0648\u0635\u064a\u0629 \u0648\u0627\u0644\u062f\u0639\u0645", onLbl:"\u0645\u0641\u0639\u0651\u0644", offLbl:"\u0645\u0639\u0637\u0651\u0644",
   profMotion:"تقليل الحركة", profReviewed:"أخطاء تمت مراجعتها", profNext:"المرحلة التالية", profMax:"المرحلة الأخيرة",
   achCall1:"أول مكالمة", achCall10:"10 مكالمات", achCall50:"50 مكالمة", achMin60:"60 دقيقة تحدث",
   achStreak7:"7 أيام متتالية", achStreak30:"30 يومًا متتاليًا", achFix25:"مراجعة 25 خطأ", achOutfit1:"أول ملابس",
@@ -2606,7 +2609,7 @@ T.uk = { tagline:"Тренуй реальні дзвінки й розмови �
   premSave:"Заощадь 33%", premContinue:"Далі", premLater:"Пізніше", premNotYet:"Premium ще недоступний. Ми повідомимо, щойно він з'явиться.",
   premFree:"Безкоштовно",
   profStats:"Твої числа", profWardrobe:"Твоя шафа", profNoOutfits:"Ще немає одягу. Загляни в магазин.",
-  profAchv:"Досягнення", profEarned:"Отримано", profSettings:"Налаштування", profA11y:"Доступність",
+  profAchv:"Досягнення", profEarned:"Отримано", profSettings:"Налаштування", profA11y:"Доступність", grpLearning:"\u041d\u0430\u0432\u0447\u0430\u043d\u043d\u044f", grpConversation:"\u0420\u043e\u0437\u043c\u043e\u0432\u0430", grpSound:"\u0417\u0432\u0443\u043a \u0456 \u0440\u0443\u0445", grpAccount:"\u041e\u0431\u043b\u0456\u043a\u043e\u0432\u0438\u0439 \u0437\u0430\u043f\u0438\u0441 \u0456 \u043f\u043b\u0430\u043d", grpPrivacy:"\u041a\u043e\u043d\u0444\u0456\u0434\u0435\u043d\u0446\u0456\u0439\u043d\u0456\u0441\u0442\u044c \u0456 \u043f\u0456\u0434\u0442\u0440\u0438\u043c\u043a\u0430", onLbl:"\u0423\u0432\u0456\u043c\u043a\u043d\u0435\u043d\u043e", offLbl:"\u0412\u0438\u043c\u043a\u043d\u0435\u043d\u043e",
   profMotion:"Менше руху", profReviewed:"Опрацьовані помилки", profNext:"Наступний етап", profMax:"Останній етап",
   achCall1:"Перший дзвінок", achCall10:"10 дзвінків", achCall50:"50 дзвінків", achMin60:"60 хвилин мовлення",
   achStreak7:"7 днів поспіль", achStreak30:"30 днів поспіль", achFix25:"25 опрацьованих помилок", achOutfit1:"Перший одяг",
@@ -2682,7 +2685,7 @@ T.it = { tagline:"Allenati con telefonate e conversazioni reali in tedesco. Tu p
   premSave:"Risparmia 33%", premContinue:"Continua", premLater:"Più tardi", premNotYet:"Premium non è ancora disponibile. Ti avviseremo quando lo sarà.",
   premFree:"Gratis",
   profStats:"I tuoi numeri", profWardrobe:"Il tuo guardaroba", profNoOutfits:"Non hai ancora vestiti. Vai al negozio.",
-  profAchv:"Obiettivi", profEarned:"Ottenuto", profSettings:"Impostazioni", profA11y:"Accessibilità",
+  profAchv:"Obiettivi", profEarned:"Ottenuto", profSettings:"Impostazioni", profA11y:"Accessibilità", grpLearning:"Apprendimento", grpConversation:"Conversazione", grpSound:"Suono e movimento", grpAccount:"Account e piano", grpPrivacy:"Privacy e assistenza", onLbl:"Attivo", offLbl:"Disattivo",
   profMotion:"Riduci il movimento", profReviewed:"Errori ripassati", profNext:"Prossima fase", profMax:"Fase finale",
   achCall1:"Prima chiamata", achCall10:"10 chiamate", achCall50:"50 chiamate", achMin60:"60 minuti di parlato",
   achStreak7:"7 giorni di fila", achStreak30:"30 giorni di fila", achFix25:"25 errori ripassati", achOutfit1:"Primo vestito",
@@ -4835,102 +4838,208 @@ function achievementState(p) {
     return { id: a.id, key: a.key, icon: a.icon, goal: a.goal, have: Math.min(have, a.goal), earned: have >= a.goal };
   });
 }
-function renderProfile() {
+/* ==================== MARZI PROFILE V1 (production Profile root) ====================
+   MARZI_PROFILE_PRODUCTION_PACK_V1: configuration/account root. Current
+   settings + the verified profileSnapshot counters -> thin adapter
+   (profileContext) -> normalized ProfileModel (PROFILE_MODEL.schema) ->
+   pmProfileRender on shared PM2 components. The renderer reads the model
+   only - it never touches localStorage and creates no storage keys; every
+   behavioral action delegates to the existing authoritative handlers
+   (showOnboarding, the saveSettings-backed sound/motion/speed state,
+   openPlanScreen, openPremiumScreen, exportBackup, #importFile, showTab).
+   The Store stays the canonical wardrobe owner: Profile carries one
+   compact owned-count row that routes to the Store tab - no catalog here.
+
+   PROFILE_DISPLAY_NAME_MISSING - the app has no account or display-name
+   source, so the summary leads with the real stage + rank identity.
+   Missing production slots (strategy asks, current product lacks) - NOT
+   faked as dead rows: standalone CEFR default (level is chosen in the
+   Talk setup), learning goals, default voice, music, master volume,
+   haptics, reduced stimulation, account/sign-in, support contact. */
+const PROFILE_SPEED_ORDER = ["slow", "normal", "fast", "fluent"];
+function profileContext() {
   const L = t();
   const st = loadStats();
   const p = profileSnapshot(st);
-  const stage = p.stage;
-  $("profTitle").textContent = L.tabProfile.toUpperCase();
-  const stats = [
-    [`${p.coins}`, L.coins],
-    [`${p.streak}`, L.days],
-    [`${p.calls}`, L.calls],
-    [`${p.minutes}`, L.minutes],
-    [`${p.reviewed}`, L.profReviewed],
-    [`${p.words}`, L.myWords],
-  ];
   const achv = achievementState(p);
-  const earned = achv.filter((a) => a.earned).length;
-  $("profBody").innerHTML =
-    // identity: Marzi's stage is primary, the learner rank a secondary line
-    `<div class="prof-id">
-       ${UI.marziAvatar({ stage, mood: "happy", size: "var(--avatar-xl)" })}
-       <div class="prof-id-stage">${esc(stage + "/" + MARZI_STAGE_COUNT + " · " + marziNames()[stage - 1])}</div>
-       <p class="prof-id-desc">${esc(marziDescs()[stage - 1])}</p>
-       <div class="prof-id-rank">${esc(`Lv. ${p.rank.n} · ${p.rank.title}`)}</div>
-     </div>` +
-    UI.progressCard({
-      title: p.stageNext === null ? L.profMax : L.profNext,
-      value: p.stageNext === null ? 1 : p.stageGained, max: p.stageNext === null ? 1 : p.stageSpan,
-      valueLabel: `${p.xp} XP`,
-      caption: p.stageNext === null ? "" : `${p.xpToNext} XP → ${marziNames()[stage]}`,
-    }) +
-    `<div class="label" style="margin-top:18px">${esc(L.profStats)}</div>
-     <div class="stat-grid">` +
-    stats.map(([b, s]) => `<div class="stat"><b>${esc(b)}</b><small>${esc(s)}</small></div>`).join("") +
-    `</div>
-     <div class="label" style="margin-top:18px">${esc(L.profWardrobe)}</div>` +
-    (p.owned.length
-      ? `<div class="outfit-grid-3">` + p.owned.map((id) => {
-          const o = OUTFITS.find((x) => x.id === id);
-          const state = id === p.equipped ? "equipped" : "owned";
-          return UI.outfitCard({
-            id, name: outfitName(id), price: o.price, state,
-            stageLabel: `${L.needStage} ${o.stage}`,
-            stateLabel: state === "equipped" ? L.equippedLbl : L.ownedLbl,
-            art: OUTFIT_ART(id),
-          });
-        }).join("") + `</div>`
-      : UI.emptyState({ icon: IC.shirt(ICON.hero), title: L.profNoOutfits, body: "" })) +
-    `<div class="label prof-achv-lbl" style="margin-top:18px"><span>${esc(L.profAchv)}</span><span class="prof-achv-n">${esc(earned + "/" + achv.length)}</span></div>
-     <div class="achv-grid">` +
-    achv.map((a) => {
-      const name = (L[a.key] || T.en[a.key] || a.id);
-      return `<div class="achv" data-id="${esc(a.id)}" data-state="${a.earned ? "earned" : "locked"}">` +
-        `<span class="achv-ic" aria-hidden="true">${IC[a.icon](ICON.lg)}</span>` +
-        `<span class="achv-txt"><b>${esc(name)}</b>` +
-        `<small>${esc(a.earned ? L.profEarned : `${a.have}/${a.goal}`)}</small></span></div>`;
-    }).join("") +
-    `</div>`;
-  $("premiumCard").innerHTML =
-    `<div style="display:flex;align-items:center;gap:10px">
-       <span style="display:inline-flex;color:#c99a12">${IC.crown(ICON.hero)}</span>
-       <b style="font:800 16px var(--font-sans)">Premium</b>
-       <span class="soon-badge" style="margin-left:auto">${esc(L.obSoon)}</span>
-     </div>
-     <p class="note" style="margin:8px 0 0">${esc(L.premiumText)}</p>`;
-  $("premiumCard").onclick = () => openPremiumScreen();
-  $("premiumCard").setAttribute("role", "button");
-  $("premiumCard").setAttribute("tabindex", "0");
-  $("premiumCard").onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") openPremiumScreen(); };
-  $("profSettingsLbl").textContent = L.profSettings;
-  $("profA11yLbl").textContent = L.profA11y;
-  $("soundBtn").textContent = (S.sound !== false ? "♪ " : "○ ") + L.sound + (S.sound !== false ? ": ON" : ": OFF");
-  $("soundBtn").className = "toggle" + (S.sound !== false ? " on" : "");
-  $("soundBtn").onclick = () => {
-    S.sound = S.sound === false;
-    if (S.sound === false) SFX.ringStop();
-    saveSettings(); renderProfile();
-  };
-  // reduce motion: an in-app control on top of the OS preference, which is
-  // already honoured. Forcing it on is possible; forcing it OFF is not - the
-  // system setting always wins.
-  $("motionBtn").textContent = (S.reduceMotion ? "◐ " : "◑ ") + L.profMotion + (S.reduceMotion ? ": ON" : ": OFF");
-  $("motionBtn").className = "toggle" + (S.reduceMotion ? " on" : "");
-  $("motionBtn").setAttribute("aria-pressed", S.reduceMotion ? "true" : "false");
-  $("motionBtn").onclick = () => {
-    S.reduceMotion = !S.reduceMotion;
-    saveSettings(); applyReduceMotion(); renderProfile();
-  };
-  // compact language row: current help language → target; tap opens the pair picker
   const helpName = (LANG_CHIPS.find((x) => x[0] === S.lang) || ["", S.lang])[1];
-  $("pairBtn").textContent = "🌐 " + helpName + " → " + TARGET.nativeName;
-  $("pairBtn").onclick = () => showOnboarding();
-  $("planBtn").textContent = "⏱ " + L.planTitle;
-  $("planBtn").onclick = () => openPlanScreen();
-  $("exportBtn").textContent = `↓ ${L.dataExport}`;
-  $("importBtn").textContent = `↑ ${L.dataImport}`;
+  const speedName = { slow: L.speedSlow, normal: L.speedNormal, fast: L.speedFast, fluent: L.speedFluent }[S.speed] || L.speedNormal;
+  const minsLeft = Math.max(0, Math.ceil((planLimitToday() - planUsedToday()) / 60));
+  const onOff = (v) => (v ? L.onLbl : L.offLbl);
+  const soundOn = S.sound !== false, motionOn = !!S.reduceMotion;
+  const groups = [
+    { id: "learning", label: L.grpLearning, items: [
+      { id: "lang", icon: "book", title: L.obPair, value: `${helpName} \u2192 ${TARGET.nativeName}`,
+        actionId: "lang", open: () => showOnboarding() }, // existing pair picker
+    ] },
+    { id: "conversation", label: L.grpConversation, items: [
+      /* the persisted default only - the in-call Speed pill stays the
+         per-call control and is untouched */
+      { id: "speed", icon: "clock", title: L.speed, value: speedName, actionId: "speed",
+        open: () => {
+          const i = PROFILE_SPEED_ORDER.indexOf(S.speed);
+          S.speed = PROFILE_SPEED_ORDER[(i + 1) % PROFILE_SPEED_ORDER.length];
+          saveSettings(); renderProfile();
+        } },
+    ] },
+    { id: "sound", label: L.grpSound, items: [
+      { id: "sound", icon: "speaker", title: L.sound, value: onOff(soundOn), toggle: true, pressed: soundOn,
+        actionId: "sound", open: () => {
+          S.sound = S.sound === false;
+          if (S.sound === false) SFX.ringStop();
+          saveSettings(); renderProfile();
+        } },
+      /* additive on top of the OS preference, which always wins */
+      { id: "motion", icon: "wave", title: L.profMotion, value: onOff(motionOn), toggle: true, pressed: motionOn,
+        actionId: "motion", open: () => {
+          S.reduceMotion = !S.reduceMotion;
+          saveSettings(); applyReduceMotion(); renderProfile();
+        } },
+    ] },
+    { id: "account", label: L.grpAccount, items: [
+      { id: "plan", icon: "clock", title: L.planTitle, value: `${minsLeft} min`, bdiValue: true,
+        actionId: "plan", open: () => openPlanScreen() },
+      { id: "premium", icon: "crown", title: L.premGet,
+        value: premiumPreviewState() === "premium" ? L.premGet : L.premFree,
+        actionId: "premium", open: () => openPremiumScreen() },
+    ] },
+    { id: "privacy", label: L.grpPrivacy, items: [
+      { id: "export", icon: "share", title: L.dataExport, value: "", actionId: "export",
+        open: () => exportBackup() },
+      { id: "import", icon: "prep", title: L.dataImport, value: "", actionId: "import",
+        open: () => $("importFile").click() },
+      /* real legal/privacy pages, linked by their proper page names */
+      { id: "privacyPage", icon: "help", title: "Datenschutz", href: "/datenschutz.html" },
+      { id: "dataDelete", icon: "x", title: "Daten l\u00f6schen", href: "/daten-loeschen.html" },
+      { id: "legal", icon: "list", title: "Impressum", href: "/impressum.html" },
+    ] },
+  ];
+  return {
+    displayName: "", // PROFILE_DISPLAY_NAME_MISSING: no real name source
+    stage: p.stage, stageName: marziNames()[p.stage - 1],
+    rankLine: `Lv. ${p.rank.n} \u00b7 ${rankTitleFor(p.rank)}`,
+    pairLine: `${helpName} \u2192 ${TARGET.nativeName}`,
+    levelToken: S.level,
+    xpCurrent: p.stageNext === null ? null : p.stageGained,
+    xpNext: p.stageNext === null ? null : p.stageSpan,
+    xpLine: p.stageNext === null ? L.profMax : `${p.xp} XP`,
+    xpCaption: p.stageNext === null ? "" : `${p.xpToNext} XP \u2192 ${marziNames()[p.stage]}`,
+    stats: [
+      { value: p.coins, label: L.coins }, { value: p.streak, label: L.days },
+      { value: p.calls, label: L.calls }, { value: p.minutes, label: L.minutes },
+      { value: p.reviewed, label: L.profReviewed }, { value: p.words, label: L.myWords },
+    ],
+    achievements: achv,
+    achievementsEarned: achv.filter((a) => a.earned).length,
+    wardrobe: { count: p.owned.length, equippedName: p.equipped ? outfitName(p.equipped) : null,
+      actionId: "wardrobe", open: () => showTab("store") }, // Store owns the catalog
+    groups,
+    labels: { title: L.tabProfile, progress: L.profStats, next: L.profNext,
+      achievements: L.profAchv, wardrobe: L.profWardrobe, level: L.level },
+  };
+}
+function buildProfileModel(ctx) {
+  return {
+    displayName: String(ctx.displayName || ""),
+    level: ctx.levelToken || null,
+    xpCurrent: ctx.xpCurrent != null ? ctx.xpCurrent : null,
+    xpNext: ctx.xpNext != null ? ctx.xpNext : null,
+    stage: ctx.stage, stageName: ctx.stageName, rankLine: ctx.rankLine, pairLine: ctx.pairLine,
+    xpLine: ctx.xpLine, xpCaption: ctx.xpCaption,
+    stats: ctx.stats || [], achievements: ctx.achievements || [],
+    achievementsEarned: ctx.achievementsEarned || 0,
+    wardrobe: ctx.wardrobe || null,
+    groups: (ctx.groups || []).map((g) => Object.assign({}, g, {
+      items: (g.items || []).filter((x) => x.href || typeof x.open === "function"),
+    })),
+    labels: ctx.labels || {},
+  };
+}
+window.MARZI_PROFILE_V1 = Object.freeze({ buildModel: buildProfileModel, context: profileContext });
+
+function profileActions(ctx) {
+  const a = {};
+  if (ctx.wardrobe && typeof ctx.wardrobe.open === "function") a[ctx.wardrobe.actionId] = ctx.wardrobe.open;
+  for (const g of ctx.groups || [])
+    for (const it of g.items || []) if (typeof it.open === "function") a[it.actionId] = it.open;
+  return a;
+}
+window.MARZI_PROFILE_V1_ACTIONS = Object.freeze({ build: profileActions });
+
+function pmProfileRender(model, actions) {
+  const L = model.labels;
+  const row = (it) => it.href
+    ? `<a class="pm2-row" href="${esc(it.href)}">
+         <span class="pm2-row-icon" aria-hidden="true">${IC[it.icon] ? IC[it.icon](ICON.lg) : ""}</span>
+         <span class="pm2-row-copy"><span class="pm2-row-title">${esc(it.title)}</span></span>
+         <span class="pm2-row-end" aria-hidden="true">\u203a</span></a>`
+    : `<button class="pm2-row" data-pf="${esc(it.actionId)}" type="button"${it.toggle ? ` aria-pressed="${it.pressed ? "true" : "false"}"` : ""}
+         aria-label="${esc(it.value ? `${it.title} \u00b7 ${it.value}` : it.title)}">
+         <span class="pm2-row-icon" aria-hidden="true">${IC[it.icon] ? IC[it.icon](ICON.lg) : ""}</span>
+         <span class="pm2-row-copy"><span class="pm2-row-title">${esc(it.title)}</span>
+           ${it.value ? `<span class="pm2-row-meta">${it.bdiValue ? `<bdi dir="ltr">${esc(it.value)}</bdi>` : esc(it.value)}</span>` : ""}</span>
+         <span class="pm2-row-end" aria-hidden="true">${it.toggle ? (it.pressed ? IC.check(ICON.md) : "\u2013") : "\u203a"}</span></button>`;
+  $("profileV1").innerHTML =
+    `<h1 class="pm2-page-title">${esc(L.title)}</h1>
+     <article class="pm2-card pm2-card-pad pm-profile-summary">
+       <div class="pm-profile-id">
+         ${UI.marziAvatar({ stage: model.stage, mood: "happy", size: "var(--avatar-lg)" })}
+         <div class="pm-profile-id-copy">
+           <div class="pm2-card-title"><bdi>${esc(`${model.stage}/${MARZI_STAGE_COUNT} \u00b7 ${model.stageName}`)}</bdi></div>
+           <div class="pm2-card-meta"><bdi>${esc(model.rankLine)}</bdi></div>
+           <div class="pm2-card-meta">${esc(model.pairLine)} \u00b7 <bdi dir="ltr">${esc(model.level || "")}</bdi></div>
+         </div>
+       </div>
+       ${model.xpNext != null
+         ? `<div class="pm-profile-xp"><span class="pm2-card-meta">${esc(L.next)}</span>
+              <span class="pm2-card-meta"><bdi dir="ltr">${esc(model.xpLine)}</bdi></span></div>` +
+           UI.xpBar({ percent: Math.min(100, Math.round(100 * model.xpCurrent / Math.max(1, model.xpNext))) }) +
+           `<div class="pm2-card-meta"><bdi>${esc(model.xpCaption)}</bdi></div>`
+         : `<div class="pm2-card-meta">${esc(model.xpLine)}</div>`}
+     </article>
+     <section class="pm2-section"><h2 class="pm2-section-title">${esc(L.progress)}</h2>
+       <div class="pm2-card pm2-card-pad pm-profile-stats" role="list">` +
+    model.stats.map((s2) =>
+      `<div class="pm-profile-stat" role="listitem" aria-label="${esc(`${s2.value} ${s2.label}`)}">
+         <b><bdi dir="ltr">${esc(String(s2.value))}</bdi></b><span>${esc(s2.label)}</span></div>`).join("") +
+    `  </div>` +
+    (model.wardrobe && typeof actions[model.wardrobe.actionId] === "function"
+      ? row({ id: "wardrobe", icon: "shirt", title: L.wardrobe,
+          value: model.wardrobe.equippedName
+            ? `${model.wardrobe.count} \u00b7 ${model.wardrobe.equippedName}` : String(model.wardrobe.count),
+          actionId: model.wardrobe.actionId })
+      : "") +
+    `  <div class="pm-profile-achv-lbl"><span class="pm2-section-title">${esc(L.achievements)}</span>
+         <span class="pm2-card-meta"><bdi dir="ltr">${esc(`${model.achievementsEarned}/${model.achievements.length}`)}</bdi></span></div>
+       <div class="achv-grid">` +
+    model.achievements.map((a) => {
+      const name = (t()[a.key] || T.en[a.key] || a.id);
+      return `<div class="achv" data-id="${esc(a.id)}" data-state="${a.earned ? "earned" : "locked"}">
+        <span class="achv-ic" aria-hidden="true">${IC[a.icon](ICON.lg)}</span>
+        <span class="achv-txt"><b>${esc(name)}</b>
+        <small>${esc(a.earned ? t().profEarned : `${a.have}/${a.goal}`)}</small></span></div>`;
+    }).join("") +
+    `  </div>
+     </section>` +
+    model.groups.map((g) => g.items.length
+      ? `<section class="pm2-section"><h2 class="pm2-section-title">${esc(g.label)}</h2>
+           <div class="pm2-settings-group">${g.items.map(row).join("")}</div></section>`
+      : "").join("");
+  $("profileV1").querySelectorAll("[data-pf]").forEach((b) => {
+    const f = actions[b.dataset.pf];
+    if (f) b.onclick = () => f();
+  });
+}
+window.MARZI_PROFILE_V1_RENDER = Object.freeze({ render: pmProfileRender });
+
+function renderProfile() {
   updateTopbar();
+  try {
+    const ctx = profileContext();
+    pmProfileRender(buildProfileModel(ctx), profileActions(ctx));
+  } catch (e) {
+    $("profileV1").innerHTML = `<div class="pm2-empty">${esc(t().err)}</div>`; // recoverable
+  }
 }
 
 /* ---------- app shell: top bar + bottom navigation ---------- */
@@ -8073,7 +8182,8 @@ $("shareBtn").onclick = async () => {
     try { await navigator.clipboard.writeText(text + " " + url); alert(t().copied); } catch (e) {}
   }
 };
-$("exportBtn").onclick = () => {
+/* the authoritative backup path; Profile V1 rows delegate here */
+function exportBackup() {
   const data = {};
   for (let i = 0; i < localStorage.length; i++) {
     const k = localStorage.key(i);
@@ -8085,8 +8195,7 @@ $("exportBtn").onclick = () => {
   a.download = "telefontrainer-backup.json";
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 5000);
-};
-$("importBtn").onclick = () => $("importFile").click();
+}
 $("importFile").onchange = (e) => {
   const f = e.target.files && e.target.files[0];
   if (!f) return;
