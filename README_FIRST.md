@@ -1,21 +1,17 @@
-# MARZI WERKSTATT PAINTERLY GOLD PACK V1
+# MARZI WERKSTATT GOLD ART V2 FINAL
 
-This is a production-art integration pack for the existing `werkstatt` contact.
+This is not a new integration.
+It replaces only the five character WebPs on top of the approved Werkstatt runtime commit 953e659.
 
-## Claude Code
+## Claude Code message
 
-Attach the ZIP as a real file in a clean session.
+Attach this ZIP as a real file, then send:
 
-Send:
-
-Extract `MARZI_WERKSTATT_PAINTERLY_GOLD_PACK_V1.zip` at the repository root.
+Extract `MARZI_WERKSTATT_GOLD_ART_V2_FINAL.zip` at the repository root.
 
 Read and execute:
 `CLAUDE_INTEGRATION_PROMPT.md`
 
-Use only a verified Gold baseline containing Apotheke runtime commit `92875df`.
-Do not touch the frozen Gold shell, MARZI-006, or `werkstatt2`.
-Do not modify artwork.
-Do not merge or deploy.
-
-Produce the six requested review screenshots and stop.
+Do not touch workshop.webp, CALL_ART, shell, state machine or MARZI-006.
+Do not compensate with CSS.
+Produce six screenshots and stop.

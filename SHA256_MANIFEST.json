@@ -1,74 +1,82 @@
 {
   "CLAUDE_INTEGRATION_PROMPT.md": {
-    "bytes": 4130,
-    "sha256": "7d92df2192123d57d4c918cc6ea50e08c6e9847af4af207483029d7aa448f403"
+    "bytes": 2533,
+    "sha256": "f40550354ab8406f136f23a7329ff92e71730c162d82001f22a33de6643de1d4"
   },
   "README_FIRST.md": {
-    "bytes": 572,
-    "sha256": "16156f1dfe9e3740189025e9c597b1f2dfabe9f96c12acc278c8ae4c92cb38fe"
+    "bytes": 494,
+    "sha256": "af6ad85ceb017e592345e27fdf29fd4c3f726401e44e9261a754f00ef60c1c67"
   },
   "STATE_PACK_PREVIEW.png": {
-    "bytes": 571554,
-    "sha256": "e8727a8dd0bad5d806967f97db1e36010e20c758c3c52f24568d0eaf2a2b316f"
+    "bytes": 763059,
+    "sha256": "49a640c570d1c56f01fc20d1c82026ca2c86a956e0cec46ef15855af80f62271"
   },
   "asset-manifest.json": {
-    "bytes": 5211,
-    "sha256": "4455fc6b97a5d02e2f368713bf7f93b0d9b99f649702ae141ce2d0861d2a6044"
-  },
-  "public/assets/call/backgrounds/workshop.webp": {
-    "bytes": 274562,
-    "sha256": "0f4b83f651722a7089db26b7e88bdaad5fcf89509994885d93f6e62ef8f5de43"
+    "bytes": 3744,
+    "sha256": "d0e40d1ab3f682386cd237a9d26cfe138569007487aacfe2745e19ed8a1b5e67"
   },
   "public/assets/call/characters/werkstatt/idle.webp": {
-    "bytes": 670570,
-    "sha256": "748517d5eb386244eb5d0f0828995131692136a430bd415fcb167eb28b952f35"
+    "bytes": 1000642,
+    "sha256": "6acf89cff355d3df2a470ed6ab58f3f21fa45b459139ae5ae849078ebe7e17d0"
   },
   "public/assets/call/characters/werkstatt/listening.webp": {
-    "bytes": 522250,
-    "sha256": "f2d9264def0169e4a23fe5420f46c19d20734be7acec7e8a5eb5f52aab98121c"
+    "bytes": 988118,
+    "sha256": "fcb2457ae6c37060f5cdd70ca1ce5d5fcb1351a4cda899c31b859189cc4e862c"
   },
   "public/assets/call/characters/werkstatt/speaking.webp": {
-    "bytes": 426688,
-    "sha256": "9a1be53f91fd71149b304a4586cd18588417f3905ed13fa26a9982acc1f3a2a1"
+    "bytes": 1030540,
+    "sha256": "8673864cc5062da6711ad9f80c57ea48cb525e719f2e9dd8af04531b9f3607d8"
   },
   "public/assets/call/characters/werkstatt/success.webp": {
-    "bytes": 583232,
-    "sha256": "7aa73153c9047e92151249478f4bb67fc594f37c4d3088537d747e8ed011f7db"
+    "bytes": 992658,
+    "sha256": "2be2c12b1bedc90a14ef358b8881d0b04b353cc94e42d4f1a7c70c5a4a599fdc"
   },
   "public/assets/call/characters/werkstatt/thinking.webp": {
-    "bytes": 380916,
-    "sha256": "6f38dae0bff8b69534b1c0efbff482d75f992c4b3b628e0525495d05e2962a26"
+    "bytes": 956810,
+    "sha256": "c6106cde44c79b1026ea6f0f485a02bcb877a714dc55f7e65cabc7381450eee0"
   },
-  "reference/WERKSTATT_GOLD_ART_DIRECTION.png": {
-    "bytes": 2229900,
-    "sha256": "bf48c1d7a7f420a4c2398ed2952a24f22d064aba15724f195d93a33ec255d945"
+  "reference/WERKSTATT_GOLD_V2_REFERENCE.png": {
+    "bytes": 2556867,
+    "sha256": "3fa20f8cf56dae895d1491af5118eca2ac4817af61c66169121f3e493c81fb8b"
   },
-  "reference/WERKSTATT_GOLD_CONCEPT_PREVIEW.png": {
-    "bytes": 2540296,
-    "sha256": "dafc9508a2fa2d3c04bc504a0359ca8e5e6cd07468c88af9c736a7c271315f55"
+  "source-masters/idle-approved-panel.png": {
+    "bytes": 219026,
+    "sha256": "7235f183692d93f8eb798a78770a6fa560af5179f600765496491d7dc1eacfe7"
   },
-  "source-masters/werkstatt-idle-master.png": {
-    "bytes": 1149020,
-    "sha256": "76a3b57254b041a19e142c25eb44739aaa3b9b980cfd0ecebafe64b141880638"
+  "source-masters/listening-approved-panel.png": {
+    "bytes": 216218,
+    "sha256": "e55e9ed82c98c34de6139a98844b63487e9c05fb58d9b6c15ba7faa08ca62a11"
   },
-  "source-masters/werkstatt-listening-master.png": {
-    "bytes": 923388,
-    "sha256": "f2c87dd51887a2a081577238d0523d23f242b27993ddba1f278d7b8ff793cf2a"
+  "source-masters/speaking-approved-panel.png": {
+    "bytes": 213063,
+    "sha256": "a5566005990b5567cc7d951e259a0036195ecee15fca37f3f2a1a951a0423a0f"
   },
-  "source-masters/werkstatt-speaking-master.png": {
-    "bytes": 760789,
-    "sha256": "678ae8d3b1fd5be51de6fe33d3f5f2d06f270bdabb3f7f4f7d31fc56a3f0ac9e"
+  "source-masters/success-approved-panel.png": {
+    "bytes": 211680,
+    "sha256": "1fef9bf4d939dcf665c342d7269bf928c2b8358f19f3b76208a223149d17ef49"
   },
-  "source-masters/werkstatt-success-master.png": {
-    "bytes": 1034676,
-    "sha256": "4f2e6743dd23f2f0a5ff7a42ad90d0758dab86df92284e30a2ec08ea53e1873f"
+  "source-masters/thinking-approved-panel.png": {
+    "bytes": 213191,
+    "sha256": "77e0ffff01b1b896c2a532b88f9c2e7ea6c32345b8b0b889fd500a296f99819f"
   },
-  "source-masters/werkstatt-thinking-master.png": {
-    "bytes": 694757,
-    "sha256": "6a41568aebced1ea2044e5efbe5d0960c55b003311175858d04c7590ffc055f1"
+  "source-masters/werkstatt-idle-master-v2.png": {
+    "bytes": 1669385,
+    "sha256": "f1ed663e478301c29de7f1a2d20dbc89d7497bded1d3daab3fd721589296f361"
   },
-  "source-masters/workshop-master.png": {
-    "bytes": 1924936,
-    "sha256": "2f6f91041c47a974b9b4afc1a7b4f24d7f1687e7c94f484538be76bcb38e3593"
+  "source-masters/werkstatt-listening-master-v2.png": {
+    "bytes": 1652166,
+    "sha256": "5f18154091d177273c8d5d0aee40e5e8dac704a576a0f30ea481c19a22535e68"
+  },
+  "source-masters/werkstatt-speaking-master-v2.png": {
+    "bytes": 1711299,
+    "sha256": "58c8651c5c8e2d5e48af0dcae577559d149ca5a7089d22f8893f6cf6f5e4bfbc"
+  },
+  "source-masters/werkstatt-success-master-v2.png": {
+    "bytes": 1641524,
+    "sha256": "1c8598d1482e59d85a13bfc7a82728cbff66c0f6e661bac99d5da5c00386af94"
+  },
+  "source-masters/werkstatt-thinking-master-v2.png": {
+    "bytes": 1597151,
+    "sha256": "2e214a2cf018aa1c35d06ad89177ae7f2166446ef7f19bf5a5d7e94629ba9f30"
   }
 }

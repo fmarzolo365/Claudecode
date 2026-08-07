@@ -1,160 +1,127 @@
-# MARZI — WERKSTATT PAINTERLY GOLD V1 INTEGRATION
-# DATA/REGISTRY INTEGRATION ONLY
+# MARZI — WERKSTATT GOLD ART V2 FINAL
+# REPLACE FIVE ASSETS ONLY
 
-This pack contains the approved Gold production pilot for:
-contactId: `werkstatt`
-display: `KFZ-Werkstatt Reuter`
-family: `workshop`
+The existing Werkstatt integration at `953e659` is technically approved.
+The previous V1 artwork was rejected only because thinking/speaking/success lost torso continuity or changed apparent scale.
 
-DO NOT integrate `werkstatt2` yet.
+This V2 task is ARTWORK REPLACEMENT ONLY.
 
-==================================================
-BASELINE GATE
-==================================================
-
-Before editing:
+## BASELINE
 
 git fetch origin
 
-Preferred baseline:
-`origin/claude/marzi-apotheke-gold-v1-freeze`
+Verify:
 
-Verify that the selected baseline contains approved Apotheke runtime commit:
-`92875df`
+origin/claude/marzi-werkstatt-painterly-gold-v1
 
-If the freeze branch does not exist, use only a verified Apotheke Gold branch that contains 92875df.
+contains:
 
-Do not start from:
-- main
-- the rejected flat Apotheke branch
-- a branch containing unrelated MARZI-006 changes
+953e659
 
-If no clean verified Gold baseline exists, STOP and report.
+If not, STOP.
 
-Create a new dedicated branch:
+Create:
 
-`claude/marzi-werkstatt-painterly-gold-v1`
+claude/marzi-werkstatt-gold-art-v2
 
-Do not rewrite or force-push any existing Gold branch.
+from that verified baseline.
 
-==================================================
-PACK GATE
-==================================================
+Do not rewrite V1.
+
+## EXTRACT + VERIFY
+
+Extract:
+
+MARZI_WERKSTATT_GOLD_ART_V2_FINAL.zip
+
+at repository root.
 
 Read:
-- `asset-manifest.json`
-- `SHA256_MANIFEST.json`
-- `reference/WERKSTATT_GOLD_ART_DIRECTION.png`
+- asset-manifest.json
+- SHA256_MANIFEST.json
+- reference/WERKSTATT_GOLD_V2_REFERENCE.png
 
-Verify every checksum before integration.
+Verify all checksums.
 
-Required assets:
+## STRICT CHANGE SCOPE
 
-- public/assets/call/characters/werkstatt/idle.webp
-- public/assets/call/characters/werkstatt/listening.webp
-- public/assets/call/characters/werkstatt/thinking.webp
-- public/assets/call/characters/werkstatt/speaking.webp
-- public/assets/call/characters/werkstatt/success.webp
-- public/assets/call/backgrounds/workshop.webp
+Replace ONLY:
 
-If any asset or checksum fails, STOP.
+public/assets/call/characters/werkstatt/idle.webp
+public/assets/call/characters/werkstatt/listening.webp
+public/assets/call/characters/werkstatt/thinking.webp
+public/assets/call/characters/werkstatt/speaking.webp
+public/assets/call/characters/werkstatt/success.webp
 
-==================================================
-IMPLEMENTATION
-==================================================
+DO NOT change:
 
-Add only the minimal `werkstatt` CALL_ART registry entry.
+- workshop.webp
+- CALL_ART
+- state mapping
+- preload logic
+- crossfade logic
+- no-flash logic
+- stage geometry
+- CSS crop/object-position
+- Gold shell
+- Text / Help / Translate / Speed / Replay
+- microphone
+- footer
+- server.js
+- MARZI-006
+- werkstatt2
 
-Use:
+Do not compensate with CSS or transforms.
 
-werkstatt: {
-  background: "/assets/call/backgrounds/workshop.webp",
-  dir: "/assets/call/characters/werkstatt/",
-  states: <same approved Gold states mapping>,
-  ext: ".webp"
-}
+If repository convention requires it because the five existing URLs changed bytes, bump ONLY the service-worker cache constant.
 
-Mapping exactly:
+## FOCUSED VALIDATION
 
-ready        -> idle
-listening    -> listening
-processing   -> thinking
-speaking     -> speaking
-success      -> success
-error        -> idle
-disconnected -> idle
-
-Reuse the approved Wagner/Apotheke Gold runtime unchanged:
-
-- 1600×1800 transparent production character canvas
-- focal point 0.5 / 0.34
-- bottom aligned
-- 253.2px Gold stage at 390×844
-- production-first no-flash
-- preload idle + listening before reveal
-- warm thinking + speaking + success after start
-- resident/warm layers
-- decode before swap
-- 150ms wall-clock crossfade
-- <=180ms isolated settle target
-- 0ms reduced-motion visual transition
-- no production-art scale pulse
-- fallback only on real load failure
-
-Do NOT:
-- change shell HTML/CSS
-- change state machine
-- change server.js
-- change Text / Help / Translate / Speed / Replay / mic / footer
-- touch MARZI-006
-- modify supplied artwork
-- generate SVG replacements
-- integrate werkstatt2
-- merge
-- deploy
-
-==================================================
-FOCUSED REVIEW GATE
-==================================================
-
-Run focused checks only.
+Run focused validation only.
 
 Verify:
-1. all six production asset URLs return 200;
-2. every Werkstatt call state resolves to the required WebP;
-3. first reveal never shows emoji/generated/SVG mechanic;
-4. no fallback, blank or veil between valid production states;
-5. settled stage/portrait geometry is stable;
-6. isolated state transitions settle <=180ms after warm-up;
-7. reduced motion swaps immediately;
-8. existing Gold Help/Text/Translate interaction still overlays correctly.
+
+1. five replacement URLs return 200
+2. file hashes equal this pack
+3. production-first reveal unchanged
+4. state mapping unchanged
+5. runtime timings remain within the already-approved Werkstatt envelope
+6. no blank / fallback / emoji / veil between states
+7. stage geometry unchanged
 
 Capture exactly six 390×844 screenshots:
 
-1. idle
-2. listening
-3. thinking
-4. speaking
-5. success
-6. Text ON + Help ON for a Werkstatt scenario
+- idle
+- listening
+- thinking
+- speaking
+- success
+- Text ON + Help ON
 
-STOP for Product Owner review.
+VISUAL GATE:
 
-Do not run the full suite before visual approval.
-Do not merge or deploy.
+The same mechanic must be obvious in every state.
 
-If the repository stop hook requires preservation:
-commit/push only to the dedicated Werkstatt branch.
+Specifically:
+- head scale consistent
+- shoulders/torso consistent
+- dark REUTER overalls visible in all five
+- listening retains full torso
+- thinking retains full torso
+- speaking retains full torso
+- success is not zoomed
+- no floating head, hand or arm
+- workshop background unchanged
 
-Final report:
-- baseline used and verification
-- checksum verification
-- exact files changed
-- registry entry
-- focused results
-- screenshot paths
-- commit SHA if preservation required
+STOP after screenshots.
+
+Do not run full suite.
+Do not merge.
+Do not deploy.
+
+If stop hook requires preservation, commit and push only to:
+claude/marzi-werkstatt-gold-art-v2
 
 End exactly:
 
-READY FOR WERKSTATT PAINTERLY GOLD REVIEW
+READY FOR WERKSTATT GOLD ART V2 REVIEW
