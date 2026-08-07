@@ -372,6 +372,11 @@
   .pm-talk-root .pm2-person[aria-pressed="true"] img { border: 2px solid var(--pm2-green); }
   .pm-talk-root .pm2-person[aria-pressed="true"] span { color: var(--pm2-green-deep); font-weight: 900; }
   .pm-talk-root .pm2-person { padding: 6px 4px; min-block-size: var(--touch-min); }
+  .pm2-person-more .pm2-more-ic {
+    display: grid; place-items: center; inline-size: 60px; block-size: 60px;
+    border-radius: var(--pm2-r-md); border: 1px dashed var(--pm2-line);
+    background: var(--pm2-surface-alt); color: var(--pm2-green-deep);
+  }
   .pm-practice .pm2-row-end.pm-count {
     display: grid; place-items: center; min-inline-size: 26px; block-size: 26px;
     padding: 0 6px; border-radius: var(--pm2-r-pill);
@@ -2313,7 +2318,7 @@ const T = {
     routine:"Rutina de hoy", rCall:"Conversación", rVocab:"Vocabulario", rDrill:"Errores",
     prep:"Preparar la llamada", prepTitle:"PREPARACIÓN", howSay:"¿Cómo se dice en alemán?",
     dialog:"Diálogo guiado",
-    tabLearn:"Aprender", tabHome:"Inicio", tabPractice:"Practicar", recTitle:"Recomendado para ti", homeAsk:"¿Qué practicamos hoy?", pracPrepare:"Preparar", pracReview:"Repasar", talkContinue:"Continuar la conversación", rankTitles:["Novato","Llamador","Comunicador frecuente","Profesional del teléfono","Dragón de la oficina","Héroe de las llamadas","Leyenda del teléfono"], goContinue:"Continuar", talkPeople:"Personas y lugares", talkAllBtn:"Todas las situaciones", tabTalk:"Hablar", tabStore:"Tienda", tabProfile:"Perfil",
+    tabLearn:"Aprender", tabHome:"Inicio", tabPractice:"Practicar", recTitle:"Recomendado para ti", homeAsk:"¿Qué practicamos hoy?", pracPrepare:"Preparar", pracReview:"Repasar", talkContinue:"Continuar la conversación", moreLbl:"Más", rankTitles:["Novato","Llamador","Comunicador frecuente","Profesional del teléfono","Dragón de la oficina","Héroe de las llamadas","Leyenda del teléfono"], goContinue:"Continuar", talkPeople:"Personas y lugares", talkAllBtn:"Todas las situaciones", tabTalk:"Hablar", tabStore:"Tienda", tabProfile:"Perfil",
     hello:"¡Hola!", practiceNow:"PRACTICAR AHORA", mission:"Misión de hoy",
     coins:"Monedas", buyMinutes:"Comprar minutos", minLeft:"min restantes hoy",
     outfits:"Trajes de Marzi", notEnough:"No tienes suficientes monedas", bought:"¡Comprado! ✓",
@@ -2388,7 +2393,7 @@ const T = {
     routine:"Today's routine", rCall:"Conversation", rVocab:"Vocabulary", rDrill:"Mistakes",
     prep:"Prepare the call", prepTitle:"PREPARATION", howSay:"How do you say it in German?",
     dialog:"Guided dialogue",
-    tabLearn:"Learn", tabHome:"Home", tabPractice:"Practice", recTitle:"Recommended for you", homeAsk:"What shall we practise today?", pracPrepare:"Prepare", pracReview:"Review", talkContinue:"Continue conversation", rankTitles:["Newcomer","Caller","Frequent caller","Phone pro","Office dragon","Call hero","Phone legend"], goContinue:"Continue", talkPeople:"People & places", talkAllBtn:"All situations", tabTalk:"Talk", tabStore:"Store", tabProfile:"Profile",
+    tabLearn:"Learn", tabHome:"Home", tabPractice:"Practice", recTitle:"Recommended for you", homeAsk:"What shall we practise today?", pracPrepare:"Prepare", pracReview:"Review", talkContinue:"Continue conversation", moreLbl:"More", rankTitles:["Newcomer","Caller","Frequent caller","Phone pro","Office dragon","Call hero","Phone legend"], goContinue:"Continue", talkPeople:"People & places", talkAllBtn:"All situations", tabTalk:"Talk", tabStore:"Store", tabProfile:"Profile",
     hello:"Hello!", practiceNow:"PRACTISE NOW", mission:"Today's mission",
     coins:"Coins", buyMinutes:"Buy minutes", minLeft:"min left today",
     outfits:"Marzi outfits", notEnough:"Not enough coins", bought:"Purchased! ✓",
@@ -2466,7 +2471,7 @@ T.tr = { tagline:"Gerçek Almanca aramalar ve konuşmalar pratiği yap. Sen konu
   routine:"Bugünkü rutin", rCall:"Konuşma", rVocab:"Kelimeler", rDrill:"Hatalar",
   prep:"Aramaya hazırlan", prepTitle:"HAZIRLIK", howSay:"Almancası nasıl söylenir?",
   dialog:"Rehberli diyalog",
-  tabLearn:"Öğren", tabHome:"Ana sayfa", tabPractice:"Alıştırma", recTitle:"Senin için önerilen", homeAsk:"Bugün ne çalışalım?", pracPrepare:"Hazırlık", pracReview:"Tekrar", talkContinue:"Konuşmaya devam et", rankTitles:["Yeni başlayan","Arayan","Sık arayan","Telefon ustası","Ofis ejderi","Arama kahramanı","Telefon efsanesi"], goContinue:"Devam et", talkPeople:"Kişiler ve yerler", talkAllBtn:"Tüm durumlar", tabTalk:"Konuş", tabStore:"Mağaza", tabProfile:"Profil",
+  tabLearn:"Öğren", tabHome:"Ana sayfa", tabPractice:"Alıştırma", recTitle:"Senin için önerilen", homeAsk:"Bugün ne çalışalım?", pracPrepare:"Hazırlık", pracReview:"Tekrar", talkContinue:"Konuşmaya devam et", moreLbl:"Daha fazla", rankTitles:["Yeni başlayan","Arayan","Sık arayan","Telefon ustası","Ofis ejderi","Arama kahramanı","Telefon efsanesi"], goContinue:"Devam et", talkPeople:"Kişiler ve yerler", talkAllBtn:"Tüm durumlar", tabTalk:"Konuş", tabStore:"Mağaza", tabProfile:"Profil",
   hello:"Merhaba!", practiceNow:"ŞİMDİ PRATİK YAP", mission:"Bugünün görevi",
   coins:"Jetonlar", buyMinutes:"Dakika satın al", minLeft:"dk kaldı bugün",
   outfits:"Marzi kıyafetleri", notEnough:"Yeterli jeton yok", bought:"Satın alındı! ✓",
@@ -2541,7 +2546,7 @@ T.ar = { tagline:"تدرّب على مكالمات ومحادثات حقيقية
   routine:"روتين اليوم", rCall:"محادثة", rVocab:"مفردات", rDrill:"أخطاء",
   prep:"التحضير للمكالمة", prepTitle:"التحضير", howSay:"كيف تُقال بالألمانية؟",
   dialog:"حوار موجّه",
-  tabLearn:"تعلّم", tabHome:"الرئيسية", tabPractice:"تدرّب", recTitle:"موصى به لك", homeAsk:"ماذا نتدرّب اليوم؟", pracPrepare:"استعداد", pracReview:"مراجعة", talkContinue:"متابعة المحادثة", rankTitles:["مبتدئ","متّصل","متّصل دائم","محترف الهاتف","تنّين المكتب","بطل المكالمات","أسطورة الهاتف"], goContinue:"متابعة", talkPeople:"أشخاص وأماكن", talkAllBtn:"كل المواقف", tabTalk:"تحدث", tabStore:"المتجر", tabProfile:"الملف",
+  tabLearn:"تعلّم", tabHome:"الرئيسية", tabPractice:"تدرّب", recTitle:"موصى به لك", homeAsk:"ماذا نتدرّب اليوم؟", pracPrepare:"استعداد", pracReview:"مراجعة", talkContinue:"متابعة المحادثة", moreLbl:"المزيد", rankTitles:["مبتدئ","متّصل","متّصل دائم","محترف الهاتف","تنّين المكتب","بطل المكالمات","أسطورة الهاتف"], goContinue:"متابعة", talkPeople:"أشخاص وأماكن", talkAllBtn:"كل المواقف", tabTalk:"تحدث", tabStore:"المتجر", tabProfile:"الملف",
   hello:"مرحبًا!", practiceNow:"تدرّب الآن", mission:"مهمة اليوم",
   coins:"عملات", buyMinutes:"شراء دقائق", minLeft:"دقيقة متبقية اليوم",
   outfits:"أزياء مارزي", notEnough:"لا تملك عملات كافية", bought:"تم الشراء! ✓",
@@ -2616,7 +2621,7 @@ T.uk = { tagline:"Тренуй реальні дзвінки й розмови �
   routine:"Рутина на сьогодні", rCall:"Розмова", rVocab:"Слова", rDrill:"Помилки",
   prep:"Підготуватися до дзвінка", prepTitle:"ПІДГОТОВКА", howSay:"Як це сказати німецькою?",
   dialog:"Керований діалог",
-  tabLearn:"Навчання", tabHome:"Головна", tabPractice:"Практика", recTitle:"Рекомендовано для тебе", homeAsk:"Що потренуємо сьогодні?", pracPrepare:"Підготовка", pracReview:"Повторення", talkContinue:"Продовжити розмову", rankTitles:["Новачок","Абонент","Частий співрозмовник","Профі телефону","Офісний дракон","Герой дзвінків","Легенда телефону"], goContinue:"Продовжити", talkPeople:"Люди та місця", talkAllBtn:"Усі ситуації", tabTalk:"Розмова", tabStore:"Крамниця", tabProfile:"Профіль",
+  tabLearn:"Навчання", tabHome:"Головна", tabPractice:"Практика", recTitle:"Рекомендовано для тебе", homeAsk:"Що потренуємо сьогодні?", pracPrepare:"Підготовка", pracReview:"Повторення", talkContinue:"Продовжити розмову", moreLbl:"Більше", rankTitles:["Новачок","Абонент","Частий співрозмовник","Профі телефону","Офісний дракон","Герой дзвінків","Легенда телефону"], goContinue:"Продовжити", talkPeople:"Люди та місця", talkAllBtn:"Усі ситуації", tabTalk:"Розмова", tabStore:"Крамниця", tabProfile:"Профіль",
   hello:"Привіт!", practiceNow:"ПРАКТИКУВАТИ ЗАРАЗ", mission:"Місія на сьогодні",
   coins:"Монети", buyMinutes:"Купити хвилини", minLeft:"хв залишилось сьогодні",
   outfits:"Вбрання Марзі", notEnough:"Недостатньо монет", bought:"Куплено! ✓",
@@ -2692,7 +2697,7 @@ T.it = { tagline:"Allenati con telefonate e conversazioni reali in tedesco. Tu p
   routine:"Routine di oggi", rCall:"Conversazione", rVocab:"Vocabolario", rDrill:"Errori",
   prep:"Prepara la chiamata", prepTitle:"PREPARAZIONE", howSay:"Come si dice in tedesco?",
   dialog:"Dialogo guidato",
-  tabLearn:"Impara", tabHome:"Home", tabPractice:"Pratica", recTitle:"Consigliato per te", homeAsk:"Cosa pratichiamo oggi?", pracPrepare:"Preparazione", pracReview:"Ripasso", talkContinue:"Continua la conversazione", rankTitles:["Novellino","Chiamante","Comunicatore frequente","Professionista del telefono","Drago dell\u2019ufficio","Eroe delle chiamate","Leggenda del telefono"], goContinue:"Continua", talkPeople:"Persone e luoghi", talkAllBtn:"Tutte le situazioni", tabTalk:"Parla", tabStore:"Negozio", tabProfile:"Profilo",
+  tabLearn:"Impara", tabHome:"Home", tabPractice:"Pratica", recTitle:"Consigliato per te", homeAsk:"Cosa pratichiamo oggi?", pracPrepare:"Preparazione", pracReview:"Ripasso", talkContinue:"Continua la conversazione", moreLbl:"Altro", rankTitles:["Novellino","Chiamante","Comunicatore frequente","Professionista del telefono","Drago dell\u2019ufficio","Eroe delle chiamate","Leggenda del telefono"], goContinue:"Continua", talkPeople:"Persone e luoghi", talkAllBtn:"Tutte le situazioni", tabTalk:"Parla", tabStore:"Negozio", tabProfile:"Profilo",
   hello:"Ciao!", practiceNow:"PRATICA ORA", mission:"Missione di oggi",
   coins:"Monete", buyMinutes:"Compra minuti", minLeft:"min rimasti oggi",
   outfits:"Vestiti di Marzi", notEnough:"Monete insufficienti", bought:"Acquistato! ✓",
@@ -5020,6 +5025,10 @@ function renderPractice() {
   }
 }
 
+/* TALK_LEGACY_SETUP_VISUAL_STATUS = DEFERRED_TO_WAVE_2
+   The legacy setup screen still carries temporary/generated/emoji surfaces;
+   its visual quality is a separate Wave-2 milestone and is intentionally NOT
+   corrected here. Root quality != full setup quality. */
 /* ==================== MARZI TALK ROOT V1 (production Talk root) ====================
    MARZI_TALK_ROOT_PRODUCTION_PACK_V1: current state -> thin adapter ->
    normalized TalkRootModel (TALK_ROOT_MODEL.schema) -> renderer on shared
@@ -5037,19 +5046,27 @@ function renderPractice() {
 function talkRootArt(contactId) {
   return pm2ContactArt(contactId, "idle"); // CALL_ART production frame for gold ids
 }
-window.MARZI_TALK_ROOT_ART = Object.freeze({ url: talkRootArt, isGold: pm2IsGoldContact });
+/* premium rail gate: ONLY characters whose current visual asset passes the
+   premium-art gate appear as tiles on the Talk root. New characters join by
+   being added here once their Gold production art is approved - the renderer
+   never infers premium status from what happens to load. */
+const PREMIUM_ROOT_CONTACTS = ["arzt", "apotheke", "werkstatt"];
+function isPremiumRootCharacter(contactId) { return PREMIUM_ROOT_CONTACTS.includes(contactId); }
+window.MARZI_TALK_ROOT_ART = Object.freeze({ url: talkRootArt, isGold: pm2IsGoldContact, isPremium: isPremiumRootCharacter });
 
 function talkRootContext() {
   const L = t();
   const playable = SCENARIOS.filter((x) => x.goals);
   const sc = S.scenario && S.scenario.goals ? S.scenario : playable[0];
-  // people: discovery rail over existing characters, gold-first presentation
-  const gold = playable.filter((x) => pm2IsGoldContact(x.id));
-  const rest = playable.filter((x) => !pm2IsGoldContact(x.id));
-  const people = [...gold, ...rest].slice(0, 12).map((x) => ({
-    id: x.id, label: x.tag, selected: x.id === sc.id, actionId: "person_" + x.id,
+  // people: PREMIUM rail - only characters passing the premium-art gate get
+  // tiles (never emoji beside Gold art); everyone else stays reachable via
+  // the neutral More tile / All situations (the existing drawer)
+  const people = playable.filter((x) => isPremiumRootCharacter(x.id)).map((x) => ({
+    id: x.id, label: x.tag, selected: x.id === sc.id, actionId: "person_" + x.id, kind: "character",
     open: () => { selectScenario(x.id); renderTalkRoot(); }, // existing authoritative selection
   }));
+  people.push({ id: "__more", label: L.moreLbl, selected: false, actionId: "more", kind: "more",
+    open: () => openDrawer() }); // same authoritative All Situations entry
   // recommended: the journey engine's next/open situations (existing logic)
   const js = journeyState(loadStats());
   const rec = js.nodes.filter((n) => (n.state === "here" || n.state === "open") && n.id !== sc.id)
@@ -5077,7 +5094,8 @@ function buildTalkRootModel(ctx) {
     continueItem: ctx.continueItem
       ? Object.assign({}, ctx.continueItem, { artUrl: talkRootArt(ctx.continueItem.characterId) })
       : null,
-    people: (ctx.people || []).map((p) => Object.assign({}, p, { artUrl: talkRootArt(p.id) })),
+    people: (ctx.people || []).map((p) => Object.assign({}, p,
+      p.kind === "more" ? { artUrl: null } : { artUrl: talkRootArt(p.id) })),
     recommended: ctx.recommended || [],
     allSituationsActionId: "allSituations",
     labels: ctx.labels,
@@ -5119,11 +5137,11 @@ function pmTalkRootRender(model, actions) {
       ? `<section class="pm2-section"><h2 class="pm2-section-title">${esc(model.labels.people || "")}</h2>
            <div class="pm2-people" id="talkPeopleRail">` +
         model.people.map((p) =>
-          `<button class="pm2-person" data-tp="${esc(p.actionId)}" type="button" aria-pressed="${p.selected ? "true" : "false"}"
-             aria-label="${esc(p.label)}">
-             ${pm2IsGoldContact(p.id)
-               ? `<img src="${esc(p.artUrl)}" alt="" loading="lazy" decoding="async" />`
-               : UI.characterAvatar({ scenario: SCENARIOS.find((x) => x.id === p.id) || {}, size: "60px" })}
+          `<button class="pm2-person${p.kind === "more" ? " pm2-person-more" : ""}" data-tp="${esc(p.actionId)}" type="button"
+             aria-pressed="${p.selected ? "true" : "false"}" aria-label="${esc(p.label)}">
+             ${p.kind === "more"
+               ? `<span class="pm2-more-ic" aria-hidden="true">${IC.list(ICON.hero)}</span>`
+               : `<img src="${esc(p.artUrl)}" alt="" loading="lazy" decoding="async" />`}
              <span>${esc(p.label)}</span></button>`).join("") +
         `</div></section>`
       : "") +
