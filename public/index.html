@@ -1374,9 +1374,15 @@
   .outfit-card[data-state="owned"] .outfit-foot { color: var(--marzi-dark); }
   .outfit-card[data-state="equipped"] { border-color: var(--primary); box-shadow: 0 0 0 2px var(--tint-primary-35), var(--shadow-sm); }
   .outfit-card[data-state="equipped"] .outfit-foot { color: var(--marzi-dark); }
-  .store-modal-art { width: 116px; height: 116px; margin: 0 auto; display: grid; place-items: center;
-    border-radius: var(--radius); background: linear-gradient(150deg, var(--stage-from), var(--stage-to)); color: var(--marzi-dark); }
-  .store-modal-art svg { width: 58%; height: 58%; opacity: .6; }
+  /* item modal reuses the SAME designed missing-art state as the root card:
+     a state badge on a neutral slot, never a surrogate illustration */
+  .store-modal-art { width: 116px; height: 116px; margin: 0 auto; }
+  .store-modal-art .pm-store-artless { inline-size: 100%; block-size: 100%; margin: 0; }
+  .store-modal-art svg { width: 34%; height: 34%; }
+  .store-modal-art[data-state="owned"] .pm-store-artless,
+  .store-modal-art[data-state="equipped"] .pm-store-artless {
+    border-style: solid; background: var(--pm2-soft-green); color: var(--pm2-green-deep);
+  }
   .store-note { text-align: center; font: 700 var(--text-f11-5) var(--font-sans); color: var(--marzi-dark); margin-top: var(--space-3); }
   /* ---------- MARZI-006 + DOCTOR GOLD PILOT: call layer ----------
      Gold Reference composition (reference/MARZI_CALL_SCREEN_GOLD_REFERENCE.png):
@@ -4487,7 +4493,9 @@ function storeContext() {
     featured: { title: marziNames()[stage - 1],
       subtitle: equippedId ? `${L.equippedLbl} · ${outfitName(equippedId)}` : L.collectAll },
     categories, items, packs,
-    labels: { title: L.storeOutfits, catalog: L.outfits, note: L.collectAll,
+    /* root title is category-neutral (the Store owns all customization
+       categories); only the section below is category-specific */
+    labels: { title: L.tabStore, catalog: L.outfits, note: L.collectAll,
       minutes: L.buyMinutes, minutesSub: L.today, comingLater: L.comingLater,
       coins: L.coins, needStage: L.needStage, ownedLbl: L.ownedLbl,
       equippedLbl: L.equippedLbl, notEnough: L.notEnough },
@@ -4729,7 +4737,7 @@ function openOutfitPreview(id) {
     : state === "equipped" ? L.equippedLbl : L.ownedLbl;
   $("storeModal").innerHTML = UI.modal({
     title: outfitName(id), labelledBy: "storeModalTitle", body,
-    actions: `<div class="store-modal-art" aria-hidden="true">${OUTFIT_ART(id)}</div>` +
+    actions: `<div class="store-modal-art" data-state="${esc(state)}" aria-hidden="true">${storeArtSlot(state)}</div>` +
       primary + UI.buttonSecondary({ id: "storeCancel", label: L.cancelBtn, cls: "store-act" }),
   });
   $("storeModal").classList.remove("hidden");
