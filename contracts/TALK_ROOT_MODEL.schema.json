@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MARZI Talk Root Model V1",
+  "type": "object",
+  "required": [
+    "title",
+    "people",
+    "recommended",
+    "allSituationsActionId",
+    "labels"
+  ],
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "subtitle": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "continueItem": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "people": {
+      "type": "array"
+    },
+    "recommended": {
+      "type": "array"
+    },
+    "allSituationsActionId": {
+      "type": "string"
+    },
+    "labels": {
+      "type": "object"
+    }
+  }
+}

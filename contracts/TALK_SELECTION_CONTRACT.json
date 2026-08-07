@@ -1,0 +1,7 @@
+{
+  "principle": "One selected character/scenario source of truth. Root presentation must not create a second selection state.",
+  "waveScope": "Root visual architecture only; full Talk state migration is later Wave 2.",
+  "allSituations": "Maps to current openDrawer() until Wave 2.",
+  "callLaunch": "Must delegate to current authoritative launch/setup behavior.",
+  "switching": "No ConversationSession rewrite in this pack."
+}

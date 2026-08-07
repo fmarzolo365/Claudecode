@@ -1,0 +1,6 @@
+.pm-talk-continue{display:grid;grid-template-columns:58px minmax(0,1fr) auto;align-items:center;gap:12px}
+.pm-talk-root .pm2-people{padding-block-end:8px}
+@media(max-width:370px){
+  .pm-talk-continue{grid-template-columns:52px minmax(0,1fr)}
+  .pm-talk-continue .pm2-btn{grid-column:1/-1;justify-self:stretch}
+}

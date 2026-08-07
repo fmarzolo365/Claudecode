@@ -1,0 +1,11 @@
+{
+  "privacy": "No transcript or free-text scenario content.",
+  "events": [
+    "talk_home_viewed",
+    "talk_character_opened",
+    "talk_scenario_opened",
+    "talk_continue_opened",
+    "talk_all_situations_opened"
+  ],
+  "vendor": "none"
+}

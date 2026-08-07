@@ -1,0 +1,9 @@
+{
+  "gold": {
+    "arzt": "CALL_ART production idle/ready art",
+    "apotheke": "CALL_ART production idle/ready art",
+    "werkstatt": "CALL_ART production idle/ready art"
+  },
+  "rule": "Never emoji for approved Gold IDs on Talk root.",
+  "nonGold": "Use existing generated portrait endpoint/fallback behavior; do not invent new art."
+}

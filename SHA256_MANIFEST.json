@@ -1,58 +1,62 @@
 {
   "README_FIRST.md": {
-    "bytes": 155,
-    "sha256": "79d9f94d7ca20e3084999ad54b52f77d410a568c28d045ef6e1da5d3a148efa9"
+    "bytes": 115,
+    "sha256": "6a8214a5a3443cccbd32209cdca81d54dd922630e38b662bae5df79912b58bd0"
   },
-  "contracts/PRACTICE_ANALYTICS_CONTRACT.json": {
-    "bytes": 629,
-    "sha256": "295d3f727a907db8356ce2cc8ff7f958c63eaf00b186b8d66502e61554e2c5da"
+  "contracts/TALK_ANALYTICS_CONTRACT.json": {
+    "bytes": 244,
+    "sha256": "6ee26ca94c3351eee7e042dd6126ca01594d4f31dd87f4277beb2caf2419701f"
   },
-  "contracts/PRACTICE_LEARNING_CONTRACT.json": {
-    "bytes": 743,
-    "sha256": "307f3b9ad0bb896e55dd0f86721522fc09d0ee53d649067e5da1e63b95470540"
+  "contracts/TALK_ART_CONTRACT.json": {
+    "bytes": 337,
+    "sha256": "5157c8c65f5532f6e0dcc3a26104028c4888cc7d1a24588a1e4a5519817e06c8"
   },
-  "contracts/PRACTICE_MODEL.schema.json": {
-    "bytes": 1157,
-    "sha256": "b55a290ead57ff7e4aabdea65f236d340f8fbb1032f1e49847a46fea6e284b12"
+  "contracts/TALK_ROOT_MODEL.schema.json": {
+    "bytes": 668,
+    "sha256": "2acd0b43b0437fcec6f5234a8dfe0db918b3c6d21c3381eb3cff783796107052"
   },
-  "docs/PRACTICE_PRODUCT_SPEC.md": {
-    "bytes": 550,
-    "sha256": "88ba4593fc05f7248950fc0924570d583802fbbb6657f6f8780a04210f18c3b2"
+  "contracts/TALK_SELECTION_CONTRACT.json": {
+    "bytes": 430,
+    "sha256": "ecb6ca20d5fae7a910d798b27ae0d3cd8e8784c2d6d47f22852ffb315805356c"
   },
-  "docs/PRACTICE_STATES_ACCESSIBILITY.md": {
-    "bytes": 404,
-    "sha256": "7a57bf153182a500e11ea3b013e8f168af5809a1ee89f5dfc5a60c3786d28059"
+  "docs/TALK_PRODUCT_SPEC.md": {
+    "bytes": 437,
+    "sha256": "7e6f93e63c8fd86428771b9254c923d56f0762362621805eb0819ea35999718a"
   },
-  "prompts/PRACTICE_IMPLEMENTATION_PROMPT.md": {
-    "bytes": 900,
-    "sha256": "6b765093671a7478e9675453cb2d2b22bfe016c18af7b72e7a155c4bd260076e"
+  "prompts/TALK_ROOT_IMPLEMENTATION_PROMPT.md": {
+    "bytes": 894,
+    "sha256": "9e9244299b97fe8b19a1166894fa9ca550ea8b2af5121ec9e2369a8ea838e973"
   },
-  "reference/PRACTICE_REFERENCE_390x844.png": {
-    "bytes": 122809,
-    "sha256": "b55c699e864721230c6d74fcbf69b319493c899ad5d7f7e93db6a1750a0bd74c"
+  "reference/TALK_REFERENCE_390x844.png": {
+    "bytes": 147586,
+    "sha256": "8a1d74786ed6ed202ae3e07d3b79fef056e5c2ff8e60d2924bf13b710764c0a4"
   },
-  "reference-code/css/practice-v1.css": {
-    "bytes": 258,
-    "sha256": "6d672f611c595e896ec1f4aa92fadeb7b3a5aa72ec266862537bb49726517d09"
+  "reference-code/css/talk-root-v1.css": {
+    "bytes": 312,
+    "sha256": "b4fcf5311e66abfae8402c83647cc1c98e3613abd49f8e35e29ca757556a288d"
   },
-  "reference-code/js/practice-actions.js": {
-    "bytes": 718,
-    "sha256": "a54c06d36dcd02acecb1044fa70e45feb21e675434800da60b995fcb13d0258f"
+  "reference-code/js/talk-actions.js": {
+    "bytes": 615,
+    "sha256": "1610f41ffd518c49cfb34560f592690679d862d9845cea944b9b91cc286075b0"
   },
-  "reference-code/js/practice-model-adapter.js": {
-    "bytes": 1553,
-    "sha256": "4e82ed7a31ede6757c857b0c97ecf42ed2ca4f8e5f6a4c1fc52f3d777918854b"
+  "reference-code/js/talk-art-resolver.js": {
+    "bytes": 429,
+    "sha256": "a7a8511098054cab9cf07a109ab676e82a674fd764eee839131df1d3d459df64"
   },
-  "reference-code/js/practice-renderer.js": {
-    "bytes": 1648,
-    "sha256": "b6cc033d62ab43169c03c9fbc777c7c866dbe7bb97f7b6e9afbb3aa978a81810"
+  "reference-code/js/talk-model-adapter.js": {
+    "bytes": 611,
+    "sha256": "2ac960ab41aa91e3820f2d2793a0393f9e51d3de3771a264d52fbc9ba9968c6d"
   },
-  "reference-code/tests/practice-contract-snippet.js": {
-    "bytes": 315,
-    "sha256": "cdbfba050c13e302357ce4e6de9debf921fc6c8cd8c40c2422d172682b194c8a"
+  "reference-code/js/talk-root-renderer.js": {
+    "bytes": 2611,
+    "sha256": "0b54c448246d05a232f86ea35630f12368434933f3063335c87e1b8278a8ccf7"
   },
-  "tools/validate_practice_static.py": {
-    "bytes": 421,
-    "sha256": "9382a860728f472d1783cef4a4bd0c8309b79294ca3cb4a35a558ab6327d92f9"
+  "reference-code/tests/talk-contract-snippet.js": {
+    "bytes": 190,
+    "sha256": "c25ca2a0bf063cbc882df4b24426f02563f8f55c2b85186bfb2f0fb535b27ae1"
+  },
+  "tools/validate_talk_static.py": {
+    "bytes": 377,
+    "sha256": "16edfb839c2652772355b0299444ff514b287a5c46153610abbd560989aeb0e9"
   }
 }

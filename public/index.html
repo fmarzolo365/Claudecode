@@ -359,6 +359,19 @@
   }
   .pm-practice .pm-practice-continue .pm2-btn { justify-self: start; }
   .pm-practice .pm2-section + .pm2-section { margin-block-start: 22px; }
+  /* ============== MARZI TALK ROOT V1 ============== */
+  .pm-talk-root .pm-talk-continue {
+    display: grid; grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center; gap: 12px;
+  }
+  .pm-talk-continue .pm2-portrait { inline-size: 64px; block-size: 64px; }
+  /* gold portraits are 1600x1800 bottom-anchored frames: crop toward the face */
+  .pm-talk-root .pm2-person img, .pm-talk-continue .pm2-portrait { object-position: 50% 18%; }
+  .pm-talk-continue .char-face { inline-size: 64px; block-size: 64px; border-radius: 16px; overflow: hidden; }
+  .pm-talk-root .pm2-person[aria-pressed="true"] { background: var(--pm2-soft-green); border-radius: var(--pm2-r-md); }
+  .pm-talk-root .pm2-person[aria-pressed="true"] img { border: 2px solid var(--pm2-green); }
+  .pm-talk-root .pm2-person[aria-pressed="true"] span { color: var(--pm2-green-deep); font-weight: 900; }
+  .pm-talk-root .pm2-person { padding: 6px 4px; min-block-size: var(--touch-min); }
   .pm-practice .pm2-row-end.pm-count {
     display: grid; place-items: center; min-inline-size: 26px; block-size: 26px;
     padding: 0 6px; border-radius: var(--pm2-r-pill);
@@ -2016,15 +2029,10 @@
   <!-- TALK root (Wave 1B): conversation-first first impression. The legacy
        setup screen stays fully functional one level deeper; Wave 2 owns the
        real hierarchy migration. -->
-  <section id="talkroot" class="hidden">
-    <div class="pm-head"><h1 id="talkTitle"></h1><p class="pm-sub" id="talkSub"></p></div>
-    <div id="talkContinue"></div>
-    <div class="pm-sec" id="talkPeopleLbl"></div>
-    <div class="ppl-rail" id="talkPeople" role="group"></div>
-    <div class="pm-sec" id="talkRecLbl"></div>
-    <div id="talkRec"></div>
-    <button class="big" id="talkAllBtn" style="margin-top:14px"></button>
-  </section>
+  <!-- TALK ROOT V1 (MARZI_TALK_ROOT_PRODUCTION_PACK_V1): rendered entirely
+       by pmTalkRootRender from the normalized TalkRootModel. The legacy
+       setup screen stays authoritative one level deeper until Wave 2. -->
+  <section id="talkroot" class="hidden pm-talk-root"></section>
 
   <!-- STORE: coins, minute packages, outfit catalog (data-only, ADR-10) -->
   <section id="store" class="hidden">
@@ -2305,7 +2313,7 @@ const T = {
     routine:"Rutina de hoy", rCall:"Conversación", rVocab:"Vocabulario", rDrill:"Errores",
     prep:"Preparar la llamada", prepTitle:"PREPARACIÓN", howSay:"¿Cómo se dice en alemán?",
     dialog:"Diálogo guiado",
-    tabLearn:"Aprender", tabHome:"Inicio", tabPractice:"Practicar", recTitle:"Recomendado para ti", homeAsk:"¿Qué practicamos hoy?", pracPrepare:"Preparar", pracReview:"Repasar", rankTitles:["Novato","Llamador","Comunicador frecuente","Profesional del teléfono","Dragón de la oficina","Héroe de las llamadas","Leyenda del teléfono"], goContinue:"Continuar", talkPeople:"Personas y lugares", talkAllBtn:"Todas las situaciones", tabTalk:"Hablar", tabStore:"Tienda", tabProfile:"Perfil",
+    tabLearn:"Aprender", tabHome:"Inicio", tabPractice:"Practicar", recTitle:"Recomendado para ti", homeAsk:"¿Qué practicamos hoy?", pracPrepare:"Preparar", pracReview:"Repasar", talkContinue:"Continuar la conversación", rankTitles:["Novato","Llamador","Comunicador frecuente","Profesional del teléfono","Dragón de la oficina","Héroe de las llamadas","Leyenda del teléfono"], goContinue:"Continuar", talkPeople:"Personas y lugares", talkAllBtn:"Todas las situaciones", tabTalk:"Hablar", tabStore:"Tienda", tabProfile:"Perfil",
     hello:"¡Hola!", practiceNow:"PRACTICAR AHORA", mission:"Misión de hoy",
     coins:"Monedas", buyMinutes:"Comprar minutos", minLeft:"min restantes hoy",
     outfits:"Trajes de Marzi", notEnough:"No tienes suficientes monedas", bought:"¡Comprado! ✓",
@@ -2380,7 +2388,7 @@ const T = {
     routine:"Today's routine", rCall:"Conversation", rVocab:"Vocabulary", rDrill:"Mistakes",
     prep:"Prepare the call", prepTitle:"PREPARATION", howSay:"How do you say it in German?",
     dialog:"Guided dialogue",
-    tabLearn:"Learn", tabHome:"Home", tabPractice:"Practice", recTitle:"Recommended for you", homeAsk:"What shall we practise today?", pracPrepare:"Prepare", pracReview:"Review", rankTitles:["Newcomer","Caller","Frequent caller","Phone pro","Office dragon","Call hero","Phone legend"], goContinue:"Continue", talkPeople:"People & places", talkAllBtn:"All situations", tabTalk:"Talk", tabStore:"Store", tabProfile:"Profile",
+    tabLearn:"Learn", tabHome:"Home", tabPractice:"Practice", recTitle:"Recommended for you", homeAsk:"What shall we practise today?", pracPrepare:"Prepare", pracReview:"Review", talkContinue:"Continue conversation", rankTitles:["Newcomer","Caller","Frequent caller","Phone pro","Office dragon","Call hero","Phone legend"], goContinue:"Continue", talkPeople:"People & places", talkAllBtn:"All situations", tabTalk:"Talk", tabStore:"Store", tabProfile:"Profile",
     hello:"Hello!", practiceNow:"PRACTISE NOW", mission:"Today's mission",
     coins:"Coins", buyMinutes:"Buy minutes", minLeft:"min left today",
     outfits:"Marzi outfits", notEnough:"Not enough coins", bought:"Purchased! ✓",
@@ -2458,7 +2466,7 @@ T.tr = { tagline:"Gerçek Almanca aramalar ve konuşmalar pratiği yap. Sen konu
   routine:"Bugünkü rutin", rCall:"Konuşma", rVocab:"Kelimeler", rDrill:"Hatalar",
   prep:"Aramaya hazırlan", prepTitle:"HAZIRLIK", howSay:"Almancası nasıl söylenir?",
   dialog:"Rehberli diyalog",
-  tabLearn:"Öğren", tabHome:"Ana sayfa", tabPractice:"Alıştırma", recTitle:"Senin için önerilen", homeAsk:"Bugün ne çalışalım?", pracPrepare:"Hazırlık", pracReview:"Tekrar", rankTitles:["Yeni başlayan","Arayan","Sık arayan","Telefon ustası","Ofis ejderi","Arama kahramanı","Telefon efsanesi"], goContinue:"Devam et", talkPeople:"Kişiler ve yerler", talkAllBtn:"Tüm durumlar", tabTalk:"Konuş", tabStore:"Mağaza", tabProfile:"Profil",
+  tabLearn:"Öğren", tabHome:"Ana sayfa", tabPractice:"Alıştırma", recTitle:"Senin için önerilen", homeAsk:"Bugün ne çalışalım?", pracPrepare:"Hazırlık", pracReview:"Tekrar", talkContinue:"Konuşmaya devam et", rankTitles:["Yeni başlayan","Arayan","Sık arayan","Telefon ustası","Ofis ejderi","Arama kahramanı","Telefon efsanesi"], goContinue:"Devam et", talkPeople:"Kişiler ve yerler", talkAllBtn:"Tüm durumlar", tabTalk:"Konuş", tabStore:"Mağaza", tabProfile:"Profil",
   hello:"Merhaba!", practiceNow:"ŞİMDİ PRATİK YAP", mission:"Bugünün görevi",
   coins:"Jetonlar", buyMinutes:"Dakika satın al", minLeft:"dk kaldı bugün",
   outfits:"Marzi kıyafetleri", notEnough:"Yeterli jeton yok", bought:"Satın alındı! ✓",
@@ -2533,7 +2541,7 @@ T.ar = { tagline:"تدرّب على مكالمات ومحادثات حقيقية
   routine:"روتين اليوم", rCall:"محادثة", rVocab:"مفردات", rDrill:"أخطاء",
   prep:"التحضير للمكالمة", prepTitle:"التحضير", howSay:"كيف تُقال بالألمانية؟",
   dialog:"حوار موجّه",
-  tabLearn:"تعلّم", tabHome:"الرئيسية", tabPractice:"تدرّب", recTitle:"موصى به لك", homeAsk:"ماذا نتدرّب اليوم؟", pracPrepare:"استعداد", pracReview:"مراجعة", rankTitles:["مبتدئ","متّصل","متّصل دائم","محترف الهاتف","تنّين المكتب","بطل المكالمات","أسطورة الهاتف"], goContinue:"متابعة", talkPeople:"أشخاص وأماكن", talkAllBtn:"كل المواقف", tabTalk:"تحدث", tabStore:"المتجر", tabProfile:"الملف",
+  tabLearn:"تعلّم", tabHome:"الرئيسية", tabPractice:"تدرّب", recTitle:"موصى به لك", homeAsk:"ماذا نتدرّب اليوم؟", pracPrepare:"استعداد", pracReview:"مراجعة", talkContinue:"متابعة المحادثة", rankTitles:["مبتدئ","متّصل","متّصل دائم","محترف الهاتف","تنّين المكتب","بطل المكالمات","أسطورة الهاتف"], goContinue:"متابعة", talkPeople:"أشخاص وأماكن", talkAllBtn:"كل المواقف", tabTalk:"تحدث", tabStore:"المتجر", tabProfile:"الملف",
   hello:"مرحبًا!", practiceNow:"تدرّب الآن", mission:"مهمة اليوم",
   coins:"عملات", buyMinutes:"شراء دقائق", minLeft:"دقيقة متبقية اليوم",
   outfits:"أزياء مارزي", notEnough:"لا تملك عملات كافية", bought:"تم الشراء! ✓",
@@ -2608,7 +2616,7 @@ T.uk = { tagline:"Тренуй реальні дзвінки й розмови �
   routine:"Рутина на сьогодні", rCall:"Розмова", rVocab:"Слова", rDrill:"Помилки",
   prep:"Підготуватися до дзвінка", prepTitle:"ПІДГОТОВКА", howSay:"Як це сказати німецькою?",
   dialog:"Керований діалог",
-  tabLearn:"Навчання", tabHome:"Головна", tabPractice:"Практика", recTitle:"Рекомендовано для тебе", homeAsk:"Що потренуємо сьогодні?", pracPrepare:"Підготовка", pracReview:"Повторення", rankTitles:["Новачок","Абонент","Частий співрозмовник","Профі телефону","Офісний дракон","Герой дзвінків","Легенда телефону"], goContinue:"Продовжити", talkPeople:"Люди та місця", talkAllBtn:"Усі ситуації", tabTalk:"Розмова", tabStore:"Крамниця", tabProfile:"Профіль",
+  tabLearn:"Навчання", tabHome:"Головна", tabPractice:"Практика", recTitle:"Рекомендовано для тебе", homeAsk:"Що потренуємо сьогодні?", pracPrepare:"Підготовка", pracReview:"Повторення", talkContinue:"Продовжити розмову", rankTitles:["Новачок","Абонент","Частий співрозмовник","Профі телефону","Офісний дракон","Герой дзвінків","Легенда телефону"], goContinue:"Продовжити", talkPeople:"Люди та місця", talkAllBtn:"Усі ситуації", tabTalk:"Розмова", tabStore:"Крамниця", tabProfile:"Профіль",
   hello:"Привіт!", practiceNow:"ПРАКТИКУВАТИ ЗАРАЗ", mission:"Місія на сьогодні",
   coins:"Монети", buyMinutes:"Купити хвилини", minLeft:"хв залишилось сьогодні",
   outfits:"Вбрання Марзі", notEnough:"Недостатньо монет", bought:"Куплено! ✓",
@@ -2684,7 +2692,7 @@ T.it = { tagline:"Allenati con telefonate e conversazioni reali in tedesco. Tu p
   routine:"Routine di oggi", rCall:"Conversazione", rVocab:"Vocabolario", rDrill:"Errori",
   prep:"Prepara la chiamata", prepTitle:"PREPARAZIONE", howSay:"Come si dice in tedesco?",
   dialog:"Dialogo guidato",
-  tabLearn:"Impara", tabHome:"Home", tabPractice:"Pratica", recTitle:"Consigliato per te", homeAsk:"Cosa pratichiamo oggi?", pracPrepare:"Preparazione", pracReview:"Ripasso", rankTitles:["Novellino","Chiamante","Comunicatore frequente","Professionista del telefono","Drago dell\u2019ufficio","Eroe delle chiamate","Leggenda del telefono"], goContinue:"Continua", talkPeople:"Persone e luoghi", talkAllBtn:"Tutte le situazioni", tabTalk:"Parla", tabStore:"Negozio", tabProfile:"Profilo",
+  tabLearn:"Impara", tabHome:"Home", tabPractice:"Pratica", recTitle:"Consigliato per te", homeAsk:"Cosa pratichiamo oggi?", pracPrepare:"Preparazione", pracReview:"Ripasso", talkContinue:"Continua la conversazione", rankTitles:["Novellino","Chiamante","Comunicatore frequente","Professionista del telefono","Drago dell\u2019ufficio","Eroe delle chiamate","Leggenda del telefono"], goContinue:"Continua", talkPeople:"Persone e luoghi", talkAllBtn:"Tutte le situazioni", tabTalk:"Parla", tabStore:"Negozio", tabProfile:"Profilo",
   hello:"Ciao!", practiceNow:"PRATICA ORA", mission:"Missione di oggi",
   coins:"Monete", buyMinutes:"Compra minuti", minLeft:"min rimasti oggi",
   outfits:"Vestiti di Marzi", notEnough:"Monete insufficienti", bought:"Acquistato! ✓",
@@ -5012,41 +5020,143 @@ function renderPractice() {
   }
 }
 
-/* ---------- Wave 1B: Talk root ----------
-   Conversation-first first impression from current reachable data. The
-   legacy setup screen stays fully functional one level deeper (All
-   situations); the deep Talk hierarchy migration is Wave 2. */
-function renderTalkRoot() {
+/* ==================== MARZI TALK ROOT V1 (production Talk root) ====================
+   MARZI_TALK_ROOT_PRODUCTION_PACK_V1: current state -> thin adapter ->
+   normalized TalkRootModel (TALK_ROOT_MODEL.schema) -> renderer on shared
+   PM2 components. Root PRESENTATION only - selection (selectScenario /
+   S.scenario), setup, drawer, call launch (goCall) and ConversationSession
+   remain the single authoritative mechanisms (TALK_SELECTION_CONTRACT).
+
+   Data sources: Continue = the persisted selected scenario (S.scenario);
+   People = existing playable SCENARIOS (gold trio presented first);
+   Recommended = existing journeyState() open/next nodes. Nothing invented.
+
+   Analytics (TALK_ANALYTICS_CONTRACT): no analytics system exists; hooks to
+   emit later: talk_home_viewed, talk_character_opened, talk_scenario_opened,
+   talk_continue_opened, talk_all_situations_opened. None installed. */
+function talkRootArt(contactId) {
+  return pm2ContactArt(contactId, "idle"); // CALL_ART production frame for gold ids
+}
+window.MARZI_TALK_ROOT_ART = Object.freeze({ url: talkRootArt, isGold: pm2IsGoldContact });
+
+function talkRootContext() {
   const L = t();
+  const playable = SCENARIOS.filter((x) => x.goals);
+  const sc = S.scenario && S.scenario.goals ? S.scenario : playable[0];
+  // people: discovery rail over existing characters, gold-first presentation
+  const gold = playable.filter((x) => pm2IsGoldContact(x.id));
+  const rest = playable.filter((x) => !pm2IsGoldContact(x.id));
+  const people = [...gold, ...rest].slice(0, 12).map((x) => ({
+    id: x.id, label: x.tag, selected: x.id === sc.id, actionId: "person_" + x.id,
+    open: () => { selectScenario(x.id); renderTalkRoot(); }, // existing authoritative selection
+  }));
+  // recommended: the journey engine's next/open situations (existing logic)
+  const js = journeyState(loadStats());
+  const rec = js.nodes.filter((n) => (n.state === "here" || n.state === "open") && n.id !== sc.id)
+    .slice(0, 3).map((n) => ({
+      id: n.id, title: n.scenario.de, subtitle: scenarioSubtitle(n.scenario), actionId: "rec_" + n.id,
+      open: () => { selectScenario(n.id); renderSetup(); show("setup"); }, // existing selection + setup flow
+    }));
+  return {
+    labels: { title: L.tabTalk, subtitle: L.pick, continue: L.talkContinue,
+      continueCta: sc.kind === "face" ? L.talk : L.call,
+      people: L.talkPeople, recommended: L.recTitle, allSituations: L.talkAllBtn,
+      talkingWith: L.talkingWith },
+    continueItem: { characterId: sc.id, title: sc.who,
+      subtitle: sc[S.lang] || sc.en || sc.de || "", actionId: "continue",
+      kind: sc.kind || "phone",
+      open: () => goCall() }, // current authoritative launch incl. plan/limit/A0 gates
+    people,
+    recommended: rec,
+  };
+}
+function buildTalkRootModel(ctx) {
+  return {
+    title: ctx.labels.title,
+    subtitle: ctx.labels.subtitle || "",
+    continueItem: ctx.continueItem
+      ? Object.assign({}, ctx.continueItem, { artUrl: talkRootArt(ctx.continueItem.characterId) })
+      : null,
+    people: (ctx.people || []).map((p) => Object.assign({}, p, { artUrl: talkRootArt(p.id) })),
+    recommended: ctx.recommended || [],
+    allSituationsActionId: "allSituations",
+    labels: ctx.labels,
+  };
+}
+window.MARZI_TALK_ROOT_V1 = Object.freeze({ buildModel: buildTalkRootModel, context: talkRootContext });
+
+function talkRootActions(ctx) {
+  const a = { allSituations: () => openDrawer() }; // legacy full list, Talk-scoped, until Wave 2
+  for (const p of ctx.people || []) if (typeof p.open === "function") a[p.actionId] = p.open;
+  for (const r of ctx.recommended || []) if (typeof r.open === "function") a[r.actionId] = r.open;
+  if (ctx.continueItem && typeof ctx.continueItem.open === "function") a[ctx.continueItem.actionId] = ctx.continueItem.open;
+  return a;
+}
+window.MARZI_TALK_ROOT_ACTIONS = Object.freeze({ build: talkRootActions });
+
+function pmTalkRootRender(model, actions) {
+  const root = $("talkroot");
+  if (!root) throw new Error("Talk root missing");
+  const goldImg = (id, url, cls) =>
+    pm2IsGoldContact(id)
+      ? `<img class="${cls}" src="${esc(url)}" alt="" decoding="async" />`
+      : UI.characterAvatar({ scenario: SCENARIOS.find((x) => x.id === id) || {}, size: "64px" });
+  root.innerHTML =
+    `<h1 class="pm2-page-title">${esc(model.title)}</h1>
+     <p class="pm2-page-sub">${esc(model.subtitle)}</p>` +
+    (model.continueItem && typeof actions[model.continueItem.actionId] === "function"
+      ? `<section class="pm2-section"><h2 class="pm2-section-title">${esc(model.labels.continue || "")}</h2>
+           <article class="pm2-card pm2-card-pad pm-talk-continue">
+             ${goldImg(model.continueItem.characterId, model.continueItem.artUrl, "pm2-portrait")}
+             <span class="pm2-row-copy">
+               <span class="pm2-card-title"><bdi>${esc(model.continueItem.title)}</bdi></span>
+               <span class="pm2-card-meta">${esc(model.continueItem.subtitle || "")}</span>
+             </span>
+             <button class="pm2-btn pm2-btn--primary" id="talkContinueCta" type="button">${esc(model.labels.continueCta || "")}</button>
+           </article></section>`
+      : "") +
+    (model.people.length
+      ? `<section class="pm2-section"><h2 class="pm2-section-title">${esc(model.labels.people || "")}</h2>
+           <div class="pm2-people" id="talkPeopleRail">` +
+        model.people.map((p) =>
+          `<button class="pm2-person" data-tp="${esc(p.actionId)}" type="button" aria-pressed="${p.selected ? "true" : "false"}"
+             aria-label="${esc(p.label)}">
+             ${pm2IsGoldContact(p.id)
+               ? `<img src="${esc(p.artUrl)}" alt="" loading="lazy" decoding="async" />`
+               : UI.characterAvatar({ scenario: SCENARIOS.find((x) => x.id === p.id) || {}, size: "60px" })}
+             <span>${esc(p.label)}</span></button>`).join("") +
+        `</div></section>`
+      : "") +
+    (model.recommended.length
+      ? `<section class="pm2-section"><h2 class="pm2-section-title">${esc(model.labels.recommended || "")}</h2>` +
+        model.recommended.map((r) =>
+          `<button class="pm2-row" data-tr="${esc(r.actionId)}" type="button">
+             <span class="pm2-row-icon" aria-hidden="true">${IC.phone(ICON.lg)}</span>
+             <span class="pm2-row-copy"><span class="pm2-row-title"><bdi>${esc(r.title)}</bdi></span>
+               <span class="pm2-row-meta">${esc(r.subtitle || "")}</span></span>
+             <span class="pm2-row-end" aria-hidden="true">\u203a</span></button>`).join("") +
+        `</section>`
+      : "") +
+    (typeof actions[model.allSituationsActionId] === "function"
+      ? `<div class="pm2-section"><button class="pm2-btn pm2-btn--secondary" id="talkAllCta" type="button" style="inline-size:100%">${esc(model.labels.allSituations || "")}</button></div>`
+      : "");
+  const cta = $("talkContinueCta");
+  if (cta && model.continueItem) cta.onclick = actions[model.continueItem.actionId];
+  root.querySelectorAll("[data-tp]").forEach((b) => { const f = actions[b.dataset.tp]; if (f) b.onclick = () => f(); });
+  root.querySelectorAll("[data-tr]").forEach((b) => { const f = actions[b.dataset.tr]; if (f) b.onclick = () => f(); });
+  const all = $("talkAllCta");
+  if (all) all.onclick = actions[model.allSituationsActionId];
+  hydrateAvatars(root); // non-gold portraits keep the existing lazy chain
+}
+function renderTalkRoot() {
   renderNav();
   updateTopbar();
-  $("talkTitle").textContent = L.tabTalk;
-  $("talkSub").textContent = L.pick;
-  const sc = S.scenario && S.scenario.goals ? S.scenario : SCENARIOS.find((x) => x.goals);
-  $("talkContinue").innerHTML =
-    `<div class="pm-card">${UI.characterAvatar({ scenario: sc, size: "var(--avatar-lg)" })}` +
-    `<span class="pm-card-tx"><small>${esc(L.talkingWith)}</small><b>${esc(sc.who)}</b>` +
-    `<span class="pm-note">${esc(sc[S.lang] || sc.en || sc.de || "")}</span></span>` +
-    `<button class="pm-go" id="talkGo">${esc(sc.kind === "face" ? L.talk : L.call)}</button></div>`;
-  $("talkGo").onclick = () => goCall();
-  $("talkPeopleLbl").textContent = L.talkPeople;
-  const ppl = SCENARIOS.filter((x) => x.goals).slice(0, 10);
-  $("talkPeople").innerHTML = ppl.map((x) =>
-    `<button class="ppl ${x.id === sc.id ? "on" : ""}" data-tp="${x.id}" aria-pressed="${x.id === sc.id}">` +
-    `${UI.characterAvatar({ scenario: x, size: "var(--avatar-md)" })}<span>${esc(x.tag)}</span></button>`).join("");
-  $("talkPeople").querySelectorAll("[data-tp]").forEach((b) =>
-    b.onclick = () => { selectScenario(b.dataset.tp); renderTalkRoot(); });
-  $("talkRecLbl").textContent = L.recTitle;
-  const rec = SCENARIOS.filter((x) => x.goals && x.id !== sc.id).slice(0, 3);
-  $("talkRec").innerHTML = rec.map((x) =>
-    `<button class="pm-row" data-tr2="${x.id}"><span class="pm-row-ic">${IC.phone(ICON.lg)}</span>` +
-    `<span class="pm-row-tx"><b>${esc(x.de)}</b><small>${esc(scenarioSubtitle(x))}</small></span>` +
-    `<span class="chev">&rsaquo;</span></button>`).join("");
-  $("talkRec").querySelectorAll("[data-tr2]").forEach((b) =>
-    b.onclick = () => { selectScenario(b.dataset.tr2); renderTalkRoot(); });
-  $("talkAllBtn").textContent = L.talkAllBtn;
-  $("talkAllBtn").onclick = () => { renderSetup(); show("setup"); };
-  hydrateAvatars($("talkroot"));
+  try {
+    const ctx = talkRootContext();
+    pmTalkRootRender(buildTalkRootModel(ctx), talkRootActions(ctx));
+  } catch (e) {
+    $("talkroot").innerHTML = `<div class="pm2-empty">${esc(t().err)}</div>`; // recoverable
+  }
 }
 
 /* ---------- mistakes history screen ---------- */
