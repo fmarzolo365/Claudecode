@@ -1,99 +1,164 @@
 {
-  "pack": "marzi-doctor-wagner-state-pack-v1",
-  "baseline": {
-    "branch": "claude/marzi-gold-call-v1-freeze",
-    "commit": "e94c4d1",
-    "shellStatus": "FROZEN"
+  "pack": "marzi-apotheke-painterly-gold-pack-v2",
+  "status": "GOLD_PILOT_FOR_PRODUCT_OWNER_REVIEW",
+  "contactId": "apotheke",
+  "handoverPersona": "apotheke2",
+  "handoverPersonaIncluded": false,
+  "backgroundFamily": "pharmacy",
+  "technicalBaseline": {
+    "branch": "claude/marzi-doctor-wagner-states-v1-i5o6eq",
+    "commit": "4ba3d15",
+    "requireExactBaselineVerification": true
   },
-  "contactId": "arzt",
-  "scenarioFamily": "clinic",
-  "reference": "reference/DOCTOR_WAGNER_STATE_REFERENCE.png",
-  "stateAssets": {
-    "idle": {
-      "path": "public/assets/call/characters/arzt/idle.webp",
-      "sourceMaster": "source-masters/arzt-idle-master.png",
-      "format": "webp",
-      "transparent": true,
-      "canvas": [
-        1600,
-        1800
-      ],
-      "objectFit": "contain",
-      "objectPosition": "50% 100%",
-      "focalPoint": {
-        "x": 0.5,
-        "y": 0.34
-      },
-      "bottomAligned": true
+  "reference": "reference/APOTHEKE_GOLD_ART_DIRECTION.png",
+  "character": {
+    "displayName": "Adler-Apotheke",
+    "role": "pharmacist answering the phone",
+    "voicePrimary": "nova",
+    "voiceHandover": "onyx",
+    "canvas": [
+      1600,
+      1800
+    ],
+    "transparent": true,
+    "objectFit": "contain",
+    "objectPosition": "50% 100%",
+    "focalPoint": {
+      "x": 0.5,
+      "y": 0.34
     },
-    "listening": {
-      "path": "public/assets/call/characters/arzt/listening.webp",
-      "sourceMaster": "source-masters/arzt-listening-master.png",
-      "format": "webp",
-      "transparent": true,
-      "canvas": [
-        1600,
-        1800
-      ],
-      "objectFit": "contain",
-      "objectPosition": "50% 100%",
-      "focalPoint": {
-        "x": 0.5,
-        "y": 0.34
+    "states": {
+      "idle": {
+        "path": "public/assets/call/characters/apotheke/idle.webp",
+        "sourceMaster": "source-masters/apotheke-idle-master.png",
+        "geometry": {
+          "canvas": [
+            1600,
+            1800
+          ],
+          "alphaBBox": [
+            251,
+            154,
+            1348,
+            1774
+          ],
+          "objectFit": "contain",
+          "objectPosition": "50% 100%",
+          "focalPoint": {
+            "x": 0.5,
+            "y": 0.34
+          }
+        }
       },
-      "bottomAligned": true
-    },
-    "thinking": {
-      "path": "public/assets/call/characters/arzt/thinking.webp",
-      "sourceMaster": "source-masters/arzt-thinking-master.png",
-      "format": "webp",
-      "transparent": true,
-      "canvas": [
-        1600,
-        1800
-      ],
-      "objectFit": "contain",
-      "objectPosition": "50% 100%",
-      "focalPoint": {
-        "x": 0.5,
-        "y": 0.34
+      "listening": {
+        "path": "public/assets/call/characters/apotheke/listening.webp",
+        "sourceMaster": "source-masters/apotheke-listening-master.png",
+        "geometry": {
+          "canvas": [
+            1600,
+            1800
+          ],
+          "alphaBBox": [
+            220,
+            154,
+            1360,
+            1774
+          ],
+          "objectFit": "contain",
+          "objectPosition": "50% 100%",
+          "focalPoint": {
+            "x": 0.5,
+            "y": 0.34
+          }
+        }
       },
-      "bottomAligned": true
-    },
-    "speaking": {
-      "path": "public/assets/call/characters/arzt/speaking.webp",
-      "sourceMaster": "source-masters/arzt-speaking-master.png",
-      "format": "webp",
-      "transparent": true,
-      "canvas": [
-        1600,
-        1800
-      ],
-      "objectFit": "contain",
-      "objectPosition": "50% 100%",
-      "focalPoint": {
-        "x": 0.5,
-        "y": 0.34
+      "thinking": {
+        "path": "public/assets/call/characters/apotheke/thinking.webp",
+        "sourceMaster": "source-masters/apotheke-thinking-master.png",
+        "geometry": {
+          "canvas": [
+            1600,
+            1800
+          ],
+          "alphaBBox": [
+            228,
+            177,
+            1351,
+            1774
+          ],
+          "objectFit": "contain",
+          "objectPosition": "50% 100%",
+          "focalPoint": {
+            "x": 0.5,
+            "y": 0.34
+          }
+        }
       },
-      "bottomAligned": true
-    },
-    "success": {
-      "path": "public/assets/call/characters/arzt/success.webp",
-      "sourceMaster": "source-masters/arzt-success-master.png",
-      "format": "webp",
-      "transparent": true,
-      "canvas": [
-        1600,
-        1800
-      ],
-      "objectFit": "contain",
-      "objectPosition": "50% 100%",
-      "focalPoint": {
-        "x": 0.5,
-        "y": 0.34
+      "speaking": {
+        "path": "public/assets/call/characters/apotheke/speaking.webp",
+        "sourceMaster": "source-masters/apotheke-speaking-master.png",
+        "geometry": {
+          "canvas": [
+            1600,
+            1800
+          ],
+          "alphaBBox": [
+            166,
+            149,
+            1427,
+            1774
+          ],
+          "objectFit": "contain",
+          "objectPosition": "50% 100%",
+          "focalPoint": {
+            "x": 0.5,
+            "y": 0.34
+          }
+        }
       },
-      "bottomAligned": true
+      "success": {
+        "path": "public/assets/call/characters/apotheke/success.webp",
+        "sourceMaster": "source-masters/apotheke-success-master.png",
+        "geometry": {
+          "canvas": [
+            1600,
+            1800
+          ],
+          "alphaBBox": [
+            120,
+            149,
+            1416,
+            1774
+          ],
+          "objectFit": "contain",
+          "objectPosition": "50% 100%",
+          "focalPoint": {
+            "x": 0.5,
+            "y": 0.34
+          }
+        }
+      }
     }
+  },
+  "background": {
+    "path": "public/assets/call/backgrounds/pharmacy.webp",
+    "sourceMaster": "source-masters/pharmacy-master.png",
+    "dimensions": [
+      1800,
+      1000
+    ],
+    "transparent": false,
+    "backgroundSize": "cover",
+    "backgroundPosition": "center",
+    "requiredCues": [
+      "German pharmacy interior",
+      "red Apotheke A",
+      "subtle Adler/eagle cue",
+      "medicine shelving and drawers",
+      "prescription and medicine boxes",
+      "stock terminal",
+      "green phone"
+    ]
   },
   "stateMapping": {
     "ready": "idle",
@@ -104,45 +169,27 @@
     "error": "idle",
     "disconnected": "idle"
   },
-  "preload": {
-    "beforeStageReveal": [
+  "runtimeContract": {
+    "goldStageHeight390x844Px": 253.2,
+    "preloadBeforeReveal": [
       "idle",
       "listening"
     ],
-    "warmImmediatelyAfterStart": [
+    "warmAfterStart": [
       "thinking",
       "speaking",
       "success"
     ],
-    "decodeBeforeSwap": true
-  },
-  "transition": {
-    "normalMs": 160,
-    "rangeMs": [
-      120,
-      180
-    ],
+    "decodeBeforeSwap": true,
+    "crossfadeMs": 150,
     "reducedMotionMs": 0,
-    "rule": "Never blank, fallback, resize, or recrop between approved states."
+    "noScalePulseForProductionArt": true,
+    "noFallbackBetweenValidProductionStates": true
   },
-  "geometryContract": {
-    "sameCanvasAllStates": [
-      1600,
-      1800
-    ],
-    "sameFocalPointAllStates": {
-      "x": 0.5,
-      "y": 0.34
-    },
-    "sameObjectFitAllStates": "contain",
-    "sameObjectPositionAllStates": "50% 100%",
-    "goldStageHeight390x844Px": 253.2
-  },
-  "artRules": [
-    "These five supplied assets are production-state inputs for Dr. Wagner.",
-    "Do not redraw, regenerate, trace, recolor, or crop them differently per state.",
-    "Do not alter the frozen Gold Call shell to accommodate a state.",
-    "Use state-specific art only through registry/mapping/preload/crossfade wiring.",
-    "Do not show generated/emoji/SVG fallbacks between valid production states."
+  "artImmutability": [
+    "Do not regenerate, redraw, trace, recolor or independently crop these assets.",
+    "Do not use the rejected flat-vector Apotheke pack as production art.",
+    "Do not alter the frozen Gold Call shell to accommodate these assets.",
+    "If a pose looks wrong in review, stop and return to the external art producer; do not compensate with CSS."
   ]
 }

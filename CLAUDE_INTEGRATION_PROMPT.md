@@ -1,177 +1,116 @@
-# MARZI — INTEGRATE DR. WAGNER GOLD STATE PACK V1
-# REGISTRY / STATE-MAPPING ONLY
+# MARZI — APOTHEKE PAINTERLY GOLD V2 INTEGRATION
+# INTEGRATION ONLY — DO NOT DESIGN
 
-Baseline:
-- branch: `claude/marzi-gold-call-v1-freeze`
-- frozen Gold shell commit: `e94c4d1`
+This pack replaces the rejected flat-vector Apotheke art with the externally supplied painterly Gold assets.
 
-The attached/extracted pack contains the five approved Dr. Wagner state assets.
+MANDATORY BASELINE GATE
 
-This is an integration task only.
+Before editing:
 
-DO NOT:
-- redesign the call shell;
-- change Text / Help / Translate / Speed / Replay UX;
-- alter stage geometry;
-- modify supplied artwork;
-- generate new artwork;
-- touch MARZI-006;
-- add characters or scenarios;
-- run a broad visual redesign;
-- deploy.
+git fetch origin
 
-Read:
-- `asset-manifest.json`
-- `reference/DOCTOR_WAGNER_STATE_REFERENCE.png`
+Verify that:
+origin/claude/marzi-doctor-wagner-states-v1-i5o6eq
+contains commit:
+4ba3d15
 
-Verify exactly these files exist:
+If that baseline cannot be verified, STOP.
 
-- `public/assets/call/characters/arzt/idle.webp`
-- `public/assets/call/characters/arzt/listening.webp`
-- `public/assets/call/characters/arzt/thinking.webp`
-- `public/assets/call/characters/arzt/speaking.webp`
-- `public/assets/call/characters/arzt/success.webp`
+Create a NEW integration branch from that verified Wagner Gold state baseline:
+
+claude/marzi-apotheke-painterly-gold-v2
+
+Do not modify or rewrite the Wagner branch.
+Do not merge the old flat Apotheke branch.
+Do not cherry-pick commit 2a0161a.
+The old flat pack is reference-only and is NOT production art.
+
+Extract this pack at the repository root and read:
+- asset-manifest.json
+- reference/APOTHEKE_GOLD_ART_DIRECTION.png
+
+Verify checksums before integration.
+
+REQUIRED ASSETS
+
+- public/assets/call/characters/apotheke/idle.webp
+- public/assets/call/characters/apotheke/listening.webp
+- public/assets/call/characters/apotheke/thinking.webp
+- public/assets/call/characters/apotheke/speaking.webp
+- public/assets/call/characters/apotheke/success.webp
+- public/assets/call/backgrounds/pharmacy.webp
 
 If any are missing, STOP.
 
-==================================================
-1. BIND STATES
-==================================================
+IMPLEMENTATION
 
-Use exactly:
+Add only the minimal CALL_ART registry entry for `apotheke`, using the existing Wagner production-art architecture.
 
-ready       -> idle.webp
-listening   -> listening.webp
-processing  -> thinking.webp
-speaking    -> speaking.webp
-success     -> success.webp
-error       -> idle.webp
-disconnected-> idle.webp
+State mapping:
+ready        -> idle
+listening    -> listening
+processing   -> thinking
+speaking     -> speaking
+success      -> success
+error        -> idle
+disconnected -> idle
 
-Do not invent additional state mappings.
+Reuse unchanged:
+- production-first no-flash behavior
+- preload idle + listening before first reveal
+- warm thinking + speaking + success after start
+- decode-before-swap
+- 150ms wall-clock crossfade
+- 0ms reduced-motion swap
+- same Gold stage geometry
+- same focal/crop policy
+- real-failure-only fallback
+- no production-art scale pulse
 
-==================================================
-2. PRESERVE GEOMETRY
-==================================================
+DO NOT:
+- modify supplied artwork
+- regenerate SVGs
+- change the Gold call shell
+- change Text / Help / Translate / Speed / Replay / mic / footer
+- touch MARZI-006
+- integrate `apotheke2` yet
+- merge
+- deploy
 
-All five assets share the same 1600×1800 transparent canvas.
+FOCUSED REVIEW GATE
 
-Render every state with the same:
-- object-fit;
-- object-position;
-- focal point;
-- stage height;
-- crop policy.
+Run focused checks only:
+1. all six asset URLs return 200
+2. registry resolves every Apotheke state
+3. no emoji/generated/SVG flash at first reveal
+4. no fallback/blank/veil between valid production states
+5. stage height and crop remain identical
+6. state transition timing remains Gold-compatible
+7. reduced-motion swap remains immediate
 
-At 390×844 the approved stage remains 253.2 CSS px.
+Capture exactly five 390x844 screenshots:
+- idle
+- listening
+- thinking
+- speaking
+- success
 
-No state may:
-- change stage height;
-- zoom differently;
-- shift the face;
-- jump vertically;
-- expose a different crop policy.
+Also capture one Text ON + Help ON screenshot for the pharmacy scenario to confirm the existing Gold shell overlays the new art correctly.
 
-==================================================
-3. PRELOAD
-==================================================
+STOP for Product Owner review.
 
-Before first stage reveal:
-- preload/decode `idle.webp`
-- preload/decode `listening.webp`
+Do not run the full suite before approval.
+If the stop hook requires preservation, commit and push only to the new dedicated integration branch.
 
-Immediately after call start:
-- warm `thinking.webp`
-- warm `speaking.webp`
-- warm `success.webp`
-
-The first visible frame follows the existing no-flash production-art rule.
-
-Do not show a generated/emoji/SVG doctor while a valid production state is pending.
-
-==================================================
-4. STATE TRANSITIONS
-==================================================
-
-When call state changes:
-
-current approved state stays visible
--> next production image decodes
--> crossfade to next image
-
-Target:
-160 ms
-acceptable range:
-120–180 ms
-
-With `prefers-reduced-motion`:
-instant swap, 0 ms.
-
-Never show:
-- blank frame;
-- clinic-only frame between valid state swaps;
-- fallback art between valid state swaps;
-- loading veil between already-warmed states.
-
-==================================================
-5. ARTWORK IMMUTABILITY
-==================================================
-
-Do not:
-- crop the five supplied files independently;
-- alter face scale;
-- recolor them;
-- add CSS filters that change their art;
-- regenerate states;
-- replace them with SVGs.
-
-They are the source assets for this state pilot.
-
-==================================================
-6. FOCUSED VALIDATION
-==================================================
-
-Before full validation, run focused checks only:
-
-A. registry paths all exist;
-B. each call state resolves to the required asset;
-C. idle/listening decoded before first reveal;
-D. thinking/speaking/success warm successfully;
-E. simulated state sequence:
-   idle -> listening -> thinking -> speaking -> success;
-F. no fallback becomes visible between valid states;
-G. stage geometry stays exactly stable;
-H. reduced-motion swap works.
-
-Capture exactly FIVE 390×844 screenshots using the same call shell:
-
-1. idle
-2. listening
-3. thinking
-4. speaking
-5. success
-
-For all five verify:
-- doctor face remains in the same visual position;
-- same apparent scale;
-- coat and stethoscope visible;
-- stage height unchanged;
-- shell/controls unchanged.
-
-Also capture one short state-transition trace/report showing resolved paths and transition timing. No video required.
-
-STOP for Product Owner visual review.
-
-Do not run the full suite yet.
-Do not merge.
-Do not deploy.
-
-If the repository stop hook requires preservation, commit/push only to a new dedicated branch:
-
-`claude/marzi-doctor-wagner-states-v1`
-
-Do not update or rewrite `claude/marzi-gold-call-v1-freeze`.
+Final report:
+- baseline verification
+- exact files changed
+- checksum verification
+- registry entry
+- focused validation
+- screenshot paths
+- commit SHA if preservation required
 
 End exactly:
 
-READY FOR DR WAGNER STATE PACK REVIEW
+READY FOR APOTHEKE PAINTERLY GOLD REVIEW

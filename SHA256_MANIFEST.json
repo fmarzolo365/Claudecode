@@ -1,82 +1,70 @@
 {
   "CLAUDE_INTEGRATION_PROMPT.md": {
-    "bytes": 4473,
-    "sha256": "d46d0c5e673020c5c0aeb41d4aa3c81e7043121f690f0cc05cfd3bac7880ca57"
+    "bytes": 3090,
+    "sha256": "c37df138c29ff578aee2b157ed2973b3335ba5b2869252b19e16ea98c2b2a7ef"
   },
   "README_FIRST.md": {
-    "bytes": 729,
-    "sha256": "15e1dc0e8725652fe69981c95173c3fb501d3b2fccb98ec5c03ed3d9b4d947a5"
+    "bytes": 537,
+    "sha256": "880554fd06bc1eed8584ece0676909932b83e7cf49ade6b921195ba2f9feb7db"
   },
   "STATE_PACK_PREVIEW.png": {
-    "bytes": 353535,
-    "sha256": "90887ec2d640d3fe3173e8bc704cbf9142bf997f18a9e452aa6ac6ce4d6abc00"
+    "bytes": 656675,
+    "sha256": "5d31141bd7e99414aba774851a778687e44f69aca6a05ed1137e5d6610a5cf3c"
   },
   "asset-manifest.json": {
-    "bytes": 3730,
-    "sha256": "0644e98388303b66baa96ad6c0c3aa5ebb9bd5ca76754027b193043559353f51"
+    "bytes": 5007,
+    "sha256": "bb1ce0e49afdf7b068b4b59751836efc0c07705927c7715a57f47f7d334596cb"
   },
-  "public/assets/call/characters/arzt/idle.webp": {
-    "bytes": 860020,
-    "sha256": "bf63248cd135ced65f4108c4537f13ff872a56a542b171b0412ad412636b30c1"
+  "public/assets/call/backgrounds/pharmacy.webp": {
+    "bytes": 209524,
+    "sha256": "7270dbac4df725e29bd21bc052b27478ee1b6656d9fd1f8a863d20ef9c538917"
   },
-  "public/assets/call/characters/arzt/listening.webp": {
-    "bytes": 882288,
-    "sha256": "bf73d7aa18130ae1d2b2ca5be8978bba988c45bbda1a0c66db86a2bd0f2c066d"
+  "public/assets/call/characters/apotheke/idle.webp": {
+    "bytes": 656584,
+    "sha256": "3095a9ed30f610c99f5262b2091c5383d9265c478dcc04483b5c17a08ab6085d"
   },
-  "public/assets/call/characters/arzt/speaking.webp": {
-    "bytes": 876340,
-    "sha256": "214d9594d2222a9c10bd66273f4a45ef85794eead7b1ea668d52195b2e182cb0"
+  "public/assets/call/characters/apotheke/listening.webp": {
+    "bytes": 743644,
+    "sha256": "b747c25672a9a7335f72bd3b46915eb00a4cdb31de09cc1befde1589aa701612"
   },
-  "public/assets/call/characters/arzt/success.webp": {
-    "bytes": 837738,
-    "sha256": "92ad844df75b7e3c38ac1abcbd97554256b3fbc9995e5027347dc7ca6c6ddd3f"
+  "public/assets/call/characters/apotheke/speaking.webp": {
+    "bytes": 831744,
+    "sha256": "104d946d05184e80d7d513b341e66264410b749880bc6ca30b549909caadb05f"
   },
-  "public/assets/call/characters/arzt/thinking.webp": {
-    "bytes": 803474,
-    "sha256": "bab9c823ef0d1bdf123a011d8a7981bfc4bee636eadedf0ba3a0a6ffe42481d0"
+  "public/assets/call/characters/apotheke/success.webp": {
+    "bytes": 745414,
+    "sha256": "b638b89a3896b67594daa7a1a8185d4e4ff9cbb9f1c9851c7fecde81338d2d68"
   },
-  "reference/DOCTOR_WAGNER_STATE_REFERENCE.png": {
-    "bytes": 2658045,
-    "sha256": "72e58d7db633044d159e55a883ea881c762c7684b09ff2a30f5df631c9ae31e5"
+  "public/assets/call/characters/apotheke/thinking.webp": {
+    "bytes": 690490,
+    "sha256": "47288cba350693515b87579a8f776885db016e91e3daf97cdf53f9f88bf1448b"
   },
-  "source-masters/arzt-idle-master.png": {
-    "bytes": 1425548,
-    "sha256": "d7422b629795736448cbebf8820b7061bae3e5db4c0b393bece444ce0df6e5b9"
+  "reference/APOTHEKE_GOLD_ART_DIRECTION.png": {
+    "bytes": 1946179,
+    "sha256": "7821271aeb474e49c234225a2e743ad4ce4b542d722372c3b12129a1f0024bc2"
   },
-  "source-masters/arzt-listening-master.png": {
-    "bytes": 1471506,
-    "sha256": "dd4777751dca61fa7c52b3d30ecf08203a87c6272b01016a65fbe340362a1cdd"
+  "source-masters/apotheke-idle-master.png": {
+    "bytes": 1105179,
+    "sha256": "f56d0b25c02af691e4ce53af9b45a995a740f50191a107eeb6637d48bbcb69ac"
   },
-  "source-masters/arzt-speaking-master.png": {
-    "bytes": 1466912,
-    "sha256": "ea0025ffa6fa2b22732424ddf08424a461ebab1e01dd5efbd6f46e6e08ce95a9"
+  "source-masters/apotheke-listening-master.png": {
+    "bytes": 1267817,
+    "sha256": "8236f5ecc1562036d1efe049f61fdc2db5ee18224ff0c96bc237789a66551a2d"
   },
-  "source-masters/arzt-success-master.png": {
-    "bytes": 1395950,
-    "sha256": "e5ab7813bf445e7db196aa8432c518f40f9b21e34cd777b4b22e2a70f64b4838"
+  "source-masters/apotheke-speaking-master.png": {
+    "bytes": 1437439,
+    "sha256": "c899d1087f5e73bcbe8340c4fc3f29f4aa6e5be55b92267c6cb12bc004042698"
   },
-  "source-masters/arzt-thinking-master.png": {
-    "bytes": 1331407,
-    "sha256": "3560e4e19f2e504d23d0d2403b1edcfcfb691de62e945733f587d6b117d7640e"
+  "source-masters/apotheke-success-master.png": {
+    "bytes": 1249762,
+    "sha256": "b41588c4c4bc7cc18450ce68a1fa5b53f7423b5ca7b1f5f0a7da9a2925b25c2f"
   },
-  "source-masters/idle-card-source.png": {
-    "bytes": 198926,
-    "sha256": "44b86758ac856331fe20cb86acd090851bac9bd8b47fa9c151cfff06aa5cd584"
+  "source-masters/apotheke-thinking-master.png": {
+    "bytes": 1174541,
+    "sha256": "9433f141cad09e23bad606ef1749bdec00e077ed0406846510fdc6159ea9ed39"
   },
-  "source-masters/listening-card-source.png": {
-    "bytes": 206213,
-    "sha256": "b9d7458779f3a0f757a010e8eee3251e4d1be921953167509450b750c8e0650f"
-  },
-  "source-masters/speaking-card-source.png": {
-    "bytes": 210996,
-    "sha256": "b342bc28dd6b8786683f477efe59833f3e899033806b2efb974c5565482be7c6"
-  },
-  "source-masters/success-card-source.png": {
-    "bytes": 212096,
-    "sha256": "f9e10bc22f8662791ab32b443f1cff3758b3d20eaf39fa70445028911a83b97b"
-  },
-  "source-masters/thinking-card-source.png": {
-    "bytes": 206889,
-    "sha256": "1d934d14fe66f0507f3c27334fa61e4895e68c699517a6aa40775468cf93cc50"
+  "source-masters/pharmacy-master.png": {
+    "bytes": 1594378,
+    "sha256": "520d8b24c5d856df63cd4748e98651b93c44cba27d759a83a78d9f8abc8a344a"
   }
 }

@@ -5551,6 +5551,14 @@ const CALL_ART = {
               error: "idle", disconnected: "idle" },
     ext: ".webp",
   },
+  apotheke: {
+    background: "/assets/call/backgrounds/pharmacy.webp",
+    dir: "/assets/call/characters/apotheke/",
+    states: { ready: "idle", listening: "listening", processing: "thinking",
+              speaking: "speaking", success: "success",
+              error: "idle", disconnected: "idle" },
+    ext: ".webp",
+  },
 };
 const CALL_ART_FAILED = new Set(); // a missing production file falls back once, silently
 function callArt(id, st) {
