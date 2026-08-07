@@ -69,6 +69,30 @@
     --pm-border: rgba(46, 125, 50, .14);
     --shadow-nav: 0 -8px 28px rgba(57, 51, 39, .08);
     --shadow-pm: 0 8px 24px rgba(57, 51, 39, .08);
+    /* MARZI UI PRODUCTION V2 tokens (contracts/DESIGN_TOKENS.json). All raw
+       values live here; pm2 rules below consume only these. */
+    --pm2-cream: #fefaf2; --pm2-surface: #fffdf8; --pm2-surface-alt: #f6f7ee;
+    --pm2-soft-green: #e8f3e6; --pm2-green: #2e7d32; --pm2-green-deep: #1f5e24;
+    --pm2-green-pressed: #225f27; --pm2-gold: #f5b84c; --pm2-coral: #ff8a65;
+    --pm2-lavender: #a78bfa; --pm2-ink: #1a1a1a; --pm2-muted: #6b7280;
+    --pm2-line: rgba(31, 94, 36, .12); --pm2-danger: #c64e43; --pm2-danger-bg: #fff1ee;
+    --pm2-white: #fff; --pm2-track: #e9e9df; --pm2-green-grad: #69a848;
+    --pm2-talk-on: #dff2dd; --pm2-hero-tint: #f3f8ed;
+    --pm2-r-sm: 12px; --pm2-r-md: 18px; --pm2-r-lg: 24px; --pm2-r-pill: 999px;
+    --pm2-shadow-card: 0 8px 24px rgba(53, 48, 37, .08);
+    --pm2-shadow-nav: 0 -8px 26px rgba(53, 48, 37, .07);
+    --pm2-shadow-chip: 0 4px 12px rgba(53, 48, 37, .05);
+    --pm2-shadow-row: 0 5px 16px rgba(53, 48, 37, .05);
+    --pm2-ease: cubic-bezier(.2, .7, .2, 1); --pm2-micro: 160ms; --pm2-screen: 220ms;
+    --pm2-fs-page: 28px; --pm2-lh-page: 34px;
+    --pm2-fs-sub: 14px; --pm2-lh-sub: 20px;
+    --pm2-fs-section: 12px; --pm2-lh-section: 16px;
+    --pm2-fs-card: 17px; --pm2-lh-card: 22px;
+    --pm2-fs-row: 15px; --pm2-lh-row: 20px;
+    --pm2-fs-meta: 12px; --pm2-lh-meta: 17px;
+    --pm2-fs-brand: 21px; --pm2-fs-tab: 11px; --pm2-lh-tab: 14px;
+    --pm2-fs-tab-sm: 10px; --pm2-fs-tab-ic: 19px;
+    --pm2-topbar-h: 58px; --pm2-nav-h: 72px;
 
     /* Extended palette (design-system reconciliation, findings 1-4).
        Every value below is the exact colour already shipping - these give
@@ -207,37 +231,90 @@
   .btn.primary { background: var(--primary); color: var(--white); }
   .btn.primary:hover { background: var(--primary-hover); }
   .btn.primary:active { background: var(--primary-active); }
-  .bottomnav {
-    position: fixed; right: 0; bottom: 0; left: 0; z-index: 40;
-    border-top: 1px solid var(--line);
-    background: rgba(255, 253, 248, .96);
+  /* ================= MARZI UI PRODUCTION V2 — SHELL CSS =================
+     Adapted from reference-code/css/premium-shell-v2.css. Token-only: every
+     raw value lives in :root. Kept out of body.in-call (frozen Gold Call). */
+  body:not(.in-call).pm2 { background: var(--pm2-cream); color: var(--pm2-ink); }
+  .pm2-bottomnav {
+    position: fixed; z-index: 40; inset-inline: 0; inset-block-end: 0;
+    padding: 7px 8px calc(7px + var(--safe-bottom));
+    background: var(--pm2-surface);
+    box-shadow: var(--pm2-shadow-nav); border-block-start: 1px solid var(--pm2-line);
     backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-    padding-bottom: var(--safe-bottom);
   }
-  .bottomnav-in {
-    width: 100%; max-width: 560px; height: 78px; margin: 0 auto;
-    display: grid; grid-template-columns: repeat(5, 1fr); /* premium shell: five tabs, one row */
+  .pm2-bottomnav-inner {
+    inline-size: min(100%, 560px); margin-inline: auto;
+    display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px;
   }
-  .bottomnav button {
+  .pm2-tab {
     display: flex; flex-direction: column; align-items: center; justify-content: center;
-    gap: 2px; border: none; background: none; cursor: pointer; min-width: 0;
-    color: var(--muted); font: 700 var(--text-f11-5) var(--font-sans);
-    min-height: var(--touch-min);
+    gap: 2px; min-inline-size: 0; min-block-size: 58px; padding: 5px 2px;
+    border: 0; border-radius: 17px; background: transparent; cursor: pointer;
+    color: var(--pm2-muted);
+    font: 800 var(--pm2-fs-tab) / var(--pm2-lh-tab) var(--font-sans);
   }
-  .bottomnav button .ic { vertical-align: 0; }
-  .bottomnav button.on { color: var(--primary-active); }
-  /* premium selected state: soft-green pill behind the icon - shape + weight,
-     never colour alone */
-  .nb-ic {
-    display: grid; place-items: center; width: 46px; height: 29px;
-    border-radius: var(--radius-xl); transition: background var(--dur) var(--ease);
+  .pm2-tab-ic {
+    display: grid; place-items: center; inline-size: 30px; block-size: 30px;
+    border-radius: var(--pm2-r-sm);
+    transition: background var(--pm2-micro) var(--pm2-ease), transform var(--pm2-micro) var(--pm2-ease);
   }
-  .bottomnav button.on .nb-ic { background: var(--primary-soft); color: var(--primary); }
-  .nb-lbl { max-width: 100%; }
-  .bottomnav button.on .nb-lbl { font-weight: 800; }
-  /* Talk carries the product's heart: subtly emphasized, not a FAB */
-  .nb-talk .nb-ic { width: 50px; height: 32px; background: var(--primary-soft); color: var(--primary); }
-  .nb-talk.on .nb-ic { background: var(--primary); color: var(--on-primary); }
+  .pm2-tab[aria-current="page"] { color: var(--pm2-green-deep); }
+  .pm2-tab[aria-current="page"] .pm2-tab-ic { background: var(--pm2-soft-green); transform: translateY(-1px); }
+  .pm2-tab[data-tab="talk"] .pm2-tab-ic { border: 1px solid var(--pm2-line); }
+  .pm2-tab[data-tab="talk"][aria-current="page"] .pm2-tab-ic { background: var(--pm2-talk-on); }
+  /* component primitives (phase 0: available; roots adopt them per phase) */
+  .pm2-screen { inline-size: min(100%, 560px); margin-inline: auto; }
+  .pm2-page-title { margin: 0; font: 900 var(--pm2-fs-page) / var(--pm2-lh-page) var(--font-sans); letter-spacing: -.025em; }
+  .pm2-page-sub { margin: 4px 0 0; color: var(--pm2-muted); font: 600 var(--pm2-fs-sub) / var(--pm2-lh-sub) var(--font-sans); }
+  .pm2-section { margin-block-start: 20px; }
+  .pm2-section-title {
+    margin: 0 0 9px; color: var(--pm2-green-deep); text-transform: uppercase;
+    font: 900 var(--pm2-fs-section) / var(--pm2-lh-section) var(--font-sans); letter-spacing: .09em;
+  }
+  .pm2-card { border: 1px solid var(--pm2-line); border-radius: var(--pm2-r-md); background: var(--pm2-surface); box-shadow: var(--pm2-shadow-card); }
+  .pm2-card--hero { border-radius: 22px; overflow: hidden; }
+  .pm2-card-pad { padding: 16px; }
+  .pm2-card-title { font: 900 var(--pm2-fs-card) / var(--pm2-lh-card) var(--font-sans); }
+  .pm2-card-meta { margin-block-start: 2px; color: var(--pm2-muted); font: 650 var(--pm2-fs-meta) / var(--pm2-lh-meta) var(--font-sans); }
+  .pm2-row {
+    display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px;
+    inline-size: 100%; min-block-size: 64px; padding: 10px 12px; cursor: pointer;
+    border: 1px solid var(--pm2-line); border-radius: 16px; background: var(--pm2-surface);
+    box-shadow: var(--pm2-shadow-row); color: var(--pm2-ink); text-align: start;
+  }
+  .pm2-row + .pm2-row { margin-block-start: 9px; }
+  .pm2-row-icon { display: grid; place-items: center; inline-size: 42px; block-size: 42px; border-radius: var(--pm2-r-sm); background: var(--pm2-soft-green); color: var(--pm2-green-deep); }
+  .pm2-row-copy { min-inline-size: 0; display: grid; }
+  .pm2-row-title { font: 850 var(--pm2-fs-row) / var(--pm2-lh-row) var(--font-sans); }
+  .pm2-row-meta { color: var(--pm2-muted); font: 600 var(--pm2-fs-meta) / var(--pm2-lh-meta) var(--font-sans); }
+  .pm2-row-end { color: var(--pm2-muted); font-weight: 900; }
+  .pm2-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    min-block-size: var(--touch-min); padding: 0 18px; border-radius: var(--pm2-r-pill);
+    border: 1px solid transparent; cursor: pointer; text-decoration: none;
+    font: 900 var(--pm2-fs-sub) / var(--pm2-lh-sub) var(--font-sans);
+    transition: transform var(--pm2-micro) var(--pm2-ease), background var(--pm2-micro) var(--pm2-ease);
+  }
+  .pm2-btn:active { transform: translateY(1px); }
+  .pm2-btn--primary { background: var(--pm2-green); color: var(--pm2-white); }
+  .pm2-btn--primary:active { background: var(--pm2-green-pressed); }
+  .pm2-btn--secondary { background: var(--pm2-surface); color: var(--pm2-green-deep); border-color: var(--pm2-line); }
+  .pm2-progress { overflow: hidden; block-size: 8px; border-radius: var(--pm2-r-pill); background: var(--pm2-track); }
+  .pm2-progress > span { display: block; block-size: 100%; inline-size: var(--pm2-progress, 0%); border-radius: inherit; background: linear-gradient(90deg, var(--pm2-green), var(--pm2-green-grad)); }
+  .pm2-portrait { inline-size: 54px; block-size: 54px; border-radius: 16px; object-fit: cover; background: var(--pm2-surface-alt); }
+  .pm2-portrait--round { border-radius: 50%; }
+  .pm2-people { display: flex; gap: 12px; overflow-x: auto; scrollbar-width: none; padding: 2px 1px 6px; }
+  .pm2-people::-webkit-scrollbar { display: none; }
+  .pm2-person { flex: 0 0 74px; text-align: center; border: 0; background: none; cursor: pointer; color: var(--pm2-ink); font: 800 var(--pm2-fs-tab) / var(--pm2-lh-tab) var(--font-sans); }
+  .pm2-person img { inline-size: 60px; block-size: 60px; border-radius: var(--pm2-r-md); object-fit: cover; border: 1px solid var(--pm2-line); background: var(--pm2-surface); }
+  .pm2-settings-group { overflow: hidden; border: 1px solid var(--pm2-line); border-radius: var(--pm2-r-md); background: var(--pm2-surface); box-shadow: var(--pm2-shadow-card); }
+  .pm2-settings-group .pm2-row { border: 0; border-radius: 0; box-shadow: none; }
+  .pm2-settings-group .pm2-row + .pm2-row { margin: 0; border-block-start: 1px solid var(--pm2-line); }
+  .pm2-empty { display: grid; justify-items: center; text-align: center; gap: 10px; padding: 28px 18px; border: 1px dashed var(--pm2-line); border-radius: var(--pm2-r-md); background: var(--pm2-surface); color: var(--pm2-muted); }
+  @media (max-width: 370px) { .pm2-tab { font-size: var(--pm2-fs-tab-sm); } }
+  [dir="rtl"] .pm2-row-end { transform: scaleX(-1); }
+  [dir="rtl"] .pm2-people { direction: rtl; }
+  body.in-call .pm2-bottomnav { display: none; }
   /* ===== Wave 1B premium shell: token remap outside the frozen call ===== */
   body:not(.in-call) {
     --bg: var(--pm-bg); --card: var(--pm-surface);
@@ -1948,13 +2025,13 @@
   </div>
 </aside>
 
-<nav class="bottomnav" id="bottomnav" aria-label="Primary">
-  <div class="bottomnav-in">
-    <button id="nbHome" data-tab="home"></button>
-    <button id="nbPractice" data-tab="practice"></button>
-    <button id="nbTalk" data-tab="talk" class="nb-talk"></button>
-    <button id="nbStore" data-tab="store"></button>
-    <button id="nbProfile" data-tab="profile"></button>
+<nav class="pm2-bottomnav" id="bottomnav" aria-label="Primary">
+  <div class="pm2-bottomnav-inner">
+    <button id="nbHome" class="pm2-tab" data-tab="home" type="button"></button>
+    <button id="nbPractice" class="pm2-tab" data-tab="practice" type="button"></button>
+    <button id="nbTalk" class="pm2-tab" data-tab="talk" type="button"></button>
+    <button id="nbStore" class="pm2-tab" data-tab="store" type="button"></button>
+    <button id="nbProfile" class="pm2-tab" data-tab="profile" type="button"></button>
   </div>
 </nav>
 
@@ -4685,7 +4762,7 @@ function renderNav() {
    ["nbTalk", IC.chat(ICON.xl), L.tabTalk], ["nbStore", IC.bag(ICON.xl), L.tabStore],
    ["nbProfile", IC.person(ICON.xl), L.tabProfile]]
     .forEach(([id, icon, label]) => {
-      $(id).innerHTML = `<span class="nb-ic" aria-hidden="true">${icon}</span><span class="nb-lbl">${esc(label)}</span>`;
+      $(id).innerHTML = `<span class="pm2-tab-ic" aria-hidden="true">${icon}</span><span class="pm2-tab-lbl">${esc(label)}</span>`;
     });
 }
 /* MARZI-002 shell routing: each tab owns a hash, so the Android back button
@@ -6131,6 +6208,108 @@ function renderTranscript() {
   $("log").scrollTop = $("log").scrollHeight;
 }
 
+/* ============== MARZI UI PRODUCTION V2 — SHELL CORE (layer 1) ==============
+   Adapted from reference-code/js/00-shell-core.js. Pure helpers over the
+   EXISTING routing - show()/showTab()/hash/call history stay authoritative. */
+const PM2_TAB_HASH = Object.freeze({ home:"#home", practice:"#practice", talk:"#talk", store:"#store", profile:"#profile" });
+const PM2_TAB_ALIAS = Object.freeze({ learn:"home" });
+const PM2_TAB_OF = Object.freeze({ learn:"home", progress:"home", test:"home",
+  practice:"practice", prep:"practice", dialog:"practice", vocab:"practice", drill:"practice", mistakes:"practice",
+  talkroot:"talk", setup:"talk", call:"talk", done:"talk", store:"store", profile:"profile" });
+function pm2NormalizeTab(raw) {
+  const key = String(raw || "").replace(/^#/, "").trim().toLowerCase();
+  return PM2_TAB_ALIAS[key] || (Object.hasOwn(PM2_TAB_HASH, key) ? key : null);
+}
+function pm2SyncSelectedTab(tab) {
+  document.querySelectorAll("#bottomnav [data-tab]").forEach((btn) => {
+    if (btn.dataset.tab === tab) btn.setAttribute("aria-current", "page");
+    else btn.removeAttribute("aria-current");
+  });
+}
+function pm2AfterShow(screenId) {
+  const owner = PM2_TAB_OF[screenId];
+  if (owner) pm2SyncSelectedTab(owner);
+  const immersive = screenId === "call" || screenId === "onboard";
+  if (document.body.classList) document.body.classList.toggle("pm2", !immersive);
+}
+function pm2WireBottomNav(showTabFn) {
+  const nav = document.getElementById("bottomnav");
+  if (!nav) throw new Error("premium nav: #bottomnav missing");
+  nav.querySelectorAll("[data-tab]").forEach((btn) => btn.onclick = () => showTabFn(btn.dataset.tab));
+}
+window.MARZI_PM2 = Object.freeze({ TAB_HASH: PM2_TAB_HASH, TAB_ALIAS: PM2_TAB_ALIAS, TAB_OF: PM2_TAB_OF,
+  normalizeTab: pm2NormalizeTab, syncSelectedTab: pm2SyncSelectedTab, afterShow: pm2AfterShow, wireBottomNav: pm2WireBottomNav });
+
+/* ============== V2 COMPONENTS (layer 4 helpers) ==============
+   Adapted from reference-code/js/01-components.js. Renderers-to-come consume
+   ONLY UI models + action maps through these. */
+function pm2El(tag, cls, text) { const el = document.createElement(tag); if (cls) el.className = cls; if (text != null) el.textContent = text; return el; }
+function pm2Button(label, action, variant = "primary") { const b = pm2El("button", `pm2-btn pm2-btn--${variant}`, label); b.type = "button"; b.onclick = action; return b; }
+function pm2Section(label) { const s = pm2El("section", "pm2-section"); s.append(pm2El("h2", "pm2-section-title", label)); return s; }
+function pm2Row({ icon = "", title, meta = "", end = "\u203a", onClick }) {
+  const b = pm2El("button", "pm2-row"); b.type = "button";
+  const ic = pm2El("span", "pm2-row-icon"); ic.setAttribute("aria-hidden", "true");
+  if (typeof icon === "string" && icon.startsWith("<")) ic.innerHTML = icon; else ic.textContent = icon;
+  const copy = pm2El("span", "pm2-row-copy");
+  copy.append(pm2El("span", "pm2-row-title", title));
+  if (meta) copy.append(pm2El("span", "pm2-row-meta", meta));
+  const tail = pm2El("span", "pm2-row-end", end); tail.setAttribute("aria-hidden", "true");
+  b.append(ic, copy, tail); b.onclick = onClick; return b;
+}
+function pm2Progress(current, max) {
+  const o = pm2El("div", "pm2-progress"); const i = pm2El("span", "");
+  const pct = max > 0 ? Math.max(0, Math.min(100, current / max * 100)) : 0;
+  i.style.setProperty("--pm2-progress", `${pct}%`); o.append(i);
+  o.setAttribute("role", "progressbar"); o.setAttribute("aria-valuemin", "0");
+  o.setAttribute("aria-valuemax", String(max || 0)); o.setAttribute("aria-valuenow", String(current || 0));
+  return o;
+}
+
+/* ============== V2 MODEL GUARDS (layer 3) ============== */
+function pm2Require(v, name) { if (v === undefined || v === null || v === "") throw new Error(`premium UI model missing: ${name}`); return v; }
+function pm2SafeArray(v) { return Array.isArray(v) ? v : []; }
+function pm2ValidateHomeModel(m) { pm2Require(m && m.greeting, "home.greeting"); pm2Require(m && m.recommendation && m.recommendation.title, "home.recommendation.title"); return m; }
+function pm2ValidatePracticeModel(m) { return Object.assign({}, m, { groups: pm2SafeArray(m && m.groups) }); }
+function pm2ValidateTalkModel(m) { return Object.assign({}, m, { people: pm2SafeArray(m && m.people), recommended: pm2SafeArray(m && m.recommended) }); }
+
+/* ============== V2 ACTION ADAPTERS (layer 2) ==============
+   Adapted from reference-code/js/03-action-adapters.js: premium UI actions
+   ONLY delegate to existing authoritative handlers - never re-implemented. */
+function pm2Existing(name) {
+  const fn = ({ startPrep, startDialog, startVocab, startDrill, renderMistakes, show, openDrawer, openPlanScreen })[name];
+  if (typeof fn !== "function") throw new Error(`missing existing handler: ${name}`);
+  return fn;
+}
+const PM2_ACTIONS = {
+  practice: {
+    prep: () => pm2Existing("startPrep")(),
+    dialog: () => pm2Existing("startDialog")(),
+    vocab: () => pm2Existing("startVocab")(),
+    drill: () => pm2Existing("startDrill")(),
+    mistakes: () => { pm2Existing("renderMistakes")(); pm2Existing("show")("mistakes"); },
+  },
+  talk: { allSituations: () => pm2Existing("openDrawer")() },
+  plan: () => pm2Existing("openPlanScreen")(),
+};
+window.MARZI_PM2_ACTIONS = PM2_ACTIONS;
+
+/* ============== V2 PRODUCTION-ART RESOLVER (layer 5) ==============
+   Adapted from reference-code/js/04-art-resolver.js: approved Gold contacts
+   resolve to CALL_ART production frames; others use the existing generated
+   portrait endpoint. Emoji is never a premium substitute for Gold art. */
+function pm2ContactArt(contactId, state) {
+  const st = state || "idle";
+  const art = typeof CALL_ART !== "undefined" && CALL_ART[contactId];
+  if (art && art.dir) {
+    const mapped = (art.states && (art.states[st] || art.states.ready)) || st;
+    return `${art.dir}${mapped}${art.ext || ".webp"}`;
+  }
+  const pin = encodeURIComponent(localStorage.getItem(PIN_KEY) || "");
+  return `/api/avatar/${encodeURIComponent(contactId)}?v=3&pin=${pin}`;
+}
+function pm2IsGoldContact(id) { return ["arzt", "apotheke", "werkstatt"].includes(id); }
+window.MARZI_PM2_ART = Object.freeze({ contact: pm2ContactArt, isGold: pm2IsGoldContact });
+
 /* which bottom-nav tab each screen belongs to (sub-screens highlight their home tab) */
 const TAB_OF = { learn:"home", test:"home",
   practice:"practice", dialog:"practice", mistakes:"practice", drill:"practice", vocab:"practice", prep:"practice",
@@ -6146,6 +6325,7 @@ function show(which) {
   const active = TAB_OF[which] || "";
   [["nbHome","home"],["nbPractice","practice"],["nbTalk","talk"],["nbStore","store"],["nbProfile","profile"]]
     .forEach(([id, tb]) => $(id).classList.toggle("on", tb === active));
+  pm2AfterShow(which); // V2 shell helper: aria-current + body.pm2 (call/onboard stay chromeless)
 }
 
 /* ---------- MARZI-008: reward rendering, animation, celebration ----------
@@ -7372,7 +7552,7 @@ $("obStartBtn").onclick = () => {
 };
 
 /* bottom navigation + top-bar resources */
-$("bottomnav").querySelectorAll("[data-tab]").forEach((b) => b.onclick = () => showTab(b.dataset.tab));
+pm2WireBottomNav(showTab); // V2 shell: single wiring point for the five tabs
 $("tbMins").onclick = () => openPlanScreen();
 $("tbBrand").innerHTML = marziArt(currentMarziStage(), "happy");
 window.addEventListener("hashchange", () => {

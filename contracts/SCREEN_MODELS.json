@@ -1,0 +1,54 @@
+{
+  "HomeModel": {
+    "greeting": "string",
+    "greetingSub": "string|null",
+    "marziArtUrl": "string|null",
+    "recommendation": {
+      "characterId": "string|null",
+      "title": "string",
+      "subtitle": "string",
+      "artUrl": "string|null",
+      "actionId": "string"
+    },
+    "journey": {
+      "label": "string",
+      "xpCurrent": "number",
+      "xpNext": "number",
+      "stageLabel": "string|null"
+    },
+    "focus": {
+      "title": "string",
+      "subtitle": "string|null",
+      "actionId": "string|null"
+    },
+    "recent": "object|null"
+  },
+  "PracticeModel": {
+    "title": "string",
+    "subtitle": "string|null",
+    "continueItem": "object|null",
+    "groups": "array"
+  },
+  "TalkModel": {
+    "title": "string",
+    "subtitle": "string|null",
+    "continueItem": "object|null",
+    "people": "array",
+    "recommended": "array",
+    "allSituationsActionId": "string"
+  },
+  "StoreModel": {
+    "marziArtUrl": "string|null",
+    "coins": "number",
+    "featured": "object|null",
+    "categories": "array",
+    "ownedCount": "number|null"
+  },
+  "ProfileModel": {
+    "displayName": "string",
+    "level": "string|null",
+    "xpCurrent": "number|null",
+    "xpNext": "number|null",
+    "groups": "array"
+  }
+}

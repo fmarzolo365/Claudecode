@@ -1,50 +1,134 @@
 {
+  "MASTER_SEQUENCE.md": {
+    "bytes": 333,
+    "sha256": "5b72a21acf67d65f96ca638a55709e0306febcb4863e172cc1ec5b9458238f9f"
+  },
   "README_FIRST.md": {
-    "bytes": 499,
-    "sha256": "1819bb5d7d291adf89e3ccfc3c77b46b840f681fbd50a1cb695d0db82315178e"
+    "bytes": 264,
+    "sha256": "54142b7554e5bb49898685cc55d83cb2d3443a175fc3b0d1c9043851a0643b76"
   },
-  "contracts/design-tokens.json": {
-    "bytes": 1447,
-    "sha256": "4ab372a40113894f15d695ad85c6926a67b54c2ff16fc1433d44392c0bd6a05f"
+  "contracts/ASSET_POLICY.json": {
+    "bytes": 597,
+    "sha256": "343a8d223c9167e76919443e17ee52c193773021d80ee5ae7955a3d0ba890fe2"
   },
-  "contracts/navigation-contract.json": {
-    "bytes": 735,
-    "sha256": "4c9974fe99757393bd2566cab48e3f5e1068fd4c9239386dd34b01ffe5e86e3c"
+  "contracts/DESIGN_TOKENS.json": {
+    "bytes": 1719,
+    "sha256": "96ef95b2b7b4d0c8b68b7aecb6bb7f2404c8f7d97c063cefde9fe4d9347c0ca6"
   },
-  "contracts/screen-contracts.json": {
-    "bytes": 1817,
-    "sha256": "d0b56d4e2f66396cf5834bd3f791523e90de972bfe225ca069f072cb9cd1f6d7"
+  "contracts/NAVIGATION_CONTRACT.json": {
+    "bytes": 741,
+    "sha256": "4119bf2c56ab7a8f5bef748c5f71260e06647ba86260692818d75bcbe11d78dd"
   },
-  "docs/ART_DIRECTION.md": {
-    "bytes": 1123,
-    "sha256": "729ea652ca8d12f5348228fa5155132d867e82f66ee595376856f084f03d2a2f"
+  "contracts/SCREEN_MODELS.json": {
+    "bytes": 1246,
+    "sha256": "f02159900e497d3a57455b262ebfd35ab5ebb1b3e3cffd81ba7496cec2788f05"
   },
-  "docs/COMPONENT_CONTRACT.md": {
-    "bytes": 630,
-    "sha256": "eb850f3372424b08a7980beeca504f6bc030b00ffb3d90f25d715add6975adf1"
+  "docs/ART_ASSET_POLICY.md": {
+    "bytes": 681,
+    "sha256": "7bf2fee01dd363a589582d8c99bfc17e09bcce972c11ee7a915f6b4bfa0d9335"
   },
-  "docs/MECHANICS_TO_PRESERVE.md": {
-    "bytes": 667,
-    "sha256": "f293a38bd7ec941b7e93b3f5c9d0f87174b7490d0febf0607015bea8ef111039"
+  "docs/SCREEN_BY_SCREEN_RULES.md": {
+    "bytes": 1078,
+    "sha256": "13118bdb1f1046cf62e4ba41cffd39a44c8c0d121fee27b0c147e80bf52f026c"
   },
-  "docs/SCOPE_AND_ACCEPTANCE.md": {
-    "bytes": 1369,
-    "sha256": "5c221ecf785422a59ba3f550755515abafa0c0a9309b2e6c0174945834ea7eb5"
+  "docs/TECHNICAL_IMPLEMENTATION_PROTOCOL.md": {
+    "bytes": 1044,
+    "sha256": "f9e23c471103a75774ef281b8f100b21b39c1f088dd6100973124e69e966c37a"
   },
-  "prompts/WAVE_1B_IMPLEMENTATION.md": {
-    "bytes": 4696,
-    "sha256": "4601f22164bfb4d792870366ab9ec28617acf45a4116af1b05671a369a9a5498"
+  "prompts/00_TECHNICAL_PHASE_0.md": {
+    "bytes": 981,
+    "sha256": "45a3ed28b3d2ff14ea0b05b2c82c65b1ab5fa880da425a22b51d6095afe7267b"
   },
-  "reference/MARZI_PREMIUM_SHELL_COMPONENT_SYSTEM.png": {
-    "bytes": 1842967,
-    "sha256": "0123244e7ab55ecafe0f4f3e7b169857fa68ba3dd48d73cf51e862e981e5a896"
+  "prompts/01_HOME_TECHNICAL.md": {
+    "bytes": 416,
+    "sha256": "17c601a1a731b879fbaa261977124cf66d37d3becb8256e35c1afe420a183093"
   },
-  "reference/MARZI_PREMIUM_SHELL_MASTER_BOARD.png": {
-    "bytes": 1794787,
-    "sha256": "61556afcf132dd6b7b2e2ab01db07876a0fe83c13cde14d396f4ba5b989eff7d"
+  "prompts/02_PRACTICE_TECHNICAL.md": {
+    "bytes": 474,
+    "sha256": "73d9aac82f8c0bdb627d95a8d58ec0e2f41c0e12bd664ef21559ce862ecb9548"
   },
-  "templates/PRODUCT_OWNER_REVIEW.md": {
-    "bytes": 552,
-    "sha256": "3e86a95ecbfd4eb9900d4c81fe056aea3dbc49d7b2667c113e2e8414ca33bdec"
+  "prompts/03_TALK_TECHNICAL.md": {
+    "bytes": 530,
+    "sha256": "09b9511c1fb9d97b8933ba5f0f13b29d1eac9597f1ddfbafa11a5c18f74aed13"
+  },
+  "prompts/04_STORE_TECHNICAL.md": {
+    "bytes": 448,
+    "sha256": "6efac8a4b9c59c9d5f444b8e680dbd5c83706c53ae824ed2abdb4bd36db1c4e5"
+  },
+  "prompts/05_PROFILE_TECHNICAL.md": {
+    "bytes": 410,
+    "sha256": "c8aad2326345c6a021e60b883bd0ae92c5e54bb1b74b829e5c9e4a2c9d4141f2"
+  },
+  "prompts/06_FREEZE.md": {
+    "bytes": 368,
+    "sha256": "b5c6a004f56a13b6e3a380dd80bdf9d8addb78d82c49c5d08d2871b79b844639"
+  },
+  "reference/boards/MASTER_PRODUCTION_BOARD.png": {
+    "bytes": 1817031,
+    "sha256": "a87df40c191ea0d57dd7dd52ef0fae88a78c50fe825f8876dc9cdf8c7e911e2e"
+  },
+  "reference/boards/SHELL_SYSTEM_BOARD.png": {
+    "bytes": 1794220,
+    "sha256": "0789618d286c6d71ceb1ed2782c9ed4d0bf08b1c9cbe4633c09070c733012f83"
+  },
+  "reference/screens/HOME_390x844.png": {
+    "bytes": 136961,
+    "sha256": "d9fd0efa8e27f20320b27e46ba3e936339ceb3bb59ec99d3f6f7d6fcf7514928"
+  },
+  "reference/screens/PRACTICE_390x844.png": {
+    "bytes": 122809,
+    "sha256": "b55c699e864721230c6d74fcbf69b319493c899ad5d7f7e93db6a1750a0bd74c"
+  },
+  "reference/screens/PROFILE_390x844.png": {
+    "bytes": 128063,
+    "sha256": "ec1869e17150910ebef74a7addb882e0648afc5268a7d617185c7c2d9afeb078"
+  },
+  "reference/screens/STORE_390x844.png": {
+    "bytes": 169947,
+    "sha256": "7c7c304626f18b89c4718dbd095014c451df98fa0c4ca018f9e1619b5c317eb6"
+  },
+  "reference/screens/TALK_390x844.png": {
+    "bytes": 147586,
+    "sha256": "8a1d74786ed6ed202ae3e07d3b79fef056e5c2ff8e60d2924bf13b710764c0a4"
+  },
+  "reference-code/css/premium-shell-v2.css": {
+    "bytes": 7779,
+    "sha256": "beb3e7bc8c401f1af0cb7502899f315a9a760ebafb84c926b62793d67a5a3bba"
+  },
+  "reference-code/js/00-shell-core.js": {
+    "bytes": 1717,
+    "sha256": "ddca5a942b63abd67af22053f051c9dc9f63c739ddada63c9b9e3c47700aa482"
+  },
+  "reference-code/js/01-components.js": {
+    "bytes": 1277,
+    "sha256": "1b5dc77432a2c27468e4cd1c771ec6ad55ac149021b4af9e14bef467a565e625"
+  },
+  "reference-code/js/02-model-guards.js": {
+    "bytes": 532,
+    "sha256": "d9d3b75b3f4d999973c8ccde2f0d01f1c71818b78160fc9e9c1f5fa2190859e3"
+  },
+  "reference-code/js/03-action-adapters.js": {
+    "bytes": 534,
+    "sha256": "bd3b05fdce8112ae314008978bbd75abea9744420b729b3e275f60e487a25fac"
+  },
+  "reference-code/js/04-art-resolver.js": {
+    "bytes": 466,
+    "sha256": "c368a4ac26f49f6e84d27580f6fda08d7aac427c0e9041a98f2d30c53a596cd0"
+  },
+  "reference-code/js/05-root-renderers.js": {
+    "bytes": 5579,
+    "sha256": "b9e565456b609af8258000e40e937472576926239999ed7387fb3e216a2e253a"
+  },
+  "reference-code/js/06-model-adapters-TODO.js": {
+    "bytes": 632,
+    "sha256": "a532a35029adebeae9c56436a04b55c2940ecc93aa6adc0028055a1ca5b11e8d"
+  },
+  "reference-code/tests/premium-shell-contract-snippet.js": {
+    "bytes": 512,
+    "sha256": "499d0270bb9556a93a9aabfeeca3873c0001dbcbd1f63fbf1875d5d5dd22052a"
+  },
+  "tools/validate_static_shell.py": {
+    "bytes": 762,
+    "sha256": "adc27f11a4abc2c4404dacc2ae0ee3dc87edca9e9a861835ad0da13984e6f66c"
   }
 }

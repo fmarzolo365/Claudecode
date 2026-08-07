@@ -1,0 +1,22 @@
+{
+  "goldCharacters": {
+    "arzt": {
+      "productionRequired": true,
+      "fallbackEmojiForbidden": true
+    },
+    "apotheke": {
+      "productionRequired": true,
+      "fallbackEmojiForbidden": true
+    },
+    "werkstatt": {
+      "productionRequired": true,
+      "fallbackEmojiForbidden": true
+    }
+  },
+  "marzi": {
+    "policy": "Use best existing canonical raster/production art. Do not invent SVG or emoji art. Do not upscale visibly soft assets."
+  },
+  "store": {
+    "missingArtPolicy": "Designed missing-art/locked state; never repeated generic shirt icons as premium hero."
+  }
+}

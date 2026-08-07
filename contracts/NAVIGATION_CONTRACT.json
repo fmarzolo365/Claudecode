@@ -1,0 +1,40 @@
+{
+  "tabs": [
+    "home",
+    "practice",
+    "talk",
+    "store",
+    "profile"
+  ],
+  "alias": {
+    "learn": "home"
+  },
+  "screenOwner": {
+    "learn": "home",
+    "progress": "home",
+    "test": "home",
+    "practice": "practice",
+    "prep": "practice",
+    "dialog": "practice",
+    "vocab": "practice",
+    "drill": "practice",
+    "mistakes": "practice",
+    "setup": "talk",
+    "call": "talk",
+    "done": "talk",
+    "store": "store",
+    "profile": "profile"
+  },
+  "immersive": [
+    "call",
+    "onboard"
+  ],
+  "rules": {
+    "noHamburgerGlobal": true,
+    "noGlobalGear": true,
+    "bottomNavHiddenInImmersive": true,
+    "hashHistoryPreserved": true,
+    "storageKeysUnchanged": true,
+    "androidBackPreserved": true
+  }
+}
