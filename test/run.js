@@ -82,7 +82,7 @@ function mkEl() {
     setAttribute() {}, getAttribute() { return null; },
     disabled: false, className: "", onclick: null, oninput: null, onkeydown: null,
     querySelector() { return null; }, querySelectorAll: () => [],
-    appendChild() {}, focus() {}, removeAttribute() {}, scrollTop: 0, scrollHeight: 0,
+    appendChild() {}, focus() {}, click() {}, removeAttribute() {}, scrollTop: 0, scrollHeight: 0,
   };
 }
 globalThis.document = {
@@ -122,7 +122,8 @@ let src = m[1];
 src += `\n;globalThis.__t = { T, TARGET, TARGETS, LEVELS, LEVEL_ORDER, SCENARIOS, GROUPS, BASIC_DECKS, HELP_LANG,
   saidWord, normDe, lev, rankFor, recordCall, addXp, loadStats, loadFixes, saveFixes,
   voiceOf, timerText, systemPrompt, S, chartSVG, loadTests, saveTestResult, daysSinceTest, loadStoredList,
-  renderDrill, renderVocab,
+  renderDrill, renderVocab, stopRecognition, applyStatsMutation, backupValueValid,
+  isFixRecord, isWordRecord, isTestRecord, exportAnki,
   __setDrillState: (v) => { D = v; }, __setVocabState: (v) => { V = v; }, // harness-only scoped-fixture setters
   marziNames, marziDescs, MARZI_STAGE_COUNT, marziStageForXp, currentMarziStage, renderCallCompanion, addCoins, COIN_PACKS, buyPack, planLimitToday, planUsedToday, PLAN_SECONDS,
   normalizeStats, claimReward, newRewardId, migratedName, migrateStorageKeys, micStatusFor, MARZI_KEY,
@@ -666,15 +667,16 @@ check("HARDENING-01 backup: both key families, all-or-nothing restore", () => {
 
   // a mid-apply storage failure rolls back every key it wrote: no partial
   // mixed state between old and new backup contents
-  localStorage.setItem("marzi.stats.v1", "ORIGINAL-STATS");
-  localStorage.setItem("marzi.settings.v1", "ORIGINAL-SET");
+  localStorage.setItem("marzi.stats.v1", JSON.stringify({ xp: 1, note: "ORIGINAL-STATS" }));
+  localStorage.setItem("marzi.settings.v1", JSON.stringify({ lang: "es", note: "ORIGINAL-SET" }));
+  const NEW_STATS = JSON.stringify({ xp: 2 }), NEW_SET = JSON.stringify({ lang: "en" });
   const realSet = localStorage.setItem;
-  localStorage.setItem = (k, v) => { if (v === "NEW-SET") throw new Error("quota"); return realSet(k, v); };
-  const r2 = tt.applyBackup({ "marzi.stats.v1": "NEW-STATS", "marzi.settings.v1": "NEW-SET" });
+  localStorage.setItem = (k, v) => { if (v === NEW_SET) throw new Error("quota"); return realSet(k, v); };
+  const r2 = tt.applyBackup({ "marzi.stats.v1": NEW_STATS, "marzi.settings.v1": NEW_SET });
   localStorage.setItem = realSet;
   if (r2.ok || r2.code !== "save-failed") throw new Error("mid-apply failure not reported: " + JSON.stringify(r2));
-  if (localStorage.getItem("marzi.stats.v1") !== "ORIGINAL-STATS" ||
-      localStorage.getItem("marzi.settings.v1") !== "ORIGINAL-SET")
+  if (!(localStorage.getItem("marzi.stats.v1") || "").includes("ORIGINAL-STATS") ||
+      !(localStorage.getItem("marzi.settings.v1") || "").includes("ORIGINAL-SET"))
     throw new Error("partial restore left mixed state");
   ["marzi.stats.v1", "marzi.settings.v1", "telefontrainer.words", "telefontrainer.fixes"]
     .forEach((k) => localStorage.removeItem(k));
@@ -692,7 +694,7 @@ check("HARDENING-02 storage: malformed learning lists degrade, never crash", () 
     if (!Array.isArray(got) || got.length !== 0) throw new Error(`${k}=${v} not degraded to []`);
   }
   // malformed ENTRIES inside a valid array are dropped, valid ones survive
-  localStorage.setItem("telefontrainer.fixes", JSON.stringify([null, 5, "x", [], { text: "a", corrected: "A" }]));
+  localStorage.setItem("telefontrainer.fixes", JSON.stringify([null, 5, "x", [], {}, { text: "half" }, { text: "a", fix: "b", corrected: "A" }]));
   const fx = tt.loadFixes();
   if (fx.length !== 1 || fx[0].text !== "a") throw new Error("valid entry lost or junk kept: " + JSON.stringify(fx));
   if (tt.reviewedMistakeCount() !== 0) throw new Error("consumer crashed on cleaned list");
@@ -760,6 +762,259 @@ check("HARDENING-02 backup: semantic round-trip restores user value", () => {
   const set = JSON.parse(localStorage.getItem("marzi.settings.v1"));
   if (set.lang !== "ar" || set.speed !== "fast" || set.sound !== false) throw new Error("settings not restored");
   Object.keys(stateA).forEach((k) => localStorage.removeItem(k));
+});
+
+checkAsync("AUDIT-01 ASR lifecycle: endCall clears mic, races cannot cross calls", async () => {
+  const sc = tt.SCENARIOS.find((s) => s.goals);
+  const mk = () => tt.createConversationSession({ scenario: sc, level: "A1", lang: "en", goal: sc.goals[0], providers: tt.ENGINE }).start();
+  const keepSpeech = tt.ENGINE.get("speech");
+  const keepVoice = tt.ENGINE.get("voice");
+  const keepGUM = navigator.mediaDevices.getUserMedia;
+  let starts = 0, cbs = null;
+  tt.ENGINE.register("speech", { start: (o) => { starts++; cbs = o; return { stop() {}, abort() {} }; }, stop() {} });
+  tt.ENGINE.register("voice", { speak: async () => {}, stopAll() {} });
+  tt.S.lang = "en"; tt.S.active = sc; tt.S.turns = []; tt.S.handsFree = false;
+  tt.S.busy = false; tt.S.callError = false; tt.S.seconds = 0; tt.S.callId = "test-aud01";
+  localStorage.setItem("marzi.stats.v1", JSON.stringify({ xp: 0, coins: 0, days: {} }));
+
+  // 1. active recognition -> endCall -> listening false, recognizer cleared
+  navigator.mediaDevices.getUserMedia = async () => ({ getTracks: () => [] });
+  const sesA1 = mk(); tt.S.session = sesA1;
+  await tt.listen();
+  if (tt.S.listening !== true || starts !== 1) throw new Error("recognition did not start: " + starts);
+  tt.endCall();
+  if (tt.S.listening !== false) throw new Error("endCall left listening=true");
+  if (tt.S.rec !== null) throw new Error("endCall left a live recognizer reference");
+
+  // 2. permission race: A's pending getUserMedia resolves after B owns the
+  // call -> recognition must NOT start and B must stay untouched
+  starts = 0; cbs = null;
+  let grantPermission;
+  navigator.mediaDevices.getUserMedia = () => new Promise((r) => { grantPermission = r; });
+  const sesA2 = mk(); tt.S.session = sesA2; tt.S.turns = [];
+  const pending = tt.listen();          // call A: permission dialog open
+  sesA2.end();
+  const sesB = mk(); tt.S.session = sesB; // call B takes over
+  grantPermission({ getTracks: () => [] });
+  await pending;
+  if (starts !== 0) throw new Error("stale permission grant started recognition inside call B");
+  if (tt.S.listening !== false) throw new Error("stale grant set listening for call B");
+  if (tt.S.callError) throw new Error("stale permission path touched call B's error state");
+
+  // 2b. permission DENIAL for a dead call must also stay silent
+  let denyPermission;
+  navigator.mediaDevices.getUserMedia = () => new Promise((_, rej) => { denyPermission = rej; });
+  const p2 = tt.listen(); // now listening for B... but end it mid-permission
+  sesB.end();
+  const sesB2 = mk(); tt.S.session = sesB2;
+  denyPermission(new Error("denied"));
+  await p2;
+  if (tt.S.callError) throw new Error("stale permission denial raised an error into the newer call");
+
+  // 3. old recognition callbacks cannot mutate the newer call
+  starts = 0; cbs = null;
+  navigator.mediaDevices.getUserMedia = async () => ({ getTracks: () => [] });
+  await tt.listen(); // legitimate listen on sesB2
+  if (starts !== 1 || !cbs) throw new Error("baseline listen failed");
+  const oldCbs = cbs;
+  sesB2.end();
+  const sesC = mk(); tt.S.session = sesC;
+  tt.S.listening = false; // C has no active mic
+  oldCbs.onResult("Hallo aus der Vergangenheit");
+  oldCbs.onError("no-speech");
+  oldCbs.onEnd();
+  if (sesC.transcript.list().length !== 0 || tt.S.turns.length !== 0) throw new Error("stale onResult reached call C's transcript");
+  if (tt.S.callError) throw new Error("stale onError set call C's error banner");
+  tt.stopRecognition();
+  sesC.end(); tt.S.session = null; tt.S.turns = [];
+  navigator.mediaDevices.getUserMedia = keepGUM;
+  tt.ENGINE.register("speech", keepSpeech);
+  tt.ENGINE.register("voice", keepVoice);
+  localStorage.removeItem("marzi.stats.v1");
+});
+
+check("AUDIT-02 backup schema: malformed known-key payloads never touch storage", () => {
+  const dump = () => {
+    const keys = []; for (let i = 0; i < localStorage.length; i++) keys.push(localStorage.key(i));
+    return JSON.stringify(keys.sort().map((k) => [k, localStorage.getItem(k)]));
+  };
+  localStorage.setItem("marzi.stats.v1", JSON.stringify({ xp: 777, coins: 55, days: {} }));
+  const before = dump();
+  const badCandidates = [
+    { "marzi.stats.v1": "NOT-JSON" },
+    { "marzi.stats.v1": "[]" },
+    { "marzi.stats.v1": "\"str\"" },
+    { "marzi.stats.v1": "null" },
+    { "marzi.settings.v1": "[]" },
+    { "marzi.settings.v1": "42" },
+    { "telefontrainer.fixes": "{}" },
+    { "telefontrainer.words": "not json" },
+    { "marzi.stage.v1": "abc" },
+    { "marzi.reward-ledger.v1": "[1,2]" },
+    { "telefontrainer.vocab.v2.kita.es.A1": "{}" },
+  ];
+  for (const cand of badCandidates) {
+    const res = tt.applyBackup(cand);
+    if (res.ok) throw new Error("malformed candidate accepted: " + JSON.stringify(cand));
+  }
+  if (dump() !== before) throw new Error("a rejected candidate mutated storage");
+  if (tt.loadStats().xp !== 777 || tt.loadStats().coins !== 55) throw new Error("existing stats not byte-preserved");
+  // valid partial legacy objects stay restorable (no over-rejection)
+  if (!tt.applyBackup({ "telefontrainer.stats": JSON.stringify({ xp: 5 }) }).ok) throw new Error("valid partial legacy object rejected");
+  if (!tt.applyBackup({ "marzi.stage.v1": "4" }).ok) throw new Error("valid numeric stage rejected");
+  ["marzi.stats.v1", "telefontrainer.stats", "marzi.stage.v1"].forEach((k) => localStorage.removeItem(k));
+});
+
+check("AUDIT-03 record contracts: junk entries drop, consumers never throw", () => {
+  tt.S.lang = "en";
+  localStorage.setItem("telefontrainer.fixes", JSON.stringify([{}, { text: 5 }, { text: "ok" }, { text: "Ich möchte", fix: "Ich möchte gern", corrected: "x" }]));
+  const fx = tt.loadFixes();
+  if (fx.length !== 1 || fx[0].fix !== "Ich möchte gern") throw new Error("fix contract wrong: " + JSON.stringify(fx));
+  tt.exportAnki(); // crashed with "reading 'replace'" before AUD-03
+  localStorage.setItem("telefontrainer.words", JSON.stringify([{}, { de: "Haus" }, { de: "Haus", tr: "casa" }]));
+  if (tt.loadWords().length !== 1) throw new Error("word contract wrong");
+  localStorage.setItem("telefontrainer.tests", JSON.stringify([{}, { date: "2026-07-01" }, { date: "2026-07-01", score: 41, cefr: "A2" }]));
+  const tests = tt.loadTests();
+  if (tests.length !== 1) throw new Error("test contract wrong");
+  if (!tt.chartSVG(tests).includes("<svg")) throw new Error("chart consumer failed on cleaned history");
+  if (tt.daysSinceTest() === Infinity) throw new Error("test-history consumer lost the valid record");
+  ["telefontrainer.fixes", "telefontrainer.words", "telefontrainer.tests"].forEach((k) => localStorage.removeItem(k));
+});
+
+check("AUDIT-04 buyPack: a failed commit never claims or celebrates a purchase", () => {
+  tt.S.lang = "en";
+  localStorage.setItem("marzi.settings.v1", JSON.stringify({ lang: "en", scenario: "apotheke", firstRun: false }));
+  localStorage.setItem("marzi.stats.v1", JSON.stringify({ xp: 0, coins: 999, days: {} }));
+  const pack = tt.COIN_PACKS[0];
+  const realSet = localStorage.setItem;
+  localStorage.setItem = (k, v) => { if (k === "marzi.stats.v1") throw new Error("quota"); return realSet(k, v); };
+  tt.buyPack(pack.id);
+  localStorage.setItem = realSet;
+  if (tt.loadStats().coins !== 999) throw new Error("failed purchase changed the balance: " + tt.loadStats().coins);
+  const live = document.getElementById("storeLive").textContent;
+  if (live !== tt.T.en.saveFailed) throw new Error("failed purchase message: " + live);
+  tt.buyPack(pack.id); // storage recovered: the purchase now truly happens
+  if (tt.loadStats().coins !== 999 - pack.price) throw new Error("recovered purchase did not commit");
+  if (document.getElementById("storeLive").textContent !== tt.T.en.bought) throw new Error("successful purchase not announced");
+  ["marzi.settings.v1", "marzi.stats.v1"].forEach((k) => localStorage.removeItem(k));
+});
+
+check("AUDIT-05 completions: one commit, honest failure, retry pays once", () => {
+  tt.S.lang = "en";
+  localStorage.setItem("marzi.stats.v1", JSON.stringify({ xp: 100, coins: 50, days: {} }));
+  const realSet = localStorage.setItem;
+  // drill under failed persistence: no XP claimed, card shows save-failed
+  localStorage.setItem = (k, v) => { if (k === "marzi.stats.v1") throw new Error("quota"); return realSet(k, v); };
+  tt.__setDrillState({ q: [], i: 0, open: false, total: 5 });
+  tt.renderDrill();
+  localStorage.setItem = realSet;
+  if (tt.loadStats().xp !== 100) throw new Error("failed drill commit changed XP");
+  const failCard = document.getElementById("drillCard").innerHTML;
+  if (failCard.includes("+15 XP")) throw new Error("failed drill completion advertises XP");
+  if (!failCard.includes(tt.T.en.saveFailed)) throw new Error("failed drill completion not honest");
+  // storage recovers: the SAME session's re-render retries and pays exactly once
+  tt.renderDrill();
+  if (tt.loadStats().xp !== 115) throw new Error("retry did not pay: " + tt.loadStats().xp);
+  tt.renderDrill();
+  if (tt.loadStats().xp !== 115) throw new Error("retry double-paid");
+  if (!document.getElementById("drillCard").innerHTML.includes("+15 XP")) throw new Error("successful completion hides XP");
+  // vocab completion = ONE stats write carrying xp+coins+day together
+  let statWrites = 0;
+  localStorage.setItem = (k, v) => { if (k === "marzi.stats.v1") statWrites++; return realSet(k, v); };
+  tt.__setVocabState({ stage: "deck", deck: [{ de: "Haus", tr: "casa" }], i: 1, failed: false });
+  tt.renderVocab();
+  localStorage.setItem = realSet;
+  if (statWrites !== 1) throw new Error("vocab completion used " + statWrites + " stats writes, want 1");
+  const st = tt.loadStats();
+  if (st.xp !== 127 || st.coins !== 60 || !Object.values(st.vocabDays || {}).length)
+    throw new Error("vocab completion not coherent: " + st.xp + "/" + st.coins);
+  localStorage.removeItem("marzi.stats.v1");
+});
+
+check("AUDIT-06 recordCall: reward and counters are one atomic transaction", () => {
+  tt.S.lang = "en";
+  localStorage.setItem("marzi.stats.v1", JSON.stringify({ xp: 0, coins: 0, days: {} }));
+  localStorage.setItem("marzi.reward-ledger.v1", "{}");
+  const sc = tt.SCENARIOS.find((s) => s.goals);
+  tt.S.active = sc; tt.S.turns = [{ me: true, text: "Hallo" }]; tt.S.seconds = 30; tt.S.callId = null;
+  const realSet = localStorage.setItem;
+  // the ledger write (second key of the transaction) fails -> NOTHING commits
+  localStorage.setItem = (k, v) => { if (k === "marzi.reward-ledger.v1") throw new Error("quota"); return realSet(k, v); };
+  const gained1 = tt.recordCall();
+  localStorage.setItem = realSet;
+  const after1 = tt.loadStats();
+  if (gained1 !== 0) throw new Error("failed transaction reported a gain");
+  if (after1.xp !== 0 || after1.coins !== 0 || after1.calls !== 0 || after1.seconds !== 0)
+    throw new Error("partial call commit: " + JSON.stringify([after1.xp, after1.coins, after1.calls, after1.seconds]));
+  if (Object.keys(tt.loadRewardLedger()).length !== 0) throw new Error("failed transaction claimed the ledger");
+  // storage recovers: retry commits EVERYTHING together (no reward-without-counters)
+  const gained2 = tt.recordCall();
+  const after2 = tt.loadStats();
+  if (!(gained2 > 0)) throw new Error("retry did not pay");
+  if (after2.xp !== gained2 || after2.coins !== 20 || after2.calls !== 1 || after2.seconds !== 30)
+    throw new Error("retry incoherent: " + JSON.stringify([after2.xp, after2.coins, after2.calls, after2.seconds]));
+  const gained3 = tt.recordCall(); // duplicate completion still pays nothing
+  if (gained3 !== 0 || tt.loadStats().calls !== 1) throw new Error("duplicate completion double-counted");
+  tt.S.turns = []; tt.S.callId = null;
+  ["marzi.stats.v1", "marzi.reward-ledger.v1"].forEach((k) => localStorage.removeItem(k));
+});
+
+check("AUDIT-07 service worker: only full 200 responses may update the cache", async () => {
+  const swSrc = fs.readFileSync(path.join(__dirname, "..", "public", "sw.js"), "utf8");
+  const listeners = {};
+  const cacheStore = new Map();
+  const urlOf = (r) => (typeof r === "string" ? r : r.url);
+  const fakeCache = {
+    put: async (req, res) => { if (res && res.__unputtable) throw new Error("cache write failed"); cacheStore.set(urlOf(req), res); },
+    addAll: async () => {}, match: async (req) => cacheStore.get(urlOf(req)),
+  };
+  const cachesStub = { open: async () => fakeCache, keys: async () => [CACHE_NAME], delete: async () => {}, match: async (r) => fakeCache.match(r) };
+  const fetchImpl = { fn: null };
+  const swSelf = { addEventListener: (t, f) => { listeners[t] = f; }, skipWaiting: () => {}, clients: { claim: async () => {} }, location: { origin: "https://app.test" } };
+  let CACHE_NAME = "";
+  new Function("self", "caches", "location", "fetch", swSrc)(
+    swSelf, cachesStub, swSelf.location, (...a) => fetchImpl.fn(...a));
+  const dispatch = async (url, netRes) => {
+    fetchImpl.fn = async () => netRes;
+    let out;
+    listeners.fetch({ request: { url, method: "GET" }, respondWith: (p) => { out = p; } });
+    return out === undefined ? undefined : await out;
+  };
+  const res = (status, tag, extra) => ({ ok: status >= 200 && status < 300, status, tag, clone() { return this; }, ...extra });
+  // a good "/" lands in the cache
+  const good = res(200, "good-shell");
+  if ((await dispatch("https://app.test/", good)).tag !== "good-shell") throw new Error("200 not delivered");
+  await new Promise((r) => setTimeout(r, 0));
+  if (cacheStore.get("https://app.test/").tag !== "good-shell") throw new Error("200 not cached");
+  // a 404 is delivered but must NOT overwrite the good cached shell
+  if ((await dispatch("https://app.test/", res(404, "poison"))).tag !== "poison") throw new Error("404 must still be delivered");
+  await new Promise((r) => setTimeout(r, 0));
+  if (cacheStore.get("https://app.test/").tag !== "good-shell") throw new Error("404 poisoned the cache");
+  // a partial 206 must not be cached either
+  await dispatch("https://app.test/big.webm", res(206, "partial"));
+  await new Promise((r) => setTimeout(r, 0));
+  if (cacheStore.has("https://app.test/big.webm")) throw new Error("206 partial response cached");
+  // /api/ is never intercepted
+  if ((await dispatch("https://app.test/api/chat", res(200, "api"))) !== undefined) throw new Error("/api/ was intercepted");
+  // a cache-write failure must not break delivery of a valid response
+  if ((await dispatch("https://app.test/x", res(200, "fragile", { __unputtable: true }))).tag !== "fragile") throw new Error("cache-write failure broke delivery");
+  // offline: network rejects -> cached copy serves
+  fetchImpl.fn = async () => { throw new Error("offline"); };
+  let out; listeners.fetch({ request: { url: "https://app.test/", method: "GET" }, respondWith: (p) => { out = p; } });
+  if ((await out).tag !== "good-shell") throw new Error("offline fallback lost");
+});
+
+check("AUDIT-08 backup: the access PIN is never exported nor restored", () => {
+  localStorage.setItem("telefontrainer.pin", "SECRET-PIN");
+  localStorage.setItem("telefontrainer.words", JSON.stringify([{ de: "Haus", tr: "casa" }]));
+  const snap = tt.backupSnapshot();
+  if ("telefontrainer.pin" in snap) throw new Error("backup exported the access PIN");
+  if (snap["telefontrainer.words"] === undefined) throw new Error("learner data missing from snapshot");
+  // an old backup file carrying a pin must not overwrite the current one
+  const res = tt.applyBackup({ "telefontrainer.pin": "ATTACKER-PIN", "telefontrainer.words": "[]" });
+  if (!res.ok || res.keys !== 1) throw new Error("restore result: " + JSON.stringify(res));
+  if (localStorage.getItem("telefontrainer.pin") !== "SECRET-PIN") throw new Error("restore overwrote the entered PIN");
+  ["telefontrainer.pin", "telefontrainer.words"].forEach((k) => localStorage.removeItem(k));
 });
 
 check("HARDENING-01 DOM safety: AI text renders as text, never as markup", () => {
@@ -1550,7 +1805,7 @@ check("MARZI-015 profile: verified data only, wardrobe, achievements, a11y", () 
     ownedItemIds: ["explorer", "sporty"], equippedItemIds: ["sporty"],
   }));
   localStorage.setItem("telefontrainer.fixes", JSON.stringify([
-    { text: "a", corrected: "A", drilled: today }, { text: "b", corrected: "B", drilled: today }, { text: "c", corrected: "C" },
+    { text: "a", fix: "A!", corrected: "A", drilled: today }, { text: "b", fix: "B!", corrected: "B", drilled: today }, { text: "c", fix: "C!", corrected: "C" },
   ]));
   // real schema: word entries are objects (consumers read w.de / w.tr / w.raw)
   localStorage.setItem("telefontrainer.words", JSON.stringify([{ de: "Haus", tr: "casa" }, { de: "Baum", tr: "árbol" }]));

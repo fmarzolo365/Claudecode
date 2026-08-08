@@ -1,7 +1,7 @@
 // Telefontrainer service worker: fast loads + offline shell.
 // Network-first for everything same-origin except /api/ (never cached),
 // falling back to cache when offline. Bump CACHE to invalidate.
-const CACHE = "telefontrainer-v51";
+const CACHE = "telefontrainer-v52";
 const ASSETS = ["/", "/manifest.webmanifest", "/icons/icon-192.png", "/icons/icon-512.png"];
 
 self.addEventListener("install", (e) => {
@@ -22,8 +22,14 @@ self.addEventListener("fetch", (e) => {
   e.respondWith(
     fetch(e.request)
       .then((res) => {
-        const copy = res.clone();
-        caches.open(CACHE).then((c) => c.put(e.request, copy));
+        // AUD-07: only complete, successful responses may update the cache.
+        // A 404/500 or partial 206 must never overwrite a previously good
+        // cached copy (including "/"), and a cache-write failure must never
+        // break delivery of a valid network response.
+        if (res.ok && res.status === 200) {
+          const copy = res.clone();
+          caches.open(CACHE).then((c) => c.put(e.request, copy)).catch(() => {});
+        }
         return res;
       })
       .catch(() => caches.match(e.request, { ignoreSearch: true }))
