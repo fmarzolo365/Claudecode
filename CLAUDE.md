@@ -5,6 +5,10 @@ conversations with AI characters, get corrected, and drill what they got wrong.
 Live at https://telefontrainer.onrender.com (Render free tier, auto-deploys
 from `main`).
 
+Engineering standard for all implementation work:
+`.ai/agents/MARZI_PRINCIPAL_ENGINEER.md` (canonical operating contract;
+where it and the docs below both apply, the stricter rule wins).
+
 ## Architecture
 
 - `public/index.html` — the entire frontend: one file with inline CSS and JS.
