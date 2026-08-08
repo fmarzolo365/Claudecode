@@ -6,7 +6,8 @@
     "node --check .claude/hooks/subagent-stop-gate.mjs",
     "node --check .claude/validation/os-selftest.mjs",
     "node .claude/validation/os-selftest.mjs",
-    "git diff --check"
+    "git diff --check",
+    "git diff --cached --check"
   ],
   "PRODUCT_PRE_COMMIT_GATE": [
     "node --check server.js",
@@ -16,7 +17,8 @@
     "python3 tools/validate_profile_static.py public/index.html",
     "python3 tools/validate_talk_static.py public/index.html",
     "node .claude/validation/os-selftest.mjs",
-    "git diff --check"
+    "git diff --check",
+    "git diff --cached --check"
   ],
   "PRODUCT_PRE_PUSH_GATE": [
     "@PRODUCT_PRE_COMMIT_GATE",

@@ -27,15 +27,15 @@ EXTERNAL REVIEW.
 | marzi-test-red-team | adversarial red proofs, isolated worktree, explicit BASELINE_SHA | + Edit/Write | test/** only; no git writes |
 | marzi-implementer | only product editor; red-before-green mandatory | + Edit/Write | product+tests; control plane denied; commit/push gated |
 | marzi-release-auditor | diff-first independent audit | Read, Grep, Glob, Bash(ro), Skill | none |
+| marzi-os-maintainer | control-plane maintenance (explicit Product Owner launch only) | + Edit/Write | CLAUDE.md, .claude/**, OS record only |
 
-All agents: `model: opus`; no persistent memory; only the coordinator holds
-Agent delegation. Frontmatter carries only fields verified supported
-(name/description/tools/model); permissionMode-plan, per-agent effort and
-isolation-worktree frontmatter were NOT verifiable on 2.1.226 from within
-this session, so those requirements are enforced through agent-body
-contracts, coordinator delegation instructions (worktree isolation is
-requested at delegation time) and hooks
-(CLAUDE_CAPABILITY_UNVERIFIED: agent frontmatter permissionMode/effort/isolation).
+All agents: `model: opus`, native `permissionMode` (plan for architect and
+release auditor, default otherwise), native `effort: max`, native `skills`
+preloads, and native `isolation: worktree` on the red team - configured in
+frontmatter and verified by the OS self-test. No persistent memory; only
+the coordinator delegates, through a native
+`Agent(marzi-architect, marzi-test-red-team, marzi-implementer,
+marzi-release-auditor)` allowlist.
 
 ## Skills (.claude/skills/, 10)
 
@@ -70,17 +70,21 @@ during installation.
 ENFORCEMENT LIMITS (explicit): the shell policy is pattern-based
 defense-in-depth, not an OS sandbox — a determined agent could construct an
 unrecognized mutation command; primary enforcement is the harness-level
-per-agent tool allowlists, gates and independent review. Hook activation,
-workspace trust, `agent`/`autoMemoryEnabled` acceptance and agent_type
-presence in hook input on 2.1.226 CANNOT be verified from inside the
-installing session (hooks/settings load at session start; `.claude/` did
-not exist when this session began) → CLAUDE CODE RESTART REQUIRED; the
-next-session activation test (§38) is the verification point.
+per-agent tool allowlists, gates and independent review. Hook activation
+was VERIFIED LIVE during Control-Plane Audit Fixes 01 (the role policy
+denied the installing session's own probe and subsequent mutations after
+settings hot-reload). The §38 fresh-session activation test remains
+required for default-agent, auto-memory and skills-preload verification.
+UNTYPED FALLBACK STATUS: TEMPORARY - unknown agent_type still receives
+installation-path authority on the OS branch only, pending the
+marzi-os-maintainer closeout commit (safe-sequencing: hooks were live, so
+closing it in-session would have locked out the correcting session).
 
 ## Quality gates (.claude/quality-gates.json)
 
-CONTROL_PLANE_GATE: hook/self-test syntax, OS self-test (43 checks incl.
-synthetic role tests), git diff --check.
+CONTROL_PLANE_GATE: hook/self-test syntax, OS self-test (62 checks incl.
+synthetic role tests), staged+unstaged diff checks (git diff --check +
+git diff --cached --check).
 PRODUCT_PRE_COMMIT_GATE: node --check server.js; node test/run.js;
 node test/harness-selftest.js; the three static validators
 (tools/validate_{store,profile,talk}_static.py — discovered, real); OS

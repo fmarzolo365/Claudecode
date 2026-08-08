@@ -21,42 +21,65 @@ function frontmatter(file) {
   const m = src.match(/^---\n([\s\S]*?)\n---/);
   if (!m) throw new Error("no frontmatter: " + file);
   const fm = {};
+  let listKey = null;
   for (const line of m[1].split("\n")) {
-    const i = line.indexOf(":");
-    if (i > 0) fm[line.slice(0, i).trim()] = line.slice(i + 1).trim();
+    const li = line.match(/^\s+-\s+(.+)$/);
+    if (li && listKey) { fm[listKey].push(li[1].trim()); continue; }
+    const kv = line.match(/^([A-Za-z]+):\s*(.*)$/);
+    if (kv) {
+      if (kv[2] === "") { listKey = kv[1]; fm[listKey] = []; }
+      else { fm[kv[1]] = kv[2].trim(); listKey = null; }
+    }
   }
   if (!fm.name || !fm.description) throw new Error("frontmatter missing name/description: " + file);
   return fm;
 }
 
+function parseTools(raw) {
+  const out = { agents: null, tools: [] };
+  let rest = String(raw || "");
+  const am = rest.match(/Agent\(([^)]*)\)/);
+  if (am) { out.agents = am[1].split(",").map((s) => s.trim()).filter(Boolean); rest = rest.replace(am[0], ""); }
+  else if (/(^|,)\s*Agent\s*(,|$)/.test(rest)) out.agents = "UNRESTRICTED";
+  if (/Agent\([^)]*$/.test(String(raw || ""))) throw new Error("malformed Agent(...) allowlist");
+  out.tools = rest.split(",").map((s) => s.trim()).filter(Boolean);
+  return out;
+}
+
 /* ---------- agent files ---------- */
 const AGENTS = {
-  "marzi-principal-coordinator": { edit: false, agentTool: true },
-  "marzi-architect": { edit: false, agentTool: false },
-  "marzi-test-red-team": { edit: true, agentTool: false },
-  "marzi-implementer": { edit: true, agentTool: false },
-  "marzi-release-auditor": { edit: false, agentTool: false },
+  "marzi-principal-coordinator": { edit: false, agents: ["marzi-architect", "marzi-test-red-team", "marzi-implementer", "marzi-release-auditor"], permissionMode: "default", effort: "max", skills: ["marzi-preflight"] },
+  "marzi-architect": { edit: false, agents: null, permissionMode: "plan", effort: "max", skills: ["marzi-preflight"] },
+  "marzi-test-red-team": { edit: true, agents: null, permissionMode: "default", effort: "max", isolation: "worktree", skills: ["marzi-adversarial-proof"] },
+  "marzi-implementer": { edit: true, agents: null, permissionMode: "default", effort: "max", skills: ["marzi-preflight"] },
+  "marzi-release-auditor": { edit: false, agents: null, permissionMode: "plan", effort: "max", skills: ["marzi-release-gate", "marzi-evidence-integrity"] },
+  "marzi-os-maintainer": { edit: true, agents: null, permissionMode: "default", effort: "max", skills: ["marzi-preflight"] },
 };
 const seenNames = new Set();
 for (const [name, expect] of Object.entries(AGENTS)) {
-  check("agent exists + frontmatter parses: " + name, () => {
+  check("agent native frontmatter: " + name, () => {
     const fm = frontmatter(P(".claude/agents", name + ".md"));
     if (fm.name !== name) throw new Error("frontmatter name mismatch: " + fm.name);
     if (seenNames.has(fm.name)) throw new Error("duplicate agent name");
     seenNames.add(fm.name);
-    const tools = (fm.tools || "").split(",").map((t) => t.trim());
-    const hasEdit = tools.includes("Edit") || tools.includes("Write") || tools.includes("NotebookEdit");
+    const t = parseTools(fm.tools);
+    if (t.agents === "UNRESTRICTED") throw new Error("bare unrestricted Agent tool present");
+    if (expect.agents === null) { if (t.agents) throw new Error("specialist must not delegate: " + fm.tools); }
+    else {
+      if (!t.agents) throw new Error("coordinator missing Agent(...) allowlist");
+      const got = [...t.agents].sort().join(","), want = [...expect.agents].sort().join(",");
+      if (got !== want) throw new Error("Agent allowlist mismatch: " + got);
+    }
+    const hasEdit = t.tools.includes("Edit") || t.tools.includes("Write") || t.tools.includes("NotebookEdit");
     if (hasEdit !== expect.edit) throw new Error("Edit/Write authority wrong: " + fm.tools);
-    if (tools.includes("Agent") !== expect.agentTool) throw new Error("Agent delegation wrong: " + fm.tools);
-    if (/memory/i.test(fm.memory || "")) throw new Error("persistent memory configured");
+    if (fm.permissionMode !== expect.permissionMode) throw new Error("permissionMode: " + fm.permissionMode);
+    if (fm.effort !== expect.effort) throw new Error("effort: " + fm.effort);
+    if (expect.isolation && fm.isolation !== expect.isolation) throw new Error("isolation: " + fm.isolation);
+    const skills = Array.isArray(fm.skills) ? fm.skills : [];
+    if (skills.join(",") !== expect.skills.join(",")) throw new Error("skills preload mismatch: " + skills.join(","));
+    if (fm.memory) throw new Error("persistent memory configured");
   });
 }
-check("coordinator delegation restricted to the four specialists (body contract)", () => {
-  const body = readFileSync(P(".claude/agents/marzi-principal-coordinator.md"), "utf8");
-  for (const a of ["marzi-architect", "marzi-test-red-team", "marzi-implementer", "marzi-release-auditor"])
-    if (!body.includes(a)) throw new Error("missing allowed specialist: " + a);
-  if (!/ONLY to/.test(body)) throw new Error("delegation restriction sentence missing");
-});
 
 /* ---------- skills ---------- */
 const SKILLS = ["marzi-preflight", "marzi-lifecycle-concurrency", "marzi-transaction-durability",
@@ -96,13 +119,19 @@ check("quality-gates.json: single canonical source, real commands", () => {
     const file = cmd.split(/\s+/).find((w) => w.includes("/") || w.endsWith(".js") || w.endsWith(".mjs"));
     if (file && !existsSync(P(file))) throw new Error("gate references missing file: " + file);
   }
+  for (const gate of ["CONTROL_PLANE_GATE", "PRODUCT_PRE_COMMIT_GATE"]) {
+    if (!g[gate].includes("git diff --check")) throw new Error(gate + " missing unstaged diff check");
+    if (!g[gate].includes("git diff --cached --check")) throw new Error(gate + " missing staged diff check");
+  }
 });
 
 /* ---------- synthetic role-policy tests ---------- */
+function policyRaw(rawInput) {
+  const r = spawnSync(process.execPath, [P(".claude/hooks/role-policy.mjs")], { input: rawInput, encoding: "utf8", env: { ...process.env, MARZI_GATE_RUNNING: "1" } });
+  return r.status;
+}
 function policy(agentType, toolName, toolInput) {
-  const input = JSON.stringify({ agent_type: agentType, tool_name: toolName, tool_input: toolInput, cwd: root });
-  const r = spawnSync(process.execPath, [P(".claude/hooks/role-policy.mjs")], { input, encoding: "utf8", env: { ...process.env, MARZI_GATE_RUNNING: "1" } });
-  return r.status; // 0 allow, 2 deny
+  return policyRaw(JSON.stringify({ agent_type: agentType, tool_name: toolName, tool_input: toolInput, cwd: root }));
 }
 const cases = [
   ["force-push denied (all roles)", () => policy("marzi-implementer", "Bash", { command: "git push --force origin x" }) === 2],
@@ -128,6 +157,27 @@ const cases = [
     return policy("", "Edit", { file_path: P(".claude/agents/example.md") }) === want;
   }],
   ["untyped product edit denied", () => policy("", "Edit", { file_path: P("public/index.html") }) === 2],
+  ["fail-closed: malformed hook input denied", () => policyRaw("this is not json") === 2],
+  ["fail-closed: Edit without tool_input denied", () => policy("marzi-implementer", "Edit", undefined) === 2],
+  ["fail-closed: Bash without command denied", () => policy("marzi-implementer", "Bash", {}) === 2],
+  ["refspec: HEAD:main denied", () => policy("marzi-implementer", "Bash", { command: "git push origin HEAD:main" }) === 2],
+  ["refspec: HEAD:master denied", () => policy("marzi-implementer", "Bash", { command: "git push origin HEAD:master" }) === 2],
+  ["refspec: HEAD:refs/heads/main denied", () => policy("marzi-implementer", "Bash", { command: "git push origin HEAD:refs/heads/main" }) === 2],
+  ["refspec: HEAD:refs/heads/master denied", () => policy("marzi-implementer", "Bash", { command: "git push origin HEAD:refs/heads/master" }) === 2],
+  ["refspec: src:refs/heads/main denied", () => policy("marzi-implementer", "Bash", { command: "git push origin refs/heads/x:refs/heads/main" }) === 2],
+  ["refspec: src:refs/heads/master denied", () => policy("marzi-implementer", "Bash", { command: "git push origin refs/heads/x:refs/heads/master" }) === 2],
+  ["refspec: +HEAD:x force denied", () => policy("marzi-implementer", "Bash", { command: "git push origin +HEAD:x" }) === 2],
+  ["refspec: +refs/heads/x:refs/heads/y force denied", () => policy("marzi-implementer", "Bash", { command: "git push origin +refs/heads/x:refs/heads/y" }) === 2],
+  ["refspec: deletion :main denied", () => policy("marzi-implementer", "Bash", { command: "git push origin :main" }) === 2],
+  ["refspec: --delete denied", () => policy("marzi-implementer", "Bash", { command: "git push origin --delete x" }) === 2],
+  ["refspec: safe feature push allowed", () => policy("marzi-implementer", "Bash", { command: "git push -u origin claude/feature-x" }) === 0],
+  ["maintainer control-plane edit allowed", () => policy("marzi-os-maintainer", "Edit", { file_path: P(".claude/settings.json") }) === 0],
+  ["maintainer product edit denied", () => policy("marzi-os-maintainer", "Edit", { file_path: P("public/index.html") }) === 2],
+  ["maintainer constitution edit denied", () => policy("marzi-os-maintainer", "Edit", { file_path: P(".ai/agents/MARZI_PRINCIPAL_ENGINEER.md") }) === 2],
+  ["installer fallback marked TEMPORARY + maintainer exists", () => {
+    const src = readFileSync(P(".claude/hooks/role-policy.mjs"), "utf8");
+    return src.includes("TEMPORARY_INSTALLER_FALLBACK") && existsSync(P(".claude/agents/marzi-os-maintainer.md"));
+  }],
 ];
 for (const [name, fn] of cases) check("policy: " + name, () => { if (!fn()) throw new Error("unexpected decision"); });
 
