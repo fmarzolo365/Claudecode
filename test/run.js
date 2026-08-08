@@ -56,6 +56,7 @@ function mkEl() {
       _c: new Set(),
       toggle(c, f) { f === undefined ? (this._c.has(c) ? this._c.delete(c) : this._c.add(c)) : (f ? this._c.add(c) : this._c.delete(c)); },
       add(c) { this._c.add(c); }, remove(c) { this._c.delete(c); }, has(c) { return this._c.has(c); },
+      contains(c) { return this._c.has(c); }, // real DOMTokenList API used by the call path
     },
     style: {}, dataset: {}, innerHTML: "", textContent: "", value: "", placeholder: "",
     setAttribute() {}, getAttribute() { return null; },
@@ -103,6 +104,7 @@ src += `\n;globalThis.__t = { T, TARGET, TARGETS, LEVELS, LEVEL_ORDER, SCENARIOS
   voiceOf, timerText, systemPrompt, S, chartSVG, loadTests, saveTestResult,
   marziNames, marziDescs, MARZI_STAGE_COUNT, marziStageForXp, currentMarziStage, renderCallCompanion, addCoins, COIN_PACKS, buyPack, planLimitToday, planUsedToday, PLAN_SECONDS,
   normalizeStats, claimReward, newRewardId, migratedName, migrateStorageKeys, micStatusFor, MARZI_KEY,
+  backupSnapshot, applyBackup, backupKeyAllowed, tappable, listen,
   TAB_HASH, tabFromHash, showTab, updateTopbar,
   ENGINE_CONTRACTS, validateProvider, createProviderRegistry, ScenarioRegistry, CharacterRegistry,
   createTranscript, PromptBuilder, createConversationSession, ENGINE, send, ask,
@@ -401,14 +403,28 @@ check("MARZI-001 corrections: ledger idempotency, per-call ids, hardened storage
   if (n.xp !== 0 || n.coins !== 0 || n.seconds !== 0) throw new Error("negative/NaN not zeroed");
   if (Array.isArray(n.days) || typeof n.days !== "object" || n.ownedItemIds.length !== 0) throw new Error("shapes not normalized");
   if (tt.normalizeStats(null).calls !== 0) throw new Error("null stats not defaulted");
-  // brand migration copies every legacy key; evolution key reads the new name
+  // brand migration copies ONLY keys whose new name the app actually reads
+  // (HARDENING-01: copies into unread names were orphaned data and a silent
+  // data-loss trap for any future rename - the contract intentionally changed)
   if (tt.migratedName("telefontrainer.stats") !== "marzi.stats.v1") throw new Error("stats key unmapped");
-  if (tt.migratedName("telefontrainer.vocab.kita.A1") !== "marzi.vocab.v1.kita.A1") throw new Error("vocab prefix unmapped");
+  if (tt.migratedName("telefontrainer.settings") !== "marzi.settings.v1") throw new Error("settings key unmapped");
   if (tt.MARZI_KEY !== "marzi.stage.v1") throw new Error("MARZI_KEY still legacy: " + tt.MARZI_KEY);
+  for (const dead of ["telefontrainer.fixes", "telefontrainer.words", "telefontrainer.tests",
+    "telefontrainer.pin", "telefontrainer.wish", "telefontrainer.vocab.kita.A1"])
+    if (tt.migratedName(dead) !== null) throw new Error("migration copies into an unread name: " + dead);
+  const storedKeys = () => { const out = []; for (let i = 0; i < localStorage.length; i++) out.push(localStorage.key(i)); return out.sort(); };
+  localStorage.removeItem("marzi.stage.v1"); // earlier sections may have set it
+  const migKeysBefore = storedKeys();
   localStorage.setItem("telefontrainer.marzi", "4");
+  localStorage.setItem("telefontrainer.fixes", "[]");
+  localStorage.setItem("telefontrainer.vocab.kita.A1", "[]");
   tt.migrateStorageKeys();
   if (localStorage.getItem("marzi.stage.v1") !== "4") throw new Error("migration did not copy stage");
-  localStorage.removeItem("telefontrainer.marzi"); localStorage.removeItem("marzi.stage.v1");
+  const migCreated = storedKeys().filter((k) => !migKeysBefore.includes(k) &&
+    !["telefontrainer.marzi", "telefontrainer.fixes", "telefontrainer.vocab.kita.A1"].includes(k));
+  if (migCreated.join() !== "marzi.stage.v1") throw new Error("migration created unread keys: " + migCreated.join());
+  ["telefontrainer.marzi", "marzi.stage.v1", "telefontrainer.fixes", "telefontrainer.vocab.kita.A1"]
+    .forEach((k) => localStorage.removeItem(k));
   // mic button states: busy wins, listening pulses, idle is ready
   if (tt.micStatusFor({ busy: true, listening: true }) !== "processing") throw new Error("busy should win");
   if (tt.micStatusFor({ busy: false, listening: true }) !== "listening") throw new Error("listening state");
@@ -554,6 +570,99 @@ checkAsync("MARZI-004 integration: live call flow runs on the engine, guarded", 
   if (spoken.join() !== "Praxis Dr. Weber, guten Tag!") throw new Error("voice provider not used: " + spoken.join());
   if (tt.S.busy) throw new Error("busy flag stuck");
   tt.S.session.end(); tt.S.session = null; tt.S.turns = [];
+});
+
+checkAsync("HARDENING-01 conversation: stale failures and callbacks are inert", async () => {
+  const sc = tt.SCENARIOS.find((s) => s.goals);
+  const mk = (providers) => tt.createConversationSession({ scenario: sc, level: "A1", lang: "en", goal: sc.goals[0], providers });
+
+  // engine contract: a request that FAILS after the call ended resolves null
+  // (dropped exactly like a late reply) instead of throwing into the UI
+  let rejectLate;
+  const late = mk({ get: () => ({ complete: () => new Promise((_, rej) => { rejectLate = rej; }) }) }).start();
+  const pLate = late.ask();
+  late.end();
+  rejectLate(new Error("network down"));
+  if ((await pLate) !== null) throw new Error("late failure must resolve null");
+  if (late.transcript.list().length !== 0) throw new Error("late failure touched the transcript");
+
+  // existing contract preserved: while ACTIVE, a failure still throws and
+  // the session survives for a retry
+  const active = mk({ get: () => ({ complete: async () => { throw new Error("boom"); } }) }).start();
+  let threw = false;
+  try { await active.ask(); } catch (e) { threw = true; }
+  if (!threw || active.state !== "active" || active.busy) throw new Error("active failure contract changed");
+
+  // UI contract: a failing request from call A must not clear the busy flag,
+  // raise the error banner or re-render once call B owns S.session
+  let rejectA;
+  tt.ENGINE.register("ai", { complete: () => new Promise((_, rej) => { rejectA = rej; }) });
+  tt.ENGINE.register("voice", { speak: async () => {}, stopAll() {} });
+  tt.S.lang = "en"; tt.S.active = sc; tt.S.turns = []; tt.S.handsFree = false;
+  tt.S.busy = false; tt.S.callError = false;
+  const sesA = mk(tt.ENGINE).start();
+  tt.S.session = sesA;
+  tt.ask(); // call A's request now in flight
+  sesA.end();
+  const sesB = mk(tt.ENGINE).start(); // call B takes over the UI
+  tt.S.session = sesB;
+  tt.S.busy = true; // B's own request is notionally in flight
+  rejectA(new Error("boom"));
+  await new Promise((r) => setTimeout(r, 0));
+  if (tt.S.busy !== true) throw new Error("stale failure cleared the new call's busy flag");
+  if (tt.S.callError) throw new Error("stale failure surfaced an error banner into the new call");
+  sesB.end(); tt.S.session = null; tt.S.busy = false; tt.S.turns = [];
+});
+
+check("HARDENING-01 backup: both key families, all-or-nothing restore", () => {
+  const dump = () => {
+    const keys = []; for (let i = 0; i < localStorage.length; i++) keys.push(localStorage.key(i));
+    return JSON.stringify(keys.sort().map((k) => [k, localStorage.getItem(k)]));
+  };
+  // the snapshot covers BOTH families - marzi.* progress was silently
+  // missing from backups before HARDENING-01
+  localStorage.setItem("marzi.stats.v1", JSON.stringify({ xp: 7, coins: 3 }));
+  localStorage.setItem("telefontrainer.fixes", "[]");
+  const snap = tt.backupSnapshot();
+  if (snap["marzi.stats.v1"] === undefined) throw new Error("backup omits marzi.* user data");
+  if (snap["telefontrainer.fixes"] === undefined) throw new Error("backup omits the legacy family");
+  if (Object.keys(snap).some((k) => !tt.backupKeyAllowed(k))) throw new Error("backup exports foreign keys");
+
+  // invalid candidates are rejected WITHOUT touching storage
+  const before = dump();
+  for (const bad of [null, [], "x", 42, { foreign: "1" }, { "marzi.stats.v1": 5 }, {}]) {
+    if (tt.applyBackup(bad).ok) throw new Error("invalid backup accepted: " + JSON.stringify(bad));
+  }
+  if (dump() !== before) throw new Error("a rejected backup mutated storage");
+
+  // valid restore: allowed keys applied, foreign keys ignored, legacy-only
+  // backup files (the old export format) remain restorable
+  const res = tt.applyBackup({ "telefontrainer.words": "[\"w\"]", evil: "1", "marzi.settings.v1": "{}" });
+  if (!res.ok || res.keys !== 2) throw new Error("restore result: " + JSON.stringify(res));
+  if (localStorage.getItem("evil") !== null) throw new Error("foreign key written");
+  if (localStorage.getItem("telefontrainer.words") !== "[\"w\"]") throw new Error("legacy key not restored");
+
+  // a mid-apply storage failure rolls back every key it wrote: no partial
+  // mixed state between old and new backup contents
+  localStorage.setItem("marzi.stats.v1", "ORIGINAL-STATS");
+  localStorage.setItem("marzi.settings.v1", "ORIGINAL-SET");
+  const realSet = localStorage.setItem;
+  localStorage.setItem = (k, v) => { if (v === "NEW-SET") throw new Error("quota"); return realSet(k, v); };
+  const r2 = tt.applyBackup({ "marzi.stats.v1": "NEW-STATS", "marzi.settings.v1": "NEW-SET" });
+  localStorage.setItem = realSet;
+  if (r2.ok || r2.code !== "save-failed") throw new Error("mid-apply failure not reported: " + JSON.stringify(r2));
+  if (localStorage.getItem("marzi.stats.v1") !== "ORIGINAL-STATS" ||
+      localStorage.getItem("marzi.settings.v1") !== "ORIGINAL-SET")
+    throw new Error("partial restore left mixed state");
+  ["marzi.stats.v1", "marzi.settings.v1", "telefontrainer.words", "telefontrainer.fixes"]
+    .forEach((k) => localStorage.removeItem(k));
+});
+
+check("HARDENING-01 DOM safety: AI text renders as text, never as markup", () => {
+  const out = tt.tappable('<img src=x onerror=alert(1)> kaputt "quote"', 0);
+  if (out.includes("<img")) throw new Error("hostile AI text reached the DOM as markup");
+  if (!out.includes("&lt;img")) throw new Error("hostile text not escaped");
+  if (out.includes('data-w="<')) throw new Error("word-tap attribute not escaped");
 });
 
 check("MARZI-005 practice + call UI: cards, states, bubbles, a11y", () => {
