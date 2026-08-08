@@ -116,7 +116,7 @@ src += `\n;globalThis.__t = { T, TARGET, TARGETS, LEVELS, LEVEL_ORDER, SCENARIOS
   closeEvolutionCelebration, evolutionCelebrationOpen, CELEBRATED_KEY, claimReward, loadRewardLedger,
   OUTFITS, STORE_CATS, LEGACY_OUTFIT_IDS, outfitById, outfitName, outfitState,
   purchaseOutfit, equipOutfit, unequipOutfit, renderStore, openOutfitPreview, normalizeWardrobe,
-  profileSnapshot, reviewedMistakeCount, ACHIEVEMENTS, achievementState, renderProfile, applyReduceMotion,
+  profileSnapshot, reviewedMistakeCount, ACHIEVEMENTS, achievementState, renderProfile, applyReduceMotion, profileXpModel,
   MARZI_STAGE_XP, currentStreak, loadWords,
   journeyNodes, journeyState, renderJourney, setJourneyView, goToScenario, renderLearn };`;
 eval(src);
@@ -1396,6 +1396,39 @@ check("MARZI-015 profile: verified data only, wardrobe, achievements, a11y", () 
   if (!body.includes(L.profReviewed)) throw new Error("mistakes reviewed missing");
   for (const g of ["grpLearning", "grpConversation", "grpSound", "grpAccount", "grpPrivacy"])
     if (!body.includes(L[g].replace(/&/g, "&amp;"))) throw new Error("settings group missing: " + g);
+
+  // ONE authoritative XP progression model: invariants hold at and around
+  // every canonical threshold - never against hardcoded screenshot values
+  for (const xp of [0, 100, 149, 150, 399, 400, 500, 799, 800, 1500, 2599, 2600, 5000]) {
+    const m = tt.profileXpModel(xp);
+    const stage = tt.marziStageForXp(xp);
+    const next = stage < 6 ? tt.MARZI_STAGE_XP[stage] : null;
+    if (m.stage !== stage) throw new Error("model stage diverges at " + xp);
+    if (m.currentXp !== xp || m.currentStageThreshold !== tt.MARZI_STAGE_XP[stage - 1]) throw new Error("thresholds at " + xp);
+    if (m.nextStageThreshold !== next) throw new Error("next threshold at " + xp);
+    if (next !== null) {
+      if (m.progressRequired !== next - m.currentStageThreshold) throw new Error("progressRequired at " + xp);
+      if (m.progressXp + m.xpRemaining !== m.progressRequired) throw new Error("progress split at " + xp);
+      if (Math.abs(m.progressRatio - m.progressXp / m.progressRequired) > 1e-9) throw new Error("ratio at " + xp);
+      if (m.nextStageName !== L.stageNames[stage]) throw new Error("next stage name at " + xp);
+    } else if (m.progressRatio !== 1 || m.xpRemaining !== 0 || m.nextStageName !== null) {
+      throw new Error("terminal stage model at " + xp);
+    }
+    if (!Object.isFrozen(m)) throw new Error("XP model must be frozen");
+  }
+  // rendered consistency: bar fill, the XP line, the caption AND the stage
+  // artwork all derive from the same model / stage identifier
+  localStorage.setItem("marzi.stats.v1", JSON.stringify({ days: {}, xp: 500, coins: 0 }));
+  tt.renderProfile();
+  const mid = document.getElementById("profileV1").innerHTML;
+  const m500 = tt.profileXpModel(500);
+  const pct = Math.round(100 * m500.progressRatio);
+  if (!mid.includes(`aria-valuenow="${pct}"`)) throw new Error("bar fill does not match the model");
+  if (!mid.includes(`${m500.progressXp} / ${m500.progressRequired} XP`)) throw new Error("XP line does not match the model");
+  if (!mid.includes(`${m500.xpRemaining} XP`)) throw new Error("remaining XP does not match the model");
+  if (!mid.includes(L.stageNames[m500.stage])) throw new Error("next stage name not rendered");
+  if (!mid.includes(`data-stage="${m500.stage}"`)) throw new Error("stage artwork not derived from the model stage");
+  if (!mid.includes(L.stageNames[m500.stage - 1])) throw new Error("stage name not derived from the model stage");
 
   // accessibility control: reduce motion is a real, persisted, additive setting
   const styles = html.slice(html.indexOf("<style>"), html.indexOf("</style>"));

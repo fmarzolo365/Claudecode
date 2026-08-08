@@ -4855,8 +4855,38 @@ function achievementState(p) {
    Missing production slots (strategy asks, current product lacks) - NOT
    faked as dead rows: standalone CEFR default (level is chosen in the
    Talk setup), learning goals, default voice, music, master volume,
-   haptics, reduced stimulation, account/sign-in, support contact. */
+   haptics, reduced stimulation, account/sign-in, support contact.
+
+   PROFILE_EXTERNAL_PLAN_UI_DEBT - the plan/minutes row delegates to the
+   existing authoritative openPlanScreen(), whose #planScreen sheet still
+   uses the legacy dark .sheet-screen styling rather than the canonical
+   cream/green system. That screen is owned by openPlanScreen (MARZI-014),
+   not by Profile, and its restyle is a separate milestone.
+
+   Stage art status: the summary avatar and the stage name both derive
+   from the SAME identifier (profileXpModel(xp).stage, suite-guarded).
+   marziArt() maps it to the canonical shipped per-stage vector
+   (marziSVG); no approved production raster exists for any stage slot
+   except the stage-1 call poses, so none is faked here. */
 const PROFILE_SPEED_ORDER = ["slow", "normal", "fast", "fluent"];
+/* ONE authoritative XP progression model: every number and the bar fill on
+   the Profile summary derive from this frozen object and the canonical
+   MARZI_STAGE_XP thresholds - nothing is computed twice. */
+function profileXpModel(xp) {
+  const currentXp = Math.max(0, Number(xp) || 0);
+  const stage = marziStageForXp(currentXp);
+  const currentStageThreshold = MARZI_STAGE_XP[stage - 1];
+  const nextStageThreshold = stage < MARZI_STAGE_COUNT ? MARZI_STAGE_XP[stage] : null;
+  const progressRequired = nextStageThreshold === null ? 0 : nextStageThreshold - currentStageThreshold;
+  const progressXp = nextStageThreshold === null ? 0 : currentXp - currentStageThreshold;
+  return Object.freeze({
+    currentXp, stage, currentStageThreshold, nextStageThreshold,
+    progressXp, progressRequired,
+    progressRatio: nextStageThreshold === null ? 1 : Math.min(1, progressXp / progressRequired),
+    xpRemaining: nextStageThreshold === null ? 0 : Math.max(0, nextStageThreshold - currentXp),
+    nextStageName: nextStageThreshold === null ? null : marziNames()[stage],
+  });
+}
 function profileContext() {
   const L = t();
   const st = loadStats();
@@ -4914,16 +4944,18 @@ function profileContext() {
       { id: "legal", icon: "list", title: "Impressum", href: "/impressum.html" },
     ] },
   ];
+  const xm = profileXpModel(p.xp); // the ONE progression calculation
   return {
     displayName: "", // PROFILE_DISPLAY_NAME_MISSING: no real name source
-    stage: p.stage, stageName: marziNames()[p.stage - 1],
+    stage: xm.stage, stageName: marziNames()[xm.stage - 1], // art + name share this id
     rankLine: `Lv. ${p.rank.n} \u00b7 ${rankTitleFor(p.rank)}`,
     pairLine: `${helpName} \u2192 ${TARGET.nativeName}`,
     levelToken: S.level,
-    xpCurrent: p.stageNext === null ? null : p.stageGained,
-    xpNext: p.stageNext === null ? null : p.stageSpan,
-    xpLine: p.stageNext === null ? L.profMax : `${p.xp} XP`,
-    xpCaption: p.stageNext === null ? "" : `${p.xpToNext} XP \u2192 ${marziNames()[p.stage]}`,
+    xpCurrent: xm.nextStageThreshold === null ? null : xm.progressXp,
+    xpNext: xm.nextStageThreshold === null ? null : xm.progressRequired,
+    xpPercent: Math.round(100 * xm.progressRatio),
+    xpLine: xm.nextStageThreshold === null ? L.profMax : `${xm.progressXp} / ${xm.progressRequired} XP`,
+    xpCaption: xm.nextStageThreshold === null ? "" : `${xm.xpRemaining} XP \u2192 ${xm.nextStageName}`,
     stats: [
       { value: p.coins, label: L.coins }, { value: p.streak, label: L.days },
       { value: p.calls, label: L.calls }, { value: p.minutes, label: L.minutes },
@@ -4945,6 +4977,7 @@ function buildProfileModel(ctx) {
     xpCurrent: ctx.xpCurrent != null ? ctx.xpCurrent : null,
     xpNext: ctx.xpNext != null ? ctx.xpNext : null,
     stage: ctx.stage, stageName: ctx.stageName, rankLine: ctx.rankLine, pairLine: ctx.pairLine,
+    xpPercent: Math.min(100, Math.max(0, Number(ctx.xpPercent) || 0)),
     xpLine: ctx.xpLine, xpCaption: ctx.xpCaption,
     stats: ctx.stats || [], achievements: ctx.achievements || [],
     achievementsEarned: ctx.achievementsEarned || 0,
@@ -4993,7 +5026,7 @@ function pmProfileRender(model, actions) {
        ${model.xpNext != null
          ? `<div class="pm-profile-xp"><span class="pm2-card-meta">${esc(L.next)}</span>
               <span class="pm2-card-meta"><bdi dir="ltr">${esc(model.xpLine)}</bdi></span></div>` +
-           UI.xpBar({ percent: Math.min(100, Math.round(100 * model.xpCurrent / Math.max(1, model.xpNext))) }) +
+           UI.xpBar({ percent: model.xpPercent }) + // same authoritative model as every number
            `<div class="pm2-card-meta"><bdi>${esc(model.xpCaption)}</bdi></div>`
          : `<div class="pm2-card-meta">${esc(model.xpLine)}</div>`}
      </article>
