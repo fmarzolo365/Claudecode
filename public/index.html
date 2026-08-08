@@ -3416,19 +3416,21 @@ function recordCall() {
     st.scenariosDone = st.scenariosDone || {};
     st.scenariosDone[sid] = (st.scenariosDone[sid] || 0) + 1;
   }
-  try { localStorage.setItem(STAT_KEY, JSON.stringify(st)); } catch (e) {}
+  // the reward itself committed atomically in claimReward; a failed counter
+  // write must at least be surfaced, never silently swallowed (HARDENING-02)
+  try { localStorage.setItem(STAT_KEY, JSON.stringify(st)); } catch (e) { try { notifyStorageFailure(); } catch (e2) {} }
   return gained;
 }
 function addXp(n) {
   const st = loadStats();
   st.xp = (st.xp || 0) + n;
-  try { localStorage.setItem(STAT_KEY, JSON.stringify(st)); } catch (e) {}
+  try { localStorage.setItem(STAT_KEY, JSON.stringify(st)); } catch (e) { try { notifyStorageFailure(); } catch (e2) {} }
 }
 /* ledger-bypassing coin primitive - only for flows without a completion id */
 function addCoins(n) {
   const st = loadStats();
   st.coins = (st.coins || 0) + n;
-  try { localStorage.setItem(STAT_KEY, JSON.stringify(st)); } catch (e) {}
+  try { localStorage.setItem(STAT_KEY, JSON.stringify(st)); } catch (e) { try { notifyStorageFailure(); } catch (e2) {} }
   SFX.coin();
   updateTopbar();
 }
@@ -3915,27 +3917,42 @@ const SFX = (() => {
 })();
 document.addEventListener("pointerdown", () => SFX.jingle(), { once: true });
 
-/* ---------- saved corrections (localStorage) ---------- */
+/* ---------- saved corrections (localStorage) ----------
+   HARDENING-02: these lists are the authoritative read boundary for user
+   learning data. A malformed persisted value (an object, a number, null
+   entries inside the array - possible after a hand-edited or truncated
+   backup restore) must degrade to "no entries", never crash Practice,
+   Profile or the mistakes screens - consumers use array methods and read
+   entry fields unguarded, and one broken auxiliary key must not take
+   unrelated screens down with it. Write failures surface through the
+   established notifyStorageFailure() channel instead of silently losing
+   user value while the UI claims success. */
+function loadStoredList(key) {
+  try {
+    const v = JSON.parse(localStorage.getItem(key));
+    return Array.isArray(v) ? v.filter((x) => x && typeof x === "object" && !Array.isArray(x)) : [];
+  } catch (e) { return []; }
+}
 const FIX_KEY = "telefontrainer.fixes";
 function loadFixes() {
-  try { return JSON.parse(localStorage.getItem(FIX_KEY)) || []; } catch (e) { return []; }
+  return loadStoredList(FIX_KEY);
 }
 function saveFix(text, fix, corrected) {
   const fixes = loadFixes();
   fixes.push({ text, fix, corrected: corrected || "", scenario: (S.active || S.scenario).id, level: S.level, date: new Date().toISOString().slice(0, 10) });
-  try { localStorage.setItem(FIX_KEY, JSON.stringify(fixes.slice(-300))); } catch (e) {}
+  try { localStorage.setItem(FIX_KEY, JSON.stringify(fixes.slice(-300))); } catch (e) { try { notifyStorageFailure(); } catch (e2) {} }
 }
 function saveFixes(arr) {
-  try { localStorage.setItem(FIX_KEY, JSON.stringify(arr)); } catch (e) {}
+  try { localStorage.setItem(FIX_KEY, JSON.stringify(arr)); } catch (e) { try { notifyStorageFailure(); } catch (e2) {} }
 }
 
 /* ---------- saved words (tapped during calls) ---------- */
 const WORD_KEY = "telefontrainer.words";
 function loadWords() {
-  try { return JSON.parse(localStorage.getItem(WORD_KEY)) || []; } catch (e) { return []; }
+  return loadStoredList(WORD_KEY);
 }
 function saveWordsList(arr) {
-  try { localStorage.setItem(WORD_KEY, JSON.stringify(arr.slice(-200))); } catch (e) {}
+  try { localStorage.setItem(WORD_KEY, JSON.stringify(arr.slice(-200))); } catch (e) { try { notifyStorageFailure(); } catch (e2) {} }
 }
 
 /* ---------- API calls (with optional PIN when hosted) ---------- */
@@ -5515,9 +5532,15 @@ function renderDrill() {
   $("drillBack").textContent = L.back;
   if (D.i >= D.q.length) {
     const xp = D.total * 3;
-    addXp(xp);
-    markDay("drillDays");
-    confettiBurst();
+    // transition guard (same convention as P.awarded in prep): the reward
+    // belongs to COMPLETING the drill, never to rendering the done card -
+    // a re-render of this state must not pay twice (HARDENING-02)
+    if (!D.rewarded) {
+      D.rewarded = true;
+      addXp(xp);
+      markDay("drillDays");
+      confettiBurst();
+    }
     $("drillCard").innerHTML =
       `<div class="said" style="font-family:var(--font-sans);font-size:19px;font-weight:700">🎉 ${esc(L.drillDone)}</div>
        <div style="margin-top:10px"><span class="chip">+${xp} XP</span></div>`;
@@ -5816,10 +5839,15 @@ function renderVocab() {
     $("vocabBody").innerHTML = `<p class="note">${esc(L.vocabLoading)}</p>`;
   } else if (V.i >= V.deck.length) {
     if (!V.deck.length) { $("vocabBody").innerHTML = `<p class="note">—</p>`; return; }
-    addXp(12);
-    addCoins(10);
-    markDay("vocabDays");
-    confettiBurst();
+    // transition guard (same convention as P.awarded in prep): pay for
+    // completing the set exactly once, never per render (HARDENING-02)
+    if (!V.rewarded) {
+      V.rewarded = true;
+      addXp(12);
+      addCoins(10);
+      markDay("vocabDays");
+      confettiBurst();
+    }
     $("vocabBody").innerHTML =
       `<div class="said" style="font-family:var(--font-sans);font-size:19px;font-weight:700">🎉 ${esc(L.vocabDone)}</div>
        <div style="margin-top:10px"><span class="chip">+12 XP</span> <span class="chip coin">+10 ${IC.coin(ICON.xxs)}</span></div>`;
@@ -7281,12 +7309,12 @@ async function evaluateCall() {
 /* ---------- weekly speaking test + progress chart ---------- */
 const TEST_KEY = "telefontrainer.tests";
 function loadTests() {
-  try { return JSON.parse(localStorage.getItem(TEST_KEY)) || []; } catch (e) { return []; }
+  return loadStoredList(TEST_KEY); // same malformed-value boundary as fixes/words
 }
 function saveTestResult(rec) {
   const arr = loadTests();
   arr.push(rec);
-  try { localStorage.setItem(TEST_KEY, JSON.stringify(arr.slice(-52))); } catch (e) {}
+  try { localStorage.setItem(TEST_KEY, JSON.stringify(arr.slice(-52))); } catch (e) { try { notifyStorageFailure(); } catch (e2) {} }
 }
 function daysSinceTest() {
   const arr = loadTests();

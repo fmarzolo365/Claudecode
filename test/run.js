@@ -12,33 +12,53 @@ const os = require("os");
 const { scanConflictMarkers } = require("./conflict-markers.js");
 
 let failures = 0;
+/* HARDENING-02 trust boundary: "all checks passed" must mean every
+   REGISTERED check actually EXECUTED. The sprint-01 baseline crashed
+   mid-run and silently skipped every queued async check while still
+   printing ok-lines, so the runner now counts registration vs execution,
+   converts escaped async failures into counted failures, and refuses to
+   exit green if the summary never printed (e.g. a hung check draining
+   the event loop would otherwise exit 0 with no output at all). */
+let registered = 0, executed = 0;
 const pending = []; // async checks settle before the summary
 /* async checks mutate shared app state (S), so they run one at a time and
    only after every synchronous check has finished */
 let chain = Promise.resolve();
 function checkAsync(name, fn) {
+  registered++;
   chain = chain.then(async () => {
-    try { await fn(); console.log("  ok  " + name); }
-    catch (e) { failures++; console.error("FAIL  " + name + " — " + e.message); }
+    try { await fn(); executed++; console.log("  ok  " + name); }
+    catch (e) { executed++; failures++; console.error("FAIL  " + name + " — " + e.message); }
   });
   pending.push(chain);
 }
 function check(name, fn) {
+  registered++;
   try {
     const r = fn();
     if (r && typeof r.then === "function") {
       pending.push(r.then(
-        () => console.log("  ok  " + name),
-        (e) => { failures++; console.error("FAIL  " + name + " — " + e.message); }
+        () => { executed++; console.log("  ok  " + name); },
+        (e) => { executed++; failures++; console.error("FAIL  " + name + " — " + e.message); }
       ));
       return;
     }
-    console.log("  ok  " + name);
+    executed++; console.log("  ok  " + name);
   } catch (e) {
-    failures++;
+    executed++; failures++;
     console.error("FAIL  " + name + " — " + e.message);
   }
 }
+/* an async failure escaping a check (un-awaited promise, exception inside a
+   continuation) must fail the run instead of killing it half-finished */
+process.on("unhandledRejection", (e) => {
+  failures++; process.exitCode = 1;
+  console.error("FAIL  (unhandled rejection) — " + ((e && e.message) || e));
+});
+process.on("uncaughtException", (e) => {
+  failures++; process.exitCode = 1;
+  console.error("FAIL  (uncaught exception) — " + ((e && e.message) || e));
+});
 
 /* ---------- browser stubs ---------- */
 const store = {};
@@ -101,7 +121,9 @@ if (!m) { console.error("FAIL  could not extract app script"); process.exit(1); 
 let src = m[1];
 src += `\n;globalThis.__t = { T, TARGET, TARGETS, LEVELS, LEVEL_ORDER, SCENARIOS, GROUPS, BASIC_DECKS, HELP_LANG,
   saidWord, normDe, lev, rankFor, recordCall, addXp, loadStats, loadFixes, saveFixes,
-  voiceOf, timerText, systemPrompt, S, chartSVG, loadTests, saveTestResult,
+  voiceOf, timerText, systemPrompt, S, chartSVG, loadTests, saveTestResult, daysSinceTest, loadStoredList,
+  renderDrill, renderVocab,
+  __setDrillState: (v) => { D = v; }, __setVocabState: (v) => { V = v; }, // harness-only scoped-fixture setters
   marziNames, marziDescs, MARZI_STAGE_COUNT, marziStageForXp, currentMarziStage, renderCallCompanion, addCoins, COIN_PACKS, buyPack, planLimitToday, planUsedToday, PLAN_SECONDS,
   normalizeStats, claimReward, newRewardId, migratedName, migrateStorageKeys, micStatusFor, MARZI_KEY,
   backupSnapshot, applyBackup, backupKeyAllowed, tappable, listen,
@@ -656,6 +678,88 @@ check("HARDENING-01 backup: both key families, all-or-nothing restore", () => {
     throw new Error("partial restore left mixed state");
   ["marzi.stats.v1", "marzi.settings.v1", "telefontrainer.words", "telefontrainer.fixes"]
     .forEach((k) => localStorage.removeItem(k));
+});
+
+check("HARDENING-02 storage: malformed learning lists degrade, never crash", () => {
+  // a broken auxiliary key must isolate: consumers keep working with "empty"
+  const cases = [
+    ["telefontrainer.fixes", "{}"], ["telefontrainer.fixes", "5"], ["telefontrainer.fixes", "\"x\""],
+    ["telefontrainer.words", "{\"de\":\"Haus\"}"], ["telefontrainer.tests", "12"],
+  ];
+  for (const [k, v] of cases) {
+    localStorage.setItem(k, v);
+    const got = tt.loadStoredList(k);
+    if (!Array.isArray(got) || got.length !== 0) throw new Error(`${k}=${v} not degraded to []`);
+  }
+  // malformed ENTRIES inside a valid array are dropped, valid ones survive
+  localStorage.setItem("telefontrainer.fixes", JSON.stringify([null, 5, "x", [], { text: "a", corrected: "A" }]));
+  const fx = tt.loadFixes();
+  if (fx.length !== 1 || fx[0].text !== "a") throw new Error("valid entry lost or junk kept: " + JSON.stringify(fx));
+  if (tt.reviewedMistakeCount() !== 0) throw new Error("consumer crashed on cleaned list");
+  localStorage.setItem("telefontrainer.tests", "{}");
+  if (tt.daysSinceTest() !== Infinity) throw new Error("test-history consumer crashed");
+  // one malformed aux key never poisons unrelated valid families
+  localStorage.setItem("marzi.stats.v1", JSON.stringify({ xp: 42, coins: 7, days: {} }));
+  localStorage.setItem("telefontrainer.words", "not json at all");
+  if (tt.loadWords().length !== 0) throw new Error("invalid JSON not degraded");
+  if (tt.loadStats().xp !== 42 || tt.loadStats().coins !== 7) throw new Error("sibling family affected");
+  ["telefontrainer.fixes", "telefontrainer.words", "telefontrainer.tests", "marzi.stats.v1"]
+    .forEach((k) => localStorage.removeItem(k));
+});
+
+check("HARDENING-02 rewards: completion pays once, re-render never pays", () => {
+  // drill/vocab rewards belong to the COMPLETION transition (same convention
+  // as prep's P.awarded); rendering the done card again must not pay again
+  localStorage.setItem("marzi.stats.v1", JSON.stringify({ xp: 100, coins: 50, days: {} }));
+  tt.S.lang = "en";
+  tt.__setDrillState({ q: [], i: 0, open: false, total: 5 }); // completed drill
+  tt.renderDrill();
+  if (tt.loadStats().xp !== 115) throw new Error("drill completion xp: " + tt.loadStats().xp);
+  tt.renderDrill();
+  tt.renderDrill(); // re-renders of the done card
+  if (tt.loadStats().xp !== 115) throw new Error("drill re-render paid again: " + tt.loadStats().xp);
+  tt.__setVocabState({ stage: "deck", deck: [{ de: "Haus", tr: "casa" }], i: 1, failed: false });
+  tt.renderVocab();
+  if (tt.loadStats().xp !== 127 || tt.loadStats().coins !== 60)
+    throw new Error(`vocab completion ${tt.loadStats().xp}/${tt.loadStats().coins}`);
+  tt.renderVocab();
+  if (tt.loadStats().xp !== 127 || tt.loadStats().coins !== 60) throw new Error("vocab re-render paid again");
+  // a NEW session pays again: repeatable practice rewards are unchanged
+  tt.__setDrillState({ q: [], i: 0, open: false, total: 5 });
+  tt.renderDrill();
+  if (tt.loadStats().xp !== 142) throw new Error("fresh drill session must pay: " + tt.loadStats().xp);
+  localStorage.removeItem("marzi.stats.v1");
+});
+
+check("HARDENING-02 backup: semantic round-trip restores user value", () => {
+  // STATE_A -> snapshot -> wipe/mutate -> apply -> semantic equality of the
+  // persisted user-value families (not byte equality of caches)
+  const stateA = {
+    "marzi.settings.v1": JSON.stringify({ lang: "ar", level: "B1", scenario: "apotheke", speed: "fast", sound: false }),
+    "marzi.stats.v1": JSON.stringify({ xp: 910, coins: 123, calls: 4, seconds: 300, days: {},
+      ownedItemIds: ["explorer", "rainbow"], equippedItemIds: ["rainbow"] }),
+    "marzi.reward-ledger.v1": JSON.stringify({ "call:abc": { xp: 20, coins: 20, claimedAt: "2026-01-01T00:00:00Z" } }),
+    "telefontrainer.words": JSON.stringify([{ de: "vorrätig", tr: "en stock" }]),
+    "telefontrainer.fixes": JSON.stringify([{ text: "a", fix: "b", corrected: "c" }]),
+  };
+  for (const [k, v] of Object.entries(stateA)) localStorage.setItem(k, v);
+  const snap = tt.backupSnapshot();
+  // simulate the disaster the backup exists for: state replaced/erased
+  localStorage.setItem("marzi.stats.v1", JSON.stringify({ xp: 0, coins: 0, days: {} }));
+  localStorage.removeItem("telefontrainer.words");
+  localStorage.removeItem("marzi.reward-ledger.v1");
+  const res = tt.applyBackup(snap);
+  if (!res.ok) throw new Error("round-trip apply failed: " + res.code);
+  const st = tt.loadStats();
+  if (st.xp !== 910 || st.coins !== 123 || st.calls !== 4) throw new Error("stats not restored semantically");
+  if (st.ownedItemIds.join() !== "explorer,rainbow" || st.equippedItemIds[0] !== "rainbow")
+    throw new Error("wardrobe not restored");
+  if (tt.loadWords().length !== 1 || tt.loadWords()[0].de !== "vorrätig") throw new Error("words not restored");
+  if (tt.loadFixes().length !== 1) throw new Error("fixes not restored");
+  if (tt.loadRewardLedger()["call:abc"] === undefined) throw new Error("reward ledger not restored");
+  const set = JSON.parse(localStorage.getItem("marzi.settings.v1"));
+  if (set.lang !== "ar" || set.speed !== "fast" || set.sound !== false) throw new Error("settings not restored");
+  Object.keys(stateA).forEach((k) => localStorage.removeItem(k));
 });
 
 check("HARDENING-01 DOM safety: AI text renders as text, never as markup", () => {
@@ -1448,7 +1552,8 @@ check("MARZI-015 profile: verified data only, wardrobe, achievements, a11y", () 
   localStorage.setItem("telefontrainer.fixes", JSON.stringify([
     { text: "a", corrected: "A", drilled: today }, { text: "b", corrected: "B", drilled: today }, { text: "c", corrected: "C" },
   ]));
-  localStorage.setItem("telefontrainer.words", JSON.stringify(["Haus", "Baum"]));
+  // real schema: word entries are objects (consumers read w.de / w.tr / w.raw)
+  localStorage.setItem("telefontrainer.words", JSON.stringify([{ de: "Haus", tr: "casa" }, { de: "Baum", tr: "árbol" }]));
 
   const p = tt.profileSnapshot();
   // every figure is the stored counter, never an estimate
@@ -1639,11 +1744,35 @@ check("progress chart renders points, CEFR bands and a projection", () => {
   for (const band of ["A1", "A2", "B1", "B2", "C1"]) if (!svg.includes(">" + band + "<")) throw new Error("band " + band);
 });
 
+/* ---------- harness self-test hooks (test/harness-selftest.js) ----------
+   Never active in a normal run: MARZI_SUITE_SELFTEST injects one synthetic
+   defect so the self-test can prove this harness actually reports failure
+   for every escape class instead of going silently green. */
+const SELFTEST = process.env.MARZI_SUITE_SELFTEST;
+if (SELFTEST === "sync-throw") check("selftest: synthetic sync failure", () => { throw new Error("synthetic sync"); });
+if (SELFTEST === "async-reject") checkAsync("selftest: synthetic async failure", async () => { throw new Error("synthetic async"); });
+if (SELFTEST === "escaped-rejection") check("selftest: escaped rejection", () => { Promise.reject(new Error("synthetic escape")); });
+if (SELFTEST === "hang") checkAsync("selftest: hung check", () => new Promise(() => {}));
+
 /* ---------- result ---------- */
+let summaryPrinted = false;
 Promise.all(pending).then(() => {
+  summaryPrinted = true;
+  if (executed !== registered) {
+    failures++;
+    console.error("\n" + (registered - executed) + " registered check(s) never executed (" + executed + "/" + registered + ")");
+  }
   if (failures) {
     console.error("\n" + failures + " check(s) failed");
-    process.exit(1);
+    process.exitCode = 1;
+    return;
   }
-  console.log("\nAll checks passed.");
+  console.log("\nAll checks passed (" + executed + "/" + registered + " executed).");
+});
+/* a run that dies or drains before the summary must never look green */
+process.on("exit", (code) => {
+  if (!summaryPrinted) {
+    console.error("FATAL: suite ended before all registered checks settled (" + executed + "/" + registered + " executed)");
+    if (code === 0) process.exitCode = 1;
+  }
 });
