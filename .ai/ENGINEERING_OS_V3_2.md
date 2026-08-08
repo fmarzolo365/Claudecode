@@ -27,7 +27,7 @@ EXTERNAL REVIEW.
 | marzi-test-red-team | adversarial red proofs, isolated worktree, explicit BASELINE_SHA | + Edit/Write | test/** only; no git writes |
 | marzi-implementer | only product editor; red-before-green mandatory | + Edit/Write | product+tests; control plane denied; commit/push gated |
 | marzi-release-auditor | diff-first independent audit | Read, Grep, Glob, Bash(ro), Skill | none |
-| marzi-os-maintainer | control-plane maintenance (explicit Product Owner launch only) | + Edit/Write | CLAUDE.md, .claude/**, OS record only |
+| marzi-os-maintainer | control-plane maintenance (explicit Product Owner launch only) | + Edit/Write | CLAUDE.md, .claude/**, OS record only, and only on the OS branch |
 
 All agents: `model: opus`, native `permissionMode` (plan for architect and
 release auditor, default otherwise), native `effort: max`, native `skills`
@@ -50,17 +50,26 @@ during installation.
 ## Hooks (.claude/hooks/) + settings
 
 - `role-policy.mjs` — PreToolUse on Bash + Edit|Write|NotebookEdit|MultiEdit.
-  agent_type-aware with the spec's untyped fallback (an absent agent_type
-  never grants product authority). Absolute git safety for every role:
+  agent_type-aware; unknown/absent agent_type is READ-ONLY with no
+  repository mutation authority at all. Absolute git safety for every role:
   force-push, hard reset, clean -f, branch -D, update-ref, commit-tree,
   --no-verify, rebase, merge, push-to-main, destructive checkout/restore →
   DENY (exit 2). Role write policy per §21/§24. Implementer `git commit`
   runs PRODUCT_PRE_COMMIT_GATE, `git push` runs PRODUCT_PRE_PUSH_GATE
-  (OS branch → CONTROL_PLANE_GATE); recursion guarded by
-  MARZI_GATE_RUNNING.
+  (OS branch → CONTROL_PLANE_GATE / CONTROL_PLANE_PUSH_GATE); recursion
+  guarded by MARZI_GATE_RUNNING.
+- `push-target.mjs` — SHARED deterministic push-destination parser imported
+  by BOTH role-policy.mjs and quality-gate.mjs, so hook and gate can never
+  disagree. Rejects --force/-f/--force-with-lease/--no-verify/--mirror/
+  --all/--delete/-d, leading `+` refspecs, deletion refspecs, any
+  destination normalizing to main/master (incl. `HEAD:main`,
+  `HEAD:refs/heads/main`, `refs/heads/x:refs/heads/main`) and, when no
+  refspec is given, a configured upstream destination of main/master.
 - `quality-gate.mjs` — canonical runner over `.claude/quality-gates.json`
-  (single gate source; push-target check: no main/master, no force, clean
-  committed state).
+  (single gate source). It performs its OWN push-target enforcement through
+  the shared parser and never relies on the role-policy hook having run;
+  it also requires a fully committed worktree and refuses to push from
+  main/master.
 - `subagent-stop-gate.mjs` — SubagentStop evidence-completeness only
   (terminal markers), lenient on missing fields, respects stop_hook_active.
 - `.claude/settings.json` — `agent: marzi-principal-coordinator`,
@@ -75,16 +84,62 @@ was VERIFIED LIVE during Control-Plane Audit Fixes 01 (the role policy
 denied the installing session's own probe and subsequent mutations after
 settings hot-reload). The §38 fresh-session activation test remains
 required for default-agent, auto-memory and skills-preload verification.
-UNTYPED FALLBACK STATUS: TEMPORARY - unknown agent_type still receives
-installation-path authority on the OS branch only, pending the
-marzi-os-maintainer closeout commit (safe-sequencing: hooks were live, so
-closing it in-session would have locked out the correcting session).
+
+## Control-plane closeout 01 (marzi-os-maintainer)
+
+TEMPORARY INSTALLER FALLBACK: **CLOSED**
+UNKNOWN AGENT MUTATION: **DENIED**
+RED-TEAM BASELINE ALIGNMENT: **NARROW DETACHED-WORKTREE EXCEPTION ACTIVE**
+OS MAINTAINER BRANCH: **claude/marzi-engineering-os-v3-2 ONLY**
+
+- Unknown/absent agent_type: Edit/Write/NotebookEdit/MultiEdit → DENY;
+  shell repository mutation → DENY; `git commit` → DENY; `git push` → DENY;
+  verified read-only inspection → ALLOW. No branch-based installer write
+  authority remains anywhere in the policy or the record. The session that
+  closed the fallback first proved its own `agent_type` from a live,
+  decision-neutral hook probe (removed before commit), satisfying the
+  safe-sequencing rule.
+- Red-team baseline alignment: Claude Code isolation starts a linked
+  worktree from the repository default branch, not necessarily from the
+  delegated BASELINE_SHA, so exact baseline ownership requires a detach.
+  Permitted grammar is exactly `git switch --detach <40-hex>` or
+  `git checkout --detach <40-hex>`, allowed ONLY when all ten conditions
+  hold: red-team agent; cwd in a linked worktree proven from Git metadata
+  (`--absolute-git-dir` ≠ `--git-common-dir` and nested under
+  `<common>/worktrees/`), not the main checkout; clean worktree; a single
+  full 40-character hex SHA resolving to an existing commit
+  (`cat-file -t` = commit); no branch creation; no pathspec; no chaining;
+  no redirection. Every other red-team Git write — including branch
+  switch/creation, path checkout, `--discard-changes`, commit and push —
+  remains DENIED. `reset --hard` is never an alignment mechanism.
+- OS maintainer: control-plane Edit/Write, `git commit` and `git push` are
+  mechanically restricted to `claude/marzi-engineering-os-v3-2`; on any
+  other branch all three are DENIED. File scope stays CLAUDE.md,
+  `.claude/**`, `.ai/ENGINEERING_OS_V3_2.md`; repository files change via
+  Edit/Write, never shell redirection. Constitution V2 remains immutable to
+  every role.
+- Protected local branches: for implementer and OS maintainer, `git commit`
+  while on main/master → DENY, and `git switch|checkout main|master` →
+  DENY. Read-only `git show|log|diff` against main/master stays ALLOWED.
+- Committed-scope verification: the self-test now checks the COMPLETE
+  committed path list for `a9af88b…HEAD` (not just public/, server.js,
+  test/, contracts/, .github/) against the OS allowlist and fails with
+  CONTROL_PLANE_SCOPE_VIOLATION on any other path.
+- Proof standard: the worktree-alignment, OS-branch and protected-branch
+  rules are proven BEHAVIORALLY — the real hook is spawned against
+  throwaway Git repositories and linked worktrees under /tmp. Source-string
+  assertions are explicitly NOT accepted as proof of these decisions.
 
 ## Quality gates (.claude/quality-gates.json)
 
-CONTROL_PLANE_GATE: hook/self-test syntax, OS self-test (62 checks incl.
-synthetic role tests), staged+unstaged diff checks (git diff --check +
+CONTROL_PLANE_GATE: hook/self-test syntax (incl. push-target.mjs), OS
+self-test (155 checks: agent/skill/settings/gate integrity, synthetic role
+decisions, shared push-parser units, direct /tmp worktree-alignment,
+OS-branch and protected-branch fixtures, working-tree AND committed-range
+scope), staged+unstaged diff checks (git diff --check +
 git diff --cached --check).
+CONTROL_PLANE_PUSH_GATE: CONTROL_PLANE_GATE + @PUSH_TARGET_CHECK — every
+push, control plane included, runs the shared push-target parser.
 PRODUCT_PRE_COMMIT_GATE: node --check server.js; node test/run.js;
 node test/harness-selftest.js; the three static validators
 (tools/validate_{store,profile,talk}_static.py — discovered, real); OS

@@ -17,10 +17,19 @@ in your task.
 
 BASELINE OWNERSHIP (first commands, before anything else)
 Report RED_TEAM_CWD, RED_TEAM_HEAD, RED_TEAM_WORKTREE_STATUS,
-DELEGATED_BASELINE_SHA. Your isolated worktree may not start from the parent
-HEAD: if RED_TEAM_HEAD != DELEGATED_BASELINE_SHA, switch non-destructively to
-the exact delegated commit (detached checkout inside YOUR isolated worktree
-only). If safe alignment is impossible: STOP and report
+DELEGATED_BASELINE_SHA. Your isolated worktree starts from the repository
+default branch, NOT necessarily from the delegated baseline: if
+RED_TEAM_HEAD != DELEGATED_BASELINE_SHA you must align non-destructively.
+The policy permits EXACTLY one command form for this, and nothing else:
+
+    git switch --detach <FULL_40_HEX_SHA>
+    git checkout --detach <FULL_40_HEX_SHA>
+
+It is allowed only inside YOUR clean linked worktree (never the main
+checkout), only with a full 40-character SHA that resolves to a real commit,
+with no branch creation, no pathspec, no chaining and no redirection. Never
+use `reset --hard` to align. If the worktree is dirty, if you are not in a
+linked worktree, or if alignment is otherwise impossible: STOP and report
 RED_TEAM_BASELINE_MISMATCH. No red result is valid unless the tested SHA
 equals the delegated SHA.
 

@@ -3,11 +3,16 @@
   "CONTROL_PLANE_GATE": [
     "node --check .claude/hooks/role-policy.mjs",
     "node --check .claude/hooks/quality-gate.mjs",
+    "node --check .claude/hooks/push-target.mjs",
     "node --check .claude/hooks/subagent-stop-gate.mjs",
     "node --check .claude/validation/os-selftest.mjs",
     "node .claude/validation/os-selftest.mjs",
     "git diff --check",
     "git diff --cached --check"
+  ],
+  "CONTROL_PLANE_PUSH_GATE": [
+    "@CONTROL_PLANE_GATE",
+    "@PUSH_TARGET_CHECK"
   ],
   "PRODUCT_PRE_COMMIT_GATE": [
     "node --check server.js",

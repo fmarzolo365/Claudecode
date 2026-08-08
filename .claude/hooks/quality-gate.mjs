@@ -10,6 +10,7 @@
 import { readFileSync } from "node:fs";
 import { execSync } from "node:child_process";
 import path from "node:path";
+import { analyzePush } from "./push-target.mjs";
 
 const mode = process.argv[2] || "commit";
 const cwd = process.cwd();
@@ -20,7 +21,8 @@ const gates = JSON.parse(readFileSync(path.join(root, ".claude/quality-gates.jso
 
 function gateName() {
   if (mode === "control-plane") return "CONTROL_PLANE_GATE";
-  if (branch === OS_BRANCH) return "CONTROL_PLANE_GATE";
+  /* every push - control plane included - must run @PUSH_TARGET_CHECK */
+  if (branch === OS_BRANCH) return mode === "push" ? "CONTROL_PLANE_PUSH_GATE" : "CONTROL_PLANE_GATE";
   return mode === "push" ? "PRODUCT_PRE_PUSH_GATE" : "PRODUCT_PRE_COMMIT_GATE";
 }
 
@@ -36,13 +38,21 @@ function resolveCommands(name, seen = new Set()) {
   return out;
 }
 
+/* The gate does its OWN push-target enforcement through the SAME shared
+   parser the role-policy hook uses - it never relies on the hook having run. */
+function upstreamOf() {
+  try { return execSync("git rev-parse --abbrev-ref --symbolic-full-name @{upstream}", { cwd: root, stdio: ["ignore", "pipe", "ignore"] }).toString().trim(); }
+  catch (e) { return null; }
+}
 function pushTargetCheck() {
-  if (["main", "master", ""].includes(branch)) throw new Error("push target check: pushing from '" + branch + "' is forbidden");
-  const gitCmd = process.env.MARZI_GIT_COMMAND || "";
-  if (/(--force\b|\s-f\b|--force-with-lease\b|--no-verify\b)/.test(gitCmd)) throw new Error("push target check: force/no-verify options are forbidden");
-  if (/git\s+push\b[^\n]*\s(origin\s+)?(main|master)\b/.test(gitCmd)) throw new Error("push target check: pushing to main/master is forbidden");
+  if (["main", "master", ""].includes(branch)) throw new Error("pushing from '" + branch + "' is forbidden");
+  /* When the concrete command is unavailable, analyse the implicit form so the
+     configured upstream destination is still inspected. */
+  const gitCmd = process.env.MARZI_GIT_COMMAND || "git push";
+  const violations = analyzePush(gitCmd, { currentBranch: () => branch, upstream: upstreamOf });
+  if (violations.length) throw new Error(violations.join("; "));
   const dirty = execSync("git status --porcelain", { cwd: root }).toString().trim();
-  if (dirty) throw new Error("push target check: worktree not fully committed:\n" + dirty);
+  if (dirty) throw new Error("worktree not fully committed:\n" + dirty);
 }
 
 const name = gateName();

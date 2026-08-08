@@ -11,6 +11,7 @@
 import { readFileSync } from "node:fs";
 import { execSync } from "node:child_process";
 import path from "node:path";
+import { analyzePush } from "./push-target.mjs";
 
 const deny = (reason) => { process.stderr.write("MARZI role-policy DENY: " + reason + "\n"); process.exit(2); };
 const allow = () => process.exit(0);
@@ -33,6 +34,24 @@ function currentBranch() {
   try { return execSync("git branch --show-current", { cwd, stdio: ["ignore", "pipe", "ignore"] }).toString().trim(); }
   catch (e) { return ""; }
 }
+function git(args) {
+  return execSync("git " + args, { cwd, stdio: ["ignore", "pipe", "ignore"] }).toString().trim();
+}
+/* Linked-worktree detection from Git metadata (NOT a path-name guess):
+   in a linked worktree the per-worktree git dir is <common>/worktrees/<name>,
+   so --absolute-git-dir differs from --git-common-dir and is nested under it. */
+function isLinkedWorktree() {
+  try {
+    const gitDir = path.resolve(cwd, git("rev-parse --absolute-git-dir"));
+    const common = path.resolve(cwd, git("rev-parse --git-common-dir"));
+    if (gitDir === common) return false;                       // main checkout
+    const wtRoot = path.join(common, "worktrees") + path.sep;
+    return gitDir.startsWith(wtRoot);
+  } catch (e) { return false; }
+}
+function worktreeClean() {
+  try { return git("status --porcelain") === ""; } catch (e) { return false; }
+}
 function relToRepo(p) {
   const root = repoRoot();
   if (!root || !p) return null;
@@ -42,24 +61,21 @@ function relToRepo(p) {
   return rel.split(path.sep).join("/");
 }
 
-/* role table: unknown/absent agent_type falls back to the untyped policy
-   defined by the V3.2 spec (never unrestricted product authority) */
-/* Unknown/absent agent_type: TEMPORARY_INSTALLER_FALLBACK - pending the
-   marzi-os-maintainer closeout commit. Hooks were verified LIVE during
-   Control-Plane Audit Fixes 01, so closing the fallback in that same
-   session would have locked the correcting session out before it could
-   commit (safe-sequencing rule). A fresh, explicitly authorized
-   marzi-os-maintainer session must remove this fallback so unknown
-   agent_type becomes read-only with no repository mutation authority. */
+/* Role table. Unknown or absent agent_type is READ-ONLY: it receives no
+   repository mutation authority of any kind (no Edit/Write, no shell
+   mutation, no commit, no push) and only verified read/audit commands.
+   The former branch-scoped installer fallback was CLOSED by the
+   marzi-os-maintainer closeout; no untyped write authority remains. */
 const ROLES = {
   "marzi-principal-coordinator": { edit: "none", bash: "readonly" },
   "marzi-architect": { edit: "none", bash: "readonly" },
   "marzi-test-red-team": { edit: "tests", bash: "redteam" },
   "marzi-implementer": { edit: "product", bash: "implementer" },
   "marzi-release-auditor": { edit: "none", bash: "readonly" },
-  "marzi-os-maintainer": { edit: "controlplane", bash: "implementer" },
+  "marzi-os-maintainer": { edit: "controlplane", bash: "maintainer" },
 };
-const role = ROLES[agent] || { edit: "installer", bash: "installer" };
+const UNTYPED = { edit: "none", bash: "readonly" };
+const role = ROLES[agent] || UNTYPED;
 
 const CONTROL_PLANE = [
   /^\.claude\//,
@@ -67,7 +83,8 @@ const CONTROL_PLANE = [
   /^\.ai\/ENGINEERING_OS_V3_2\.md$/,
   /^CLAUDE\.md$/,
 ];
-const OS_INSTALL_ALLOWED = [
+/* the ONLY paths the OS maintainer may write, and only on the OS branch */
+const OS_MAINTAINER_ALLOWED = [
   /^CLAUDE\.md$/,
   /^\.claude\//,
   /^\.ai\/ENGINEERING_OS_V3_2\.md$/,
@@ -75,6 +92,33 @@ const OS_INSTALL_ALLOWED = [
 const CONSTITUTION = /^\.ai\/agents\/MARZI_PRINCIPAL_ENGINEER\.md$/;
 const isControlPlane = (rel) => CONTROL_PLANE.some((r) => r.test(rel));
 const isTestPath = (rel) => rel.startsWith("test/");
+
+/* RED-TEAM BASELINE ALIGNMENT - narrow, mechanically verified exception.
+   Claude Code isolation starts a linked worktree from the repository default
+   branch, not necessarily from the delegated BASELINE_SHA, so the red team
+   must be able to detach onto the exact delegated commit inside ITS OWN
+   worktree. Permitted form (exactly, nothing else):
+       git switch   --detach <40-hex-sha>
+       git checkout --detach <40-hex-sha>
+   All ten conditions must hold: red-team role, linked (non-main) worktree,
+   clean worktree, single full 40-hex SHA that resolves to an existing commit,
+   no branch creation, no pathspec, no chaining, no redirection. */
+function isRedTeamBaselineAlignment(cmd) {
+  if (agent !== "marzi-test-red-team") return false;                    // (1)
+  if (/[;&|><`\n]|\$\(/.test(cmd)) return false;                        // (9)(10) no chaining/redirection/substitution
+  const t = cmd.trim().split(/\s+/);
+  if (t.length !== 4) return false;                                     // (7)(8) no extra args, no pathspec
+  if (t[0] !== "git") return false;
+  if (t[1] !== "switch" && t[1] !== "checkout") return false;
+  if (t[2] !== "--detach") return false;                                // (7) never -b/-B/-c/-C/--discard-changes
+  const sha = t[3];
+  if (!/^[0-9a-f]{40}$/.test(sha)) return false;                        // (5) full 40-hex only
+  if (!isLinkedWorktree()) return false;                                // (2)(3) linked worktree, not main checkout
+  if (!worktreeClean()) return false;                                   // (4)
+  try { if (git(`cat-file -t ${sha}`) !== "commit") return false; }     // (6) resolves to a real commit
+  catch (e) { return false; }
+  return true;
+}
 
 /* ---------------- Edit / Write / NotebookEdit ---------------- */
 if (tool === "Edit" || tool === "Write" || tool === "NotebookEdit" || tool === "MultiEdit") {
@@ -93,18 +137,13 @@ if (tool === "Edit" || tool === "Write" || tool === "NotebookEdit" || tool === "
   }
   if (role.edit === "controlplane") {
     if (CONSTITUTION.test(rel)) deny("Constitution V2 is immutable to every role");
-    if (OS_INSTALL_ALLOWED.some((r) => r.test(rel))) allow();
+    const br = currentBranch();
+    if (br !== OS_BRANCH)
+      deny(`os-maintainer may write only on ${OS_BRANCH} (current branch: ${br || "detached/unknown"})`);
+    if (OS_MAINTAINER_ALLOWED.some((r) => r.test(rel))) allow();
     deny(`os-maintainer may edit only CLAUDE.md, .claude/** and .ai/ENGINEERING_OS_V3_2.md (attempted: ${rel})`);
   }
-  if (role.edit === "installer") {
-    if (CONSTITUTION.test(rel)) deny("Constitution V2 is immutable to every role");
-    if (currentBranch() === OS_BRANCH) {
-      if (OS_INSTALL_ALLOWED.some((r) => r.test(rel))) allow();
-      deny(`untyped session on the OS branch may edit only Engineering OS installation paths (attempted: ${rel})`);
-    }
-    deny(`untyped session has no repository edit authority (attempted: ${rel}); use the V3.2 role agents`);
-  }
-  allow();
+  deny(`no repository edit authority for '${agent || "untyped session"}' (attempted: ${rel})`);
 }
 
 /* ---------------- Bash / shell ---------------- */
@@ -124,33 +163,26 @@ if (tool === "Bash" || tool === "PowerShell") {
     [/git\s+(commit|push)\b[^\n]*--no-verify\b/, "--no-verify"],
     [/git\s+rebase\b/, "rebase"],
     [/git\s+merge\b/, "merge (requires explicit Product Owner authorization)"],
-    [/git\s+push\b[^\n]*\s(origin\s+)?(main|master)(\s|$)/, "push to main/master"],
     [/git\s+checkout\b[^\n]*\s--\s/, "destructive checkout of paths"],
     [/git\s+restore\b(?![^\n]*--staged)/, "destructive restore"],
   ];
   for (const [re, label] of GIT_FORBIDDEN) if (re.test(cmd)) deny(`forbidden git operation (${label}): ${cmd.slice(0, 120)}`);
 
-  /* refspec-aware push destination hardening: token analysis, not a single
-     word regex. A leading + refspec is a force push; any refspec whose
-     destination normalizes to main/master is blocked; deletion refspecs
-     (empty source) are blocked. */
+  /* push destination hardening via the SHARED parser (same module the
+     quality gate uses, so the two protections cannot diverge): forbidden
+     options, leading + refspecs, deletion refspecs, protected destinations
+     and - when no refspec is given - the configured upstream target. */
   if (/git\s+push\b/.test(cmd)) {
-    const afterPush = cmd.slice(cmd.search(/git\s+push\b/));
-    for (const t of afterPush.split(/\s+/).slice(2)) {
-      if (!t || t.startsWith("--")) continue;
-      if (t.startsWith("+")) deny("leading + refspec is a force push: " + t);
-      const ci = t.indexOf(":");
-      if (ci >= 0) {
-        const src = t.slice(0, ci), dst = t.slice(ci + 1);
-        const dstNorm = dst.replace(/^refs\/heads\//, "");
-        if (src === "") deny("deletion refspec: " + t);
-        if (dstNorm === "main" || dstNorm === "master") deny("push to main/master via refspec: " + t);
-      } else {
-        const norm = t.replace(/^refs\/heads\//, "");
-        if (norm === "main" || norm === "master") deny("push targeting main/master: " + t);
-      }
-    }
+    const v = analyzePush(cmd, {
+      currentBranch: () => currentBranch(),
+      upstream: () => { try { return git("rev-parse --abbrev-ref --symbolic-full-name @{upstream}"); } catch (e) { return null; } },
+    });
+    if (v.length) deny("push target check: " + v.join("; "));
   }
+
+  /* local main/master protection: never commit on, or move onto, the
+     protected branches. Read-only inspection (show/log/diff) stays allowed. */
+  const PROTECTED_MOVE = /git\s+(switch|checkout)\b[^\n]*(\s|=)(main|master|refs\/heads\/main|refs\/heads\/master)(\s|$)/;
 
   const MUTATION_SIGNALS =
     /(>>?\s*[^&|\s]|\btee\b|\bsed\s+-i\b|\bperl\s+-p?i\b|\brm\s|\bmv\s|\bcp\s|\btouch\s|\btruncate\b|\bnpm\s+(i|install|add|update)\b|\byarn\s+(add|install)\b|\bpnpm\s+(add|install)\b|\bpip3?\s+install\b|\bnode\s+-e\b|\bpython3?\s+-c\b|\bchmod\b|\bchown\b|\bln\s)/;
@@ -166,14 +198,29 @@ if (tool === "Bash" || tool === "PowerShell") {
     allow();
   }
   if (role.bash === "redteam") {
-    if (GIT_WRITE.test(cmd)) deny("red team may not perform git write operations (no commit/push/history changes)");
+    if (GIT_WRITE.test(cmd)) {
+      if (isRedTeamBaselineAlignment(cmd)) allow();  // narrow detached-worktree exception
+      deny("red team may not perform git write operations (only `git switch|checkout --detach <full-40-hex-sha>` inside a clean linked worktree)");
+    }
     if (MUTATION_SIGNALS.test(cmd) && REPO_REF.test(cmd)) deny("red team: file changes must use Edit/Write under test/**, not shell writes");
     allow();
   }
-  if (role.bash === "implementer" || role.bash === "installer") {
-    if (MUTATION_SIGNALS.test(cmd) && CONTROL_REF.test(cmd)) deny("control-plane mutation via shell is prohibited");
-    if (role.bash === "installer" && MUTATION_SIGNALS.test(cmd) && REPO_REF.test(cmd) && currentBranch() !== OS_BRANCH)
-      deny("untyped session: repository mutation via shell requires the V3.2 role agents");
+  if (role.bash === "implementer" || role.bash === "maintainer") {
+    if (role.bash === "implementer" && MUTATION_SIGNALS.test(cmd) && CONTROL_REF.test(cmd))
+      deny("control-plane mutation via shell is prohibited");
+    if (role.bash === "maintainer" && MUTATION_SIGNALS.test(cmd) && REPO_REF.test(cmd))
+      deny("os-maintainer: repository file changes must use Edit/Write, not shell writes");
+    if (PROTECTED_MOVE.test(cmd)) deny("moving onto main/master is forbidden: " + cmd.slice(0, 120));
+    if (/git\s+commit\b/.test(cmd)) {
+      const br = currentBranch();
+      if (br === "main" || br === "master") deny(`committing directly on '${br}' is forbidden`);
+      if (role.bash === "maintainer" && br !== OS_BRANCH)
+        deny(`os-maintainer may commit only on ${OS_BRANCH} (current branch: ${br || "detached/unknown"})`);
+    }
+    if (/git\s+push\b/.test(cmd) && role.bash === "maintainer") {
+      const br = currentBranch();
+      if (br !== OS_BRANCH) deny(`os-maintainer may push only ${OS_BRANCH} (current branch: ${br || "detached/unknown"})`);
+    }
     if (/git\s+commit\b/.test(cmd) && process.env.MARZI_GATE_RUNNING !== "1") {
       try {
         execSync(`node "${path.join(repoRoot() || cwd, ".claude/hooks/quality-gate.mjs")}" commit`, {
