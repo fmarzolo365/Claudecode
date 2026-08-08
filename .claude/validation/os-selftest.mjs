@@ -13,6 +13,15 @@ import { analyzePush, parsePushArgs, normalizeRef } from "../hooks/push-target.m
 
 const root = execSync("git rev-parse --show-toplevel").toString().trim();
 const P = (...p) => path.join(root, ...p);
+/* Current-branch context of the invoking checkout. Some policy decisions are
+   branch-dependent BY DESIGN (the OS maintainer may write the control plane
+   only on the OS branch), so assertions evaluated against the real repository
+   cwd must expect the branch-correct decision instead of assuming this
+   checkout happens to sit on the OS branch. Detached HEAD yields "" and is
+   correctly treated as "not the OS branch". */
+const OS_BRANCH = "claude/marzi-engineering-os-v3-2";
+const branch = execSync("git branch --show-current", { cwd: root }).toString().trim();
+const onOsBranch = branch === OS_BRANCH;
 let failures = 0;
 let total = 0;
 const ok = (name) => console.log("  ok  " + name);
@@ -192,7 +201,11 @@ const cases = [
   ["refspec: deletion :main denied", () => policy("marzi-implementer", "Bash", { command: "git push origin :main" }) === 2],
   ["refspec: --delete denied", () => policy("marzi-implementer", "Bash", { command: "git push origin --delete x" }) === 2],
   ["refspec: safe feature push allowed", () => policy("marzi-implementer", "Bash", { command: "git push -u origin claude/feature-x" }) === 0],
-  ["maintainer control-plane edit allowed", () => policy("marzi-os-maintainer", "Edit", { file_path: P(".claude/settings.json") }) === 0],
+  /* Branch-correct expectation, NOT a skip: on the OS branch this must be
+     ALLOWED, on every other branch the hardened policy must DENY it. Both
+     states are additionally proven directly by the /tmp fixtures below. */
+  [`maintainer control-plane edit follows the current branch (${branch || "detached"} => ${onOsBranch ? "ALLOW" : "DENY"})`,
+    () => policy("marzi-os-maintainer", "Edit", { file_path: P(".claude/settings.json") }) === (onOsBranch ? 0 : 2)],
   ["maintainer product edit denied", () => policy("marzi-os-maintainer", "Edit", { file_path: P("public/index.html") }) === 2],
   ["maintainer constitution edit denied", () => policy("marzi-os-maintainer", "Edit", { file_path: P(".ai/agents/MARZI_PRINCIPAL_ENGINEER.md") }) === 2],
   ["TEMPORARY_INSTALLER_FALLBACK marker absent from policy and OS record", () => {
@@ -352,6 +365,11 @@ try {
     () => policyAt(REPO, "marzi-os-maintainer", "Edit", { file_path: cpFile }) === 0);
   check("maintainer branch: product Edit DENIED even on the OS branch",
     () => policyAt(REPO, "marzi-os-maintainer", "Edit", { file_path: path.join(REPO, "seed.txt") }) === 2);
+  /* Proven ON the OS branch, so the denial is the Constitution rule itself and
+     not the branch restriction - this keeps Constitution immutability proven
+     no matter which branch invoked the self-test. */
+  check("maintainer branch: Constitution V2 Edit DENIED even on the OS branch",
+    () => policyAt(REPO, "marzi-os-maintainer", "Edit", { file_path: path.join(REPO, ".ai/agents/MARZI_PRINCIPAL_ENGINEER.md") }) === 2);
   G(REPO, "checkout -q feature/x");
   check("maintainer branch: control-plane Edit DENIED off the OS branch",
     () => policyAt(REPO, "marzi-os-maintainer", "Edit", { file_path: cpFile }) === 2);
@@ -392,10 +410,9 @@ try {
 }
 
 /* ---------- installation scope + canon integrity (OS branch only) ---------- */
-const branch = execSync("git branch --show-current", { cwd: root }).toString().trim();
 const BASELINE = "a9af88baac16ea00eab73ba95f50fd666183862c";
 const OS_ALLOWED_PATH = /^(CLAUDE\.md|\.claude\/(settings\.json|quality-gates\.json|agents\/|skills\/|hooks\/|validation\/)|\.ai\/ENGINEERING_OS_V3_2\.md)/;
-if (branch === "claude/marzi-engineering-os-v3-2") {
+if (onOsBranch) {
   check("OS-branch changed paths within installation allowlist", () => {
     // -uall expands untracked directories; NO whole-output trim (it would
     // strip the first line's status column and corrupt the path slice)
