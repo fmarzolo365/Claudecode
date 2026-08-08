@@ -4867,7 +4867,22 @@ function achievementState(p) {
    from the SAME identifier (profileXpModel(xp).stage, suite-guarded).
    marziArt() maps it to the canonical shipped per-stage vector
    (marziSVG); no approved production raster exists for any stage slot
-   except the stage-1 call poses, so none is faked here. */
+   except the stage-1 call poses, so none is faked here.
+
+   PROFILE_STAGE_3_CANONICAL_VECTOR_INCORRECT - verified empirically on
+   the exact production output: marziSVG(3) (the `stage <= 3` branch of
+   marziSVG, tail path "M76 70 Q98 60 92 80 Q86 90 68 76") DOES contain
+   a tail and nothing clips or hides it, but the composition draws four
+   full limbs and only a vestigial tail lobe painted behind the body
+   ellipse, so at any size it reads as a frog rather than a tadpole with
+   emerging legs. The canonical stage-3 character art itself needs a
+   future replacement (owner: marziSVG in this file); it is NOT redrawn
+   inside this Profile milestone.
+   GLOBAL_STAGE_ART_DEBT_STORE - the Store hero pairs the current stage
+   name with the stage-1 call-pose raster
+   (/assets/marzi/call/stage-1/helping.webp, a fully formed frog), the
+   only approved production Marzi raster. Same future art-pack debt;
+   Store is untouched here. */
 const PROFILE_SPEED_ORDER = ["slow", "normal", "fast", "fluent"];
 /* ONE authoritative XP progression model: every number and the bar fill on
    the Profile summary derive from this frozen object and the canonical
