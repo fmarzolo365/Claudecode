@@ -1,0 +1,25 @@
+{
+  "comment": "Canonical MARZI quality gates (Engineering OS V3.2). Single source of truth: every gate runner reads THIS file. Commands were discovered from the repository (ci.yml, tools/, test/) - do not fork divergent lists.",
+  "CONTROL_PLANE_GATE": [
+    "node --check .claude/hooks/role-policy.mjs",
+    "node --check .claude/hooks/quality-gate.mjs",
+    "node --check .claude/hooks/subagent-stop-gate.mjs",
+    "node --check .claude/validation/os-selftest.mjs",
+    "node .claude/validation/os-selftest.mjs",
+    "git diff --check"
+  ],
+  "PRODUCT_PRE_COMMIT_GATE": [
+    "node --check server.js",
+    "node test/run.js",
+    "node test/harness-selftest.js",
+    "python3 tools/validate_store_static.py public/index.html",
+    "python3 tools/validate_profile_static.py public/index.html",
+    "python3 tools/validate_talk_static.py public/index.html",
+    "node .claude/validation/os-selftest.mjs",
+    "git diff --check"
+  ],
+  "PRODUCT_PRE_PUSH_GATE": [
+    "@PRODUCT_PRE_COMMIT_GATE",
+    "@PUSH_TARGET_CHECK"
+  ]
+}
